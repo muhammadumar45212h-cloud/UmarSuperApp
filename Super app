@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  overflow-x: hidden;
+}
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 15px;
+}
+.panel {
+  border: 1px solid #00ff00;
+  background: rgba(0, 255, 0, 0.05);
+  padding: 15px;
+  box-shadow: 0 0 10px #00ff00;
+  border-radius: 8px;
+}
+h3 {
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 5px #00ff00;
+  text-align: center;
+}
+.line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ff00, transparent);
+  margin: 10px 0;
+  animation: scan 2s linear infinite;
+}
+@keyframes scan {
+ 0% { transform: translateX(-100%); }
+ 100% { transform: translateX(100%); }
+}
+.hex {
+  font-size: 12px;
+  line-height: 1.8;
+  word-break: break-all;
+}
+.globe {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #00ff00;
+  border-radius: 50%;
+  margin: 15px auto;
+  background: radial-gradient(circle, rgba(0,255,0,0.2), transparent);
+}
+.back-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 12px;
+  width: 100%;
+  background: #00ff00;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+}
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <div class="panel">
+    <h3>SYSTEM CORE</h3>
+    <div class="line"></div>
+    <div class="hex">
+      1A6005/EC52<br>
+      15E/CB02AF<br>
+      9CB7/8C78C<br>
+      F4E2/AA001
+    </div>
+    <div class="globe"></div>
+  </div>
+  
+  <div class="panel">
+    <h3>DATA STREAM</h3>
+    <div class="line"></div>
+    <canvas id="graph" width="300" height="150"></canvas>
+    <div class="hex" style="margin-top:10px;">
+      INITIALIZING SECURE CONNECTION...<br>
+      BYPASSING FIREWALL...<br>
+      ACCESS GRANTED<br>
+      UMAR SUPER APP ACTIVE
+    </div>
+  </div>
+  
+  <div class="panel">
+    <h3>NETWORK LOG</h3>
+    <div class="line"></div>
+    <div class="hex" id="log"></div>
+  </div>
+</div>
+
+<button class="back-btn" onclick="window.location.href='/'">← Back to App</button>
+
+<script>
+const ctx = document.getElementById('graph').getContext('2d');
+let x = 0;
+setInterval(() => {
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.fillRect(0,0,300,150);
+  ctx.strokeStyle = '#00ff00';
+  ctx.beginPath();
+  for(let i=0; i<300; i+=10){
+    let y = 75 + Math.sin((i+x)*0.1)*40;
+    if(i==0) ctx.moveTo(i,y);
+    else ctx.lineTo(i,y);
+  }
+  ctx.stroke();
+  x++;
+}, 50);
+
+const logs = ['SCANNING...', 'DECRYPTING...', 'PACKET RECEIVED', 'TRACE ROUTE', 'CONNECTION STABLE', 'DATA SYNC'];
+const logEl = document.getElementById('log');
+setInterval(() => {
+  logEl.innerHTML = logs[Math.floor(Math.random()*logs.length)] + '<br>' + logEl.innerHTML;
+  if(logEl.innerHTML.split('<br>').length > 8) logEl.innerHTML = logEl.innerHTML.split('<br>').slice(0,8).join('<br>');
+}, 1000);
+</script>
+</body>
+</html>
