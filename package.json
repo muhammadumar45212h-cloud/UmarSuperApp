@@ -14,7 +14,8 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "multer": "^1.4.5",
+    "multer": "latest",
     "@supabase/supabase-js": "^2.39.0"
   }
 }
+
