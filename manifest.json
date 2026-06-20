@@ -1,15 +1,1 @@
-{
-  "name": "Umar Super App",
-  "short_name": "UmarApp",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "icons": [
-    {
-      "src": "/icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ]
-}
+{"name":"UmarTube","short_name":"UmarTube","start_url":"/","display":"standalone","background_color":"#0f0f0f","theme_color":"#ff0000","icons":[{"src":"https://i.pravatar.cc/192","sizes":"192x192","type":"image/png"}]}
