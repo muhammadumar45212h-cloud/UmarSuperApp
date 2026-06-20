@@ -1,18 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Umar Super App</title>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#000000">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Umar Super App</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,sans-serif}
+body{background:#000;color:white;overflow:hidden}
+.top-tabs{position:fixed;top:0;width:100%;height:50px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;gap:20px;align-items:center;z-index:20;font-size:16px;font-weight:600;backdrop-filter:blur(10px)}
+.top-tabs span{opacity:0.6}
+.top-tabs .active{opacity:1;border-bottom:2px solid white;padding-bottom:3px}
+.top-tabs .search{position:absolute;right:15px;font-size:22px}
+.video-feed{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;background:#000}
+.video-box{height:100vh;width:100%;position:relative;scroll-snap-align:start;background:#000;display:flex;align-items:center;justify-content:center}
+video{height:100%;width:100%;object-fit:cover}
+.right-bar{position:absolute;right:12px;bottom:100px;display:flex;flex-direction:column;gap:22px;align-items:center;z-index:10}
+.right-bar .avatar{position:relative}
+.right-bar .avatar img{width:48px;height:48px;border-radius:50%;border:2px solid white;object-fit:cover}
+.right-bar .avatar .plus{position:absolute;bottom:-5px;right:-5px;background:#ff2d55;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border:2px solid #000}
+.right-bar .icon{text-align:center;cursor:pointer}
+.right-bar .icon .emoji{font-size:32px}
+.right-bar .icon .count{font-size:12px;font-weight:600;margin-top:4px}
+.bottom-info{position:absolute;bottom:85px;left:12px;max-width:75%;z-index:10;text-shadow:0 2px 4px rgba(0,0,0,0.8)}
+.bottom-info .user{font-weight:700;font-size:17px;margin-bottom:5px}
+.bottom-info .desc{font-size:14px;line-height:1.3;margin-bottom:5px}
+.bottom-info .music{font-size:13px;display:flex;align-items:center;gap:5px}
+.bottom-nav{position:fixed;bottom:0;width:100%;height:65px;background:#000;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #222;z-index:20}
+.bottom-nav button{background:none;border:none;color:white;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;cursor:pointer}
+.bottom-nav .icon{font-size:26px}
+.bottom-nav .plus{background:linear-gradient(45deg,#ff0050,#00f2ea);padding:8px 25px;border-radius:8px;font-size:28px;font-weight:bold}
+.loading{text-align:center;padding:50px;font-size:18px}
+.error{text-align:center;padding:50px;color:#ff2d55}
+</style>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
 </head>
 <body>
-  <h1>Umar Super App is Running</h1>
+
+<div class="top-tabs">
+<span onclick="switchTab('stem')">STEM</span>
+<span onclick="switchTab('explore')">Explore</span>
+<span onclick="switchTab('following')">Following</span>
+<span class="active" onclick="switchTab('foryou')">For You</span>
+<span class="search" onclick="alert('Search khule ga')">🔍</span>
+</div>
+
+<div class="video-feed" id="feed"><div class="loading">Videos load ho rahi hain...</div></div>
+
+<div class="bottom-nav">
+<button onclick="switchTab('home')"><div class="icon">🏠</div>Home</button>
+<button onclick="switchTab('friends')"><div class="icon">👥</div>Friends</button>
+<button onclick="openUpload()"><div class="plus">+</div></button>
+<button onclick="switchTab('inbox')"><div class="icon">💬</div>Inbox<span style="position:absolute;top:5px;background:red;border-radius:10px;padding:1px 6px;font-size:10px">30</span></button>
+<button onclick="switchTab('profile')"><div class="icon">👤</div>Profile</button>
+</div>
+
+<script>
+// 🔥🔥 YAHAN APNA SERVER URL DAL DE BHAI 🔥🔥
+// Example: https://umar-api.vercel.app/api
+// Example: http://192.168.1.5:3000/api
+const API_URL = "https://umar-trading-app.vercel.app/api";
+
+async function loadVideos(){
+  if(API_URL === "PASTE_YOUR_API_URL_HERE"){
+    document.getElementById('feed').innerHTML = '<div class="error">Bhai API_URL dalna bhool gaya 😂<br>const API_URL = "tera-server.com/api" wali line me apna link paste kar</div>';
+    return;
+  }
+  
+  try{
+    const res = await fetch(API_URL + "/videos/foryou");
+    if(!res.ok) throw new Error('API error');
+    const videos = await res.json();
+    
+    if(videos.length === 0){
+      document.getElementById('feed').innerHTML = '<div class="loading">Koi video nahi hai. Pehle upload kar</div>';
+      return;
+    }
+    
+    let html = '';
+    videos.forEach(v=>{
+      html += `
+      <div class="video-box">
+        <video src="${v.video_url}" loop playsinline preload="metadata" muted></video>
+        
+        <div class="right-bar">
+          <div class="avatar" onclick="openProfile('${v.user_id}')">
+            <img src="${v.user_avatar}" onerror="this.src='https://i.pravatar.cc/100'">
+            <div class="plus">+</div>
+          </div>
+          <div class="icon" onclick="likeVideo('${v.id}', this)">
+            <div class="emoji">❤️</div>
+            <div class="count">${formatCount(v.likes || 0)}</div>
+          </div>
+          <div class="icon" onclick="openComments('${v.id}')">
+            <div class="emoji">💬</div>
+            <div class="count">${formatCount(v.comments || 0)}</div>
+          </div>
+          <div class="icon" onclick="saveVideo('${v.id}', this)">
+            <div class="emoji">🔖</div>
+            <div class="count">${formatCount(v.saves || 0)}</div>
+          </div>
+          <div class="icon" onclick="shareVideo('${v.video_url}')">
+            <div class="emoji">↗️</div>
+            <div class="count">${formatCount(v.shares || 0)}</div>
+          </div>
+        </div>
+        
+        <div class="bottom-info">
+          <div class="user">${v.username} ✌️</div>
+          <div class="desc">${v.caption || ''}</div>
+          <div class="music">🎵 ${v.music || 'Original Sound'}</div>
+        </div>
+      </div>`;
+    });
+    
+    document.getElementById('feed').innerHTML = html;
+    initAutoPlay();
+  }catch(err){
+    document.getElementById('feed').innerHTML = '<div class="error">API connect nahi ho rahi<br>URL check kar: ' + API_URL + '</div>';
+  }
+}
+
+function initAutoPlay(){
+  const vids = document.querySelectorAll('video');
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.muted = false;
+        e.target.play().catch(()=>{e.target.muted=true; e.target.play()})
+      }else{
+        e.target.pause()
+      }
+    })
+  },{threshold:0.7});
+  vids.forEach(v=>obs.observe(v));
+}
+
+async function likeVideo(id, el){
+  try{
+    await fetch(API_URL + "/video/" + id + "/like", {method:'POST'});
+    let count = el.querySelector('.count');
+    let num = parseInt(count.innerText.replace(/K|M/g,'')) || 0;
+    if(count.innerText.includes('K')) num = num*1000;
+    count.innerText = formatCount(num+1);
+  }catch(e){alert('Like nahi hua')}
+}
+
+function formatCount(n){
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000) return (n/1000).toFixed(1)+'K';
+  return n;
+}
+
+function switchTab(t){alert(t + ' page - API jodna baqi hai')}
+function openUpload(){alert('Upload page - /upload API banana hai server pe')}
+function openComments(id){alert('Comments API: /video/'+id+'/comments')}
+function openProfile(uid){alert('Profile khule ga user: '+uid)}
+function saveVideo(id, el){alert('Save ho gaya video: '+id)}
+function shareVideo(url){navigator.share?navigator.share({url}):alert('Copied: '+url)}
+
+loadVideos();
+</script>
 </body>
 </html>
-
