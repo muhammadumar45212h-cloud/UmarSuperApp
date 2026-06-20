@@ -3,214 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UmarTube</title>
+<title>Umar Super App</title>
 <style>
-* {margin: 0; padding: 0; box-sizing: border-box; font-family: Arial;}
-body {background: #0f0f0f; color: white;}
-.header {position: sticky; top: 0; background: #0f0f0f; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; z-index: 100;}
-.header h2 {color: red;}
-.container {max-width: 1000px; margin: auto; padding: 20px; padding-bottom: 80px;}
-.video-player {width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px;}
-.video-player video {width: 100%; height: 100%; border-radius: 12px;}
-.video-title {font-size: 20px; font-weight: bold; margin: 12px 0 5px;}
-.channel-row {display: flex; align-items: center; justify-content: space-between; margin: 12px 0; padding-bottom: 12px; border-bottom: 1px solid #222;}
-.channel {display: flex; align-items: center; gap: 10px;}
-.channel img {width: 40px; height: 40px; border-radius: 50%;}
-.sub-btn {background: white; color: black; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer;}
-.actions {display: flex; gap: 10px; margin: 12px 0;}
-.action-btn {background: #272727; border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;}
-.action-btn.liked {background: #cc0000;}
-.desc {background: #272727; padding: 12px; border-radius: 12px; margin: 15px 0; font-size: 14px;}
-.comments h3 {margin: 20px 0 10px;}
-.comment-box {display: flex; gap: 10px; margin-bottom: 20px;}
-.comment-box input {flex: 1; background: #222; border: none; border-bottom: 2px solid #444; padding: 8px; color: white; outline: none;}
-.comment-box button {background: #065fd4; border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer;}
-.comment {display: flex; gap: 10px; margin: 15px 0;}
-.comment img {width: 32px; height: 32px; border-radius: 50%;}
-
-/* CHAT STYLE */
-.chat-container {display: none; height: calc(100vh - 140px);}
-.chat-list {height: 100%; overflow-y: auto;}
-.chat-item {display: flex; gap: 12px; padding: 12px; cursor: pointer; border-bottom: 1px solid #222;}
-.chat-item:hover {background: #1a1a1a;}
-.chat-item img {width: 50px; height: 50px; border-radius: 50%;}
-.chat-box {display: none; height: calc(100vh - 140px); flex-direction: column;}
-.chat-header {padding: 12px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px;}
-.chat-messages {flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;}
-.msg {max-width: 70%; padding: 8px 12px; border-radius: 18px; font-size: 14px;}
-.msg.me {background: #065fd4; align-self: flex-end;}
-.msg.other {background: #272727; align-self: flex-start;}
-.chat-input {display: flex; padding: 10px; gap: 10px; border-top: 1px solid #222;}
-.chat-input input {flex: 1; background: #222; border: none; border-radius: 20px; padding: 10px 15px; color: white; outline: none;}
-.chat-input button {background: #065fd4; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;}
-
-.bottom-nav {position: fixed; bottom: 0; width: 100%; background: #0f0f0f; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #222;}
-.bottom-nav button {background: none; border: none; color: gray; font-size: 11px; cursor: pointer;}
-.bottom-nav button.active {color: white;}
-.hidden {display: none !important;}
+* {margin:0; padding:0; box-sizing:border-box; font-family: Roboto, Arial;}
+body {background:#0f0f0f; color:#fff;}
+header {position:sticky; top:0; background:#0f0f0f; padding:10px; border-bottom:1px solid #222; z-index:100;}
+.search-bar {width:100%; padding:10px; border-radius:20px; border:none; background:#222; color:#fff;}
+.profile {text-align:center; padding:30px 20px; border-bottom:1px solid #222;}
+.profile img {width:120px; height:120px; border-radius:50%; border:3px solid #ff0000;}
+.profile h2 {margin:10px 0 5px;}
+.profile p {color:#aaa; font-size:14px; margin-bottom:10px;}
+.sub-btn {background:#ff0000; border:none; padding:10px 30px; border-radius:20px; color:#fff; font-weight:bold; cursor:pointer;}
+.sub-btn.subscribed {background:#555;}
+.stats {display:flex; justify-content:space-around; padding:15px; border-bottom:1px solid #222;}
+.stat {text-align:center;}
+.video-grid {display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:10px; padding:10px;}
+.video-card {cursor:pointer;}
+.video-card img {width:100%; border-radius:10px;}
+.video-info {padding:8px;}
+.actions {display:flex; gap:15px; padding:8px; color:#aaa;}
+.actions span {cursor:pointer;}
+.actions span:hover {color:#fff;}
+.chat-box {position:fixed; bottom:0; right:20px; width:300px; height:400px; background:#1a1a1a; border:1px solid #333; border-radius:10px 10px 0 0; display:none; flex-direction:column;}
+.chat-header {padding:10px; background:#ff0000; border-radius:10px 10px 0 0; cursor:pointer;}
+.chat-body {flex:1; overflow-y:auto; padding:10px;}
+.chat-input {display:flex; padding:5px; border-top:1px solid #333;}
+.chat-input input {flex:1; background:#222; border:none; padding:8px; color:#fff; border-radius:5px;}
+.chat-input button {background:#ff0000; border:none; padding:8px 15px; margin-left:5px; border-radius:5px; color:#fff; cursor:pointer;}
+.msg {margin:5px 0; padding:5px 10px; background:#333; border-radius:10px; max-width:80%;}
 </style>
 </head>
 <body>
 
-<div class="header">
-<h2 id="headerTitle">UmarTube</h2>
-<span onclick="openMessages()" style="font-size: 24px; cursor: pointer;">💬</span>
+<header>
+<input class="search-bar" id="search" placeholder="Search" onkeyup="searchVideos()">
+</header>
+
+<div class="profile">
+<img id="profilePic" src="https://i.pravatar.cc/200" alt="Profile">
+<h2 id="userName">Umar Khan</h2>
+<p id="userBio">Loading bio...</p>
+<button class="sub-btn" id="subBtn" onclick="toggleSub()">Subscribe</button>
 </div>
 
-<div class="container" id="videoPage">
-<div class="loading">Video load ho rahi...</div>
+<div class="stats">
+<div class="stat"><b id="subCount">0</b><br>Subscribers</div>
+<div class="stat"><b id="videoCount">0</b><br>Videos</div>
 </div>
 
-<!-- CHAT PAGE -->
-<div class="container hidden" id="chatPage">
-<div class="chat-container" id="chatList">
-<h3 style="margin-bottom: 15px;">Messages</h3>
-<div class="chat-item" onclick="openChat('umar_khan', 'Umar Khan')">
-<img src="https://i.pravatar.cc/100?u=umar">
-<div><b>Umar Khan</b><br><small style="color: gray;">Bhai video zabardast thi</small></div>
-</div>
-<div class="chat-item" onclick="openChat('ali_dev', 'Ali Dev')">
-<img src="https://i.pravatar.cc/100?u=ali">
-<div><b>Ali Dev</b><br><small style="color: gray;">API kaise banayi?</small></div>
-</div>
-</div>
+<div class="video-grid" id="videoGrid"></div>
 
 <div class="chat-box" id="chatBox">
-<div class="chat-header">
-<span onclick="backToChatList()" style="font-size: 20px; cursor: pointer;">←</span>
-<img id="chatAvatar" src="" style="width: 35px; height: 35px; border-radius: 50%;">
-<b id="chatName"></b>
-</div>
-<div class="chat-messages" id="chatMessages">
-<div class="msg other">Salam bhai, kaisay ho?</div>
-</div>
+<div class="chat-header" onclick="toggleChat()">💬 Messages</div>
+<div class="chat-body" id="chatBody"></div>
 <div class="chat-input">
-<input placeholder="Message likho..." id="msgInput" onkeypress="if(event.key==='Enter') sendMsg()">
-<button onclick="sendMsg()">➤</button>
+<input id="chatInput" placeholder="Message..." onkeypress="if(event.key=='Enter') sendMsg()">
+<button onclick="sendMsg()">Send</button>
 </div>
 </div>
-</div>
-
-<div class="bottom-nav">
-<button onclick="showVideoPage()" class="active" id="navHome">🏠<br>Home</button>
-<button onclick="alert('Shorts')">▶️<br>Shorts</button>
-<button onclick="alert('Upload')">➕<br>Create</button>
-<button onclick="openMessages()" id="navMsg">💬<br>Messages</button>
-<button onclick="alert('Library')">📚<br>Library</button>
-</div>
+<button style="position:fixed; bottom:20px; right:20px; background:#ff0000; border:none; padding:15px; border-radius:50%; font-size:20px; cursor:pointer;" onclick="toggleChat()">💬</button>
 
 <script>
-const API_URL = "https://umar-super-app.vercel.app/api";
-let currentChatUser = '';
+const API = '/api';
+const userId = 'muhammadumar45212h-cloud';
 
-function showVideoPage() {
-document.getElementById('videoPage').classList.remove('hidden');
-document.getElementById('chatPage').classList.add('hidden');
-document.getElementById('headerTitle').textContent = 'UmarTube';
-document.getElementById('navHome').classList.add('active');
-document.getElementById('navMsg').classList.remove('active');
-loadFeed();
-}
+// Profile load
+fetch(`${API}/profile/${userId}`).then(r=>r.json()).then(d=>{
+document.getElementById('profilePic').src = d.photo;
+document.getElementById('userName').innerText = d.name;
+document.getElementById('userBio').innerText = d.bio;
+document.getElementById('subCount').innerText = d.subs;
+document.getElementById('subBtn').innerText = d.isSubscribed ? 'Subscribed' : 'Subscribe';
+document.getElementById('subBtn').classList.toggle('subscribed', d.isSubscribed);
+});
 
-function openMessages() {
-document.getElementById('videoPage').classList.add('hidden');
-document.getElementById('chatPage').classList.remove('hidden');
-document.getElementById('chatList').style.display = 'block';
-document.getElementById('chatBox').style.display = 'none';
-document.getElementById('headerTitle').textContent = 'Messages';
-document.getElementById('navMsg').classList.add('active');
-document.getElementById('navHome').classList.remove('active');
-}
-
-function openChat(user, name) {
-currentChatUser = user;
-document.getElementById('chatList').style.display = 'none';
-document.getElementById('chatBox').style.display = 'flex';
-document.getElementById('chatName').textContent = name;
-document.getElementById('chatAvatar').src = `https://i.pravatar.cc/100?u=${user}`;
-document.getElementById('headerTitle').textContent = name;
-}
-
-function backToChatList() {
-document.getElementById('chatList').style.display = 'block';
-document.getElementById('chatBox').style.display = 'none';
-document.getElementById('headerTitle').textContent = 'Messages';
-}
-
-// LIVE MESSAGE SEND
-function sendMsg() {
-let input = document.getElementById('msgInput');
-if(input.value.trim() === '') return;
-let msgDiv = document.createElement('div');
-msgDiv.className = 'msg me';
-msgDiv.textContent = input.value;
-document.getElementById('chatMessages').appendChild(msgDiv);
-input.value = '';
-document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-}
-
-async function loadFeed() {
-const v = {id: 1, title: "Karachi Vlog #1", views: 12500, likes: 850, username: "umar_official", caption: "Aaj Karachi ghoomte hain 🔥", video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"};
-document.getElementById('videoPage').innerHTML = `
-<div class="video-player"><video src="${v.video_url}" controls autoplay></video></div>
-<div class="video-title">${v.title}</div>
-<div style="color: gray; font-size: 14px;">${formatCount(v.views)} views • 2 din pehle</div>
-<div class="channel-row">
-<div class="channel">
-<img src="https://i.pravatar.cc/100?u=${v.username}">
-<div><b>@${v.username}</b><br><small style="color: gray;">1.2M subscribers</small></div>
-</div>
-<button class="sub-btn" onclick="subscribe(this)">Subscribe</button>
+// Videos load
+function loadVideos(q=''){
+fetch(`${API}/videos?search=${q}`).then(r=>r.json()).then(videos=>{
+document.getElementById('videoCount').innerText = videos.length;
+document.getElementById('videoGrid').innerHTML = videos.map(v=>`
+<div class="video-card">
+<img src="${v.thumbnail}">
+<div class="video-info">
+<b>${v.title}</b><br>
+<small>${v.views} views</small>
 </div>
 <div class="actions">
-<button class="action-btn" onclick="likeVideo(${v.id}, this)">👍 <span>${formatCount(v.likes)}</span></button>
-<button class="action-btn" onclick="alert('Share')">↗️ Share</button>
-<button class="action-btn" onclick="alert('Save')">💾 Save</button>
-</div>
-<div class="desc">${v.caption}</div>
-<div class="comments">
-<h3>Comments 1.6K</h3>
-<div class="comment-box">
-<img src="https://i.pravatar.cc/100?u=me" style="width:32px;height:32px;border-radius:50%;">
-<input placeholder="Comment add karein..." id="commentInput">
-<button onclick="addComment(${v.id})">Post</button>
-</div>
-<div id="commentsList">
-<div class="comment"><img src="https://i.pravatar.cc/100?u=user1"><div><b>user1</b><br>Bhai zabardast video hai 🔥</div></div>
+<span onclick="like('${v.id}')">👍 ${v.likes}</span>
+<span onclick="comment('${v.id}')">💬 ${v.comments}</span>
+<span onclick="share('${v.id}')">↗️ ${v.shares}</span>
+<span onclick="toggleAudio('${v.id}')">${v.audio ? '🔊' : '🔇'}</span>
 </div>
 </div>
-`;
+`).join('');
+});
+}
+loadVideos();
+
+// Subscribe
+function toggleSub(){
+fetch(`${API}/subscribe`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId, targetId:'umar123'})})
+.then(r=>r.json()).then(d=>{
+document.getElementById('subCount').innerText = d.subs;
+document.getElementById('subBtn').innerText = d.subscribed ? 'Subscribed' : 'Subscribe';
+document.getElementById('subBtn').classList.toggle('subscribed', d.subscribed);
+});
 }
 
-function likeVideo(id, btn) {
-let span = btn.querySelector('span');
-let count = parseInt(span.textContent.replace('K','')) * 1000;
-if(btn.classList.contains('liked')) {count -= 1; btn.classList.remove('liked');} 
-else {count += 1; btn.classList.add('liked');}
-span.textContent = formatCount(count);
+// Like/Comment/Share
+function like(id){
+fetch(`${API}/like`, {method:'POST', body:JSON.stringify({videoId:id, userId})})
+.then(r=>r.json()).then(()=>loadVideos(document.getElementById('search').value));
+}
+function comment(id){ let c=prompt('Comment:'); if(c) fetch(`${API}/comment`,{method:'POST',body:JSON.stringify({videoId:id,userId,text:c})}).then(()=>loadVideos()); }
+function share(id){ fetch(`${API}/share`,{method:'POST',body:JSON.stringify({videoId:id,userId})}).then(()=>loadVideos()); }
+
+// Search
+function searchVideos(){ loadVideos(document.getElementById('search').value); }
+
+// Chat
+function toggleChat(){ document.getElementById('chatBox').style.display = document.getElementById('chatBox').style.display=='flex'?'none':'flex'; loadChat(); }
+function loadChat(){
+fetch(`${API}/chat/${userId}`).then(r=>r.json()).then(msgs=>{
+document.getElementById('chatBody').innerHTML = msgs.map(m=>`<div class="msg"><b>${m.from}:</b> ${m.text}</div>`).join('');
+});
+setTimeout(loadChat, 2000); // 2 sec me auto refresh = live chat
+}
+function sendMsg(){
+let txt = document.getElementById('chatInput').value;
+if(txt) fetch(`${API}/chat/send`,{method:'POST',body:JSON.stringify({from:userId,to:'all',text:txt})}).then(()=>{document.getElementById('chatInput').value=''; loadChat();});
 }
 
-function addComment(id) {
-let input = document.getElementById('commentInput');
-if(input.value.trim() === '') return;
-let list = document.getElementById('commentsList');
-list.innerHTML = `<div class="comment"><img src="https://i.pravatar.cc/100?u=me"><div><b>me</b><br>${input.value}</div></div>` + list.innerHTML;
-input.value = '';
-}
-
-function subscribe(btn) {
-btn.textContent = btn.textContent === 'Subscribe' ? 'Subscribed' : 'Subscribe';
-btn.style.background = btn.textContent === 'Subscribed' ? '#444' : 'white';
-btn.style.color = btn.textContent === 'Subscribed' ? 'white' : 'black';
-}
-
-function formatCount(n) {
-if(n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-if(n >= 1000) return (n/1000).toFixed(1) + 'K';
-return n;
-}
-
-loadFeed();
+// Audio toggle
+function toggleAudio(id){ fetch(`${API}/audio/${id}`,{method:'POST'}).then(()=>loadVideos()); }
 </script>
 </body>
 </html>
