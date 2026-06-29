@@ -13,6 +13,7 @@ export default function Home() {
     const saved = localStorage.getItem("allPosts");
     if(saved) {
       const data = JSON.parse(saved);
+      // purani posts me like, share add karo agar nahi hai
       const updated = data.map(p => ({
        ...p,
         likes: p.likes || 0,
@@ -23,14 +24,7 @@ export default function Home() {
     }
     const subs = localStorage.getItem("subs");
     if(subs) setSubscribers(parseInt(subs));
-    const subStatus = localStorage.getItem("subStatus");
-    if(subStatus) setIsSubscribed(subStatus === "true");
   }, []);
-
-  const savePosts = (updated) => {
-    setPosts(updated);
-    localStorage.setItem("allPosts", JSON.stringify(updated));
-  };
 
   const handleLike = (id) => {
     const updated = posts.map(p => {
@@ -40,19 +34,21 @@ export default function Home() {
       }
       return p;
     });
-    savePosts(updated);
+    setPosts(updated);
+    localStorage.setItem("allPosts", JSON.stringify(updated));
   };
 
   const handleShare = (id) => {
     const updated = posts.map(p => {
       if(p.id === id) {
         navigator.clipboard.writeText(window.location.href);
-        alert("✅ Link copy ho gayi! Ab friend ko bhej do");
+        alert("Link copy ho gayi! Friend ko bhej do");
         return {...p, shares: p.shares + 1};
       }
       return p;
     });
-    savePosts(updated);
+    setPosts(updated);
+    localStorage.setItem("allPosts", JSON.stringify(updated));
   };
 
   const handleComment = (id) => {
@@ -68,7 +64,6 @@ export default function Home() {
     const newCount = newStatus? subscribers + 1 : subscribers - 1;
     setSubscribers(newCount);
     localStorage.setItem("subs", newCount.toString());
-    localStorage.setItem("subStatus", newStatus.toString());
   };
 
   return (
@@ -79,27 +74,25 @@ export default function Home() {
       paddingBottom: "100px"
     }}>
 
-      {/* Top Bar */}
       <div style={{padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-        <h1 style={{fontSize: "24px", fontWeight: "bold"}}>Feed</h1>
-        <Link href="/upload" style={{fontSize: "35px", color: "#25D366", textDecoration: "none", fontWeight: "bold"}}>+</Link>
+        <h1 style={{fontSize: "24px", fontWeight: "bold", color: "#fff"}}>Feed</h1>
+        <Link href="/upload" style={{fontSize: "35px", color: "#25D366", textDecoration: "none"}}>+</Link>
       </div>
 
-      {/* Posts Feed */}
+      {/* Posts */}
       {posts.length === 0? (
         <div style={{textAlign: "center", marginTop: "150px", color: "#555"}}>
-          <div style={{fontSize: "70px", marginBottom: "20px"}}>📱</div>
-          <p style={{fontSize: "18px"}}>Abhi koi post nahi hai</p>
-          <p style={{fontSize: "14px", color: "#444"}}>Upar + dabao pehli post karo</p>
+          <div style={{fontSize: "70px"}}>📱</div>
+          <p>+ dabao pehli post karo</p>
         </div>
       ) : (
         posts.map(post => (
           <div key={post.id} style={{
             marginBottom: "30px",
-            borderBottom: "1px solid #111"
+            position: "relative"
           }}>
 
-            {/* 1. Upar Profile + Subscribe + Button */}
+            {/* 1. Upar Profile + Subscribe Button */}
             <div style={{
               display: "flex",
               alignItems: "center",
@@ -138,7 +131,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 2. Text Post ka Nishan */}
+            {/* 2. Text Post ka nishan */}
             {post.type === "text" && (
               <div style={{
                 padding: "0 15px 10px",
@@ -146,7 +139,7 @@ export default function Home() {
                 alignItems: "center",
                 gap: "8px"
               }}>
-                <span style={{fontSize: "13px", background: "#1a1a1a", padding: "5px 12px", borderRadius: "15px", border: "1px solid #333"}}>📝 Text Post</span>
+                <span style={{fontSize: "14px", background: "#222", padding: "4px 10px", borderRadius: "12px"}}>📝 Text Post</span>
               </div>
             )}
 
@@ -158,8 +151,7 @@ export default function Home() {
                 style={{
                   width: "100%",
                   maxHeight: "70vh",
-                  background: "#111",
-                  display: "block"
+                  background: "#111"
                 }}
               />
             ) : (
@@ -168,17 +160,16 @@ export default function Home() {
                 fontSize: "18px",
                 lineHeight: "1.7",
                 whiteSpace: "pre-wrap",
-                minHeight: "200px",
-                color: "#ddd"
+                minHeight: "200px"
               }}>{post.caption}</div>
             )}
 
-            {/* 4. Neeche 4 Line: Like Comment Share Subscribe Count */}
+            {/* 4. Neeche 4 Line: Like Comment Share Subscribe */}
             <div style={{
               display: "flex",
               justifyContent: "space-around",
               padding: "15px 0",
-              borderTop: "1px solid #222"
+              borderBottom: "1px solid #222"
             }}>
               <button onClick={() => handleLike(post.id)} style={{
                 background: "none",
@@ -253,7 +244,7 @@ export default function Home() {
                   onChange={(e) => setCommentText({...commentText, [post.id]: e.target.value})}
                   style={{
                     flex: 1,
-                    padding: "10px 15px",
+                    padding: "10px",
                     background: "#222",
                     border: "none",
                     borderRadius: "20px",
@@ -262,13 +253,12 @@ export default function Home() {
                   }}
                 />
                 <button onClick={() => handleComment(post.id)} style={{
-                  background: "linear-gradient(135deg,#667eea,#764ba2)",
+                  background: "#667eea",
                   border: "none",
                   color: "white",
                   padding: "10px 20px",
                   borderRadius: "20px",
-                  cursor: "pointer",
-                  fontWeight: "bold"
+                  cursor: "pointer"
                 }}>Send</button>
               </div>
             </div>
@@ -277,7 +267,7 @@ export default function Home() {
         ))
       )}
 
-      {/* Bottom Nav - Sirf + ka link hai, baaki text */}
+      {/* Bottom Nav same */}
       <div style={{
         position: "fixed",
         bottom: 0,
@@ -292,10 +282,10 @@ export default function Home() {
         backdropFilter: "blur(20px)"
       }}>
         <div style={{color: "#25D366", textAlign: "center", fontSize: "12px"}}>🏠<br/>Home</div>
-        <div style={{color: "#666", textAlign: "center", fontSize: "12px"}}>📈<br/>Market</div>
-        <Link href="/upload" style={{background: "linear-gradient(135deg,#667eea 0%,#764ba2 100%)", width: "55px", height: "55px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "30px", color: "white", textDecoration: "none", marginTop: "-20px", boxShadow: "0 5px 20px rgba(102,126,234,0.4)"}}>+</Link>
-        <div style={{color: "#666", textAlign: "center", fontSize: "12px"}}>💬<br/>Chat</div>
-        <div style={{color: "#666", textAlign: "center", fontSize: "12px"}}>👤<br/>Profile</div>
+        <Link href="/chat" style={{color: "#666", textAlign: "center", fontSize: "12px", textDecoration: "none"}}>📈<br/>Market</Link>
+        <Link href="/upload" style={{background: "linear-gradient(135deg,#667eea 0%,#764ba2 100%)", width: "55px", height: "55px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "30px", color: "white", textDecoration: "none", marginTop: "-20px"}}>+</Link>
+        <Link href="/messages" style={{color: "#666", textAlign: "center", fontSize: "12px", textDecoration: "none"}}>💬<br/>Chat</Link>
+        <Link href="/profile" style={{color: "#666", textAlign: "center", fontSize: "12px", textDecoration: "none"}}>👤<br/>Profile</Link>
       </div>
     </div>
   );
