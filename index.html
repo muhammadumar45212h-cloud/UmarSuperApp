@@ -1,80 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Umar Super App</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { background: black; color: white; }
-  .active { color: #3b82f6; }
-</style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { background: black; color: white; }</style>
 </head>
 <body class="pb-20">
 
-<div id="content"></div>
+<div id="content" class="h-screen w-full"></div>
 
-<div class="fixed bottom-0 w-full h-16 bg-gray-900 flex justify-around items-center border-t border-gray-800">
-  <button onclick="showPage('home')" id="btn-home" class="text-2xl active">🏠</button>
-  <button onclick="showPage('profile')" id="btn-profile" class="text-2xl">👤</button>
-  <button onclick="showPost()" class="bg-blue-600 w-14 h-14 rounded-full text-3xl font-bold -mt-4">+</button>
-  <button onclick="showPage('chat')" id="btn-chat" class="text-2xl">💬</button>
-  <button onclick="showPage('text')" id="btn-text" class="text-2xl">📝</button>
-</div>
-
-<div id="postModal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
-  <div class="bg-gray-900 p-5 rounded-xl w-full max-w-md">
-    <h2 class="text-xl font-bold mb-3">Naya Post</h2>
-    <div class="flex gap-2 mb-3">
-      <button onclick="setType('video')" id="btn-video" class="flex-1 bg-blue-600 py-2 rounded">Video</button>
-      <button onclick="setType('text')" id="btn-text-type" class="flex-1 bg-gray-700 py-2 rounded">Text</button>
-    </div>
-    <div id="videoInput"><input type="file" accept="video/*" class="w-full mb-2"></div>
-    <textarea id="textInput" class="hidden w-full h-24 bg-gray-800 p-2 rounded mb-2 text-white"></textarea>
-    <div class="flex gap-2">
-      <button onclick="hidePost()" class="flex-1 bg-gray-700 py-2 rounded">Cancel</button>
-      <button onclick="handlePost()" class="flex-1 bg-blue-600 py-2 rounded font-bold">Post</button>
-    </div>
-  </div>
+<!-- Nav Bar -->
+<div class="fixed bottom-0 w-full h-16 bg-gray-900 flex justify-around items-center border-t border-gray-800 z-50">
+  <button onclick="showPage('home')">🏠</button>
+  <button onclick="showPage('profile')">👤</button>
+  <button onclick="showPost()" class="bg-blue-600 w-14 h-14 rounded-full text-3xl font-bold -mt-8">+</button>
+  <button onclick="showPage('chat')">💬</button>
+  <button onclick="showPage('market')">📈</button>
 </div>
 
 <script>
 function showPage(page) {
-  document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-'+page).classList.add('active');
-  
   const content = document.getElementById('content');
-  if(page === 'home') content.innerHTML = '<h2 class="p-4 text-xl">Forex Market</h2><div id="tradingview" class="w-full h-[400px]"></div>';
-  if(page === 'profile') content.innerHTML = '<div class="p-4 text-center"><img src="https://i.pravatar.cc/150" class="w-24 h-24 rounded-full mx-auto"><h3 class="mt-3 text-xl">Umar Boss</h3></div>';
-  if(page === 'chat') content.innerHTML = '<div class="p-4"><input id="msgInput" class="w-full bg-gray-800 p-2 rounded text-white"><button onclick="sendMsg()" class="mt-2 w-full bg-green-600 py-2 rounded">Send</button></div>';
-  if(page === 'home') loadTradingView();
+  if(page === 'home') {
+    content.innerHTML = `
+      <div class="snap-y snap-mandatory h-screen overflow-y-scroll">
+        <div class="snap-start h-screen relative flex items-center justify-center bg-gray-900">
+          <p>Video Feed Here</p>
+          <div class="absolute right-4 bottom-20 flex flex-col gap-6 text-2xl">
+            <span>❤️</span><span>💬</span><span>↪️</span><span>➕</span>
+          </div>
+        </div>
+      </div>`;
+  } else if(page === 'profile') {
+    content.innerHTML = `
+      <div class="p-4 flex flex-col items-center pt-10">
+        <img src="https://i.pravatar.cc/150" class="w-24 h-24 rounded-full border-2 border-blue-500">
+        <h3 class="text-xl font-bold mt-2">Umar Boss</h3>
+        <div class="flex gap-8 mt-4">
+          <div class="text-center"><p class="font-bold">10</p><p class="text-xs">Posts</p></div>
+          <div class="text-center"><p class="font-bold">1.2K</p><p class="text-xs">Subs</p></div>
+          <div class="text-center"><p class="font-bold">50K</p><p class="text-xs">Likes</p></div>
+        </div>
+        <div class="grid grid-cols-3 gap-1 mt-6 w-full">
+          ${[...Array(9)].map(() => '<div class="aspect-square bg-gray-800"></div>').join('')}
+        </div>
+      </div>`;
+  } else if(page === 'market') {
+    content.innerHTML = `<div id="tv_chart" class="h-screen w-full"></div>`;
+    loadTV();
+  } else if(page === 'chat') {
+    content.innerHTML = `<div class="p-4 text-center pt-20">WhatsApp Style Chat Coming Soon</div>`;
+  }
 }
 
-function handlePost() {
-  alert('Post ho gaya!'); 
-  hidePost();
+function loadTV() {
+  const s = document.createElement('script');
+  s.src = 'https://s3.tradingview.com/tv.js';
+  s.onload = () => new TradingView.widget({container_id: 'tv_chart', symbol: 'FX:XAUUSD', theme: 'dark', autosize: true});
+  document.body.appendChild(s);
 }
 
-function sendMsg() {
-  const msg = document.getElementById('msgInput').value;
-  fetch('/api/send', { method: 'POST', body: JSON.stringify({text: msg}) });
-  alert('Message Sent to Go Server!');
-}
-
-function showPost() { document.getElementById('postModal').classList.remove('hidden'); }
-function hidePost() { document.getElementById('postModal').classList.add('hidden'); }
-function setType(type) {
-  document.getElementById('videoInput').classList.toggle('hidden', type !== 'video');
-  document.getElementById('textInput').classList.toggle('hidden', type !== 'text');
-}
-
-function loadTradingView() {
-  const script = document.createElement('script');
-  script.src = 'https://s3.tradingview.com/tv.js';
-  script.onload = () => { new TradingView.widget({container_id: 'tradingview', symbol: 'FX:XAUUSD', theme: 'dark', autosize: true}); };
-  document.body.appendChild(script);
-}
-
+function showPost() { alert("File Selector Open..."); }
 showPage('home');
 </script>
 </body>
