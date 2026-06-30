@@ -10,12 +10,10 @@ export default function Home() {
 
   return (
     <div className="bg-black text-white min-h-screen pb-20">
-
       {page === 'home' && <ForexChart />}
       {page === 'profile' && <Profile photo={photo} setPhoto={setPhoto} subs={subs} likes={likes} />}
       {page === 'chat' && <Chat />}
       {page === 'text' && <TextFeed />}
-
       {showPost && <PostModal onClose={() => setShowPost(false)} />}
 
       <div className="fixed bottom-0 w-full h-16 bg-gray-900 flex justify-around items-center border-t border-gray-800">
@@ -30,7 +28,7 @@ export default function Home() {
 }
 
 function ForexChart() {
-  const ref = useRef()
+  const ref = useRef(null)
   useEffect(() => {
     const s = document.createElement('script')
     s.src = 'https://s3.tradingview.com/tv.js'
@@ -46,9 +44,14 @@ function ForexChart() {
       })
     }
     ref.current.id = 'tv_' + Date.now()
-    document.body.appendChild(s)
+    ref.current.appendChild(s)
   }, [])
-  return <div><h2 className="p-4 text-xl font-bold">Forex Live Market</h2><div ref={ref} className="w-full h-[400px]" /></div>
+  return (
+    <div>
+      <h2 className="p-4 text-xl font-bold">Forex Live Market</h2>
+      <div ref={ref} className="w-full h-[400px]" />
+    </div>
+  )
 }
 
 function Chat() {
@@ -61,7 +64,7 @@ function Chat() {
     }
   }
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex-col">
       <h2 className="p-4 text-xl font-bold border-b border-gray-800">Messages</h2>
       <div className="flex-1 overflow-y-auto p-4">
         {msgs.map((m,i) => (
@@ -71,7 +74,7 @@ function Chat() {
         ))}
       </div>
       <div className="flex p-3 bg-gray-900">
-        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Message..." className="flex-1 bg-gray-800 rounded px-3 py-2" />
+        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Message..." className="flex-1 bg-gray-800 rounded px-3 py-2 text-white" />
         <button onClick={send} className="ml-2 bg-green-600 px-4 py-2 rounded">Send</button>
       </div>
     </div>
@@ -94,12 +97,12 @@ function PostModal({ onClose }) {
         </div>
         {type === 'video' && (
           <>
-            <input type="file" accept="video/*" onChange={e => setFile(e.target.files[0])} className="w-full mb-2 text-sm" />
-            <input placeholder="Description" value={desc} onChange={e => setDesc(e.target.value)} className="w-full bg-gray-800 p-2 rounded mb-2" />
+            <input type="file" accept="video/*" onChange={e => setFile(e.target.files[0])} className="w-full mb-2 text-sm text-white" />
+            <input placeholder="Description" value={desc} onChange={e => setDesc(e.target.value)} className="w-full bg-gray-800 p-2 rounded mb-2 text-white" />
           </>
         )}
         {type === 'text' && (
-          <textarea placeholder="Kya likhna hai" value={text} onChange={e => setText(e.target.value)} className="w-full h-24 bg-gray-800 p-2 rounded mb-2" />
+          <textarea placeholder="Kya likhna hai" value={text} onChange={e => setText(e.target.value)} className="w-full h-24 bg-gray-800 p-2 rounded mb-2 text-white" />
         )}
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 bg-gray-700 py-2 rounded">Cancel</button>
@@ -116,7 +119,7 @@ function Profile({ photo, setPhoto, subs, likes }) {
       <h2 className="text-xl font-bold mb-5">Profile</h2>
       <div className="flex flex-col items-center">
         <label>
-          <img src={photo || 'https://i.pravatar.cc/150'} className="w-24 h-24 rounded-full border-4 border-blue-500" />
+          <img src={photo || 'https://i.pravatar.cc/150'} className="w-24 h-24 rounded-full border-4 border-blue-500" alt="profile" />
           <input type="file" accept="image/*" onChange={e => setPhoto(URL.createObjectURL(e.target.files[0]))} className="hidden" />
         </label>
         <h3 className="mt-3 text-xl font-bold">Umar Boss</h3>
