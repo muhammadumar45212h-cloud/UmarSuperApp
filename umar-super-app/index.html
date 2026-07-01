@@ -1,0 +1,25 @@
+// Supabase se data fetch karne ka logic
+async function loadFeed() {
+    const { data, error } = await supabase
+        .from('videos') // Aapke table ka naam
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (data) {
+        // Yahan video feed update karne ka code (DOM manipulation)
+        console.log("Videos loaded:", data);
+    }
+}
+
+// Profile stats (Likes/Subs)
+async function loadProfile() {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('likes, subscribers')
+        .eq('user_id', currentUser.id);
+        
+    if (data) {
+        document.getElementById('like-count').innerText = data[0].likes;
+        document.getElementById('sub-count').innerText = data[0].subscribers;
+    }
+}
