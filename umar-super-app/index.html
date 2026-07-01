@@ -1,25 +1,36 @@
-// Supabase se data fetch karne ka logic
-async function loadFeed() {
-    const { data, error } = await supabase
-        .from('videos') // Aapke table ka naam
-        .select('*')
-        .order('created_at', { ascending: false });
+<!-- Trading Chart Container -->
+<div id="chart-container" style="max-width: 95%; margin: auto; overflow: hidden;">
+    <!-- Aapka live chart script yahan rahega -->
+</div>
 
-    if (data) {
-        // Yahan video feed update karne ka code (DOM manipulation)
-        console.log("Videos loaded:", data);
-    }
-}
+<!-- Profile Section -->
+<div id="profile-section">
+    <img id="user-photo" src="default-avatar.png" alt="Profile" onclick="editProfile()">
+    <h2 id="user-name">Umar Boss</h2>
+    <button onclick="editProfile()">Edit Profile</button>
+</div>
 
-// Profile stats (Likes/Subs)
-async function loadProfile() {
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('likes, subscribers')
-        .eq('user_id', currentUser.id);
-        
-    if (data) {
-        document.getElementById('like-count').innerText = data[0].likes;
-        document.getElementById('sub-count').innerText = data[0].subscribers;
+<!-- Video Interaction Logic -->
+<script>
+    // Like Toggle Logic
+    let isLiked = false;
+    function toggleLike() {
+        const heartBtn = document.getElementById('heart-btn');
+        isLiked = !isLiked;
+        heartBtn.style.color = isLiked ? 'red' : 'white';
+        // Supabase update query yahan add karein
     }
-}
+
+    // Edit Profile Logic
+    function editProfile() {
+        const newName = prompt("Enter new name:");
+        if(newName) document.getElementById('user-name').innerText = newName;
+        // Image gallery upload logic yahan aayega
+    }
+</script>
+
+<style>
+    /* UI Adjustments */
+    #profile-section { display: flex; flex-direction: column; align-items: center; }
+    #user-photo { width: 100px; height: 100px; border-radius: 50%; cursor: pointer; }
+</style>
