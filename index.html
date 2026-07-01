@@ -1,94 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super App</title>
-
-<style>
-body{
-margin:0;
-background:#081529;
-color:white;
-font-family:Arial;
-}
-
-.feed{
-height:90vh;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:28px;
-}
-
-.right{
-position:fixed;
-right:10px;
-top:35%;
-display:flex;
-flex-direction:column;
-gap:25px;
-font-size:30px;
-}
-
-.bottom{
-position:fixed;
-bottom:0;
-width:100%;
-display:flex;
-justify-content:space-around;
-align-items:center;
-padding:10px;
-background:black;
-}
-
-.plus{
-width:60px;
-height:60px;
-border-radius:50%;
-font-size:30px;
-}
-button{
-background:none;
-border:none;
-color:white;
-font-size:22px;
-}
-</style>
-</head>
-
-<body>
+<div class="top-nav">
+  <span>🔍</span>
+  <span>🔔</span>
+  <span>📺 Live</span>
+</div>
 
 <div class="feed">
-Video Feed (Full Screen)
+   <video id="videoPlayer" autoplay muted loop width="100%">
+      <source src="sample.mp4" type="video/mp4">
+   </video>
 </div>
 
-<div class="right">
-<div>❤️</div>
-<div>💬</div>
-<div>🔔</div>
-<div>➕</div>
+<div class="right-panel">
+   <div class="icon" onclick="addLike()">❤️</div>
+   <div class="icon" onclick="openChat()">💬</div>
+   <div class="icon" onclick="openAI()">🤖</div>
+   <div class="icon" onclick="openProfile()">👤</div>
 </div>
 
-<div class="bottom">
-<button>🏠</button>
-<button>👤</button>
-<button class="plus">+</button>
-<button>🤖</button>
-<button>📈</button>
-<button>💳</button>
-<button>⚙️</button>
+<div class="bottom-nav">
+<button class="nav-btn">🏠</button>
+<button class="nav-btn">🔥</button>
+<button class="center-btn" onclick="uploadVideo()">+</button>
+<button class="nav-btn">💬</button>
+<button class="nav-btn">📈</button>
+<button class="nav-btn">💳</button>
+<button class="nav-btn">⚙️</button>
 </div>
-
-<script>
-console.log("Super App Started");
-
-// Future feature placeholders
-function login(){}
-function aiChat(){}
-function wallet(){}
-function trading(){}
-function uploadVideo(){}
-</script>
-
-</body>
-</html>
