@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Super App</title>
 
 <style>
@@ -10,13 +10,47 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:Arial,sans-serif;
+font-family:Arial;
 }
 
 body{
 background:#081529;
 color:white;
 overflow:hidden;
+}
+
+#authScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#081529;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+.auth-box{
+display:flex;
+flex-direction:column;
+width:80%;
+gap:10px;
+}
+
+.auth-box input{
+padding:12px;
+border:none;
+border-radius:10px;
+}
+
+.auth-box button{
+padding:12px;
+border:none;
+border-radius:10px;
+background:#2563eb;
+color:white;
 }
 
 .topbar{
@@ -27,8 +61,6 @@ display:flex;
 justify-content:space-between;
 padding:12px;
 background:rgba(0,0,0,.5);
-font-size:22px;
-z-index:100;
 }
 
 .feed{
@@ -50,7 +82,7 @@ right:10px;
 bottom:130px;
 display:flex;
 flex-direction:column;
-gap:25px;
+gap:20px;
 align-items:center;
 }
 
@@ -58,13 +90,12 @@ align-items:center;
 display:flex;
 flex-direction:column;
 align-items:center;
-cursor:pointer;
 font-size:26px;
+cursor:pointer;
 }
 
 .social-btn span{
 font-size:12px;
-margin-top:4px;
 }
 
 .profile{
@@ -72,34 +103,35 @@ width:50px;
 height:50px;
 border-radius:50%;
 border:2px solid white;
-object-fit:cover;
 }
 
 .bottom-nav{
 position:fixed;
 bottom:0;
 width:100%;
-background:black;
 display:flex;
 justify-content:space-around;
-align-items:center;
 padding:10px;
+background:black;
 }
 
 .bottom-nav button{
 background:none;
 border:none;
-font-size:26px;
+font-size:25px;
 color:white;
 }
 
 .plus{
+background:#2563eb;
 width:65px;
 height:65px;
 border-radius:50%;
-background:#2563eb;
-font-size:35px;
-color:white;
+font-size:30px;
+}
+
+.sub{
+color:#2563eb;
 }
 
 </style>
@@ -107,44 +139,88 @@ color:white;
 
 <body>
 
+<div id="authScreen">
+
+<div class="auth-box">
+
+<h2>Super App Login</h2>
+
+<input id="phone" placeholder="Phone Number">
+
+<input id="password" type="password"
+placeholder="Password">
+
+<button onclick="signup()">Sign Up</button>
+
+<button onclick="login()">Login</button>
+
+</div>
+
+</div>
+
 <div class="topbar">
+
 <div onclick="search()">🔍</div>
+
 <div onclick="notification()">🔔</div>
+
 <div onclick="live()">📺 Live</div>
+
 </div>
 
 <div class="feed">
 
 <div class="video-text">
+
 🚀 Super App Ready
+
 <br><br>
+
 Future AI + Video + Wallet + Trading
+
 </div>
 
 <div class="right-icons">
 
-<div class="social-btn" onclick="like()">
+<div class="social-btn"
+onclick="like()">
+
 ❤️
 <span id="likes">0</span>
+
 </div>
 
-<div class="social-btn" onclick="comment()">
+<div class="social-btn"
+onclick="comment()">
+
 💬
 <span>Comment</span>
+
 </div>
 
-<div class="social-btn" onclick="sharePost()">
+<div class="social-btn"
+onclick="sharePost()">
+
 ↗
 <span>Share</span>
+
 </div>
 
-<div class="social-btn" onclick="sub()">
+<div class="social-btn sub"
+onclick="sub()">
+
 ➕
+
 <span>Sub</span>
+
 </div>
 
-<div class="social-btn" onclick="profile()">
-<img src="https://i.pravatar.cc/100" class="profile">
+<div class="social-btn"
+onclick="profile()">
+
+<img src="https://i.pravatar.cc/100"
+class="profile">
+
 </div>
 
 </div>
@@ -157,7 +233,8 @@ Future AI + Video + Wallet + Trading
 
 <button onclick="trending()">🔥</button>
 
-<button class="plus" onclick="upload()">+</button>
+<button class="plus"
+onclick="upload()">+</button>
 
 <button onclick="messages()">💬</button>
 
@@ -171,68 +248,123 @@ Future AI + Video + Wallet + Trading
 
 <script>
 
-let count=0;
+let liked=false;
+let likes=0;
+let history=[];
+
+function signup(){
+
+let p=document.getElementById(
+"phone").value;
+
+let pass=document.getElementById(
+"password").value;
+
+localStorage.setItem(
+"phone",p);
+
+localStorage.setItem(
+"pass",pass);
+
+alert("Account Created");
+
+}
+
+function login(){
+
+let p=document.getElementById(
+"phone").value;
+
+let pass=document.getElementById(
+"password").value;
+
+if(
+p==localStorage.getItem("phone")
+&&
+pass==localStorage.getItem("pass")
+){
+
+document.getElementById(
+"authScreen"
+).style.display="none";
+
+}else{
+
+alert("Wrong Login");
+
+}
+
+}
 
 function like(){
-count++;
-document.getElementById("likes").innerText=count;
+
+if(!liked){
+
+liked=true;
+likes++;
+
+document.getElementById(
+"likes"
+).innerText=likes;
+
+history.push(
+"❤️ Liked"
+);
+
+}
+
 }
 
 function comment(){
-alert("Comments opening");
+
+let c=prompt(
+"Write comment"
+);
+
+if(c){
+
+history.push(
+"💬 "+c
+);
+
+}
+
 }
 
 function sharePost(){
-alert("Sharing post");
+
+history.push(
+"↗ Shared"
+);
+
 }
 
 function sub(){
-alert("Subscribed");
-}
 
-function profile(){
-alert("Profile opening");
-}
+history.push(
+"🔵 Subscribed"
+);
 
-function goHome(){
-alert("Home opened");
-}
-
-function trending(){
-alert("Trending page");
-}
-
-function upload(){
-alert("Upload video/post");
-}
-
-function messages(){
-alert("Messages opening");
-}
-
-function trading(){
-alert("Trading opening");
-}
-
-function wallet(){
-alert("Wallet opening");
-}
-
-function settings(){
-alert("Settings opening");
-}
-
-function search(){
-alert("Search opening");
 }
 
 function notification(){
-alert("Notifications opening");
+
+alert(
+history.join("\n")
+);
+
 }
 
-function live(){
-alert("Live opening");
-}
+function profile(){alert("Profile")}
+function goHome(){alert("Home")}
+function trending(){alert("Trending")}
+function upload(){alert("Upload")}
+function messages(){alert("Messages")}
+function trading(){alert("Trading")}
+function wallet(){alert("Wallet")}
+function settings(){alert("Settings")}
+function search(){alert("Search")}
+function live(){alert("Live")}
 
 </script>
 
