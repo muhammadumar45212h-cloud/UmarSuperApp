@@ -3,7 +3,103 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Super App</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:#081529;
+color:white;
+overflow:hidden;
+}
+
+.topbar{
+position:fixed;
+top:0;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:12px;
+background:rgba(0,0,0,.5);
+font-size:22px;
+z-index:1000;
+}
+
+.feed{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+}
+
+.video-text{
+font-size:20px;
+text-align:center;
+}
+
+.right-icons{
+position:absolute;
+right:12px;
+bottom:120px;
+display:flex;
+flex-direction:column;
+gap:20px;
+align-items:center;
+}
+
+.social-btn{
+display:flex;
+flex-direction:column;
+align-items:center;
+font-size:26px;
+cursor:pointer;
+}
+
+.social-btn span{
+font-size:12px;
+}
+
+.profile{
+width:50px;
+height:50px;
+border-radius:50%;
+border:2px solid white;
+}
+
+.bottom-nav{
+position:fixed;
+bottom:0;
+width:100%;
+background:black;
+display:flex;
+justify-content:space-around;
+align-items:center;
+padding:10px;
+}
+
+.bottom-nav button{
+background:none;
+border:none;
+font-size:26px;
+color:white;
+}
+
+.plus{
+width:65px;
+height:65px;
+border-radius:50%;
+background:#2563eb;
+font-size:35px;
+}
+
+</style>
 </head>
 
 <body>
@@ -17,14 +113,43 @@
 <div class="feed">
 
 <div class="video-text">
-Video Feed (Full Screen)
+
+🚀 Super App Ready
+
+<br><br>
+
+Future AI + Video + Wallet + Trading
+
 </div>
 
 <div class="right-icons">
-<div>❤️</div>
-<div>💬</div>
-<div>👤</div>
-<div>🤖</div>
+
+<div class="social-btn" onclick="like()">
+❤️
+<span id="likes">0</span>
+</div>
+
+<div class="social-btn" onclick="comment()">
+💬
+<span>Comment</span>
+</div>
+
+<div class="social-btn" onclick="share()">
+↗
+<span>Share</span>
+</div>
+
+<div class="social-btn" onclick="sub()">
+➕
+<span>Sub</span>
+</div>
+
+<div class="social-btn" onclick="profile()">
+
+<img src="https://i.pravatar.cc/100" class="profile">
+
+</div>
+
 </div>
 
 </div>
@@ -41,7 +166,45 @@ Video Feed (Full Screen)
 
 </div>
 
-<script src="app.js"></script>
+<script>
+
+let count=0;
+
+function like(){
+
+count++;
+
+document.getElementById(
+"likes"
+).innerText=count;
+
+}
+
+function comment(){
+
+alert("Comments opening");
+
+}
+
+function share(){
+
+alert("Sharing");
+
+}
+
+function sub(){
+
+alert("Subscribed");
+
+}
+
+function profile(){
+
+alert("Opening profile");
+
+}
+
+</script>
 
 </body>
 </html>
