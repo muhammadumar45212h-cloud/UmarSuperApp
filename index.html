@@ -1,28 +1,47 @@
-<div class="top-nav">
-  <span>🔍</span>
-  <span>🔔</span>
-  <span>📺 Live</span>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="topbar">
+<div>🔍</div>
+<div>🔔</div>
+<div>📺 Live</div>
 </div>
 
 <div class="feed">
-   <video id="videoPlayer" autoplay muted loop width="100%">
-      <source src="sample.mp4" type="video/mp4">
-   </video>
+
+<div class="video-text">
+Video Feed (Full Screen)
 </div>
 
-<div class="right-panel">
-   <div class="icon" onclick="addLike()">❤️</div>
-   <div class="icon" onclick="openChat()">💬</div>
-   <div class="icon" onclick="openAI()">🤖</div>
-   <div class="icon" onclick="openProfile()">👤</div>
+<div class="right-icons">
+<div>❤️</div>
+<div>💬</div>
+<div>👤</div>
+<div>🤖</div>
+</div>
+
 </div>
 
 <div class="bottom-nav">
-<button class="nav-btn">🏠</button>
-<button class="nav-btn">🔥</button>
-<button class="center-btn" onclick="uploadVideo()">+</button>
-<button class="nav-btn">💬</button>
-<button class="nav-btn">📈</button>
-<button class="nav-btn">💳</button>
-<button class="nav-btn">⚙️</button>
+
+<button>🏠</button>
+<button>🔥</button>
+<button class="plus">+</button>
+<button>💬</button>
+<button>📈</button>
+<button>💳</button>
+<button>⚙️</button>
+
 </div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
