@@ -6,16 +6,30 @@
     <title>Umar Super App</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white flex justify-center">
+<body class="bg-black text-white">
 
-    <!-- Responsive Container -->
-    <div class="w-full max-w-lg h-screen flex flex-col border-x border-gray-800">
-        <div id="content" class="flex-1 overflow-y-auto pb-20">
-            <!-- Content yahan render hoga -->
+    <!-- Main App Container -->
+    <div id="app" class="max-w-md mx-auto h-screen flex flex-col border-x border-gray-800">
+        
+        <!-- Content Area -->
+        <div id="content" class="flex-1 overflow-y-auto p-4">
+            <!-- Pages will load here -->
         </div>
 
-        <!-- Navigation Bar -->
-        <nav class="fixed bottom-0 w-full max-w-lg bg-gray-900 flex justify-around p-4 border-t border-gray-800">
+        <!-- Post Modal -->
+        <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4">
+            <div class="bg-gray-900 p-6 rounded-xl w-full">
+                <h2 class="mb-4">Create Post</h2>
+                <input type="file" class="mb-4 w-full">
+                <div class="flex gap-2">
+                    <button onclick="toggleModal(false)" class="bg-gray-700 px-4 py-2 rounded">Cancel</button>
+                    <button onclick="alert('Post Added!'); toggleModal(false)" class="bg-blue-600 px-4 py-2 rounded flex-1">Post</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-gray-900 flex justify-around p-4 border-t border-gray-800">
             <button onclick="renderPage('home')">🏠</button>
             <button onclick="renderPage('profile')">👤</button>
             <button onclick="toggleModal(true)" class="bg-blue-600 rounded-full w-12 h-12 text-2xl">+</button>
@@ -25,33 +39,24 @@
     </div>
 
 <script>
-    // Like Toggle Logic
-    function toggleLike(btn) {
-        btn.classList.toggle('text-red-500');
-    }
-
-    // Modal Logic
-    function toggleModal(show) {
-        document.getElementById('modal').className = show ? 'fixed inset-0 bg-black/90 flex items-center justify-center' : 'hidden';
-    }
-
-    // Page Rendering
     function renderPage(page) {
-        const root = document.getElementById('content');
+        const content = document.getElementById('content');
         if (page === 'home') {
-            root.innerHTML = `<div class="p-4">Video Feed (Full Screen) 
-                <button onclick="toggleLike(this)" class="block mt-4 text-3xl">❤️</button></div>`;
+            content.innerHTML = `<h2 class="text-xl">Video Feed</h2><div class="h-64 bg-gray-800 mt-4 rounded-lg flex items-center justify-center">Video Player</div><button onclick="this.classList.toggle('text-red-500')" class="mt-4 text-3xl">❤️</button>`;
         } else if (page === 'profile') {
-            root.innerHTML = `<div class="p-6 text-center">
-                <img src="https://via.placeholder.com/100" class="mx-auto rounded-full">
-                <h2 class="mt-4 font-bold text-xl" contenteditable="true">Umar Boss</h2>
-                <div class="flex justify-center gap-8 mt-4">
-                    <div>1.2k<p class="text-xs">SUBS</p></div>
-                    <div>50k<p class="text-xs">LIKES</p></div>
-                </div>
-            </div>`;
+            content.innerHTML = `<div class="text-center mt-10"><div class="w-24 h-24 bg-gray-600 rounded-full mx-auto"></div><h2 class="mt-4 font-bold">Umar Boss</h2><div class="flex justify-around mt-6"><div>1.2k<br>SUBS</div><div>50k<br>LIKES</div></div></div>`;
+        } else if (page === 'chat') {
+            content.innerHTML = `<div class="mt-10 text-center">Chat Room Coming Soon</div>`;
+        } else if (page === 'market') {
+            content.innerHTML = `<div class="mt-10 text-center">Live Market Chart</div><div id="tv_chart" class="h-64 mt-4"></div>`;
         }
     }
+
+    function toggleModal(show) {
+        document.getElementById('modal').style.display = show ? 'flex' : 'none';
+    }
+
+    // Default Load
     renderPage('home');
 </script>
 </body>
