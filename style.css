@@ -4,7 +4,13 @@ padding:0;
 box-sizing:border-box;
 font-family:Arial;
 }
+.plus{
+background:#2563eb;
+}
 
+.social-btn:nth-child(4){
+color:#2563eb;
+}
 body{
 background:#081529;
 color:white;
