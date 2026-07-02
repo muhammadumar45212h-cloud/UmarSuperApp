@@ -1,8 +1,7 @@
-import { supabase } from "./Supabase.js";
+import { supabase } from "./supabase.js";
 
-let likedPosts = new Set(); // Set is faster for lookup than Array
+let likedPosts = new Set(); 
 
-// Function to safely create post elements
 async function createPost() {
     const desc = prompt("Write description");
     if (!desc) return;
@@ -39,13 +38,14 @@ async function loadFeed() {
     }
 
     const feedContainer = document.getElementById("Feed");
-    feedContainer.innerHTML = ""; // Clear existing
+    if (!feedContainer) return;
+    
+    feedContainer.innerHTML = ""; 
 
     data.forEach(post => {
         const card = document.createElement("div");
         card.className = "post-card";
 
-        // Creating elements safely to prevent XSS
         const h3 = document.createElement("h3");
         h3.textContent = post.description;
 
@@ -70,7 +70,6 @@ function likePost(id) {
     if (el) {
         let currentLikes = parseInt(el.innerText) || 0;
         el.innerText = currentLikes + 1;
-        // Optimization: In a real app, update DB here using async/await
     }
 }
 
