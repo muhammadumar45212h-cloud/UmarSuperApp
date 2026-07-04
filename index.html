@@ -3,62 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super App - Sab Kuch Ek Jagah</title>
+<title>Super App Real</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-  body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;}
-  header{padding:60px 20px;text-align:center;}
-  header h1{font-size:2.5em;margin-bottom:10px;}
-  header p{font-size:1.1em;color:#bbb;margin-bottom:20px;}
-  .btn{padding:12px 25px;margin:5px;border:none;border-radius:8px;background:#7b2cbf;color:#fff;font-size:16px;cursor:pointer;}
-  .btn:hover{background:#9d4edd;}
-  section{padding:50px 20px;max-width:1000px;margin:auto;}
-  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
-  .card{background:rgba(255,255,255,0.1);padding:20px;border-radius:12px;text-align:center;backdrop-filter:blur(10px);}
-  .card h3{margin-bottom:10px;color:#c77dff;}
-  footer{text-align:center;padding:30px;background:#000;color:#aaa;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI;}
+  body{background:#0a0a1a;color:#fff;padding-bottom:80px;}
+  .screen{display:none;padding:15px;}
+  .active{display:block;}
+  header{padding:15px;text-align:center;font-size:20px;font-weight:bold;background:#13132b;position:sticky;top:0;z-index:10;}
+  .btn{padding:12px 18px;margin:6px;border:none;border-radius:10px;background:linear-gradient(90deg,#7b2cbf,#9d4edd);color:#fff;font-weight:bold;cursor:pointer;}
+  input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #333;background:#111;color:#fff;}
+  .card{background:#13132b;padding:15px;margin:12px 0;border-radius:14px;border:1px solid #2a2a4a;}
+  video{width:100%;border-radius:12px;}
+  .video-row{display:flex;justify-content:space-around;margin-top:10px;font-size:15px;}
+  .video-row span{cursor:pointer;}
+  .nav{position:fixed;bottom:0;width:100%;background:#000;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #222;}
+  .nav button{background:none;border:none;color:#888;font-size:11px;text-align:center;cursor:pointer;}
+  .nav button.active{color:#9d4edd;}
+  .chart{height:220px;background:#000;border-radius:12px;padding:10px;}
+  .chat-box{height:60vh;overflow-y:auto;background:#0f0f1f;padding:10px;border-radius:12px;}
+  .msg-me{background:#7b2cbf;padding:8px 12px;border-radius:12px;margin:5px 0;margin-left:30%;text-align:right;}
+  .msg-ai{background:#222;padding:8px 12px;border-radius:12px;margin:5px 0;margin-right:30%;}
+  #loader{display:none;text-align:center;padding:20px;}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🚀 Super App Ready</h1>
-  <p>Future AI + Video + Wallet + Trading. Built by Sukkur ka Shahzada.</p>
-  <button class="btn">Download for Android</button>
-  <button class="btn">Download for iOS</button>
-</header>
+<!-- CONFIG - YAHAN APNA API URL OR KEY DALO -->
+<script>
+const API_URL = ""; "https://hfrqoamagezzgdomlmus.supabase.co"
+const API_KEY = "sb_publishable_qWJP0WEFBfRKwcbxRcoQCA_bmkpmJyN"; // <-- Yahan apni Key lagao
+let token = localStorage.getItem("token");
+</script>
 
-<section>
-  <h2 style="text-align:center;margin-bottom:30px;">Super App Features</h2>
-  <div class="features">
-    <div class="card">
-      <h3>💰 Super Wallet</h3>
-      <p>Send and Receive Money Instantly</p>
-    </div>
-    <div class="card">
-      <h3>📈 Super Trade</h3>
-      <p>Crypto and Stocks Trading</p>
-    </div>
-    <div class="card">
-      <h3>🛡️ Super News + AI Guard</h3>
-      <p>Auto delete Fake News and 18+ Videos in 1 second</p>
-    </div>
-    <div class="card">
-      <h3>🤖 Super AI Helper</h3>
-      <p>Chat with AI for anything</p>
-    </div>
-  </div>
-</section>
+<!-- 1. LOGIN -->
+<div id="login" class="screen active">
+  <header>🔐 Super App Login</header>
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Password">
+  <button class="btn" onclick="doLogin()">Login</button>
+  <button class="btn" onclick="doSignup()">Sign Up</button>
+  <div id="loader">Loading...</div>
+</div>
 
-<section style="text-align:center;">
-  <h2>About Super App</h2>
-  <p>We are building the first Super App for Pakistan. Safe, Fast, All in One.</p>
-</section>
+<!-- 2. HOME - VIDEO FEED -->
+<div id="home" class="screen">
+  <header>🚀 Super App</header>
+  <div id="feed"></div>
+</div>
 
-<footer>
-  <p>Contact: WhatsApp | Email</p>
-  <p>© 2026 Super App. Built by Sukkur ka Shahzada.</p>
-</footer>
+<!-- 3. CHAT -->
+<div id="chat" class="screen">
+  <header>💬 AI + Messages</header>
+  <div class="chat-box" id="chatBox"></div>
+  <input id="chatInput" placeholder="Message...">
+  <button class="btn" onclick="sendMessage()">Send</button>
+</div>
 
+<!-- 4. MARKET - LIVE FOREX -->
+<div id="market" class="screen">
+  <header>📈 Live Forex & Crypto</header>
+  <div class="chart" id="chartBox">Loading Chart...</div>
+  <div id="prices"></div>
+</div>
+
+<!-- 5. AI -->
+<div id="ai" class="screen">
+  <header>🤖 Super AI Guard</header>
+  <div class="card">AI is ON. Auto delete Fake News + 18+ in 1 sec</div>
+  <input id="aiInput" placeholder="Ask AI anything...">
+  <button class="btn" onclick="askAI()">Ask</button>
+  <div id="aiResult" class="card"></div>
+</div>
+
+<!-- 6. PROFILE -->
+<div id="profile" class="screen">
+  <header>👤 Profile</header>
+  <div class="card" id="profileData">Loading...</div>
+  <input id="searchInput" placeholder="Search...">
+  <button class="btn" onclick="doSearch()">Search</button>
+  <div id="searchResult"></div>
+  <button class="btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="nav">
+  <button onclick="showScreen('home')">🏠<br>Home</button>
+  <button onclick="showScreen('chat')">💬<br>Chat</button>
+  <button onclick="showScreen('market')">📈<br>Market</button>
+  <button onclick="showScreen('ai')">🤖<br>AI</button>
+  <button onclick="showScreen('profile')">👤<br>Profile</button>
+</div>
+
+<script>
+// SCREEN SWITCH
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id=='home') loadFeed();
+  if(id=='market') loadMarket();
+  if(id=='profile') loadProfile();
+}
+
+// API CALL FUNCTION
+async function apiCall(endpoint, method="GET", body=null){
+  document.getElementById('loader').style.display='block';
+  let res = await fetch(API_URL+endpoint,{
+    method:method,
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY+" "+token},
+    body: body?JSON.stringify(body):null
+  });
+  document.getElementById('loader').style.display='none';
+  return res.json();
+}
+
+// LOGIN
+async function doLogin(){
+  let data = await apiCall("/login","POST",{email:email.value,password:pass.value});
+  if(data.token){token=data.token; localStorage.setItem("token",token); showScreen('home');}
+  else alert(data.message);
+}
+
+// LOAD VIDEO FEED
+async function loadFeed(){
+  let posts = await apiCall("/feed");
+  let html="";
+  posts.forEach(p=>{
+    html+=`<div class="card">
+      <video controls src="${p.video}"></video>
+      <p><b>${p.user}</b> ${p.caption}</p>
+      <div class="video-row">
+        <span onclick="likePost('${p.id}')">❤️ ${p.likes}</span>
+        <span onclick="commentPost('${p.id}')">💬 Comment</span>
+        <span onclick="sharePost('${p.id}')">🔗 Share</span>
+        <span onclick="subscribe('${p.userId}')">➕ Subscribe</span>
+      </div>
+    </div>`;
+  });
+  feed.innerHTML=html;
+}
+
+// CHAT
+async function sendMessage(){
+  let msg = chatInput.value;
+  chatBox.innerHTML+=`<div class="msg-me">${msg}</div>`;
+  let res = await apiCall("/chat","POST",{message:msg});
+  chatBox.innerHTML+=`<div class="msg-ai">${res.reply}</div>`;
+  chatInput.value="";
+}
+
+// MARKET
+async function loadMarket(){
+  let data = await apiCall("/market/live");
+  chartBox.innerHTML=`📊 ${data.pair} : ${data.price} ${data.change}`;
+  prices.innerHTML = data.coins.map(c=>`<div class="card"><b>${c.name}</b>: $${c.price}</div>`).join('');
+}
+
+// AI
+async function askAI(){
+  let res = await apiCall("/ai","POST",{question:aiInput.value});
+  aiResult.innerHTML = res.answer;
+}
+
+// PROFILE
+async function loadProfile(){
+  let data = await apiCall("/profile");
+  profileData.innerHTML=`<h3>${data.name}</h3><p>Followers: ${data.followers}</p>`;
+}
+async function doSearch(){
+  let res = await apiCall("/search?q="+searchInput.value);
+  searchResult.innerHTML = res.history.map(h=>`<div class="card">${h}</div>`).join('');
+}
+function logout(){localStorage.clear(); location.reload();}
+
+// AUTO LOGIN
+if(token) showScreen('home');
+</script>
 </body>
 </html>
