@@ -1,26 +1,23 @@
 import express from 'express';
-import { connectDB } from './db.js'; // Ensure karo ki db.js mein 'export const connectDB' ho
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { connectDB } from './db.js';
 
 const app = express();
-
-// Middleware: JSON aur Form data handle karne ke liye (Scaling ke liye zaroori)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Database connection
-try {
-    await connectDB();
-    console.log("Database connected successfully!");
-} catch (error) {
-    console.error("Database connection failed:", error);
-}
+await connectDB();
 
-// Health Check API (Server monitor karne ke liye)
-app.get('/health', (req, res) => {
-    res.status(200).send("Server is healthy and running!");
+// Static files ke liye direct access
+app.use(express.static(__dirname)); 
+
+// Route to serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Super App Server running on port ${PORT}`);
+app.listen(3000, () => {
+    console.log("Server is running on port 3000");
 });
+
