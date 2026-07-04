@@ -1,117 +1,64 @@
-!DOCTYPE html>
-<html lang="ur">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaggoo Super App | Raja Pakistan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { background-color: #010409; color: white; overflow: hidden; height: 100vh; font-family: sans-serif; }
-        .nav-bar { background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .video-container { height: calc(100vh - 70px); scroll-snap-type: y mandatory; overflow-y: scroll; }
-        .video-card { height: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        .sidebar-icons { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .chat-screen { display: none; height: calc(100vh - 70px); background: #0b141a; }
-        .trade-screen { display: none; height: calc(100vh - 70px); }
-        .active { display: flex !important; flex-direction: column; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super App - Sab Kuch Ek Jagah</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+  body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;}
+  header{padding:60px 20px;text-align:center;}
+  header h1{font-size:2.5em;margin-bottom:10px;}
+  header p{font-size:1.1em;color:#bbb;margin-bottom:20px;}
+  .btn{padding:12px 25px;margin:5px;border:none;border-radius:8px;background:#7b2cbf;color:#fff;font-size:16px;cursor:pointer;}
+  .btn:hover{background:#9d4edd;}
+  section{padding:50px 20px;max-width:1000px;margin:auto;}
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;}
+  .card{background:rgba(255,255,255,0.1);padding:20px;border-radius:12px;text-align:center;backdrop-filter:blur(10px);}
+  .card h3{margin-bottom:10px;color:#c77dff;}
+  footer{text-align:center;padding:30px;background:#000;color:#aaa;}
+</style>
 </head>
 <body>
 
-    <!-- VIDEO FEED (Home) -->
-    <div id="home" class="video-container active">
-        <div class="video-card">
-            <h2 class="text-xl font-bold italic">🚀 Super App Ready</h2>
-            <p class="absolute bottom-20 left-4 text-sm w-60">Future AI + Video + Wallet + Trading. Build by Sukkur ka Shahzada.</p>
-            <div class="sidebar-icons">
-                <i class="fas fa-heart text-3xl text-red-500"></i>
-                <span class="text-xs">1M</span>
-                <i onclick="showScreen('chat')" class="fas fa-comment-dots text-3xl"></i>
-                <span class="text-xs">Comment</span>
-                <i class="fas fa-share text-3xl"></i>
-                <i class="fas fa-plus-circle text-4xl text-blue-500"></i>
-            </div>
-            <img src="https://via.placeholder.com/50" class="absolute bottom-20 right-4 rounded-full border-2 border-white">
-        </div>
+<header>
+  <h1>🚀 Super App Ready</h1>
+  <p>Future AI + Video + Wallet + Trading. Built by Sukkur ka Shahzada.</p>
+  <button class="btn">Download for Android</button>
+  <button class="btn">Download for iOS</button>
+</header>
+
+<section>
+  <h2 style="text-align:center;margin-bottom:30px;">Super App Features</h2>
+  <div class="features">
+    <div class="card">
+      <h3>💰 Super Wallet</h3>
+      <p>Send and Receive Money Instantly</p>
     </div>
-
-    <!-- CHAT SCREEN (WhatsApp Style) -->
-    <div id="chat" class="chat-screen">
-        <div class="bg-[#202c33] p-4 flex items-center gap-3">
-            <i onclick="showScreen('home')" class="fas fa-arrow-left"></i>
-            <h2 class="font-bold text-lg">Gaggoo Master AI</h2>
-        </div>
-        <div id="msg-box" class="flex-1 p-4 overflow-y-auto space-y-4">
-            <div class="bg-[#202c33] p-3 rounded-lg w-max max-w-[80%]">Oye Shahzady! App mein welcome. Main tera sath hoon har waqt. 😎</div>
-        </div>
-        <div class="p-3 bg-[#202c33] flex gap-2">
-            <input id="userMsg" type="text" placeholder="Type a message..." class="flex-1 bg-[#2a3942] rounded-full px-4 outline-none">
-            <button onclick="replyMsg()" class="bg-emerald-500 w-12 h-12 rounded-full flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
-        </div>
+    <div class="card">
+      <h3>📈 Super Trade</h3>
+      <p>Crypto and Stocks Trading</p>
     </div>
-
-    <!-- TRADING SCREEN (TradingView) -->
-    <div id="trade" class="trade-screen p-2">
-        <h2 class="text-center font-bold mb-2">Live Forex/Gold Market</h2>
-        <div class="w-full h-full rounded-xl overflow-hidden">
-            <!-- TradingView Widget BEGIN -->
-            <div class="tradingview-widget-container" style="height:100%;width:100%">
-              <div id="tradingview_12345" style="height:calc(100% - 32px);width:100%"></div>
-              <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-              <script type="text/javascript">
-              new TradingView.widget({
-                "autosize": true,
-                "symbol": "FX:XAUUSD",
-                "interval": "H",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "enable_publishing": false,
-                "hide_top_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_12345"
-              });
-              </script>
-            </div>
-            <!-- TradingView Widget END -->
-        </div>
+    <div class="card">
+      <h3>🛡️ Super News + AI Guard</h3>
+      <p>Auto delete Fake News and 18+ Videos in 1 second</p>
     </div>
-
-    <!-- BOTTOM NAV BAR -->
-    <div class="nav-bar fixed bottom-0 w-full h-[70px] flex justify-around items-center border-t border-gray-800">
-        <i onclick="showScreen('home')" class="fas fa-home text-2xl"></i>
-        <i class="fas fa-fire text-2xl text-orange-500"></i>
-        <i class="fas fa-plus-square text-3xl"></i>
-        <i onclick="showScreen('chat')" class="fas fa-comment text-2xl"></i>
-        <i onclick="showScreen('trade')" class="fas fa-chart-line text-2xl"></i>
-        <i class="fas fa-id-card text-2xl text-yellow-500"></i>
-        <i class="fas fa-cog text-2xl"></i>
+    <div class="card">
+      <h3>🤖 Super AI Helper</h3>
+      <p>Chat with AI for anything</p>
     </div>
+  </div>
+</section>
 
-    <script>
-        function showScreen(screenId) {
-            document.getElementById('home').classList.remove('active');
-            document.getElementById('chat').classList.remove('active');
-            document.getElementById('trade').classList.remove('active');
-            document.getElementById(screenId).classList.add('active');
-        }
+<section style="text-align:center;">
+  <h2>About Super App</h2>
+  <p>We are building the first Super App for Pakistan. Safe, Fast, All in One.</p>
+</section>
 
-        function replyMsg() {
-            let input = document.getElementById('userMsg');
-            let box = document.getElementById('msg-box');
-            if(!input.value) return;
+<footer>
+  <p>Contact: WhatsApp | Email</p>
+  <p>© 2026 Super App. Built by Sukkur ka Shahzada.</p>
+</footer>
 
-            box.innerHTML += `<div class="bg-emerald-800 p-3 rounded-lg w-max ml-auto max-w-[80%]">${input.value}</div>`;
-            let val = input.value;
-            input.value = "";
-
-            setTimeout(() => {
-                box.innerHTML += `<div class="bg-[#202c33] p-3 rounded-lg w-max max-w-[80%]">Shahzady, tune bola "${val}"? Code toh fit chal raha hai Termux pe! 🔥</div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 1000);
-        }
-    </script>
 </body>
 </html>
