@@ -3,180 +3,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super App Real</title>
+<title>Super App</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI;}
-  body{background:#0a0a1a;color:#fff;padding-bottom:80px;}
-  .screen{display:none;padding:15px;}
-  .active{display:block;}
-  header{padding:15px;text-align:center;font-size:20px;font-weight:bold;background:#13132b;position:sticky;top:0;z-index:10;}
-  .btn{padding:12px 18px;margin:6px;border:none;border-radius:10px;background:linear-gradient(90deg,#7b2cbf,#9d4edd);color:#fff;font-weight:bold;cursor:pointer;}
-  input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #333;background:#111;color:#fff;}
-  .card{background:#13132b;padding:15px;margin:12px 0;border-radius:14px;border:1px solid #2a2a4a;}
+  body{background:#070712;color:#fff;height:100vh;overflow:hidden;}
+  .screen{display:none;height:100vh;flex-direction:column;}
+  .active{display:flex;}
+  header{padding:14px 16px;background:#0f0f23;display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:bold;position:sticky;top:0;}
+  .content{flex:1;overflow-y:auto;padding:12px;}
+  .btn{padding:12px 18px;border:none;border-radius:10px;background:linear-gradient(90deg,#7b2cbf,#9d4edd);color:#fff;font-weight:bold;cursor:pointer;}
+  input,textarea{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #2a2a4a;background:#111;color:#fff;}
+  .card{background:#0f0f23;padding:12px;margin:12px 0;border-radius:14px;border:1px solid #1f1f3a;}
   video{width:100%;border-radius:12px;}
-  .video-row{display:flex;justify-content:space-around;margin-top:10px;font-size:15px;}
-  .video-row span{cursor:pointer;}
-  .nav{position:fixed;bottom:0;width:100%;background:#000;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #222;}
-  .nav button{background:none;border:none;color:#888;font-size:11px;text-align:center;cursor:pointer;}
+  .video-actions{display:flex;justify-content:space-around;margin-top:8px;font-size:16px;}
+  .nav{height:65px;background:#000;display:flex;justify-content:space-around;align-items:center;border-top:1px solid #222;}
+  .nav button{background:none;border:none;color:#666;font-size:11px;text-align:center;cursor:pointer;}
   .nav button.active{color:#9d4edd;}
-  .chart{height:220px;background:#000;border-radius:12px;padding:10px;}
-  .chat-box{height:60vh;overflow-y:auto;background:#0f0f1f;padding:10px;border-radius:12px;}
-  .msg-me{background:#7b2cbf;padding:8px 12px;border-radius:12px;margin:5px 0;margin-left:30%;text-align:right;}
-  .msg-ai{background:#222;padding:8px 12px;border-radius:12px;margin:5px 0;margin-right:30%;}
-  #loader{display:none;text-align:center;padding:20px;}
+  .chat-box{flex:1;overflow-y:auto;padding:10px;}
+  .msg-me{background:#7b2cbf;padding:10px 14px;border-radius:14px;margin:6px 0;margin-left:20%;}
+  .msg-other{background:#222;padding:10px 14px;border-radius:14px;margin:6px 0;margin-right:20%;}
+  .post-bar{display:flex;gap:8px;padding:10px;background:#0f0f23;border-bottom:1px solid #222;}
+  .profile-pic{width:100px;height:100px;border-radius:50%;background:#222;margin:auto;display:block;object-fit:cover;cursor:pointer;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;}
+  .grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;}
+  .dots{font-size:22px;cursor:pointer;}
+  .menu{position:absolute;right:10px;top:50px;background:#1a1a3a;border-radius:8px;padding:10px;display:none;}
+  .menu.show{display:block;}
 </style>
 </head>
 <body>
 
-<!-- CONFIG - YAHAN APNA API URL OR KEY DALO -->
 <script>
-const API_URL = ""; "https://hfrqoamagezzgdomlmus.supabase.co"
-const API_KEY = "sb_publishable_qWJP0WEFBfRKwcbxRcoQCA_bmkpmJyN"; // <-- Yahan apni Key lagao
+const API_URL = "https://hfrqoamagezzgdomlmus.supabase.co"
+const API_KEY = "sb_publishable_qWJP0WEFBfRKwcbxRcoQCA_bmkpmJyN"
 let token = localStorage.getItem("token");
 </script>
 
-<!-- 1. LOGIN -->
+<!-- 1. LOGIN SCREEN FULL -->
 <div id="login" class="screen active">
-  <header>🔐 Super App Login</header>
-  <input id="email" placeholder="Email">
-  <input id="pass" type="password" placeholder="Password">
-  <button class="btn" onclick="doLogin()">Login</button>
-  <button class="btn" onclick="doSignup()">Sign Up</button>
-  <div id="loader">Loading...</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px;">
+    <h1 style="text-align:center;margin-bottom:30px;">🔐 Super App Login</h1>
+    <input id="email" placeholder="Email">
+    <input id="pass" type="password" placeholder="Password">
+    <button class="btn" onclick="doLogin()">Login</button>
+    <button class="btn" style="background:#333;margin-top:10px;" onclick="doSignup()">Sign Up</button>
+  </div>
 </div>
 
-<!-- 2. HOME - VIDEO FEED -->
+<!-- 2. HOME - VIDEO FEED + POST BUTTONS -->
 <div id="home" class="screen">
   <header>🚀 Super App</header>
-  <div id="feed"></div>
+  <div class="post-bar">
+    <button class="btn" style="flex:1;" onclick="textPost()">📝 Text Post</button>
+    <button class="btn" style="flex:1;" onclick="videoPost()">➕ Video Post</button>
+  </div>
+  <div class="content" id="feed">Loading...</div>
+  <div class="nav">
+    <button onclick="show('home')" class="active">🏠<br>Home</button>
+    <button onclick="show('chat')">💬<br>Chat</button>
+    <button onclick="show('market')">📈<br>Market</button>
+    <button onclick="show('ai')">🤖<br>AI</button>
+    <button onclick="show('profile')">👤<br>Profile</button>
+  </div>
 </div>
 
 <!-- 3. CHAT -->
 <div id="chat" class="screen">
   <header>💬 AI + Messages</header>
   <div class="chat-box" id="chatBox"></div>
-  <input id="chatInput" placeholder="Message...">
-  <button class="btn" onclick="sendMessage()">Send</button>
+  <div style="display:flex;padding:10px;background:#0f0f23;">
+    <input id="chatInput" placeholder="Message...">
+    <button class="btn" onclick="sendMessage()">Send</button>
+  </div>
+  <div class="nav">
+    <button onclick="show('home')">🏠<br>Home</button>
+    <button onclick="show('chat')" class="active">💬<br>Chat</button>
+    <button onclick="show('market')">📈<br>Market</button>
+    <button onclick="show('ai')">🤖<br>AI</button>
+    <button onclick="show('profile')">👤<br>Profile</button>
+  </div>
 </div>
 
-<!-- 4. MARKET - LIVE FOREX -->
+<!-- 4. MARKET FULL SCREEN CHART -->
 <div id="market" class="screen">
   <header>📈 Live Forex & Crypto</header>
-  <div class="chart" id="chartBox">Loading Chart...</div>
-  <div id="prices"></div>
+  <div class="content">
+    <div id="chartBox" style="height:250px;background:#000;border-radius:12px;display:flex;align-items:center;justify-content:center;">Loading Chart...</div>
+    <div id="prices"></div>
+  </div>
+  <div class="nav">
+    <button onclick="show('home')">🏠<br>Home</button>
+    <button onclick="show('chat')">💬<br>Chat</button>
+    <button onclick="show('market')" class="active">📈<br>Market</button>
+    <button onclick="show('ai')">🤖<br>AI</button>
+    <button onclick="show('profile')">👤<br>Profile</button>
+  </div>
 </div>
 
-<!-- 5. AI -->
+<!-- 5. AI FULL SCREEN -->
 <div id="ai" class="screen">
   <header>🤖 Super AI Guard</header>
-  <div class="card">AI is ON. Auto delete Fake News + 18+ in 1 sec</div>
-  <input id="aiInput" placeholder="Ask AI anything...">
-  <button class="btn" onclick="askAI()">Ask</button>
-  <div id="aiResult" class="card"></div>
+  <div class="content">
+    <div class="card">AI is ON. Auto delete Fake News + 18+ in 1 sec</div>
+    <div id="aiResult"></div>
+  </div>
+  <div style="display:flex;padding:10px;background:#0f0f23;">
+    <input id="aiInput" placeholder="Ask AI...">
+    <button class="btn" onclick="askAI()">Ask</button>
+  </div>
+  <div class="nav">
+    <button onclick="show('home')">🏠<br>Home</button>
+    <button onclick="show('chat')">💬<br>Chat</button>
+    <button onclick="show('market')">📈<br>Market</button>
+    <button onclick="show('ai')" class="active">🤖<br>AI</button>
+    <button onclick="show('profile')">👤<br>Profile</button>
+  </div>
 </div>
 
-<!-- 6. PROFILE -->
+<!-- 6. PROFILE FULL - 3 DOTS + GALLERY + NAME BIO -->
 <div id="profile" class="screen">
-  <header>👤 Profile</header>
-  <div class="card" id="profileData">Loading...</div>
-  <input id="searchInput" placeholder="Search...">
-  <button class="btn" onclick="doSearch()">Search</button>
-  <div id="searchResult"></div>
-  <button class="btn" onclick="logout()">Logout</button>
-</div>
-
-<!-- BOTTOM NAV -->
-<div class="nav">
-  <button onclick="showScreen('home')">🏠<br>Home</button>
-  <button onclick="showScreen('chat')">💬<br>Chat</button>
-  <button onclick="showScreen('market')">📈<br>Market</button>
-  <button onclick="showScreen('ai')">🤖<br>AI</button>
-  <button onclick="showScreen('profile')">👤<br>Profile</button>
+  <header>
+    👤 Profile
+    <div style="position:relative;">
+      <div class="dots" onclick="document.getElementById('menu').classList.toggle('show')">⋮</div>
+      <div id="menu" class="menu"><div onclick="logout()">Logout</div></div>
+    </div>
+  </header>
+  <div class="content" style="text-align:center;">
+    <input type="file" id="picInput" style="display:none;" onchange="uploadPic(event)">
+    <img id="profilePic" class="profile-pic" src="https://via.placeholder.com/100" onclick="picInput.click()">
+    <input id="nameInput" placeholder="Your Name">
+    <textarea id="bioInput" placeholder="Your Bio"></textarea>
+    <button class="btn" onclick="saveProfile()">Save Profile</button>
+    <input id="searchInput" placeholder="Search...">
+    <button class="btn" onclick="doSearch()">Search</button>
+    <div id="searchResult"></div>
+    <div class="grid" id="userPosts"></div>
+  </div>
+  <div class="nav">
+    <button onclick="show('home')">🏠<br>Home</button>
+    <button onclick="show('chat')">💬<br>Chat</button>
+    <button onclick="show('market')">📈<br>Market</button>
+    <button onclick="show('ai')">🤖<br>AI</button>
+    <button onclick="show('profile')" class="active">👤<br>Profile</button>
+  </div>
 </div>
 
 <script>
-// SCREEN SWITCH
-function showScreen(id){
+function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
   if(id=='home') loadFeed();
   if(id=='market') loadMarket();
   if(id=='profile') loadProfile();
 }
-
-// API CALL FUNCTION
 async function apiCall(endpoint, method="GET", body=null){
-  document.getElementById('loader').style.display='block';
-  let res = await fetch(API_URL+endpoint,{
-    method:method,
-    headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY+" "+token},
-    body: body?JSON.stringify(body):null
-  });
-  document.getElementById('loader').style.display='none';
+  let res = await fetch(API_URL+endpoint,{method,headers:{"Content-Type":"application/json","Authorization":"Bearer "+API_KEY+" "+token},body: body?JSON.stringify(body):null});
   return res.json();
 }
-
-// LOGIN
 async function doLogin(){
   let data = await apiCall("/login","POST",{email:email.value,password:pass.value});
-  if(data.token){token=data.token; localStorage.setItem("token",token); showScreen('home');}
+  if(data.token){token=data.token; localStorage.setItem("token",token); show('home');}
   else alert(data.message);
 }
-
-// LOAD VIDEO FEED
+function textPost(){alert('Text Post: API /post/text')}
+function videoPost(){alert('Video Post: API /post/video')}
 async function loadFeed(){
   let posts = await apiCall("/feed");
-  let html="";
-  posts.forEach(p=>{
-    html+=`<div class="card">
-      <video controls src="${p.video}"></video>
-      <p><b>${p.user}</b> ${p.caption}</p>
-      <div class="video-row">
-        <span onclick="likePost('${p.id}')">❤️ ${p.likes}</span>
-        <span onclick="commentPost('${p.id}')">💬 Comment</span>
-        <span onclick="sharePost('${p.id}')">🔗 Share</span>
-        <span onclick="subscribe('${p.userId}')">➕ Subscribe</span>
-      </div>
-    </div>`;
-  });
-  feed.innerHTML=html;
+  feed.innerHTML = posts.map(p=>`<div class="card"><video controls src="${p.video}"></video><p><b>${p.user}</b> ${p.caption}</p><div class="video-actions"><span>❤️ ${p.likes}</span><span>💬</span><span>🔗</span><span>➕</span></div></div>`).join('');
 }
-
-// CHAT
 async function sendMessage(){
   let msg = chatInput.value;
   chatBox.innerHTML+=`<div class="msg-me">${msg}</div>`;
   let res = await apiCall("/chat","POST",{message:msg});
-  chatBox.innerHTML+=`<div class="msg-ai">${res.reply}</div>`;
+  chatBox.innerHTML+=`<div class="msg-other">${res.reply}</div>`;
   chatInput.value="";
 }
-
-// MARKET
 async function loadMarket(){
   let data = await apiCall("/market/live");
-  chartBox.innerHTML=`📊 ${data.pair} : ${data.price} ${data.change}`;
+  chartBox.innerHTML=`📊 ${data.pair} : ${data.price}`;
   prices.innerHTML = data.coins.map(c=>`<div class="card"><b>${c.name}</b>: $${c.price}</div>`).join('');
 }
-
-// AI
 async function askAI(){
   let res = await apiCall("/ai","POST",{question:aiInput.value});
-  aiResult.innerHTML = res.answer;
+  aiResult.innerHTML = `<div class="card">${res.answer}</div>`;
 }
-
-// PROFILE
 async function loadProfile(){
   let data = await apiCall("/profile");
-  profileData.innerHTML=`<h3>${data.name}</h3><p>Followers: ${data.followers}</p>`;
+  nameInput.value=data.name; bioInput.value=data.bio; profilePic.src=data.pic;
+  userPosts.innerHTML = data.posts.map(p=>`<img src="${p}">`).join('');
 }
+function uploadPic(e){profilePic.src = URL.createObjectURL(e.target.files[0])}
+function saveProfile(){apiCall("/profile","POST",{name:nameInput.value,bio:bioInput.value})}
 async function doSearch(){
   let res = await apiCall("/search?q="+searchInput.value);
   searchResult.innerHTML = res.history.map(h=>`<div class="card">${h}</div>`).join('');
 }
 function logout(){localStorage.clear(); location.reload();}
-
-// AUTO LOGIN
-if(token) showScreen('home');
+if(token) show('home');
 </script>
 </body>
 </html>
