@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umar Super App</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase Core SDK Links (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+    <!-- 1. Premium Cyberpunk Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-card">
+            <div class="brand-header">
+                <div class="premium-crown">👑</div>
+                <h1 class="brand-title">UMAR SUPER APP</h1>
+                <p class="brand-subtitle">Welcome to the Super App</p>
+            </div>
+
+            <div class="auth-form">
+                <div class="premium-input-wrapper">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                </div>
+                <div class="premium-input-wrapper">
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <div class="premium-input-wrapper">
+                    <input type="tel" id="login-phone" placeholder="Phone Number" required>
+                </div>
+
+                <button id="btn-launch" class="btn-gradient">🚀 Launch App</button>
+                <button id="btn-google" class="btn-white">📧 Continue with Google</button>
+                <button id="btn-phone-auth" class="btn-green">📱 Login with Phone</button>
+            </div>
+
+            <footer class="login-footer">
+                Made with ❤️ by super app
+            </footer>
+        </div>
+    </div>
+
+    <!-- 2. Inside Content: TikTok Style Modern Dashboard -->
+    <div id="dashboard-screen" class="screen">
+        <div class="feed-container">
+            <div class="main-video-placeholder">
+                <div class="center-content-text">
+                    <h2 class="ready-title">🚀 Super App Ready</h2>
+                    <p class="features-subtext">Future AI + Video + Wallet + Trading</p>
+                </div>
+            </div>
+
+            <!-- Right Side Interaction Panel -->
+            <div class="side-actions-overlay">
+                <div class="action-item-wrap profile-avatar">
+                    <div class="avatar-circle">🧑‍💻</div>
+                    <span class="plus-badge">+</span>
+                </div>
+                <div class="action-item-wrap">
+                    <div class="action-icon text-red">❤️</div>
+                    <span class="action-count">1</span>
+                </div>
+                <div class="action-item-wrap">
+                    <div class="action-icon">💬</div>
+                    <span class="action-label">Comment</span>
+                </div>
+                <div class="action-item-wrap">
+                    <div class="action-icon">↗️</div>
+                    <span class="action-label">Share</span>
+                </div>
+                <div class="action-item-wrap">
+                    <div class="action-icon font-heavy">＋</div>
+                    <span class="action-label">Sub</span>
+                </div>
+                <!-- Logout Trigger Button -->
+                <div class="action-item-wrap dev-logout-trigger" id="btn-dashboard-logout">
+                    <div class="action-icon font-small">🚪</div>
+                    <span class="action-label">Exit</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Modern Bottom Navigation Bar -->
+        <nav class="premium-bottom-navbar">
+            <button class="nav-tab active">🏠</button>
+            <button class="nav-tab">🔥</button>
+            <button class="nav-tab create-btn">＋</button>
+            <button class="nav-tab">💬</button>
+            <button class="nav-tab">📈</button>
+            <button class="nav-tab">💳</button>
+            <button class="nav-tab">⚙️</button>
+        </nav>
+    </div>
+
+    <!-- Main Logic Script Loader -->
+    <script src="script.js"></script>
+</body>
+</html>

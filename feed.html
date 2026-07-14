@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Umar Feed - Viral</title>
+  <style>
+    body{background:#000; color:white; font-family:sans-serif;}
+   .post{background:#111; margin:10px; padding:15px; border-radius:15px; border:1px solid red;}
+   .btn{padding:12px; background:red; border:none; color:white; border-radius:10px; margin:5px; font-weight:bold;}
+    video{width:100%; border-radius:10px;}
+    input, textarea{width:90%; padding:10px; margin:5px; background:#222; border:1px solid red; color:white; border-radius:8px;}
+  </style>
+</head>
+<body>
+  <h2>🔴 Umar Feed - Viral karo</h2>
+
+  <!-- 1. TEXT POST -->
+  <div class="post">
+    <textarea id="text" placeholder="Kya soch rahe ho Captain?"></textarea>
+    <button class="btn" onclick="postText()">Post karo</button>
+  </div>
+
+  <!-- 2. VIDEO UPLOAD -->
+  <div class="post">
+    <input type="file" id="video" accept="video/*">
+    <button class="btn" onclick="postVideo()">Video Upload</button>
+    <div id="videos"></div>
+  </div>
+
+  <!-- 3. LIVESTREAM BUTTON -->
+  <div class="post">
+    <button class="btn" onclick="alert('Live Feature: Kal code dunga. Camera ON hoga')">🔴 Go Live</button>
+    <p>Kal Livestream zinda karenge bhai</p>
+  </div>
+
+  <div id="posts"></div>
+
+  <script>
+    function postText(){
+      let t = document.getElementById("text").value;
+      if(t=="") return;
+      document.getElementById("posts").innerHTML +=
+        "<div class='post'><b>Umar:</b> "+t+"<br><small>Abhi abhi</small></div>";
+      document.getElementById("text").value = "";
+    }
+
+    function postVideo(){
+      let file = document.getElementById("video").files[0];
+      if(!file) return;
+      let url = URL.createObjectURL(file);
+      document.getElementById("videos").innerHTML +=
+        "<video controls src='"+url+"'></video>";
+    }
+  </script>
+</body>
+</html>

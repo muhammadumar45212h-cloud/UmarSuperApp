@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "73e665e2-7402-448f-8fb4-52450aa4f2e2"
+      }
+    },
+    "android": {
+      "package": "com.superapplive.umarsuperapp"
+    }
+  }
+}

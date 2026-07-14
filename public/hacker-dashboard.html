@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;background:#000;color:#0f0;font-family:'Courier New',monospace;overflow-x:hidden}
+.dashboard{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;padding:2px}
+.card{background:#111;border:1px solid #0f0;padding:10px;text-align:center}
+.card video{width:100%;max-height:200px;background:#000}
+.upload-box{padding:10px;border-top:2px solid #0f0}
+input,button{background:#000;color:#0f0;border:1px solid #0f0;padding:8px;width:100%;margin:5px 0;font-family:inherit}
+button:active{background:#0f0;color:#000}
+.header{padding:10px;text-align:center;border-bottom:2px solid #0f0;font-size:18px}
+</style>
+</head>
+<body>
+<div class="header">UMAR HACKER DASHBOARD</div>
+
+<div class="upload-box">
+  <input id="videoFile" type="file" accept="video/*">
+  <button onclick="postVideo()">UPLOAD VIDEO</button>
+</div>
+
+<div class="dashboard" id="feed"></div>
+
+<script>
+const API = 'https://umar-super-app.vercel.app';
+let token = localStorage.getItem('token');
+
+if(!token){
+  const email = prompt('Email daal:');
+  const pass = prompt('Password daal:');
+  login(email,pass);
+}else{
+  loadFeed();
+}
+
+async function login(email,pass){
+  const res = await fetch(API+'/api/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,password:pass})
+  });
+  const data = await res.json();
+  if(data.token){
+    token = data.token;
+    localStorage.setItem('token',token);
+    loadFeed();
+  }else{
+    alert('Login fail: '+data.error);
+  }
+}
+
+async function postVideo(){
+  const file = videoFile.files[0];
+  if(!file) return alert('Pehle video chun');
+  
+  const formData = new FormData();
+  formData.append('video', file);
+  formData.append('token', token);
+  
+  const res = await fetch(API+'/api/post-video',{
+    method:'POST',
+    body:formData
+  });
+  const data = await res.json();
+  alert(data.success? 'Video upload ho gayi!' : data.error);
+  videoFile.value='';
+  loadFeed();
+}
+
+async function loadFeed(){
+  const res = await fetch(API+'/api/videos');
+  const videos = await res.json();
+  feed.innerHTML = videos.map(v=>`
+    <div class="card">
+      <div>${v.username}</div>
+      <video src="${v.video_link}" controls></video>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

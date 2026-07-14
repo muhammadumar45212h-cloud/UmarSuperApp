@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super App - Dashboard</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body {
+    background: #0a0a0a;
+    color: white;
+    padding-bottom: 80px;
+  }
+  .header {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .header h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .header p {
+    font-size: 16px;
+    color: #aaa;
+  }
+  .right-icons {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    font-size: 28px;
+  }
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #111;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    border-top: 1px solid #222;
+  }
+  .bottom-nav span {
+    font-size: 26px;
+    cursor: pointer;
+  }
+  .bottom-nav .active { color: #8b5cf6; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Super App Ready</h1>
+    <p>Future AI + Video + Wallet + Trading</p>
+  </div>
+
+  <div class="right-icons">
+    <div>❤️<br><small>1</small></div>
+    <div>💬<br><small>Comment</small></div>
+    <div>↗️<br><small>Share</small></div>
+    <div style="color:#3b82f6;">+<br><small>Sub</small></div>
+    <div>👤</div>
+  </div>
+
+  <div class="bottom-nav">
+    <span class="active">🏠</span>
+    <span>🔥</span>
+    <span>+</span>
+    <span>💬</span>
+    <span>📈</span>
+    <!-- Baadshah: Ye payment wala card icon hata diya maine 👇 -->
+    <!-- <span>💳</span> -->
+    <span>⚙️</span>
+  </div>
+</body>
+</html>
