@@ -4,154 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Umar Super App - Login</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0813',
+                        cardBg: 'rgba(17, 12, 28, 0.75)',
+                        neonPurple: '#a855f7',
+                        neonPink: '#ec4899',
+                        neonGreen: '#22c55e',
+                    },
+                    boxShadow: {
+                        'neon-glow': '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts for premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #0b0813;
-        }
-        .login-card {
-            background: rgba(18, 14, 28, 0.8);
-            border: 1.5px solid rgba(139, 92, 246, 0.15);
-            backdrop-filter: blur(20px);
-        }
-        .input-field {
-            background-color: #161224;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .input-field:focus {
-            border-color: #a78bfa;
-            outline: none;
-        }
-        .btn-gradient {
-            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top, #1e1136 0%, #0b0813 100%);
         }
     </style>
 </head>
-<body class="h-screen flex flex-col justify-center items-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 text-white overflow-x-hidden">
 
-    <!-- LOGIN CONTAINER -->
-    <div class="login-card w-full max-w-sm rounded-[32px] p-8 flex flex-col items-center text-center shadow-2xl">
+    <!-- Glowing Background Orbs -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 left-1/2 -translate-x-1/2 translate-y-1/2 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-md bg-cardBg backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-neon-glow flex flex-col items-center">
         
-        <!-- Crown Logo -->
-        <div class="text-5xl mb-4 animate-bounce">👑</div>
-        
-        <!-- Title -->
-        <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-400 uppercase">
-            Umar Super App
-        </h1>
-        <p class="text-gray-400 text-xs mt-1 mb-8">Welcome to the Super App</p>
+        <!-- App Logo & Crown -->
+        <div class="flex flex-col items-center mb-6">
+            <span class="text-3xl mb-2 animate-bounce">👑</span>
+            <h1 class="text-3xl font-bold tracking-wider bg-gradient-to-r from-purple-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
+                UMAR SUPER APP
+            </h1>
+            <p class="text-sm text-gray-400 mt-1 font-light tracking-wide">Welcome to the Super App</p>
+        </div>
 
         <!-- Form Inputs -->
-        <form id="loginForm" class="w-full space-y-4">
-            <!-- Email / Username Input -->
-            <input type="text" id="username" placeholder="Email / Username" required
-                class="input-field w-full py-4 px-6 rounded-2xl text-white text-sm placeholder-gray-500 transition-all">
+        <form class="w-full space-y-4" onsubmit="event.preventDefault();">
+            <!-- Email / Username -->
+            <div>
+                <input type="text" 
+                       placeholder="Email / Username" 
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white" required>
+            </div>
 
-            <!-- Password Input -->
-            <input type="password" id="password" placeholder="Password" required
-                class="input-field w-full py-4 px-6 rounded-2xl text-white text-sm placeholder-gray-500 transition-all">
+            <!-- Password -->
+            <div>
+                <input type="password" 
+                       placeholder="Password" 
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white" required>
+            </div>
 
-            <!-- Phone Number (Optional for local API) -->
-            <input type="tel" id="phone" placeholder="Phone Number (Optional)"
-                class="input-field w-full py-4 px-6 rounded-2xl text-white text-sm placeholder-gray-500 transition-all">
+            <!-- Phone Number -->
+            <div>
+                <input type="tel" 
+                       placeholder="Phone Number (Optional)" 
+                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white">
+            </div>
 
-            <!-- API Status Message -->
-            <div id="status-msg" class="text-xs font-semibold hidden"></div>
-
-            <!-- Launch App Button -->
-            <button type="submit" class="btn-gradient w-full py-4 rounded-2xl font-bold text-white tracking-wide active:scale-95 transition-all shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2">
+            <!-- Launch Button -->
+            <button type="submit" 
+                    class="w-full mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-3 px-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
                 🚀 Launch App
             </button>
         </form>
 
         <!-- Divider -->
-        <div class="my-6 text-gray-600 text-xs tracking-widest uppercase">OR</div>
+        <div class="relative flex py-5 items-center w-full my-1">
+            <div class="flex-grow border-t border-white/10"></div>
+            <span class="flex-shrink mx-4 text-xs text-gray-500 uppercase tracking-widest">OR</span>
+            <div class="flex-grow border-t border-white/10"></div>
+        </div>
 
-        <!-- Social Buttons -->
+        <!-- Social Logins -->
         <div class="w-full space-y-3">
-            <!-- Continue with Google -->
-            <button class="w-full bg-white text-black font-bold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
-                <span>📧</span> Continue with Google
+            <!-- Google Login -->
+            <button class="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-sm">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                Continue with Google
             </button>
 
-            <!-- Login with Phone -->
-            <button class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
-                <span>📱</span> Login with Phone
+            <!-- Phone Login -->
+            <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm">
+                📱 Login with Phone
             </button>
         </div>
 
         <!-- Footer -->
-        <p class="text-gray-600 text-[10px] mt-8">Made with ❤️ by super app</p>
+        <div class="mt-8 text-xs text-gray-500 font-light flex items-center gap-1">
+            Made with <span class="text-red-500 animate-pulse">❤️</span> by super app
+        </div>
+
     </div>
 
-    <!-- CONNECTION TO BACKEND SCRIPT -->
-    <script>
-        // Apne live Node.js cloud URL se badlein (jaise: https://your-render-app.onrender.com)
-        const BACKEND_URL = "http://localhost:3000"; 
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const statusMsg = document.getElementById('status-msg');
-
-            statusMsg.classList.remove('hidden');
-            statusMsg.className = "text-xs font-semibold text-amber-400";
-            statusMsg.innerText = "Launching App Engine...";
-
-            try {
-                // Pehle register karne ki koshish karenge, agar account pehle se hai to direct login karenge
-                let response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                let data = await response.json();
-
-                if (!response.ok) {
-                    // Agar login fail hua to naya account banane ki try karenge
-                    statusMsg.innerText = "Registering new user...";
-                    let regResponse = await fetch(`${BACKEND_URL}/api/auth/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-
-                    let regData = await regResponse.json();
-
-                    if (regResponse.ok) {
-                        statusMsg.className = "text-xs font-semibold text-green-400";
-                        statusMsg.innerText = "Account Created! Retrying login...";
-                        // Automatic login after register
-                        return document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-                    } else {
-                        statusMsg.className = "text-xs font-semibold text-red-500";
-                        statusMsg.innerText = regData.error || "Login & Registration failed.";
-                        return;
-                    }
-                }
-
-                // Agar login success ho gaya:
-                statusMsg.className = "text-xs font-semibold text-green-400";
-                statusMsg.innerText = "Login Successful! Loading Dashboard...";
-
-                // Save token in LocalStorage
-                localStorage.setItem('umar_app_token', data.token);
-                localStorage.setItem('umar_app_user', data.username);
-
-                // Redirect user to the main dashboard (index.html)
-                setTimeout(() => {
-                    window.location.href = "dashboard.html"; // Ya jo bhi aapki main screen file hai
-                }, 1500);
-
-            } catch (err) {
-                statusMsg.className = "text-xs font-semibold text-red-500";
-                statusMsg.innerText = "Server offline. Please start backend first.";
-            }
-        });
-    </script>
 </body>
 </html>
