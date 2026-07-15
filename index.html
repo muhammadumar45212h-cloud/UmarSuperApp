@@ -3,115 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umar Super App - Login</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        darkBg: '#0b0813',
-                        cardBg: 'rgba(17, 12, 28, 0.75)',
-                        neonPurple: '#a855f7',
-                        neonPink: '#ec4899',
-                        neonGreen: '#22c55e',
-                    },
-                    boxShadow: {
-                        'neon-glow': '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.2)',
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts for premium look -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Umar Super App</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background: radial-gradient(circle at top, #1e1136 0%, #0b0813 100%);
+            background-color: #0b0813;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .crown-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+            display: inline-block;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #a855f7, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-bottom: 35px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-field {
+            width: 100%;
+            background-color: #13111c;
+            border: 1px solid #221f30;
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #a855f7;
+        }
+
+        .input-field::placeholder {
+            color: #4b5563;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.9;
+        }
+
+        .btn-launch {
+            background: linear-gradient(90deg, #7c3aed, #f43f5e);
+            color: #ffffff;
+        }
+
+        .btn-google {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .btn-phone {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+
+        /* SVG Logos / Icons styling */
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer-text {
+            color: #4b5563;
+            font-size: 13px;
+            margin-top: 30px;
+        }
+
+        .heart {
+            color: #ef4444;
+            display: inline-block;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 text-white overflow-x-hidden">
+<body>
 
-    <!-- Glowing Background Orbs -->
-    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-1/4 left-1/2 -translate-x-1/2 translate-y-1/2 w-80 h-80 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="login-container">
+        <!-- Crown Header -->
+        <span class="crown-icon">👑</span>
+        <h1 class="app-title">Umar Super App</h1>
+        <p class="subtitle">Welcome to the Super App</p>
 
-    <!-- Main Container -->
-    <div class="relative w-full max-w-md bg-cardBg backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-neon-glow flex flex-col items-center">
+        <!-- Form Fields -->
+        <div class="input-group">
+            <input type="email" class="input-field" placeholder="Email">
+        </div>
+        <div class="input-group">
+            <input type="password" class="input-field" placeholder="Password">
+        </div>
+        <div class="input-group">
+            <input type="tel" class="input-field" placeholder="Phone Number">
+        </div>
+
+        <!-- Action Buttons -->
+        <button class="btn btn-launch">
+            <span>🚀</span> Launch App
+        </button>
         
-        <!-- App Logo & Crown -->
-        <div class="flex flex-col items-center mb-6">
-            <span class="text-3xl mb-2 animate-bounce">👑</span>
-            <h1 class="text-3xl font-bold tracking-wider bg-gradient-to-r from-purple-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
-                UMAR SUPER APP
-            </h1>
-            <p class="text-sm text-gray-400 mt-1 font-light tracking-wide">Welcome to the Super App</p>
-        </div>
-
-        <!-- Form Inputs -->
-        <form class="w-full space-y-4" onsubmit="event.preventDefault();">
-            <!-- Email / Username -->
-            <div>
-                <input type="text" 
-                       placeholder="Email / Username" 
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white" required>
-            </div>
-
-            <!-- Password -->
-            <div>
-                <input type="password" 
-                       placeholder="Password" 
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white" required>
-            </div>
-
-            <!-- Phone Number -->
-            <div>
-                <input type="tel" 
-                       placeholder="Phone Number (Optional)" 
-                       class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-300 placeholder-gray-500 text-white">
-            </div>
-
-            <!-- Launch Button -->
-            <button type="submit" 
-                    class="w-full mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-3 px-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
-                🚀 Launch App
-            </button>
-        </form>
-
-        <!-- Divider -->
-        <div class="relative flex py-5 items-center w-full my-1">
-            <div class="flex-grow border-t border-white/10"></div>
-            <span class="flex-shrink mx-4 text-xs text-gray-500 uppercase tracking-widest">OR</span>
-            <div class="flex-grow border-t border-white/10"></div>
-        </div>
-
-        <!-- Social Logins -->
-        <div class="w-full space-y-3">
-            <!-- Google Login -->
-            <button class="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-sm">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                Continue with Google
-            </button>
-
-            <!-- Phone Login -->
-            <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm">
-                📱 Login with Phone
-            </button>
-        </div>
+        <button class="btn btn-google">
+            <!-- SVG Google Icon for clean rendering without external image dependencies -->
+            <svg class="btn-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Continue with Google
+        </button>
+        
+        <button class="btn btn-phone">
+            <span>📱</span> Login with Phone
+        </button>
 
         <!-- Footer -->
-        <div class="mt-8 text-xs text-gray-500 font-light flex items-center gap-1">
-            Made with <span class="text-red-500 animate-pulse">❤️</span> by super app
-        </div>
-
+        <p class="footer-text">Made with <span class="heart">❤️</span> by super app</p>
     </div>
 
 </body>
