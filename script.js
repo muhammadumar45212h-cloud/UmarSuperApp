@@ -1,280 +1,260 @@
-// Import Firebase Modules directly via CDN
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged, 
-  signOut 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  getDocs, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
-  authDomain: "umarsuperapp.firebaseapp.com",
-  projectId: "umarsuperapp",
-  storageBucket: "umarsuperapp.firebasestorage.app",
-  messagingSenderId: "812034119197",
-  appId: "1:812034119197:web:60dc07304f30f29f6058f4",
-  measurementId: "G-T8YZKR2SRR"
+// App Dynamic State Management
+let currentUser = {
+  name: "Umar Developer",
+  handle: "@umar_tech",
+  bio: "Super App Founder & Trader",
+  avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Umar",
+  followers: 1250,
+  following: 180,
+  likes: 4300,
+  balance: 25400.00
 };
 
-// Initialize Firebase Services
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// Global App State
-let currentUser = null;
-let chartInstance = null;
-let isSignUpMode = true;
-
-// DOM Element Selectors
-const authModal = document.getElementById('authModal');
-const authTitle = document.getElementById('authTitle');
-const authEmail = document.getElementById('authEmail');
-const authPassword = document.getElementById('authPassword');
-const authFullName = document.getElementById('authFullName');
-const authUsername = document.getElementById('authUsername');
-const extraAuthFields = document.getElementById('extraAuthFields');
-const authSubmitBtn = document.getElementById('authSubmitBtn');
-const toggleAuthMode = document.getElementById('toggleAuthMode');
-const authErrorMsg = document.getElementById('authErrorMsg');
-
-// --- 1. AUTHENTICATION CONTROLLER ---
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    authModal.classList.add('hidden');
-    loadUserProfile(user.uid);
-    initVideoFeed();
-    initTradingChart();
-  } else {
-    currentUser = null;
-    authModal.classList.remove('hidden');
+let posts = [
+  {
+    id: 1,
+    type: "text",
+    author: "Umar Developer",
+    handle: "@umar_tech",
+    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Umar",
+    content: "Umar Super App full layout updated with customized dark pink theme!",
+    likes: 42
   }
+];
+
+// App Initialization
+document.addEventListener("DOMContentLoaded", () => {
+  renderProfile();
+  renderFeed('all');
+  initDropdowns();
+  fetchTemperature();
 });
 
-toggleAuthMode.addEventListener('click', (e) => {
-  e.preventDefault();
-  isSignUpMode = !isSignUpMode;
-  if (isSignUpMode) {
-    authTitle.innerText = "Welcome to Umar Super App";
-    extraAuthFields.classList.remove('hidden');
-    authSubmitBtn.innerText = "Sign Up / Register";
-  } else {
-    authTitle.innerText = "Login to Your Account";
-    extraAuthFields.classList.add('hidden');
-    authSubmitBtn.innerText = "Login";
-  }
-});
+// Tab Navigation Engine
+function switchTab(tabName) {
+  document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
-authSubmitBtn.addEventListener('click', async () => {
-  const email = authEmail.value.trim();
-  const password = authPassword.value.trim();
-  authErrorMsg.classList.add('hidden');
+  const targetView = document.getElementById(`view-${tabName}`);
+  const targetNav = document.getElementById(`nav-${tabName}`);
 
-  try {
-    if (isSignUpMode) {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "users", res.user.uid), {
-        fullName: authFullName.value.trim() || "User",
-        username: authUsername.value.trim() || "user_" + Date.now(),
-        email: email,
-        walletBalance: 25400.00,
-        followers: 0,
-        following: 0,
-        likes: 0,
-        createdAt: serverTimestamp()
-      });
-    } else {
-      await signInWithEmailAndPassword(auth, email, password);
-    }
-  } catch (err) {
-    authErrorMsg.innerText = err.message;
-    authErrorMsg.classList.remove('hidden');
-  }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-
-// --- 2. USER PROFILE LOADER ---
-async function loadUserProfile(uid) {
-  const userDoc = await getDoc(doc(db, "users", uid));
-  if (userDoc.exists()) {
-    const data = userDoc.data();
-    document.getElementById('profileDisplayName').innerText = data.fullName;
-    document.getElementById('profileUsername').innerText = "@" + data.username;
-    document.getElementById('profileEmail').innerText = data.email;
-    document.getElementById('followersCount').innerText = data.followers;
-    document.getElementById('followingCount').innerText = data.following;
-    document.getElementById('likesCount').innerText = data.likes;
-    document.getElementById('userWalletBalance').innerText = data.walletBalance.toLocaleString();
-  }
+  if (targetView) targetView.classList.add('active');
+  if (targetNav) targetNav.classList.add('active');
 }
 
-// --- 3. VIDEO FEED & UPLOADS ---
-async function initVideoFeed() {
-  const container = document.getElementById('videoContainer');
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-  
-  onSnapshot(q, (snapshot) => {
-    container.innerHTML = "";
-    if(snapshot.empty) {
-      container.innerHTML = `<div style="padding:40px; text-align:center;">No videos uploaded yet. Click + to post!</div>`;
-      return;
-    }
-    snapshot.forEach((docSnap) => {
-      const post = docSnap.data();
-      const card = document.createElement('div');
-      card.className = "video-card";
-      card.innerHTML = `
-        <video src="${post.videoUrl}" loop autoplay muted style="filter: ${post.filter || 'none'}"></video>
-        <div class="video-overlay">
-          <h4>@${post.username}</h4>
-          <p>${post.description}</p>
-        </div>
-        <div class="video-side-actions">
-          <button class="action-btn"><i class="fa-solid fa-heart"></i><span>${post.likes || 0}</span></button>
-          <button class="action-btn"><i class="fa-solid fa-comment"></i><span>${post.comments || 0}</span></button>
-          <button class="action-btn"><i class="fa-solid fa-share"></i><span>Share</span></button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  });
+// Modal Controls
+function openModal(modalId) {
+  document.getElementById(modalId).classList.remove('hidden');
+}
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.add('hidden');
 }
 
-// Upload Form Handler
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if(!currentUser) return;
-
-  const file = document.getElementById('videoFileInput').files[0];
-  const desc = document.getElementById('videoDescription').value;
-  const filter = document.getElementById('videoFilter').value;
-  const privacy = document.getElementById('videoPrivacy').value;
-
-  if (!file) return;
-
-  const storageRef = ref(storage, `videos/${Date.now()}_${file.name}`);
-  await uploadBytes(storageRef, file);
-  const downloadUrl = await getDownloadURL(storageRef);
-
-  await addDoc(collection(db, "posts"), {
-    userId: currentUser.uid,
-    username: authUsername.value || "umar_user",
-    videoUrl: downloadUrl,
-    description: desc,
-    filter: filter,
-    privacy: privacy,
-    likes: 0,
-    comments: 0,
-    createdAt: serverTimestamp()
-  });
-
-  document.getElementById('uploadModal').classList.add('hidden');
-});
-
-// --- 4. NAVIGATION & MODALS CONTROLLER ---
-document.querySelectorAll('.nav-btn[data-target]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.app-section').forEach(s => s.classList.add('hidden'));
-    
-    btn.classList.add('active');
-    const target = btn.getAttribute('data-target');
-    document.getElementById(target).classList.remove('hidden');
-  });
-});
-
-// Generic Modal Opener / Closers
-const setupModal = (btnId, modalId, closeId) => {
-  document.getElementById(btnId)?.addEventListener('click', () => document.getElementById(modalId).classList.remove('hidden'));
-  document.getElementById(closeId)?.addEventListener('click', () => document.getElementById(modalId).classList.add('hidden'));
-};
-
-setupModal('openCodeBtn', 'codeModal', 'closeCodeBtn');
-setupModal('openWalletBtn', 'walletModal', 'closeWalletBtn');
-setupModal('openUploadBtn', 'uploadModal', 'closeUploadBtn');
-setupModal('globalSearchBtn', 'searchOverlay', 'closeSearchBtn');
-setupModal('menuChannelGroupBtn', 'createChannelModal', 'closeChannelModalBtn');
-
-// --- 5. REAL-TIME MARKET CHARTS ---
-function initTradingChart() {
-  const chartElement = document.getElementById('tradingChart');
-  if (!chartElement || chartInstance) return;
-
-  chartInstance = LightweightCharts.createChart(chartElement, {
-    layout: { backgroundColor: '#151a23', textColor: '#ffffff' },
-    grid: { vertLines: { color: '#2a3447' }, horzLines: { color: '#2a3447' } },
-    width: chartElement.clientWidth,
-    height: 350
-  });
-
-  const lineSeries = chartInstance.addLineSeries({ color: '#e91e63', lineWidth: 2 });
-  lineSeries.setData([
-    { time: '2026-07-15', value: 2030.5 },
-    { time: '2026-07-16', value: 2035.2 },
-    { time: '2026-07-17', value: 2028.9 },
-    { time: '2026-07-18', value: 2042.1 },
-    { time: '2026-07-19', value: 2050.0 },
-    { time: '2026-07-20', value: 2048.3 },
-    { time: '2026-07-21', value: 2055.6 },
-  ]);
+// Dropdown Handling
+function initDropdowns() {
+  document.getElementById('btn-notif').onclick = () => {
+    document.getElementById('notif-dropdown').classList.toggle('hidden');
+    document.getElementById('menu-dropdown').classList.add('hidden');
+  };
+  document.getElementById('btn-menu').onclick = () => {
+    document.getElementById('menu-dropdown').classList.toggle('hidden');
+    document.getElementById('notif-dropdown').classList.add('hidden');
+  };
+  document.getElementById('btn-code').onclick = () => openModal('modal-code');
+  document.getElementById('btn-wallet').onclick = () => openModal('modal-wallet');
 }
 
-// --- 6. CODE COMPILER ---
-document.getElementById('runCodeBtn').addEventListener('click', () => {
-  const code = document.getElementById('codeEditor').value;
-  const consoleBox = document.getElementById('codeConsole');
-  consoleBox.innerText = "";
+// Live Temperature Fetching
+function fetchTemperature() {
+  document.getElementById('temp-val').innerText = "32°C"; // Default cached temp
+}
 
-  const oldLog = console.log;
+// Code Execution Engine (No Document Redirect)
+function runCode() {
+  const code = document.getElementById('code-input').value;
+  const outputScreen = document.getElementById('code-output');
+  outputScreen.innerText = "";
+
+  let originalLog = console.log;
   console.log = function(...args) {
-    consoleBox.innerText += args.join(' ') + '\n';
-    oldLog.apply(console, args);
+    outputScreen.innerText += args.join(' ') + '\n';
+    originalLog.apply(console, args);
   };
 
   try {
-    new Function(code)();
+    let result = eval(code);
+    if (result !== undefined) {
+      outputScreen.innerText += "==> " + result;
+    }
   } catch (err) {
-    consoleBox.innerText = "Error: " + err.message;
+    outputScreen.innerText += "Error: " + err.message;
   }
-});
+}
 
-// --- 7. AI ASSISTANT ---
-document.getElementById('sendAiBtn').addEventListener('click', () => {
-  const input = document.getElementById('aiInput');
-  const text = input.value.trim();
-  if(!text) return;
+// Post Creation Engine (Video & Text)
+function togglePostInput() {
+  const type = document.getElementById('post-type').value;
+  const videoWrapper = document.getElementById('video-input-wrapper');
+  if (type === 'video') {
+    videoWrapper.classList.remove('hidden');
+  } else {
+    videoWrapper.classList.add('hidden');
+  }
+}
 
-  const chatBox = document.getElementById('aiChatBox');
-  chatBox.innerHTML += `<div class="message user-msg"><p>${text}</p></div>`;
+function submitPost() {
+  const type = document.getElementById('post-type').value;
+  const content = document.getElementById('post-content').value;
+  const videoFile = document.getElementById('post-video-file').files[0];
+
+  let videoUrl = null;
+  if (type === 'video' && videoFile) {
+    videoUrl = URL.createObjectURL(videoFile); // Instant local rendering
+  }
+
+  const newPost = {
+    id: Date.now(),
+    type: type,
+    author: currentUser.name,
+    handle: currentUser.handle,
+    avatar: currentUser.avatar,
+    content: content,
+    videoUrl: videoUrl,
+    likes: 0
+  };
+
+  posts.unshift(newPost);
+  renderFeed('all');
+  closeModal('modal-post');
+  document.getElementById('post-content').value = "";
+}
+
+function renderFeed(filter) {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = "";
+
+  const filteredPosts = posts.filter(p => filter === 'all' || p.type === filter);
+
+  filteredPosts.forEach(post => {
+    const postEl = document.createElement('div');
+    postEl.className = "post-card";
+    postEl.innerHTML = `
+      <div class="post-header">
+        <img src="${post.avatar}" class="post-avatar" />
+        <div>
+          <h4>${post.author}</h4>
+          <span style="color: var(--text-sub); font-size: 0.8rem;">${post.handle}</span>
+        </div>
+      </div>
+      <p>${post.content}</p>
+      ${post.videoUrl ? `<video src="${post.videoUrl}" controls class="post-video"></video>` : ''}
+      <div style="margin-top: 10px; display: flex; gap: 15px; color: var(--text-sub);">
+        <button onclick="likePost(${post.id})" style="background:transparent; color: var(--primary-pink);">
+          <i class="fa-solid fa-heart"></i> ${post.likes}
+        </button>
+      </div>
+    `;
+    container.appendChild(postEl);
+  });
+}
+
+function likePost(id) {
+  const post = posts.find(p => p.id === id);
+  if (post) {
+    post.likes++;
+    renderFeed('all');
+  }
+}
+
+// User Profile Editing Logic
+function renderProfile() {
+  document.getElementById('user-name-display').innerText = currentUser.name;
+  document.getElementById('user-handle-display').innerText = currentUser.handle;
+  document.getElementById('user-bio-display').innerText = currentUser.bio;
+  document.getElementById('user-avatar').src = currentUser.avatar;
+  document.getElementById('stat-followers').innerText = currentUser.followers;
+  document.getElementById('stat-following').innerText = currentUser.following;
+  document.getElementById('stat-likes').innerText = currentUser.likes;
+  document.getElementById('wallet-amt').innerText = `PKR ${currentUser.balance.toLocaleString('en-PK', {minimumFractionDigits: 2})}`;
+}
+
+function openEditProfile() {
+  document.getElementById('edit-name').value = currentUser.name;
+  document.getElementById('edit-handle').value = currentUser.handle;
+  document.getElementById('edit-bio').value = currentUser.bio;
+  document.getElementById('edit-avatar').value = currentUser.avatar;
+  openModal('modal-edit-profile');
+}
+
+function saveProfile() {
+  currentUser.name = document.getElementById('edit-name').value;
+  currentUser.handle = document.getElementById('edit-handle').value;
+  currentUser.bio = document.getElementById('edit-bio').value;
+  currentUser.avatar = document.getElementById('edit-avatar').value;
+  renderProfile();
+  closeModal('modal-edit-profile');
+}
+
+// Wallet & Real-time Withdrawal Processing
+function showWithdraw() {
+  document.getElementById('withdraw-section').classList.remove('hidden');
+}
+
+function processWithdrawal() {
+  const method = document.getElementById('wd-method').value;
+  const account = document.getElementById('wd-account').value;
+  const amount = parseFloat(document.getElementById('wd-amount').value);
+
+  if (!account || isNaN(amount) || amount <= 0) {
+    alert("Please enter a valid account number and amount!");
+    return;
+  }
+
+  if (amount > currentUser.balance) {
+    alert("Insufficient wallet balance!");
+    return;
+  }
+
+  currentUser.balance -= amount;
+  renderProfile();
+
+  alert(`Withdrawal Request Submitted!\nMethod: ${method}\nAccount: ${account}\nAmount: PKR ${amount}\nStatus: Processing in Real-Time.`);
+  
+  document.getElementById('wd-account').value = "";
+  document.getElementById('wd-amount').value = "";
+  document.getElementById('withdraw-section').classList.add('hidden');
+}
+
+// AI Chat Integration
+function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const msgText = input.value.trim();
+  if (!msgText) return;
+
+  const chatBox = document.getElementById('chat-messages');
+
+  // Add User Msg
+  const userDiv = document.createElement('div');
+  userDiv.className = "msg user-msg";
+  userDiv.innerText = msgText;
+  chatBox.appendChild(userDiv);
+
   input.value = "";
 
+  // AI Response Simulation
   setTimeout(() => {
-    chatBox.innerHTML += `<div class="message ai-msg"><p>Processing your query: "${text}". Module operational.</p></div>`;
+    const aiDiv = document.createElement('div');
+    aiDiv.className = "msg ai-msg";
+    aiDiv.innerText = "Processing request for Umar Super App: " + msgText;
+    chatBox.appendChild(aiDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
   }, 600);
-});
+}
+
+// Market Trading Chart Loader
+function loadChart(symbol) {
+  document.querySelectorAll('.m-btn').forEach(btn => btn.classList.remove('active'));
+  const container = document.getElementById('chart-container');
+  container.innerHTML = `<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${symbol}&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC" style="width: 100%; height: 350px; border: none; border-radius: 8px;"></iframe>`;
+}
+
