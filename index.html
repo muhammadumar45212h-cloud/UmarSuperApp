@@ -17,13 +17,18 @@
         <div class="auth-card" id="auth-form-card">
             <h2 id="auth-title">Umar Super App Login</h2>
             <p class="auth-sub">Enter your details to access live features</p>
-            <input type="email" id="auth-email" placeholder="Email Address" required />
+            <input type="text" id="auth-email" placeholder="Email / Phone / Username" required />
             <input type="password" id="auth-password" placeholder="Password" required />
             
+            <!-- ONBOARDING FIELDS FOR SIGNUP -->
             <div id="onboarding-fields" class="hidden">
                 <input type="text" id="auth-fullname" placeholder="Full Name (e.g. Muhammad Umar)" />
                 <input type="text" id="auth-username" placeholder="Username (@umar_dev)" />
-                <input type="text" id="auth-avatar-url" placeholder="Profile Photo Image URL (Optional)" />
+                <input type="tel" id="auth-phone" placeholder="Phone Number (e.g. 03001234567)" />
+                
+                <!-- Direct Mobile Gallery Image Selector -->
+                <label style="color:#aaa; font-size:12px; display:block; margin-top:8px; text-align:left;">Profile Photo (Select from Gallery):</label>
+                <input type="file" id="auth-avatar-file" accept="image/*" style="background:#222; color:#fff; padding:6px; margin-top:4px; border-radius:5px; width:100%;" />
             </div>
 
             <button id="auth-submit-btn" class="btn-primary">Login</button>

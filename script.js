@@ -31,7 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
     checkDeepLinkVideo();
 });
 
-// 3. AUTHENTICATION ENGINE
+// Helper Function: Convert Phone to Dummy Email for Firebase Auth
+function phoneToEmail(phone) {
+    const cleanPhone = phone.replace(/[^\d+]/g, '');
+    return `phone_${cleanPhone}@umarsuperapp.internal`;
+}
+
+// 3. AUTHENTICATION ENGINE (Email / Phone / Username + Gallery Photo)
 function initAuthListeners() {
     const authModal = document.getElementById("auth-modal");
     
@@ -74,47 +80,99 @@ function initAuthListeners() {
         }
     });
 
-    // Auth Submission
+    // Auth Submission (Login & Signup)
     authSubmit.addEventListener("click", async () => {
-        const email = document.getElementById("auth-email").value.trim();
+        const identifier = document.getElementById("auth-email").value.trim(); // Email / Phone / Username
         const password = document.getElementById("auth-password").value.trim();
         const errorDiv = document.getElementById("auth-error");
         errorDiv.innerText = "";
 
-        if (!email || !password) {
+        if (!identifier || !password) {
             errorDiv.innerText = "Please fill all required fields.";
             return;
         }
 
+        authSubmit.innerText = "Processing...";
+        authSubmit.disabled = true;
+
         try {
             if (isSignupMode) {
                 const fullname = document.getElementById("auth-fullname").value.trim() || "User";
-                const username = document.getElementById("auth-username").value.trim() || "@user";
-                const avatar = document.getElementById("auth-avatar-url").value.trim() || "https://via.placeholder.com/100";
+                let username = document.getElementById("auth-username").value.trim() || "@user";
+                if (!username.startsWith("@")) username = "@" + username;
 
-                const res = await auth.createUserWithEmailAndPassword(email, password);
+                const phoneInput = document.getElementById("auth-phone") ? document.getElementById("auth-phone").value.trim() : "";
+                const avatarFileInput = document.getElementById("auth-avatar-file");
+
+                let targetEmail = identifier;
+                let userPhone = phoneInput;
+
+                // Agar identifier Email nahi hai, to Check Phone
+                if (!identifier.includes("@")) {
+                    targetEmail = phoneToEmail(identifier);
+                    userPhone = identifier;
+                }
+
+                // Gallery Image Upload to Firebase Storage
+                let avatarUrl = "https://via.placeholder.com/100";
+                if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
+                    const file = avatarFileInput.files[0];
+                    const storageRef = storage.ref(`avatars/${Date.now()}_${file.name}`);
+                    const uploadTask = await storageRef.put(file);
+                    avatarUrl = await uploadTask.ref.getDownloadURL();
+                }
+
+                // Create User in Firebase Auth
+                const res = await auth.createUserWithEmailAndPassword(targetEmail, password);
                 
-                // Create Firestore Profile Document
+                // Save complete profile to Firestore
                 await db.collection("users").doc(res.user.uid).set({
                     uid: res.user.uid,
-                    email: email,
+                    email: identifier.includes("@") ? identifier : "",
+                    phone: userPhone,
                     fullname: fullname,
                     username: username,
-                    avatar: avatar,
+                    avatar: avatarUrl,
                     followersCount: 0,
                     followingCount: 0,
                     totalViews: 0,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+
             } else {
-                await auth.signInWithEmailAndPassword(email, password);
+                // LOGIN LOGIC: Check Email, Phone, or Username
+                let targetEmail = identifier;
+
+                if (!identifier.includes("@")) {
+                    // Check if identifier is Username or Phone in Firestore
+                    const userByUsername = await db.collection("users").where("username", "==", identifier.startsWith("@") ? identifier : "@" + identifier).get();
+                    const userByPhone = await db.collection("users").where("phone", "==", identifier).get();
+
+                    if (!userByUsername.empty) {
+                        const userData = userByUsername.docs[0].data();
+                        targetEmail = userData.email || phoneToEmail(userData.phone);
+                    } else if (!userByPhone.empty) {
+                        const userData = userByPhone.docs[0].data();
+                        targetEmail = userData.email || phoneToEmail(userData.phone);
+                    } else {
+                        // Default fallback to phone format
+                        targetEmail = phoneToEmail(identifier);
+                    }
+                }
+
+                await auth.signInWithEmailAndPassword(targetEmail, password);
             }
         } catch (err) {
             if (err.code === "auth/email-already-in-use") {
-                errorDiv.innerText = "Already used this email. Please login instead.";
+                errorDiv.innerText = "Email ya Phone pehle se registered hai. Login karein.";
+            } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+                errorDiv.innerText = "Ghalat Login Details ya Password! Dobara check karein.";
             } else {
                 errorDiv.innerText = err.message;
             }
+        } finally {
+            authSubmit.innerText = isSignupMode ? "Sign Up" : "Login";
+            authSubmit.disabled = false;
         }
     });
 
@@ -129,12 +187,12 @@ async function loadUserProfile(uid) {
     const doc = await db.collection("users").doc(uid).get();
     if (doc.exists) {
         currentProfile = doc.data();
-        document.getElementById("my-profile-name").innerText = currentProfile.fullname;
-        document.getElementById("my-profile-username").innerText = currentProfile.username;
-        document.getElementById("my-profile-img").src = currentProfile.avatar;
-        document.getElementById("stat-followers").innerText = currentProfile.followersCount || 0;
-        document.getElementById("stat-following").innerText = currentProfile.followingCount || 0;
-        document.getElementById("stat-views").innerText = currentProfile.totalViews || 0;
+        if (document.getElementById("my-profile-name")) document.getElementById("my-profile-name").innerText = currentProfile.fullname;
+        if (document.getElementById("my-profile-username")) document.getElementById("my-profile-username").innerText = currentProfile.username;
+        if (document.getElementById("my-profile-img")) document.getElementById("my-profile-img").src = currentProfile.avatar;
+        if (document.getElementById("stat-followers")) document.getElementById("stat-followers").innerText = currentProfile.followersCount || 0;
+        if (document.getElementById("stat-following")) document.getElementById("stat-following").innerText = currentProfile.followingCount || 0;
+        if (document.getElementById("stat-views")) document.getElementById("stat-views").innerText = currentProfile.totalViews || 0;
     }
 }
 
@@ -150,23 +208,25 @@ function initNavigation() {
             sections.forEach(s => s.classList.remove("active-section"));
 
             item.classList.add("active");
-            document.getElementById(target).classList.add("active-section");
+            if (document.getElementById(target)) document.getElementById(target).classList.add("active-section");
         });
     });
 
     // Top Dropdown Menu
     const topMenuBtn = document.getElementById("btn-top-menu");
     const dropMenu = document.getElementById("top-dropdown-menu");
-    topMenuBtn.addEventListener("click", () => {
-        dropMenu.classList.toggle("hidden");
-    });
+    if (topMenuBtn && dropMenu) {
+        topMenuBtn.addEventListener("click", () => {
+            dropMenu.classList.toggle("hidden");
+        });
+    }
 }
 
-// 5. SHORT VIDEO FEED & ALGORITHM (VIRALITY ALGORITHM)
+// 5. SHORT VIDEO FEED & ALGORITHM
 function loadVideoFeed() {
     const feedContainer = document.getElementById("video-feed-container");
+    if (!feedContainer) return;
 
-    // Order videos based on engagement: (Likes + Comments + Shares)
     db.collection("videos")
       .orderBy("engagementScore", "desc")
       .onSnapshot(snapshot => {
@@ -183,7 +243,6 @@ function createVideoCard(id, data) {
     const div = document.createElement("div");
     div.className = "video-card";
     
-    // Video Filter Styles
     let filterStyle = "";
     if(data.filter === "sepia") filterStyle = "filter: sepia(0.8);";
     if(data.filter === "grayscale") filterStyle = "filter: grayscale(1);";
@@ -219,7 +278,6 @@ function createVideoCard(id, data) {
     return div;
 }
 
-// Video Like Handler
 async function likeVideo(videoId, currentLikes) {
     if(!currentUser) return;
     const newLikes = currentLikes + 1;
@@ -229,26 +287,25 @@ async function likeVideo(videoId, currentLikes) {
     });
 }
 
-// Direct App Video Link Sharing
 function shareVideo(videoId, username) {
     const appLink = `https://umar-super-app.web.app/?v=${videoId}`;
     navigator.clipboard.writeText(appLink);
     alert(`Video Link Copied for ${username}! Share anywhere:\n${appLink}`);
 }
 
-// Deep Linking Check on Initial App Launch
 function checkDeepLinkVideo() {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('v');
     if (videoId) {
         console.log("Loading shared video target:", videoId);
-        // Switch view to section feed
     }
 }
 
 // 6. TRADINGVIEW FOREX & CRYPTO CHARTS
 function initTradingViewWidget(symbol) {
-    document.getElementById("tradingview-widget-container").innerHTML = "";
+    const container = document.getElementById("tradingview-widget-container");
+    if (!container) return;
+    container.innerHTML = "";
     new TradingView.widget({
         "autosize": true,
         "symbol": symbol,
@@ -265,40 +322,40 @@ function initTradingViewWidget(symbol) {
 }
 
 // 7. TERMINAL & REAL-TIME COMPILER ENGINE
-document.getElementById("btn-run-code").addEventListener("click", () => {
-    const code = document.getElementById("code-editor-input").value;
-    const outputConsole = document.getElementById("terminal-console-out");
-    outputConsole.innerText = "> Executing script...\n";
+const runBtn = document.getElementById("btn-run-code");
+if (runBtn) {
+    runBtn.addEventListener("click", () => {
+        const code = document.getElementById("code-editor-input").value;
+        const outputConsole = document.getElementById("terminal-console-out");
+        outputConsole.innerText = "> Executing script...\n";
 
-    try {
-        // Capture standard console.log
-        let logs = [];
-        const originalLog = console.log;
-        console.log = function(...args) {
-            logs.push(args.join(" "));
-            originalLog.apply(console, args);
-        };
+        try {
+            let logs = [];
+            const originalLog = console.log;
+            console.log = function(...args) {
+                logs.push(args.join(" "));
+                originalLog.apply(console, args);
+            };
 
-        // Run JavaScript Code safely
-        const result = new Function(code)();
-        
-        console.log = originalLog; // restore log
-        outputConsole.innerText += logs.join("\n") + "\n> Process finished with result: " + (result !== undefined ? result : "Success");
-    } catch (err) {
-        outputConsole.innerText += "> Runtime Error: " + err.message;
-    }
-});
+            const result = new Function(code)();
+            console.log = originalLog;
+            outputConsole.innerText += logs.join("\n") + "\n> Process finished with result: " + (result !== undefined ? result : "Success");
+        } catch (err) {
+            outputConsole.innerText += "> Runtime Error: " + err.message;
+        }
+    });
+}
 
 // 8. AI ASSISTANT CHAT ENGINE
-document.getElementById("btn-send-ai").addEventListener("click", sendAiMessage);
+const aiBtn = document.getElementById("btn-send-ai");
+if (aiBtn) aiBtn.addEventListener("click", sendAiMessage);
+
 function sendAiMessage() {
     const input = document.getElementById("ai-input-text");
     const text = input.value.trim();
     if(!text) return;
 
     const history = document.getElementById("ai-chat-history");
-    
-    // User Message
     const uDiv = document.createElement("div");
     uDiv.className = "ai-bubble ai-user";
     uDiv.innerText = text;
@@ -306,7 +363,6 @@ function sendAiMessage() {
     
     input.value = "";
 
-    // Simulated Smart Assistant Response
     setTimeout(() => {
         const aiDiv = document.createElement("div");
         aiDiv.className = "ai-bubble ai-reply";
@@ -328,11 +384,12 @@ function getAiResponse(query) {
 }
 
 // 9. WEATHER ENGINE
-document.getElementById("btn-search-weather").addEventListener("click", fetchWeather);
+const weatherBtn = document.getElementById("btn-search-weather");
+if (weatherBtn) weatherBtn.addEventListener("click", fetchWeather);
+
 async function fetchWeather() {
     const city = document.getElementById("weather-city-input").value.trim() || "Karachi";
     try {
-        // Public Weather API Endpoint
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current_weather=true`);
         const data = await res.json();
         
@@ -347,6 +404,8 @@ async function fetchWeather() {
 // 10. REAL-TIME CHAT & MESSAGING ENGINE
 function loadChatThreads() {
     const threadsList = document.getElementById("chat-threads-list");
+    if (!threadsList) return;
+
     db.collection("users").limit(10).onSnapshot(snapshot => {
         threadsList.innerHTML = "";
         snapshot.forEach(doc => {
@@ -374,7 +433,6 @@ function openChatWindow(targetUser) {
     document.getElementById("chat-header-name").innerText = targetUser.fullname;
     document.getElementById("chat-header-avatar").src = targetUser.avatar;
 
-    // Load Live Messages Real-time
     const chatId = [currentUser.uid, targetUser.uid].sort().join("_");
     db.collection("chats").doc(chatId).collection("messages")
       .orderBy("timestamp", "asc")
@@ -391,7 +449,6 @@ function openChatWindow(targetUser) {
           area.scrollTop = area.scrollHeight;
       });
 
-    // Send Message
     document.getElementById("btn-send-chat").onclick = async () => {
         const txt = document.getElementById("chat-msg-input").value.trim();
         if(!txt) return;
@@ -407,65 +464,59 @@ function openChatWindow(targetUser) {
 
 // 11. UPLOAD & COMMUNITY MODALS
 function initEventHandlers() {
-    // Open Upload Modal
-    document.getElementById("btn-open-upload-modal").addEventListener("click", () => {
-        document.getElementById("upload-modal").classList.remove("hidden");
-    });
-    document.getElementById("btn-close-upload").addEventListener("click", () => {
-        document.getElementById("upload-modal").classList.add("hidden");
-    });
+    const openUploadBtn = document.getElementById("btn-open-upload-modal");
+    if (openUploadBtn) {
+        openUploadBtn.addEventListener("click", () => {
+            document.getElementById("upload-modal").classList.remove("hidden");
+        });
+    }
 
-    // Tab Switching in Upload Modal
-    document.getElementById("tab-video-upload").addEventListener("click", () => {
-        document.getElementById("tab-video-upload").classList.add("active");
-        document.getElementById("tab-livestream").classList.remove("active");
-        document.getElementById("form-video-upload").classList.remove("hidden");
-        document.getElementById("form-livestream").classList.add("hidden");
-    });
-
-    document.getElementById("tab-livestream").addEventListener("click", () => {
-        document.getElementById("tab-livestream").classList.add("active");
-        document.getElementById("tab-video-upload").classList.remove("active");
-        document.getElementById("form-livestream").classList.remove("hidden");
-        document.getElementById("form-video-upload").classList.add("hidden");
-    });
+    const closeUploadBtn = document.getElementById("btn-close-upload");
+    if (closeUploadBtn) {
+        closeUploadBtn.addEventListener("click", () => {
+            document.getElementById("upload-modal").classList.add("hidden");
+        });
+    }
 
     // Video Post Submission
-    document.getElementById("btn-submit-post").addEventListener("click", async () => {
-        const fileInput = document.getElementById("input-video-file");
-        const desc = document.getElementById("input-video-desc").value;
-        const filter = document.getElementById("select-video-filter").value;
-        const privacy = document.getElementById("select-video-privacy").value;
+    const submitPostBtn = document.getElementById("btn-submit-post");
+    if (submitPostBtn) {
+        submitPostBtn.addEventListener("click", async () => {
+            const fileInput = document.getElementById("input-video-file");
+            const desc = document.getElementById("input-video-desc").value;
+            const filter = document.getElementById("select-video-filter").value;
+            const privacy = document.getElementById("select-video-privacy").value;
 
-        if(!fileInput.files[0]) {
-            alert("Please select a video file first.");
-            return;
-        }
+            if(!fileInput.files[0]) {
+                alert("Please select a video file first.");
+                return;
+            }
 
-        const file = fileInput.files[0];
-        const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
-        
-        alert("Uploading video to Firebase storage...");
-        const uploadTask = await storageRef.put(file);
-        const downloadURL = await uploadTask.ref.getDownloadURL();
+            const file = fileInput.files[0];
+            const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
+            
+            alert("Uploading video to Firebase storage...");
+            const uploadTask = await storageRef.put(file);
+            const downloadURL = await uploadTask.ref.getDownloadURL();
 
-        await db.collection("videos").add({
-            userId: currentUser.uid,
-            username: currentProfile.username,
-            authorAvatar: currentProfile.avatar,
-            url: downloadURL,
-            description: desc,
-            filter: filter,
-            privacy: privacy,
-            likes: 0,
-            commentsCount: 0,
-            engagementScore: 0,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            await db.collection("videos").add({
+                userId: currentUser.uid,
+                username: currentProfile.username,
+                authorAvatar: currentProfile.avatar,
+                url: downloadURL,
+                description: desc,
+                filter: filter,
+                privacy: privacy,
+                likes: 0,
+                commentsCount: 0,
+                engagementScore: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            alert("Video Posted Successfully!");
+            document.getElementById("upload-modal").classList.add("hidden");
         });
-
-        alert("Video Posted Successfully!");
-        document.getElementById("upload-modal").classList.add("hidden");
-    });
+    }
 
     // Forex Pair Buttons
     document.querySelectorAll(".pair-btn").forEach(btn => {
@@ -499,25 +550,32 @@ function openCommentsModal(videoId) {
       });
 }
 
-document.getElementById("btn-close-comments").addEventListener("click", () => {
-    document.getElementById("comments-modal").classList.add("hidden");
-});
-
-document.getElementById("btn-post-comment").addEventListener("click", async () => {
-    const input = document.getElementById("comment-input-text");
-    const txt = input.value.trim();
-    if(!txt || !activeCommentVideoId) return;
-
-    input.value = "";
-    await db.collection("videos").doc(activeCommentVideoId).collection("comments").add({
-        userId: currentUser.uid,
-        username: currentProfile.username,
-        text: txt,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+const closeCommentsBtn = document.getElementById("btn-close-comments");
+if (closeCommentsBtn) {
+    closeCommentsBtn.addEventListener("click", () => {
+        document.getElementById("comments-modal").classList.add("hidden");
     });
+}
 
-    await db.collection("videos").doc(activeCommentVideoId).update({
-        commentsCount: firebase.firestore.FieldValue.increment(1),
-        engagementScore: firebase.firestore.FieldValue.increment(3)
+const postCommentBtn = document.getElementById("btn-post-comment");
+if (postCommentBtn) {
+    postCommentBtn.addEventListener("click", async () => {
+        const input = document.getElementById("comment-input-text");
+        const txt = input.value.trim();
+        if(!txt || !activeCommentVideoId) return;
+
+        input.value = "";
+        await db.collection("videos").doc(activeCommentVideoId).collection("comments").add({
+            userId: currentUser.uid,
+            username: currentProfile.username,
+            text: txt,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await db.collection("videos").doc(activeCommentVideoId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1),
+            engagementScore: firebase.firestore.FieldValue.increment(3)
+        });
     });
-});
+}
+
