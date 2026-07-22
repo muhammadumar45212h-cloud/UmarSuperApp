@@ -50,20 +50,22 @@
       </div>
     </section>
 
-    <!-- MARKET SECTION (Untouched TradingView Chart) -->
+    <!-- MARKET SECTION (TradingView Chart) -->
     <section id="market-section" class="app-page">
       <div class="market-selector">
         <button class="m-btn active" data-symbol="OANDA:XAUUSD">XAUUSD</button>
         <button class="m-btn" data-symbol="BINANCE:BTCUSDT">BTCUSD</button>
         <button class="m-btn" data-symbol="FX:EURUSD">EURUSD</button>
       </div>
-      <div id="tradingview-widget-container" style="height: calc(100vh - 140px); width:100%;"></div>
+      <div id="tradingview-widget-container" style="height: calc(100vh - 170px); width:100%;"></div>
     </section>
 
     <!-- AI CHAT SECTION -->
     <section id="ai-section" class="app-page">
       <div class="chat-wrapper">
-        <div id="ai-messages" class="messages-log"></div>
+        <div id="ai-messages" class="messages-log">
+          <div class="msg ai-msg"><div class="msg-bubble">Hello Umar! I am Super AI. How can I help you build today?</div></div>
+        </div>
         <div class="chat-input-bar">
           <input type="text" id="ai-input" placeholder="Ask Super AI anything...">
           <button id="ai-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
@@ -102,15 +104,15 @@
     <section id="profile-section" class="app-page">
       <div class="profile-card">
         <div class="profile-avatar-wrap">
-          <img id="profile-avatar-img" src="https://via.placeholder.com/100" alt="Avatar">
+          <img id="profile-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" alt="Avatar">
         </div>
-        <h2 id="profile-display-name">Loading...</h2>
+        <h2 id="profile-display-name">Umar Developer</h2>
         <p id="profile-bio-text">Welcome to Super App!</p>
         <button id="btn-edit-profile" class="secondary-btn"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
       </div>
       <div class="user-uploads-grid">
-        <h3>Upload History</h3>
-        <div id="profile-user-videos" class="grid-layout"></div>
+        <h3>My Uploads</h3>
+        <div id="profile-user-videos" class="posts-list"></div>
       </div>
     </section>
 
@@ -119,22 +121,21 @@
       <div class="wallet-container">
         <h2><i class="fa-solid fa-wallet"></i> Creator Wallet & Payouts</h2>
         <div class="balance-card">
-          <span>Available Earnings</span>
-          <h1>$154.50</h1>
-          <span class="badge active">Monetization: Active</span>
+          <span>Available Balance</span>
+          <h1 id="wallet-balance-num">$250.00</h1>
+          <span class="badge active">Account Status: Verified</span>
         </div>
         <div class="payout-form">
-          <h3>Withdraw Funds</h3>
-          <label>Select Payment Method</label>
+          <h3>Withdraw / Deposit Funds</h3>
+          <label>Payment Option</label>
           <select id="payout-method">
             <option value="EasyPaisa">EasyPaisa</option>
             <option value="JazzCash">JazzCash</option>
             <option value="TRC20">TRC20 (USDT)</option>
-            <option value="P2P">P2P Transfer</option>
           </select>
-          <input type="text" id="payout-account" placeholder="Account Number / Wallet Address">
+          <input type="text" id="payout-account" placeholder="Account Number / Phone">
           <input type="number" id="payout-amount" placeholder="Amount ($)">
-          <button id="btn-withdraw-payout" class="primary-btn">Withdraw Real Money</button>
+          <button id="btn-withdraw-payout" class="primary-btn">Submit Request</button>
         </div>
       </div>
     </section>
@@ -142,12 +143,12 @@
     <!-- CODE TERMINAL SECTION -->
     <section id="code-section" class="app-page">
       <div class="terminal-container">
-        <h2><i class="fa-solid fa-terminal"></i> Terminal / Code Editor</h2>
-        <textarea id="code-input" placeholder="Write JavaScript/Python script here...&#10;e.g. print('Hello Super App')"></textarea>
-        <button id="btn-run-code" class="success-btn"><i class="fa-solid fa-play"></i> Run Code</button>
+        <h2><i class="fa-solid fa-terminal"></i> Code Terminal</h2>
+        <textarea id="code-input" placeholder="Write JS code here...&#10;e.g. console.log('Hello Umar Super App!');"></textarea>
+        <button id="btn-run-code" class="primary-btn"><i class="fa-solid fa-play"></i> Execute Code</button>
         <div class="console-box">
-          <h4>Output Console:</h4>
-          <pre id="code-output">Console output will appear here...</pre>
+          <h4>Console Output:</h4>
+          <pre id="code-output">Terminal ready...</pre>
         </div>
       </div>
     </section>
@@ -164,28 +165,7 @@
     <button class="nav-btn" data-target="profile-section"><i class="fa-solid fa-user"></i><span>Profile</span></button>
   </nav>
 
-  <!-- MODALS & OVERLAYS -->
-
-  <!-- Multi-step Auth Modal -->
-  <div id="auth-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2 id="auth-step-title">Super App Login</h2>
-      <div id="auth-step-1" class="auth-step">
-        <input type="email" id="auth-email" placeholder="Email Address">
-        <input type="password" id="auth-password" placeholder="Password">
-        <div class="btn-row">
-          <button id="btn-login-submit" class="primary-btn">Login</button>
-          <button id="btn-signup-next" class="secondary-btn">Sign Up</button>
-        </div>
-      </div>
-      <div id="auth-step-2" class="auth-step hidden">
-        <input type="text" id="auth-username" placeholder="Choose Username">
-        <input type="text" id="auth-avatar" placeholder="Avatar Image URL">
-        <button id="btn-signup-complete" class="primary-btn">Complete Registration</button>
-      </div>
-      <p id="auth-error" class="error-msg"></p>
-    </div>
-  </div>
+  <!-- MODALS -->
 
   <!-- Comments Modal Drawer -->
   <div id="comment-modal" class="modal-overlay">
@@ -193,10 +173,6 @@
       <div class="drawer-header">
         <h3>Comments</h3>
         <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div id="comment-reply-banner" class="reply-banner hidden">
-        <span>Replying to comment...</span>
-        <button id="btn-cancel-reply"><i class="fa-solid fa-x"></i></button>
       </div>
       <div id="comments-list-box" class="comments-list"></div>
       <div class="chat-input-bar">
@@ -206,17 +182,16 @@
     </div>
   </div>
 
-  <!-- Video Upload Modal -->
+  <!-- Upload Modal -->
   <div id="upload-modal" class="modal-overlay">
     <div class="modal-box">
       <div class="drawer-header">
-        <h3>Create Post</h3>
+        <h3>Create New Post</h3>
         <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="attached-comment-badge" class="attached-comment hidden"></div>
       <input type="file" id="upload-file-input" accept="video/*,image/*">
-      <textarea id="upload-desc" placeholder="Write description & #hashtags..."></textarea>
-      <button id="btn-publish-video" class="primary-btn">Publish Post</button>
+      <textarea id="upload-desc" placeholder="Write description..."></textarea>
+      <button id="btn-publish-video" class="primary-btn">Publish</button>
     </div>
   </div>
 
@@ -224,20 +199,15 @@
   <div id="weather-modal" class="modal-overlay">
     <div class="modal-box">
       <div class="drawer-header">
-        <h3><i class="fa-solid fa-temperature-three-quarters"></i> City Weather Selector</h3>
+        <h3><i class="fa-solid fa-temperature-three-quarters"></i> Weather Search</h3>
         <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <input type="text" id="weather-city-input" placeholder="Enter City Name (e.g. Thull, Karachi)">
-      <button id="btn-fetch-weather" class="primary-btn">Check Temperature</button>
+      <button id="btn-fetch-weather" class="primary-btn">Search Weather</button>
       <div id="weather-result" class="weather-res"></div>
     </div>
   </div>
 
-  <!-- Long Press Comment Context Menu -->
-  <div id="comment-context-menu" class="context-menu hidden">
-    <button id="ctx-create-video"><i class="fa-solid fa-video"></i> Create Video For Comment</button>
-    <button id="ctx-like-comment"><i class="fa-solid fa-heart"></i> Like Comment</button>
-  </div>
-
+  <script src="script.js"></script>
 </body>
 </html>
