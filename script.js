@@ -1,23 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged 
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  serverTimestamp,
-  doc,
-  setDoc
+  getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, updateDoc, increment 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your explicit Firebase Configuration
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
   authDomain: "umarsuperapp.firebaseapp.com",
@@ -28,232 +17,337 @@ const firebaseConfig = {
   measurementId: "G-T8YZKR2SRR"
 };
 
-// Initialize Services
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUserData = null;
+let currentUser = null;
+let isSignUpMode = false;
 
 // DOM Elements
-const authOverlay = document.getElementById('authOverlay');
-const appContainer = document.getElementById('appContainer');
-const authEmail = document.getElementById('authEmail');
-const authPassword = document.getElementById('authPassword');
-const authUsername = document.getElementById('authUsername');
-const signUpBtn = document.getElementById('signUpBtn');
-const loginBtn = document.getElementById('loginBtn');
-const authError = document.getElementById('authError');
+const authScreen = document.getElementById('authScreen');
+const authForm = document.getElementById('authForm');
+const toggleAuthBtn = document.getElementById('toggleAuthBtn');
+const additionalFields = document.getElementById('additionalFields');
+const authErrorMsg = document.getElementById('authErrorMsg');
 
-// Authentication Observer
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUserData = user;
-    authOverlay.classList.add('hidden');
-    appContainer.classList.remove('hidden');
-    initAppListeners();
-  } else {
-    authOverlay.classList.remove('hidden');
-    appContainer.classList.add('hidden');
-  }
+// Navigation View Handlers
+const navItems = document.querySelectorAll('.nav-item');
+const viewSections = document.querySelectorAll('.view-section');
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const target = item.getAttribute('data-target');
+    navItems.forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    
+    viewSections.forEach(section => {
+      section.classList.remove('active-view');
+      if(section.id === target) section.classList.add('active-view');
+    });
+  });
 });
 
 // Auth Handlers
-signUpBtn.addEventListener('click', async () => {
-  const email = authEmail.value;
-  const password = authPassword.value;
-  const username = authUsername.value || 'user_' + Math.floor(Math.random()*1000);
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Save profile details to Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      email: email,
-      username: username,
-      avatar: "https://via.placeholder.com/100",
-      createdAt: serverTimestamp()
-    });
-  } catch (err) {
-    authError.textContent = err.message;
+toggleAuthBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  isSignUpMode = !isSignUpMode;
+  if(isSignUpMode) {
+    document.getElementById('authTitle').innerText = "Create Your Account";
+    document.getElementById('authSubmitBtn').innerText = "Sign Up";
+    additionalFields.classList.remove('hidden');
+    document.getElementById('toggleAuthText').innerText = "Already have an account?";
+    toggleAuthBtn.innerText = "Sign In";
+  } else {
+    document.getElementById('authTitle').innerText = "Welcome to Umar Super App";
+    document.getElementById('authSubmitBtn').innerText = "Sign In";
+    additionalFields.classList.add('hidden');
+    document.getElementById('toggleAuthText').innerText = "Don't have an account?";
+    toggleAuthBtn.innerText = "Sign Up";
   }
 });
 
-loginBtn.addEventListener('click', async () => {
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  authErrorMsg.innerText = "";
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+
   try {
-    await signInWithEmailAndPassword(auth, authEmail.value, authPassword.value);
-  } catch (err) {
-    authError.textContent = err.message;
-  }
-});
-
-// App Initialization
-function initAppListeners() {
-  setupNavigation();
-  setupVideoFeed();
-  setupAIChat();
-  setupCodeTerminal();
-  setupUploadModal();
-  setupWeatherModal();
-}
-
-// Navigation Handler
-function setupNavigation() {
-  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const view = btn.getAttribute('data-view');
+    if (isSignUpMode) {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const name = document.getElementById('authFullName').value || "New User";
+      const username = document.getElementById('authUsername').value || "@user";
       
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      // Save user profile to Firestore
+      await setDoc(doc(db, "users", userCred.user.uid), {
+        fullName: name,
+        username: username,
+        email: email,
+        bio: "Welcome to my super app profile!",
+        photoURL: "https://via.placeholder.com/100",
+        likes: 0,
+        subscribers: 0,
+        postsCount: 0
+      });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (err) {
+    if(err.code === 'auth/email-already-in-use') {
+      authErrorMsg.innerText = "Already used this email, please login.";
+    } else {
+      authErrorMsg.innerText = err.message;
+    }
+  }
+});
 
-      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-      const activeSection = document.getElementById(`view-${view}`);
-      if(activeSection) activeSection.classList.remove('hidden');
-    });
-  });
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    authScreen.classList.add('hidden');
+    loadUserProfile();
+    listenToFeed();
+    initTradingViewChart();
+  } else {
+    authScreen.classList.remove('hidden');
+  }
+});
+
+// Profile Management
+async function loadUserProfile() {
+  if(!currentUser) return;
+  const docRef = doc(db, "users", currentUser.uid);
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()) {
+    const data = docSnap.data();
+    document.getElementById('profileDisplayName').innerText = data.fullName;
+    document.getElementById('profileHandle').innerText = data.username;
+    document.getElementById('profileBioText').innerText = data.bio;
+    document.getElementById('profileAvatar').src = data.photoURL;
+    document.getElementById('statLikes').innerText = data.likes || 0;
+    document.getElementById('statSubscribers').innerText = data.subscribers || 0;
+    document.getElementById('statPosts').innerText = data.postsCount || 0;
+  }
 }
 
-// Real-Time Video Feed via Firestore
-function setupVideoFeed() {
-  const feedContainer = document.getElementById('videoFeed');
-  const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+document.getElementById('updateProfileBtn').addEventListener('click', async () => {
+  const newName = document.getElementById('editNameInput').value;
+  const newBio = document.getElementById('editBioInput').value;
+  
+  if(!currentUser) return;
+  const updates = {};
+  if(newName) updates.fullName = newName;
+  if(newBio) updates.bio = newBio;
 
-  onSnapshot(postsQuery, (snapshot) => {
-    feedContainer.innerHTML = '';
-    if (snapshot.empty) {
-      feedContainer.innerHTML = `<div style="padding:40px; text-align:center;">No videos published yet! Tap '+' to post.</div>`;
+  await updateDoc(doc(db, "users", currentUser.uid), updates);
+  loadUserProfile();
+  alert("Profile updated successfully!");
+});
+
+// Video Feed Functions
+function listenToFeed() {
+  const feedContainer = document.getElementById('videoFeed');
+  const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+  
+  onSnapshot(q, (snapshot) => {
+    feedContainer.innerHTML = "";
+    if(snapshot.empty) {
+      feedContainer.innerHTML = `<div style="padding:40px; text-align:center;">No videos posted yet. Tap + to publish one!</div>`;
       return;
     }
 
     snapshot.forEach(docSnap => {
-      const post = docSnap.data();
+      const v = docSnap.data();
+      const videoId = docSnap.id;
       const card = document.createElement('div');
-      card.className = 'video-card';
+      card.className = "video-card";
       
       card.innerHTML = `
-        <video src="${post.videoUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
-        <div class="video-sidebar">
-          <button class="action-btn"><i class="fa-solid fa-heart"></i><span>${post.likes || 0}</span></button>
-          <button class="action-btn"><i class="fa-solid fa-comment"></i><span>${post.comments || 0}</span></button>
-          <button class="action-btn"><i class="fa-solid fa-share"></i><span>Share</span></button>
+        <video src="${v.videoUrl}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
+        <div class="video-actions">
+          <img src="${v.creatorPhoto || 'https://via.placeholder.com/100'}" class="creator-avatar">
+          <div class="action-icon" onclick="likeVideo('${videoId}')">
+            <i class="fa-solid fa-heart"></i>
+            <span>${v.likes || 0}</span>
+          </div>
+          <div class="action-icon">
+            <i class="fa-solid fa-comment"></i>
+            <span>${v.comments || 0}</span>
+          </div>
+          <div class="action-icon" onclick="shareVideo('${videoId}')">
+            <i class="fa-solid fa-share"></i>
+            <span>Share</span>
+          </div>
         </div>
-        <div class="video-overlay-info">
-          <h4>@${post.username || 'anonymous'}</h4>
-          <p>${post.description || ''}</p>
+        <div class="video-info">
+          <h4>${v.creatorName}</h4>
+          <p>${v.description}</p>
+        </div>
+        <div class="end-video-banner hidden">
+          <h2>SUPER APP</h2>
         </div>
       `;
+
+      const videoElement = card.querySelector('video');
+      const banner = card.querySelector('.end-video-banner');
+
+      videoElement.addEventListener('ended', () => {
+        banner.classList.remove('hidden');
+        setTimeout(() => banner.classList.add('hidden'), 2000);
+      });
+
       feedContainer.appendChild(card);
     });
   });
 }
 
+window.likeVideo = async (id) => {
+  await updateDoc(doc(db, "videos", id), { likes: increment(1) });
+};
+
+window.shareVideo = (id) => {
+  const shareUrl = `${window.location.origin}?video=${id}`;
+  navigator.clipboard.writeText(shareUrl);
+  alert("Link copied! Open link to view this video in Super App: " + shareUrl);
+};
+
+// Code Compiler Engine
+document.getElementById('openCodeBtn').addEventListener('click', () => {
+  document.getElementById('codeModal').classList.remove('hidden');
+});
+document.getElementById('closeCodeBtn').addEventListener('click', () => {
+  document.getElementById('codeModal').classList.add('hidden');
+});
+
+document.getElementById('runCodeBtn').addEventListener('click', () => {
+  const code = document.getElementById('codeCompilerEditor').value;
+  const outputBox = document.getElementById('terminalOutput');
+  outputBox.innerText = "> Executing code...\n";
+  
+  try {
+    let logs = [];
+    const customConsole = { log: (...args) => logs.push(args.join(' ')) };
+    const run = new Function('console', code);
+    run(customConsole);
+    outputBox.innerText = logs.length ? logs.join('\n') : "> Program executed successfully with no output.";
+  } catch (err) {
+    outputBox.innerText = "> Error: " + err.message;
+  }
+});
+
+// Wallet Operations
+document.getElementById('openWalletBtn').addEventListener('click', () => {
+  document.getElementById('walletModal').classList.remove('hidden');
+});
+document.getElementById('closeWalletBtn').addEventListener('click', () => {
+  document.getElementById('walletModal').classList.add('hidden');
+});
+
+document.getElementById('withdrawBtn').addEventListener('click', () => {
+  document.getElementById('withdrawForm').classList.toggle('hidden');
+});
+
+document.getElementById('confirmWithdrawBtn').addEventListener('click', () => {
+  const phone = document.getElementById('withdrawPhone').value;
+  const amount = document.getElementById('withdrawAmount').value;
+
+  if(!phone || !amount) {
+    alert("Please enter both phone/account number and amount.");
+    return;
+  }
+
+  alert(`Withdrawal request of PKR ${amount} submitted for ${phone}. Funds will transfer after verification.`);
+  document.getElementById('withdrawForm').classList.add('hidden');
+});
+
 // AI Chat Integration
-function setupAIChat() {
-  const input = document.getElementById('aiInput');
-  const sendBtn = document.getElementById('aiSendBtn');
-  const chatBox = document.getElementById('aiChatBox');
+document.getElementById('sendChatBtn').addEventListener('click', () => {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
 
-  const handleSend = () => {
-    const text = input.value.trim();
-    if(!text) return;
+  const box = document.getElementById('chatMessagesBox');
+  box.innerHTML += `<div class="message user-message">${text}</div>`;
+  input.value = "";
 
-    // User Message
-    const uMsg = document.createElement('div');
-    uMsg.className = 'msg user';
-    uMsg.textContent = text;
-    chatBox.appendChild(uMsg);
+  setTimeout(() => {
+    box.innerHTML += `<div class="message ai-message">Main aapki query ("${text}") par kaam kar raha hoon. Umar Super App AI completely active hai!</div>`;
+    box.scrollTop = box.scrollHeight;
+  }, 1000);
+});
 
-    input.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
+// Weather API Tool
+document.getElementById('searchWeatherBtn').addEventListener('click', async () => {
+  const city = document.getElementById('weatherCityInput').value;
+  const resContainer = document.getElementById('weatherResult');
+  if(!city) return;
 
-    // Simulated Response
-    setTimeout(() => {
-      const botMsg = document.createElement('div');
-      botMsg.className = 'msg bot';
-      botMsg.textContent = `AI Replying to: "${text}". How can I help you build your app further?`;
-      chatBox.appendChild(botMsg);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }, 1000);
-  };
+  resContainer.innerHTML = "Fetching live weather updates...";
+  try {
+    const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+    const data = await res.json();
+    const current = data.current_condition[0];
+    resContainer.innerHTML = `
+      <h4>${city.toUpperCase()}</h4>
+      <p>Temperature: <strong>${current.temp_C}°C</strong></p>
+      <p>Weather: ${current.weatherDesc[0].value}</p>
+      <p>Humidity: ${current.humidity}%</p>
+    `;
+  } catch(e) {
+    resContainer.innerHTML = "Failed to load weather data. Please check city name.";
+  }
+});
 
-  sendBtn.addEventListener('click', handleSend);
+// TradingView Widget Loader
+function initTradingViewChart() {
+  if (document.getElementById('tradingview_widget')) {
+    new TradingView.widget({
+      "width": "100%",
+      "height": 400,
+      "symbol": "FX:EURUSD",
+      "interval": "D",
+      "timezone": "Etc/UTC",
+      "theme": "dark",
+      "style": "1",
+      "locale": "en",
+      "toolbar_bg": "#f1f3f6",
+      "enable_publishing": false,
+      "container_id": "tradingview_widget"
+    });
+  }
 }
 
-// Code Execution Engine
-function setupCodeTerminal() {
-  const runBtn = document.getElementById('runCodeBtn');
-  const source = document.getElementById('codeSource');
-  const consoleResult = document.getElementById('consoleResult');
+// Upload Video Modal Handler
+document.getElementById('openUploadBtn').addEventListener('click', () => {
+  document.getElementById('uploadModal').classList.remove('hidden');
+});
+document.getElementById('closeUploadBtn').addEventListener('click', () => {
+  document.getElementById('uploadModal').classList.hidden = true;
+  document.getElementById('uploadModal').classList.add('hidden');
+});
 
-  runBtn.addEventListener('click', () => {
-    consoleResult.textContent = '$ Executing script...\n';
-    try {
-      const output = eval(source.value);
-      consoleResult.textContent += output !== undefined ? String(output) : 'Success (No Output)';
-    } catch (e) {
-      consoleResult.textContent += `Error: ${e.message}`;
-    }
+document.getElementById('publishVideoBtn').addEventListener('click', async () => {
+  const desc = document.getElementById('videoDescription').value;
+  if(!currentUser) return;
+
+  // Mock upload logic saving object metadata to Firestore
+  await addDoc(collection(db, "videos"), {
+    creatorId: currentUser.uid,
+    creatorName: currentUser.email.split('@')[0],
+    creatorPhoto: "https://via.placeholder.com/100",
+    description: desc,
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+    likes: 0,
+    comments: 0,
+    timestamp: new Date()
   });
-}
 
-// Post Creation (+ Button)
-function setupUploadModal() {
-  const plusBtn = document.getElementById('plusActionBtn');
-  const modal = document.getElementById('uploadModal');
-  const closeBtn = document.getElementById('closeModalBtn');
-  const submitBtn = document.getElementById('submitPostBtn');
-  const videoFile = document.getElementById('videoFile');
-  const videoDesc = document.getElementById('videoDescription');
-
-  plusBtn.addEventListener('click', () => modal.classList.remove('hidden'));
-  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-
-  submitBtn.addEventListener('click', async () => {
-    if (!videoFile.files[0]) {
-      alert("Please select a video file first!");
-      return;
-    }
-
-    // Convert local video object to Blob URL for instant streaming setup
-    const blobUrl = URL.createObjectURL(videoFile.files[0]);
-
-    try {
-      await addDoc(collection(db, "posts"), {
-        videoUrl: blobUrl,
-        description: videoDesc.value,
-        userId: currentUserData.uid,
-        username: currentUserData.email.split('@')[0],
-        likes: 0,
-        comments: 0,
-        createdAt: serverTimestamp()
-      });
-
-      modal.classList.add('hidden');
-      videoDesc.value = '';
-      alert("Video Published Successfully!");
-    } catch (e) {
-      alert("Error saving video: " + e.message);
-    }
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    postsCount: increment(1)
   });
-}
 
-// Weather Selector Modal
-function setupWeatherModal() {
-  const badge = document.getElementById('weatherWidget');
-  const modal = document.getElementById('weatherModal');
-  const closeBtn = document.getElementById('closeWeatherModal');
-  const checkBtn = document.getElementById('checkTempBtn');
-  const input = document.getElementById('citySearchInput');
-  const weatherText = document.getElementById('weatherText');
-
-  badge.addEventListener('click', () => modal.classList.remove('hidden'));
-  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-
-  checkBtn.addEventListener('click', () => {
-    if (input.value.trim()) {
-      weatherText.textContent = `30°C ${input.value.trim()}`;
-      modal.classList.add('hidden');
-    }
-  });
-}
+  document.getElementById('uploadModal').classList.add('hidden');
+  alert("Video posted successfully!");
+});

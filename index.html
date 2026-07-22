@@ -1,310 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Umar Super App</title>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <style>
-    body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
-    .toast-enter { transform: translateY(-100%); opacity: 0; transition: all 0.3s ease; }
-    .toast-show { transform: translateY(0); opacity: 1; transition: all 0.3s ease; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- TradingView Chart Widget -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
-  <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <h1 class="logo">Umar Super App</h1>
+    <div class="header-right">
+      <button class="icon-btn" id="searchTriggerBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <button class="top-btn" id="openCodeBtn"><i class="fa-solid fa-code"></i> Code</button>
+      <button class="top-btn" id="openWalletBtn"><i class="fa-solid fa-wallet"></i> Wallet</button>
+      <button class="icon-btn" id="topMenuBtn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+    </div>
+  </header>
 
-    function App() {
-      const [activeTab, setActiveTab] = useState('home');
-      const [showPostModal, setShowPostModal] = useState(false);
-      const [showCodeModal, setShowCodeModal] = useState(false);
-      const [showWalletModal, setShowWalletModal] = useState(false);
-      const [toast, setToast] = useState(null);
+  <!-- Global Search Overlay Modal -->
+  <div class="modal hidden" id="searchModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeSearchBtn">&times;</span>
+      <h3>Search Platform</h3>
+      <div class="search-box">
+        <input type="text" id="globalSearchInput" placeholder="Search profiles, videos, channels, groups...">
+        <button id="execSearchBtn" class="pink-btn">Search</button>
+      </div>
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-tab="all">All</button>
+        <button class="tab-btn" data-tab="users">Users</button>
+        <button class="tab-btn" data-tab="videos">Videos</button>
+        <button class="tab-btn" data-tab="channels">Channels</button>
+        <button class="tab-btn" data-tab="groups">Groups</button>
+      </div>
+      <div id="searchResultsContainer" class="results-list"></div>
+    </div>
+  </div>
 
-      // User Profile State
-      const [profile, setProfile] = useState({
-        name: 'Umar Developer',
-        bio: 'Super App Founder & Developer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Umar'
-      });
+  <!-- Top Menu Dropdown (Channels & Groups) -->
+  <div class="dropdown-menu hidden" id="topDropdown">
+    <button id="createChannelOption"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
+    <button id="createGroupOption"><i class="fa-solid fa-users"></i> Create Group</button>
+  </div>
 
-      // Posts Feed State
-      const [posts, setPosts] = useState([
-        {
-          id: 1,
-          author: '@umar_official',
-          caption: 'Welcome to Umar Super App Fullscreen Feed! 🔥 #superapp #tech',
-          videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-leaves-2652-large.mp4',
-          likes: 12500,
-          comments: 450
-        }
-      ]);
+  <!-- Main View Containers -->
+  <main id="appContainer">
 
-      // Toast Notification Helper (No Browser Alerts!)
-      const showToast = (message, type = 'info') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 3000);
-      };
+    <!-- Auth Screen Modal -->
+    <div id="authScreen" class="auth-container">
+      <div class="auth-card">
+        <h2 id="authTitle">Welcome to Umar Super App</h2>
+        <p id="authErrorMsg" class="error-text"></p>
+        <form id="authForm">
+          <input type="email" id="authEmail" placeholder="Email Address" required>
+          <input type="password" id="authPassword" placeholder="Password" required>
+          <div id="additionalFields" class="hidden">
+            <input type="text" id="authFullName" placeholder="Full Name">
+            <input type="text" id="authUsername" placeholder="Username (@username)">
+            <input type="file" id="authProfilePic" accept="image/*">
+          </div>
+          <button type="submit" id="authSubmitBtn" class="pink-btn">Sign In</button>
+        </form>
+        <p class="toggle-auth">
+          <span id="toggleAuthText">Don't have an account?</span> 
+          <a href="#" id="toggleAuthBtn">Sign Up</a>
+        </p>
+      </div>
+    </div>
 
-      // Video Upload Handler
-      const handlePublishPost = (e) => {
-        e.preventDefault();
-        const caption = e.target.caption.value;
-        const file = e.target.videoFile.files[0];
+    <!-- Section 1: Video Feed (TikTok / Reels Style) -->
+    <section id="feedSection" class="view-section active-view">
+      <div class="video-feed-container" id="videoFeed">
+        <!-- Dynamic Video Items Inject Here -->
+      </div>
+    </section>
 
-        if (!file) {
-          showToast('Please select a video file first!', 'error');
-          return;
-        }
-
-        const videoUrl = URL.createObjectURL(file);
-        const newPost = {
-          id: Date.now(),
-          author: `@${profile.name.toLowerCase().replace(/\s+/g, '_')}`,
-          caption: caption || 'New uploaded content 🚀',
-          videoUrl: videoUrl,
-          likes: 0,
-          comments: 0
-        };
-
-        setPosts([newPost, ...posts]);
-        setShowPostModal(false);
-        showToast('Post live feed par publish ho chuki hai! 🎉');
-      };
-
-      // Profile Update Handler
-      const handleUpdateProfile = (e) => {
-        e.preventDefault();
-        const newName = e.target.newName.value;
-        const newBio = e.target.newBio.value;
-        const avatarFile = e.target.avatarFile.files[0];
-
-        let updatedAvatar = profile.avatar;
-        if (avatarFile) {
-          updatedAvatar = URL.createObjectURL(avatarFile);
-        }
-
-        setProfile({
-          name: newName || profile.name,
-          bio: newBio || profile.bio,
-          avatar: updatedAvatar
-        });
-
-        showToast('Profile successfully update ho gayi hai! ✨');
-      };
-
-      return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-900 text-white relative pb-20 flex flex-col">
-          
-          {/* TOP TOAST NOTIFICATION (Replaces Popups) */}
-          {toast && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-pink-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-bounce">
-              {toast.message}
-            </div>
-          )}
-
-          {/* HEADER */}
-          <header className="p-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-              Umar Super App
-            </h1>
-            <div className="flex gap-2">
-              <button onClick={() => setShowCodeModal(true)} className="p-2 bg-slate-800 rounded-full text-xs flex items-center gap-1 hover:bg-slate-700">
-                <i className="fa-solid font-mono">&lt;/&gt;</i> Code
-              </button>
-              <button onClick={() => setShowWalletModal(true)} className="p-2 bg-slate-800 rounded-full text-xs flex items-center gap-1 hover:bg-slate-700">
-                <i className="fa-solid fa-wallet"></i> Wallet
-              </button>
-            </div>
-          </header>
-
-          {/* MAIN CONTENT AREA */}
-          <main className="flex-1 overflow-y-auto">
-            
-            {/* 1. HOME / FEED TAB */}
-            {activeTab === 'home' && (
-              <div className="relative h-[calc(100vh-130px)] bg-black overflow-hidden">
-                {posts.length > 0 ? (
-                  <div className="relative h-full w-full">
-                    <video 
-                      src={posts[0].videoUrl} 
-                      className="w-full h-full object-cover" 
-                      controls 
-                      autoPlay 
-                      loop 
-                      muted 
-                    />
-                    <div className="absolute bottom-4 left-4 right-16 z-10 text-left">
-                      <p className="font-bold text-pink-400">{posts[0].author}</p>
-                      <p className="text-sm">{posts[0].caption}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-slate-500">
-                    No videos available. Upload one!
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 2. LIVE FOREX MARKET TAB (TRADINGVIEW CHART) */}
-            {activeTab === 'market' && (
-              <div className="p-4 h-[calc(100vh-130px)] flex flex-col">
-                <h2 className="text-lg font-bold mb-2">Live Forex & Crypto Market</h2>
-                <div className="flex-1 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative">
-                  <iframe 
-                    title="TradingView"
-                    src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AEURUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC"
-                    className="w-full h-full border-none"
-                  ></iframe>
-                </div>
-              </div>
-            )}
-
-            {/* 3. AI CHAT TAB */}
-            {activeTab === 'aichat' && (
-              <div className="p-4 flex flex-col h-[calc(100vh-130px)]">
-                <div className="flex-1 bg-slate-800/50 p-4 rounded-lg overflow-y-auto mb-4 space-y-3">
-                  <div className="bg-slate-800 p-3 rounded-lg max-w-[80%] text-sm">
-                    Salam Umar bhai! Main aapka Smart AI Assistant hoon. Main aapki kya madad kar sakta hoon?
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Ask AI anything..." 
-                    className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm outline-none focus:border-pink-500"
-                  />
-                  <button className="bg-pink-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
-                    Send
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 4. PROFILE TAB */}
-            {activeTab === 'profile' && (
-              <div className="p-4 space-y-6">
-                <div className="flex flex-col items-center gap-2">
-                  <img src={profile.avatar} alt="Profile" className="w-24 h-24 rounded-full border-2 border-pink-500 bg-slate-800" />
-                  <h2 className="text-xl font-bold">{profile.name}</h2>
-                  <p className="text-sm text-slate-400">{profile.bio}</p>
-                </div>
-
-                <form onSubmit={handleUpdateProfile} className="bg-slate-800 p-4 rounded-xl space-y-4 border border-slate-700">
-                  <h3 className="font-semibold text-pink-400 text-sm">Edit Profile</h3>
-                  <input name="newName" type="text" placeholder="New Name" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm" />
-                  <input name="newBio" type="text" placeholder="New Bio" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm" />
-                  <input name="avatarFile" type="file" accept="image/*" className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-slate-700 file:text-white" />
-                  <button type="submit" className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
-                    Update Profile
-                  </button>
-                </form>
-              </div>
-            )}
-          </main>
-
-          {/* BOTTOM NAVIGATION BAR */}
-          <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-900/90 backdrop-blur border-t border-slate-800 flex justify-around items-center py-2 z-40">
-            <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center text-xs ${activeTab === 'home' ? 'text-pink-500' : 'text-slate-400'}`}>
-              <i className="fa-solid fa-house text-lg"></i>
-              <span>Home</span>
-            </button>
-            <button onClick={() => setActiveTab('market')} className={`flex flex-col items-center text-xs ${activeTab === 'market' ? 'text-pink-500' : 'text-slate-400'}`}>
-              <i className="fa-solid fa-chart-line text-lg"></i>
-              <span>Market</span>
-            </button>
-            <button onClick={() => setShowPostModal(true)} className="bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl shadow-lg hover:bg-pink-700">
-              +
-            </button>
-            <button onClick={() => setActiveTab('aichat')} className={`flex flex-col items-center text-xs ${activeTab === 'aichat' ? 'text-pink-500' : 'text-slate-400'}`}>
-              <i className="fa-solid fa-robot text-lg"></i>
-              <span>AI Chat</span>
-            </button>
-            <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center text-xs ${activeTab === 'profile' ? 'text-pink-500' : 'text-slate-400'}`}>
-              <i className="fa-solid fa-user text-lg"></i>
-              <span>Profile</span>
-            </button>
-          </nav>
-
-          {/* POST / VIDEO UPLOAD MODAL */}
-          {showPostModal && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-pink-400">Create New Post</h3>
-                  <button onClick={() => setShowPostModal(false)} className="text-slate-400 text-lg">&times;</button>
-                </div>
-                <form onSubmit={handlePublishPost} className="space-y-3">
-                  <textarea name="caption" placeholder="Write caption or hashtags..." className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm h-20 outline-none"></textarea>
-                  <input name="videoFile" type="file" accept="video/*" className="w-full text-xs text-slate-400 file:mr-2 file:py-2 file:px-4 file:rounded file:border-0 file:bg-slate-700 file:text-white" />
-                  <button type="submit" className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
-                    Publish Post
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* CODE PLAYGROUND MODAL (WITH ERROR HANDLING) */}
-          {showCodeModal && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-pink-400">Code Playground</h3>
-                  <button onClick={() => setShowCodeModal(false)} className="text-slate-400 text-lg">&times;</button>
-                </div>
-                <textarea id="codeEditor" defaultValue="console.log('Hello World');" className="w-full bg-slate-900 font-mono border border-slate-700 rounded p-2 text-xs h-32 outline-none text-green-400"></textarea>
-                <button 
-                  onClick={() => {
-                    const code = document.getElementById('codeEditor').value;
-                    try {
-                      new Function(code)();
-                      showToast('Code executed without errors! ✅');
-                    } catch (err) {
-                      showToast(`Syntax/Runtime Error: ${err.message}`, 'error');
-                    }
-                  }} 
-                  className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700"
-                >
-                  Run JS Code
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* WALLET MODAL */}
-          {showWalletModal && (
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700 text-center">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-pink-400">Umar Super Wallet</h3>
-                  <button onClick={() => setShowWalletModal(false)} className="text-slate-400 text-lg">&times;</button>
-                </div>
-                <div className="bg-slate-900 p-4 rounded-lg">
-                  <p className="text-xs text-slate-400">Total Balance</p>
-                  <p className="text-2xl font-bold text-emerald-400">PKR 25,400.00</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => showToast('Deposit Gateway opening...')} className="bg-emerald-600 py-2 rounded-lg text-xs font-semibold">Deposit</button>
-                  <button onClick={() => showToast('Withdrawal request initiated.')} className="bg-rose-600 py-2 rounded-lg text-xs font-semibold">Withdraw</button>
-                </div>
-              </div>
-            </div>
-          )}
-
+    <!-- Section 2: Market & Weather View -->
+    <section id="marketSection" class="view-section hidden">
+      <h2>Live Forex & Weather Dashboard</h2>
+      
+      <!-- Weather Module -->
+      <div class="card weather-card">
+        <h3><i class="fa-solid fa-cloud-sun"></i> Global Weather</h3>
+        <div class="search-box">
+          <input type="text" id="weatherCityInput" placeholder="Enter City/Country...">
+          <button id="searchWeatherBtn" class="pink-btn">Search</button>
         </div>
-      );
-    }
+        <div id="weatherResult" class="weather-info">
+          <p>Search a location to get live temperature and weather updates.</p>
+        </div>
+      </div>
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+      <!-- TradingView Live Chart -->
+      <div class="card chart-card">
+        <h3>Live Forex & Crypto Market</h3>
+        <div id="tradingview_widget"></div>
+      </div>
+    </section>
+
+    <!-- Section 3: AI Chat & Direct Messages -->
+    <section id="chatSection" class="view-section hidden">
+      <div class="chat-header">
+        <h2>AI Assistant & Messaging</h2>
+        <button id="startUserCallBtn" class="pink-btn"><i class="fa-solid fa-phone"></i> Call</button>
+      </div>
+      <div class="chat-messages" id="chatMessagesBox">
+        <div class="message ai-message">
+          Salam Umar bhai! Main aapka Smart AI Assistant hoon. Main aapki kya madad kar sakta hoon?
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendChatBtn" class="pink-btn">Send</button>
+      </div>
+    </section>
+
+    <!-- Section 4: User Profile -->
+    <section id="profileSection" class="view-section hidden">
+      <div class="profile-header">
+        <div class="avatar-container">
+          <img id="profileAvatar" src="https://via.placeholder.com/100" alt="Profile">
+        </div>
+        <h2 id="profileDisplayName">User Name</h2>
+        <p id="profileHandle">@username</p>
+        <p id="profileBioText">Welcome to my profile!</p>
+        
+        <div class="profile-stats">
+          <div><strong id="statPosts">0</strong><span>Posts</span></div>
+          <div><strong id="statLikes">0</strong><span>Likes</span></div>
+          <div><strong id="statSubscribers">0</strong><span>Subscribers</span></div>
+        </div>
+      </div>
+
+      <div class="card edit-profile-card">
+        <h3>Edit Profile</h3>
+        <input type="text" id="editNameInput" placeholder="New Name">
+        <input type="text" id="editBioInput" placeholder="New Bio">
+        <input type="file" id="editPicInput" accept="image/*">
+        <button id="updateProfileBtn" class="pink-btn">Update Profile</button>
+      </div>
+
+      <div class="user-posts-grid" id="userPostsGrid">
+        <!-- User Uploaded Videos Grid -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+
+  <!-- Code Playground Modal (Termux / PyDroid Style) -->
+  <div class="modal hidden" id="codeModal">
+    <div class="modal-content full-screen-modal">
+      <span class="close-btn" id="closeCodeBtn">&times;</span>
+      <h3>Terminal & Code Compiler</h3>
+      <textarea id="codeCompilerEditor" spellcheck="false">// Write JavaScript or Terminal commands here
+console.log('Hello World from Umar Super App!');</textarea>
+      <button id="runCodeBtn" class="pink-btn">Run Code</button>
+      <div class="terminal-output" id="terminalOutput">> Output will be displayed here...</div>
+    </div>
+  </div>
+
+  <!-- Wallet Modal -->
+  <div class="modal hidden" id="walletModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeWalletBtn">&times;</span>
+      <h3>Umar Super Wallet</h3>
+      <div class="balance-card">
+        <p>Total Balance</p>
+        <h2 id="walletBalanceText">PKR 25,400.00</h2>
+      </div>
+      <div class="wallet-actions">
+        <button id="depositBtn" class="green-btn">Deposit</button>
+        <button id="withdrawBtn" class="pink-btn">Withdraw</button>
+      </div>
+      
+      <!-- Withdraw Form -->
+      <div id="withdrawForm" class="hidden form-group">
+        <h4>Withdraw Funds</h4>
+        <input type="text" id="withdrawPhone" placeholder="Account / Phone Number">
+        <input type="number" id="withdrawAmount" placeholder="Amount (PKR)">
+        <button id="confirmWithdrawBtn" class="pink-btn">Submit Withdrawal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Creation / Post Upload Modal -->
+  <div class="modal hidden" id="uploadModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeUploadBtn">&times;</span>
+      <h3>Post New Video</h3>
+      <input type="file" id="videoFileInput" accept="video/*">
+      <textarea id="videoDescription" placeholder="Write description & hashtags..."></textarea>
+      <select id="videoEffectSelect">
+        <option value="none">No Filter</option>
+        <option value="sepia">Sepia Effect</option>
+        <option value="grayscale">Black & White</option>
+        <option value="brightness">Vibrant Bright</option>
+      </select>
+      <select id="videoPrivacy">
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+      </select>
+      <button id="publishVideoBtn" class="pink-btn">Publish Post</button>
+    </div>
+  </div>
+
+  <!-- Live Stream Setup Modal -->
+  <div class="modal hidden" id="liveStreamModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeLiveBtn">&times;</span>
+      <h3>Start Live Stream</h3>
+      <input type="text" id="liveStreamTitle" placeholder="Stream Title">
+      <select id="liveAudience">
+        <option value="public">Public (Everyone)</option>
+        <option value="followers">Followers Only</option>
+      </select>
+      <p>Are you ready to broadcast live?</p>
+      <button id="startBroadcastBtn" class="pink-btn">Go Live</button>
+      <div id="livePreviewContainer" class="hidden">
+        <video id="liveVideoElement" autoplay playsinline muted></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- Channel Creation Modal -->
+  <div class="modal hidden" id="channelModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeChannelBtn">&times;</span>
+      <h3>Create New Channel</h3>
+      <input type="text" id="chanName" placeholder="Channel Name">
+      <input type="text" id="chanUsername" placeholder="Channel Username">
+      <input type="text" id="chanLink" placeholder="Custom Link Identifier">
+      <select id="chanPrivacy">
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+      </select>
+      <input type="text" id="chanContact" placeholder="Phone Number / Email used in Auth">
+      <button id="submitCreateChannelBtn" class="pink-btn">Confirm & Create</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-target="feedSection">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-target="marketSection">
+      <i class="fa-solid fa-chart-line"></i>
+      <span>Market</span>
+    </button>
+    <button class="action-btn" id="openUploadBtn">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <button class="nav-item" data-target="chatSection">
+      <i class="fa-solid fa-robot"></i>
+      <span>AI Chat</span>
+    </button>
+    <button class="nav-item" data-target="profileSection">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- Firebase Scripts -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
