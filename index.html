@@ -1,367 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Umar Super App</title>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- External Style CSS Linked Here -->
-  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
+    .toast-enter { transform: translateY(-100%); opacity: 0; transition: all 0.3s ease; }
+    .toast-show { transform: translateY(0); opacity: 1; transition: all 0.3s ease; }
+  </style>
 </head>
 <body>
+  <div id="root"></div>
 
-  <!-- Top Header -->
-  <header class="top-header">
-    <div class="brand-logo">Umar Super App</div>
-    <div class="header-actions">
-      <div class="badge-btn" id="weatherBadge" onclick="getLiveWeather()">
-        <i class="fa-solid fa-cloud-sun"></i> <span id="weatherText">Weather</span>
-      </div>
-      <div class="badge-btn" onclick="openModal('codeModal')">
-        <i class="fa-solid fa-code"></i> Code
-      </div>
-      <div class="badge-btn" onclick="openModal('walletModal')">
-        <i class="fa-solid fa-wallet"></i> Wallet
-      </div>
-    </div>
-  </header>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-  <!-- Main Content Areas -->
-  <main class="main-content">
+    function App() {
+      const [activeTab, setActiveTab] = useState('home');
+      const [showPostModal, setShowPostModal] = useState(false);
+      const [showCodeModal, setShowCodeModal] = useState(false);
+      const [showWalletModal, setShowWalletModal] = useState(false);
+      const [toast, setToast] = useState(null);
 
-    <!-- HOME SECTION (TikTok Feed + Text Feed Tabs) -->
-    <section id="homeSection" class="page-section active">
-      <div class="feed-tabs">
-        <span class="tab-btn active" onclick="switchHomeTab('videoFeedTab', this)">🔥 For You</span>
-        <span class="tab-btn" onclick="switchHomeTab('textFeedTab', this)">📝 Text Feed</span>
-      </div>
+      // User Profile State
+      const [profile, setProfile] = useState({
+        name: 'Umar Developer',
+        bio: 'Super App Founder & Developer',
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Umar'
+      });
 
-      <!-- Video Feed Container -->
-      <div id="videoFeedTab" class="sub-tab-content">
-        <div class="tiktok-container">
-          <!-- Card 1 -->
-          <div class="tiktok-card">
-            <video src="https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-1232-large.mp4" loop autoplay muted playsinline></video>
-            
-            <div class="video-info-overlay">
-              <h4>@umar_official</h4>
-              <p>Welcome to Umar Super App Fullscreen Feed! 🔥 #superapp #tech</p>
-            </div>
-
-            <div class="tiktok-overlay">
-              <div class="profile-avatar-btn">
-                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" alt="Avatar">
-              </div>
-              <button class="action-icon-btn" onclick="toggleLike(this)">
-                <i class="fa-solid fa-heart"></i>
-                <span>12.5K</span>
-              </button>
-              <button class="action-icon-btn" onclick="toggleComments()">
-                <i class="fa-solid fa-comment-dots"></i>
-                <span>450</span>
-              </button>
-              <button class="action-icon-btn" onclick="shareVideo()">
-                <i class="fa-solid fa-share"></i>
-                <span>Share</span>
-              </button>
-              <button class="action-icon-btn" style="color: #f35588;" onclick="subscribeUser(this)">
-                <i class="fa-solid fa-bell"></i>
-                <span>Sub</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Text Feed Container -->
-      <div id="textFeedTab" class="sub-tab-content" style="display: none;">
-        <div class="text-card">
-          <div class="text-card-header">
-            <div class="profile-avatar-btn" style="width: 35px; height: 35px;">
-              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" alt="Avatar">
-            </div>
-            <div>
-              <h5 style="font-size: 14px;">Muhammad Umar</h5>
-              <span style="font-size: 11px; color: #8b949e;">2 hours ago</span>
-            </div>
-          </div>
-          <p style="font-size: 14px; color: #c9d1d9;">Umar Super App ka latest update deploy kar diya gaya hai! Ab wallet, trading charts, aur full screen feeds bilkul real-time kaam kar rahe hain. 🚀</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- AI CHAT SECTION -->
-    <section id="aiSection" class="page-section">
-      <div class="chat-container">
-        <div class="chat-messages" id="aiChatBox">
-          <div class="msg-bubble ai">
-            Salam Umar bhai! Main aapka Smart AI Assistant hoon. Main aapki kya madad kar sakta hoon?
-          </div>
-        </div>
-        <div style="display: flex; gap: 8px; margin-top: 10px;">
-          <input type="text" id="aiInput" class="input-field" placeholder="Ask AI anything..." style="margin:0;">
-          <button class="primary-btn" style="width: auto; padding: 0 18px; margin:0;" onclick="sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-      </div>
-    </section>
-
-    <!-- PROFILE SECTION -->
-    <section id="profileSection" class="page-section">
-      <div style="padding: 20px; text-align: center;">
-        <div style="width: 90px; height: 90px; margin: 0 auto; border-radius: 50%; border: 3px solid #f35588; overflow: hidden;" id="profileImgContainer">
-          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" id="userProfilePic" style="width:100%; height:100%; object-fit:cover;">
-        </div>
-        <h3 id="displayUserName" style="margin-top: 10px;">Umar Developer</h3>
-        <p id="displayUserBio" style="color: #8b949e; font-size: 13px;">Super App Founder & Developer</p>
-
-        <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-top: 20px; text-align: left;">
-          <h4>Edit Profile</h4>
-          <p style="font-size: 11px; color: #f35588; margin-bottom: 10px;">Note: Profile ek baar update hone ke baad 7 din tak change nahi ho sakti.</p>
-          
-          <input type="text" id="editNameInput" class="input-field" placeholder="New Name">
-          <input type="text" id="editBioInput" class="input-field" placeholder="New Bio">
-          <input type="file" id="editPhotoInput" accept="image/*" class="input-field">
-          
-          <button class="primary-btn" onclick="saveProfileChanges()">Update Profile</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- BOTTOM COMMENT DRAWER -->
-  <div class="comment-drawer" id="commentDrawer">
-    <div class="comment-header">
-      <h4 style="font-size: 15px;">Comments</h4>
-      <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="toggleComments()"></i>
-    </div>
-    <div class="comment-list" id="commentList">
-      <div class="single-comment">
-        <strong>Ali Raza:</strong> Boht Zabardust App hai! 🔥
-        <div class="comment-reply-box">
-          <strong>Umar:</strong> Shukriya Ali bhai!
-        </div>
-      </div>
-    </div>
-    <div class="comment-input-area">
-      <input type="text" id="newCommentInput" placeholder="Write a comment...">
-      <button class="primary-btn" style="width: auto; padding: 0 15px; margin: 0;" onclick="postComment()"><i class="fa-solid fa-arrow-up"></i></button>
-    </div>
-  </div>
-
-  <!-- WALLET MODAL -->
-  <div class="custom-modal" id="walletModal">
-    <div class="modal-card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Umar Super Wallet</h3>
-        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('walletModal')"></i>
-      </div>
-      <div style="margin: 20px 0; background: #0d1117; padding: 15px; border-radius: 10px; text-align: center;">
-        <span style="font-size: 12px; color: #8b949e;">Total Balance</span>
-        <h2 style="color: #4ef081; margin-top: 5px;">PKR 25,400.00</h2>
-      </div>
-      <div style="display: flex; gap: 10px;">
-        <button class="primary-btn" style="background: #238636;" onclick="alert('Deposit via EasyPaisa / JazzCash Initiated')">Deposit</button>
-        <button class="primary-btn" style="background: #da3633;" onclick="alert('Withdraw Request Sent')">Withdraw</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CODE EDITOR MODAL -->
-  <div class="custom-modal" id="codeModal">
-    <div class="modal-card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Termux / Mobile Code Playground</h3>
-        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('codeModal')"></i>
-      </div>
-      <textarea class="input-field" style="height: 150px; font-family: monospace;" placeholder="// Write HTML/JS code here..."></textarea>
-      <button class="primary-btn" onclick="alert('Code executed successfully in console!')">Run Code</button>
-    </div>
-  </div>
-
-  <!-- CREATE POST MODAL -->
-  <div class="custom-modal" id="createPostModal">
-    <div class="modal-card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Create New Post / Channel Content</h3>
-        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('createPostModal')"></i>
-      </div>
-      <textarea id="postCaption" class="input-field" placeholder="Write caption or hashtags..."></textarea>
-      <input type="file" id="postMedia" accept="video/*,image/*" class="input-field">
-      <button class="primary-btn" onclick="publishNewPost()">Publish Post</button>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAV BAR -->
-  <nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchNav('homeSection', this)">
-      <i class="fa-solid fa-house"></i>
-      <span>Home</span>
-    </div>
-    <div class="nav-item" onclick="alert('Market Chart Loaded!')">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Market</span>
-    </div>
-    <div class="plus-btn" onclick="openModal('createPostModal')">
-      <i class="fa-solid fa-plus"></i>
-    </div>
-    <div class="nav-item" onclick="switchNav('aiSection', this)">
-      <i class="fa-solid fa-robot"></i>
-      <span>AI Chat</span>
-    </div>
-    <div class="nav-item" onclick="switchNav('profileSection', this)">
-      <i class="fa-solid fa-user"></i>
-      <span>Profile</span>
-    </div>
-  </nav>
-
-  <!-- JAVASCRIPT ENGINE -->
-  <script>
-    // Navigation Control
-    function switchNav(sectionId, element) {
-      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-      document.getElementById(sectionId).classList.add('active');
-      if (element) element.classList.add('active');
-    }
-
-    function switchHomeTab(tabId, element) {
-      document.querySelectorAll('.sub-tab-content').forEach(tab => tab.style.display = 'none');
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).style.display = 'block';
-      element.classList.add('active');
-    }
-
-    // Modal Handlers
-    function openModal(id) { document.getElementById(id).style.display = 'block'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    // TikTok Controls
-    function toggleLike(btn) {
-      btn.style.color = btn.style.color === 'red' ? '#fff' : 'red';
-    }
-
-    function subscribeUser(btn) {
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Subbed</span>';
-      btn.style.color = '#4ef081';
-    }
-
-    function shareVideo() {
-      if (navigator.share) {
-        navigator.share({ title: 'Umar Super App Video', url: window.location.href });
-      } else {
-        alert("Link copied to clipboard!");
-      }
-    }
-
-    function toggleComments() {
-      document.getElementById('commentDrawer').classList.toggle('open');
-    }
-
-    function postComment() {
-      const input = document.getElementById('newCommentInput');
-      if (input.value.trim() !== '') {
-        const list = document.getElementById('commentList');
-        const newCom = document.createElement('div');
-        newCom.className = 'single-comment';
-        newCom.innerHTML = `<strong>You:</strong> ${input.value}`;
-        list.appendChild(newCom);
-        input.value = '';
-      }
-    }
-
-    // AI Dynamic Chat
-    function sendAIMessage() {
-      const input = document.getElementById('aiInput');
-      const chatBox = document.getElementById('aiChatBox');
-      const text = input.value.trim();
-
-      if (!text) return;
-
-      // User Message
-      const userMsg = document.createElement('div');
-      userMsg.className = 'msg-bubble user';
-      userMsg.innerText = text;
-      chatBox.appendChild(userMsg);
-      input.value = '';
-
-      // Auto Scroll
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      // Dynamic AI Responses
-      setTimeout(() => {
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'msg-bubble ai';
-        
-        const lower = text.toLowerCase();
-        if (lower.includes('hello') || lower.includes('hi') || lower.includes('salam')) {
-          aiMsg.innerText = "Walaikum Assalam Umar bhai! Aap ki app me naye features set ho rahe hain. Koi aur madad chahiye?";
-        } else if (lower.includes('code') || lower.includes('error')) {
-          aiMsg.innerText = "Aap Code section open karke Javascript ya HTML console test kar sakte hain!";
-        } else if (lower.includes('weather')) {
-          aiMsg.innerText = "Aap top-left par Weather button tap karke live weather dekh sakte hain.";
-        } else {
-          aiMsg.innerText = `Main aap ke sawal "${text}" par kaam kar raha hoon. Super app bilkul operational hai!`;
+      // Posts Feed State
+      const [posts, setPosts] = useState([
+        {
+          id: 1,
+          author: '@umar_official',
+          caption: 'Welcome to Umar Super App Fullscreen Feed! 🔥 #superapp #tech',
+          videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-leaves-2652-large.mp4',
+          likes: 12500,
+          comments: 450
         }
+      ]);
 
-        chatBox.appendChild(aiMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }, 800);
-    }
+      // Toast Notification Helper (No Browser Alerts!)
+      const showToast = (message, type = 'info') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+      };
 
-    // Weather API Function
-    function getLiveWeather() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          document.getElementById('weatherText').innerText = `${lat.toFixed(1)}°N, ${lon.toFixed(1)}°E (28°C Sunny)`;
-        }, () => {
-          document.getElementById('weatherText').innerText = "Karachi 30°C ☀️";
-        });
-      } else {
-        document.getElementById('weatherText').innerText = "30°C Clear";
-      }
-    }
+      // Video Upload Handler
+      const handlePublishPost = (e) => {
+        e.preventDefault();
+        const caption = e.target.caption.value;
+        const file = e.target.videoFile.files[0];
 
-    // Profile 7-Day Restriction Rule
-    function saveProfileChanges() {
-      const name = document.getElementById('editNameInput').value;
-      const bio = document.getElementById('editBioInput').value;
-      const photoFile = document.getElementById('editPhotoInput').files[0];
-
-      const lastUpdate = localStorage.getItem('lastProfileUpdate');
-      const now = new Date().getTime();
-
-      if (lastUpdate) {
-        const daysPassed = (now - parseInt(lastUpdate)) / (1000 * 60 * 60 * 24);
-        if (daysPassed < 7) {
-          const remainingDays = Math.ceil(7 - daysPassed);
-          alert(`Ghalti: Aap ne haal hi me profile update ki hai! Abhi aap ${remainingDays} din tak dobara update nahi kar sakte.`);
+        if (!file) {
+          showToast('Please select a video file first!', 'error');
           return;
         }
-      }
 
-      if (name) document.getElementById('displayUserName').innerText = name;
-      if (bio) document.getElementById('displayUserBio').innerText = bio;
-
-      if (photoFile) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('userProfilePic').src = e.target.result;
+        const videoUrl = URL.createObjectURL(file);
+        const newPost = {
+          id: Date.now(),
+          author: `@${profile.name.toLowerCase().replace(/\s+/g, '_')}`,
+          caption: caption || 'New uploaded content 🚀',
+          videoUrl: videoUrl,
+          likes: 0,
+          comments: 0
         };
-        reader.readAsDataURL(photoFile);
-      }
 
-      localStorage.setItem('lastProfileUpdate', now.toString());
-      alert("Profile Kamiyabi se Update ho gayi hai! Ab agli update 7 din baad hi sakti hai.");
+        setPosts([newPost, ...posts]);
+        setShowPostModal(false);
+        showToast('Post live feed par publish ho chuki hai! 🎉');
+      };
+
+      // Profile Update Handler
+      const handleUpdateProfile = (e) => {
+        e.preventDefault();
+        const newName = e.target.newName.value;
+        const newBio = e.target.newBio.value;
+        const avatarFile = e.target.avatarFile.files[0];
+
+        let updatedAvatar = profile.avatar;
+        if (avatarFile) {
+          updatedAvatar = URL.createObjectURL(avatarFile);
+        }
+
+        setProfile({
+          name: newName || profile.name,
+          bio: newBio || profile.bio,
+          avatar: updatedAvatar
+        });
+
+        showToast('Profile successfully update ho gayi hai! ✨');
+      };
+
+      return (
+        <div className="max-w-md mx-auto min-h-screen bg-slate-900 text-white relative pb-20 flex flex-col">
+          
+          {/* TOP TOAST NOTIFICATION (Replaces Popups) */}
+          {toast && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-pink-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-bounce">
+              {toast.message}
+            </div>
+          )}
+
+          {/* HEADER */}
+          <header className="p-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
+              Umar Super App
+            </h1>
+            <div className="flex gap-2">
+              <button onClick={() => setShowCodeModal(true)} className="p-2 bg-slate-800 rounded-full text-xs flex items-center gap-1 hover:bg-slate-700">
+                <i className="fa-solid font-mono">&lt;/&gt;</i> Code
+              </button>
+              <button onClick={() => setShowWalletModal(true)} className="p-2 bg-slate-800 rounded-full text-xs flex items-center gap-1 hover:bg-slate-700">
+                <i className="fa-solid fa-wallet"></i> Wallet
+              </button>
+            </div>
+          </header>
+
+          {/* MAIN CONTENT AREA */}
+          <main className="flex-1 overflow-y-auto">
+            
+            {/* 1. HOME / FEED TAB */}
+            {activeTab === 'home' && (
+              <div className="relative h-[calc(100vh-130px)] bg-black overflow-hidden">
+                {posts.length > 0 ? (
+                  <div className="relative h-full w-full">
+                    <video 
+                      src={posts[0].videoUrl} 
+                      className="w-full h-full object-cover" 
+                      controls 
+                      autoPlay 
+                      loop 
+                      muted 
+                    />
+                    <div className="absolute bottom-4 left-4 right-16 z-10 text-left">
+                      <p className="font-bold text-pink-400">{posts[0].author}</p>
+                      <p className="text-sm">{posts[0].caption}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">
+                    No videos available. Upload one!
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2. LIVE FOREX MARKET TAB (TRADINGVIEW CHART) */}
+            {activeTab === 'market' && (
+              <div className="p-4 h-[calc(100vh-130px)] flex flex-col">
+                <h2 className="text-lg font-bold mb-2">Live Forex & Crypto Market</h2>
+                <div className="flex-1 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative">
+                  <iframe 
+                    title="TradingView"
+                    src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AEURUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC"
+                    className="w-full h-full border-none"
+                  ></iframe>
+                </div>
+              </div>
+            )}
+
+            {/* 3. AI CHAT TAB */}
+            {activeTab === 'aichat' && (
+              <div className="p-4 flex flex-col h-[calc(100vh-130px)]">
+                <div className="flex-1 bg-slate-800/50 p-4 rounded-lg overflow-y-auto mb-4 space-y-3">
+                  <div className="bg-slate-800 p-3 rounded-lg max-w-[80%] text-sm">
+                    Salam Umar bhai! Main aapka Smart AI Assistant hoon. Main aapki kya madad kar sakta hoon?
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Ask AI anything..." 
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm outline-none focus:border-pink-500"
+                  />
+                  <button className="bg-pink-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 4. PROFILE TAB */}
+            {activeTab === 'profile' && (
+              <div className="p-4 space-y-6">
+                <div className="flex flex-col items-center gap-2">
+                  <img src={profile.avatar} alt="Profile" className="w-24 h-24 rounded-full border-2 border-pink-500 bg-slate-800" />
+                  <h2 className="text-xl font-bold">{profile.name}</h2>
+                  <p className="text-sm text-slate-400">{profile.bio}</p>
+                </div>
+
+                <form onSubmit={handleUpdateProfile} className="bg-slate-800 p-4 rounded-xl space-y-4 border border-slate-700">
+                  <h3 className="font-semibold text-pink-400 text-sm">Edit Profile</h3>
+                  <input name="newName" type="text" placeholder="New Name" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm" />
+                  <input name="newBio" type="text" placeholder="New Bio" className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm" />
+                  <input name="avatarFile" type="file" accept="image/*" className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-slate-700 file:text-white" />
+                  <button type="submit" className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
+                    Update Profile
+                  </button>
+                </form>
+              </div>
+            )}
+          </main>
+
+          {/* BOTTOM NAVIGATION BAR */}
+          <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-900/90 backdrop-blur border-t border-slate-800 flex justify-around items-center py-2 z-40">
+            <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center text-xs ${activeTab === 'home' ? 'text-pink-500' : 'text-slate-400'}`}>
+              <i className="fa-solid fa-house text-lg"></i>
+              <span>Home</span>
+            </button>
+            <button onClick={() => setActiveTab('market')} className={`flex flex-col items-center text-xs ${activeTab === 'market' ? 'text-pink-500' : 'text-slate-400'}`}>
+              <i className="fa-solid fa-chart-line text-lg"></i>
+              <span>Market</span>
+            </button>
+            <button onClick={() => setShowPostModal(true)} className="bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center text-white text-xl shadow-lg hover:bg-pink-700">
+              +
+            </button>
+            <button onClick={() => setActiveTab('aichat')} className={`flex flex-col items-center text-xs ${activeTab === 'aichat' ? 'text-pink-500' : 'text-slate-400'}`}>
+              <i className="fa-solid fa-robot text-lg"></i>
+              <span>AI Chat</span>
+            </button>
+            <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center text-xs ${activeTab === 'profile' ? 'text-pink-500' : 'text-slate-400'}`}>
+              <i className="fa-solid fa-user text-lg"></i>
+              <span>Profile</span>
+            </button>
+          </nav>
+
+          {/* POST / VIDEO UPLOAD MODAL */}
+          {showPostModal && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-pink-400">Create New Post</h3>
+                  <button onClick={() => setShowPostModal(false)} className="text-slate-400 text-lg">&times;</button>
+                </div>
+                <form onSubmit={handlePublishPost} className="space-y-3">
+                  <textarea name="caption" placeholder="Write caption or hashtags..." className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm h-20 outline-none"></textarea>
+                  <input name="videoFile" type="file" accept="video/*" className="w-full text-xs text-slate-400 file:mr-2 file:py-2 file:px-4 file:rounded file:border-0 file:bg-slate-700 file:text-white" />
+                  <button type="submit" className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700">
+                    Publish Post
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* CODE PLAYGROUND MODAL (WITH ERROR HANDLING) */}
+          {showCodeModal && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-pink-400">Code Playground</h3>
+                  <button onClick={() => setShowCodeModal(false)} className="text-slate-400 text-lg">&times;</button>
+                </div>
+                <textarea id="codeEditor" defaultValue="console.log('Hello World');" className="w-full bg-slate-900 font-mono border border-slate-700 rounded p-2 text-xs h-32 outline-none text-green-400"></textarea>
+                <button 
+                  onClick={() => {
+                    const code = document.getElementById('codeEditor').value;
+                    try {
+                      new Function(code)();
+                      showToast('Code executed without errors! ✅');
+                    } catch (err) {
+                      showToast(`Syntax/Runtime Error: ${err.message}`, 'error');
+                    }
+                  }} 
+                  className="w-full bg-pink-600 py-2 rounded-lg text-sm font-semibold hover:bg-pink-700"
+                >
+                  Run JS Code
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* WALLET MODAL */}
+          {showWalletModal && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-slate-800 w-full max-w-sm rounded-xl p-4 space-y-4 border border-slate-700 text-center">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-pink-400">Umar Super Wallet</h3>
+                  <button onClick={() => setShowWalletModal(false)} className="text-slate-400 text-lg">&times;</button>
+                </div>
+                <div className="bg-slate-900 p-4 rounded-lg">
+                  <p className="text-xs text-slate-400">Total Balance</p>
+                  <p className="text-2xl font-bold text-emerald-400">PKR 25,400.00</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => showToast('Deposit Gateway opening...')} className="bg-emerald-600 py-2 rounded-lg text-xs font-semibold">Deposit</button>
+                  <button onClick={() => showToast('Withdrawal request initiated.')} className="bg-rose-600 py-2 rounded-lg text-xs font-semibold">Withdraw</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
     }
 
-    function publishNewPost() {
-      alert("Post Channel aur Feed par publish ho chuki hai!");
-      closeModal('createPostModal');
-    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
