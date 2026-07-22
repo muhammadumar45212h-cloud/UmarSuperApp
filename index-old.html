@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Umar Super App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- PAGE 1: LOGIN -->
+<div id="loginPage" class="page">
+  <div class="login-center">
+    <div class="crown-glow">👑</div>
+    <h1 class="gradient-text">UMAR SUPER APP</h1>
+    <p>Welcome to the Super App</p>
+    <input id="email" placeholder="Email">
+    <input id="pass" placeholder="Password" type="password">
+    <input id="phone" placeholder="Phone Number">
+    <button class="btn-gradient" onclick="login()">🚀 Launch App</button>
+    <button class="btn-white">📧 Continue with Google</button>
+    <button class="btn-green">📱 Login with Phone</button>
+    <p class="footer">Made with ❤️ by super app</p>
+  </div>
+</div>
+
+<!-- PAGE 2: HOME -->
+<div id="homePage" class="page hide">
+  <div class="video-full"><p>Video Feed (Full Screen)</p>
+    <div class="video-actions">
+      <button>❤️<span>1.2k</span></button>
+      <button>💬<span>45</span></button>
+      <button>↪️</button>
+      <button class="sub-btn">SUB</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: PROFILE -->
+<div id="profilePage" class="page hide">
+  <div class="profile-full">
+    <img src="https://i.pravatar.cc/120" class="dp">
+    <h2>Umar Boss</h2>
+    <div class="stats"><div><b>0</b><span>POSTS</span></div><div><b>0</b><span>SUBS</span></div><div><b>0</b><span>LIKES</span></div></div>
+    <div class="post-grid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+  </div>
+</div>
+
+<!-- PAGE 4: CHAT -->
+<div id="chatPage" class="page hide"><div class="chat-full"><h2>💬 Messages</h2></div></div>
+
+<!-- PAGE 5: FOREX -->
+<div id="forexPage" class="page hide">
+  <div class="forex-full">
+    <p class="title">🥇 Gold Spot / U.S. Dollar</p>
+    <p class="price">4,028.81 <span>+13.55 (+0.34%)</span></p>
+    <div id="tradingview_chart"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV - ISKO ID DI -->
+<div id="bottomNav" class="bottom-nav hide">
+  <button onclick="showPage('homePage')">🏠</button>
+  <button onclick="checkLogin('profilePage')">👤</button>
+  <button class="plus-btn" onclick="alert('Upload Video')">+</button>
+  <button onclick="checkLogin('chatPage')">💬</button>
+  <button onclick="showPage('forexPage')">📈</button>
+</div>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

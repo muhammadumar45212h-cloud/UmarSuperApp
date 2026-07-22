@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Umar AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{background:#000; color:white; font-family:sans-serif; margin:0; padding:10px;}
+    #chat{height:70vh; overflow-y:auto; background:#111; padding:15px; border-radius:15px; border:1px solid red;}
+    .msg{margin:8px 0; padding:10px; border-radius:10px;}
+    .user{background:red; text-align:right;}
+    .ai{background:#222; text-align:left; border:1px solid #333;}
+    .box{position:fixed; bottom:10px; left:10px; right:10px; display:flex;}
+    input{flex:1; padding:15px; background:#111; border:1px solid red; color:white; border-radius:10px;}
+    button{padding:15px 20px; background:red; border:none; color:white; border-radius:10px; margin-left:5px; font-weight:bold;}
+    h2{text-align:center; color:red;}
+  </style>
+</head>
+<body>
+  <h2>Umar AI - Gareeb ka Doctor</h2>
+  <div id="chat">
+    <div class="msg ai"><b>AI:</b> Salam Captain. Main Umar ka AI hun. Net nahi chahiye. "bukhar, fasal, loan, umeed" likho.</div>
+  </div>
+  <div class="box">
+    <input id="msg" placeholder="Sawal likho..." onkeypress="if(event.key=='Enter')send()">
+    <button onclick="send()">Bhejo</button>
+  </div>
+
+  <script>
+    function send(){
+      let m = document.getElementById("msg").value.trim();
+      if(m=="") return;
+      let chat = document.getElementById("chat");
+      chat.innerHTML += "<div class='msg user'><b>Aap:</b> "+m+"</div>";
+      
+      let ans = "Ilm nahi hai Captain. 'bukhar, fasal, loan, umeed, dard' me se poocho.";
+      m = m.toLowerCase();
+      if(m.includes("bukhar") || m.includes("fever")) ans = "1. Paani piyo har 30min. 2. Sar pe geela kapra. 3. Paracetamol 500mg. 4. 2 din me farq na aaye to doctor lazmi.";
+      if(m.includes("umeed") || m.includes("tension")) ans = "Umar bhai kehte hain: Jo gareeb hai wahi Chand pe jata hai. Kyunki uske paas khone ko kuch nahi. Tu jeetega bhai.";
+      if(m.includes("fasal") || m.includes("gehun")) ans = "Gehun: Oct-Nov me bijai. Pani 4 baar. Khad DAP 1 bori per acre. Kaat March me.";
+      if(m.includes("loan") || m.includes("qarza")) ans = "Gareeb ka loan = Izzat. 1. Chota qarz lo. 2. Kaam me lagao. 3. 10% bachat har mahina. Qarza izzat se utarta hai.";
+      if(m.includes("dard") || m.includes("sir")) ans = "Paani + Araam. Mobile kam. Geela kapra sar pe. Zyada dard ho to doctor.";
+      
+      setTimeout(()=>{chat.innerHTML += "<div class='msg ai'><b>AI:</b> "+ans+"</div>"; chat.scrollTop = chat.scrollHeight;}, 500);
+      
+      document.getElementById("msg").value = "";
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>

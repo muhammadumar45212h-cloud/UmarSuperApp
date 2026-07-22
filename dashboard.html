@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umar Super App - Home</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for Beautiful UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- TradingView Lightweight Charts for Real-Time Forex Chart -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        body {
+            background-color: #0b0813;
+        }
+        .glass-card {
+            background: rgba(18, 14, 28, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .gold-text {
+            color: #D4AF37;
+        }
+        /* Custom scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-between text-white overflow-hidden font-sans">
+
+    <!-- ==================== HEADER (Always visible except full screen video) ==================== -->
+    <header id="app-header" class="p-4 flex justify-between items-center glass-card border-b border-purple-900/20 z-10">
+        <div class="flex items-center gap-2">
+            <span class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 uppercase">UMAR</span>
+            <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">SUPER APP</span>
+        </div>
+        <!-- Search bar -->
+        <div class="flex-1 max-w-xs mx-4 relative">
+            <input type="text" placeholder="Search creators, charts..." class="w-full bg-[#161224] border border-white/10 rounded-full py-1.5 pl-8 pr-4 text-xs focus:outline-none focus:border-purple-500 text-white placeholder-gray-500">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-500 text-xs"></i>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm">
+                <i class="fa-solid fa-history"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN INTERACTIVE PANEL (DYNAMIC TABS) ==================== -->
+    <main class="flex-1 overflow-y-auto no-scrollbar relative w-full h-full pb-24">
+
+        <!-- TAB 1: REELS / VIDEO FEED (Aapki photo jaisa layout) -->
+        <section id="tab-reels" class="w-full h-full bg-black relative flex items-center justify-center">
+            <!-- Simulated Video Player Area -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 flex items-center justify-center">
+                <div class="text-center">
+                    <i class="fa-solid fa-play text-5xl text-purple-500 opacity-60 animate-pulse mb-2"></i>
+                    <p class="text-gray-400 font-bold tracking-wide">Video Feed (Full Screen)</p>
+                </div>
+            </div>
+
+            <!-- Side Interaction overlay (Like TikTok) -->
+            <div class="absolute right-4 bottom-24 flex flex-col items-center gap-6 z-20">
+                <!-- User Avatar / Follow -->
+                <div class="relative">
+                    <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Umar" class="w-12 h-12 rounded-full border-2 border-pink-500 p-0.5">
+                    <button class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-pink-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">+</button>
+                </div>
+                <!-- Like Button -->
+                <button class="flex flex-col items-center group active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center text-red-500 text-2xl drop-shadow-lg">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <span class="text-xs mt-1 font-semibold">12.5k</span>
+                </button>
+                <!-- Comment Button -->
+                <button class="flex flex-col items-center active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center text-white text-2xl drop-shadow-lg">
+                        <i class="fa-solid fa-comment-dots"></i>
+                    </div>
+                    <span class="text-xs mt-1 font-semibold">842</span>
+                </button>
+                <!-- Share Button -->
+                <button class="flex flex-col items-center active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center text-blue-400 text-2xl drop-shadow-lg">
+                        <i class="fa-solid fa-share"></i>
+                    </div>
+                    <span class="text-xs mt-1 font-semibold">Share</span>
+                </button>
+                <!-- Subscribe Creator (Custom Creator Pay System) -->
+                <button onclick="payToCreator('Muhammad Umar', 10)" class="flex flex-col items-center active:scale-95 transition-transform">
+                    <div class="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-black font-black text-xs shadow-lg shadow-amber-500/50">
+                        SUB
+                    </div>
+                    <span class="text-[10px] mt-1 text-amber-400 font-bold">$10/mo</span>
+                </button>
+            </div>
+
+            <!-- Video Info Overlay -->
+            <div class="absolute bottom-6 left-4 right-16 z-20">
+                <h4 class="font-bold text-md text-white flex items-center gap-1">@muhammad_umar <span class="bg-amber-500 text-black text-[9px] px-1.5 py-0.5 rounded font-black">PREMIUM</span></h4>
+                <p class="text-xs text-gray-300 mt-1">Sleek Forex & Social App UI launch complete! Subscribe to get premium tips. #gold #forex #tech</p>
+            </div>
+        </section>
+
+        <!-- TAB 2: PORTFOLIO & PAYMENT (User details, Premium fees checkout) -->
+        <section id="tab-payment" class="hidden p-4 space-y-6">
+            <h2 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500"><i class="fa-solid fa-crown mr-2"></i>Premium Hub & Wallets</h2>
+            
+            <!-- Premium balance details -->
+            <div class="glass-card gold-border p-6 rounded-3xl flex flex-col justify-between h-44 bg-gradient-to-br from-amber-500/10 to-transparent">
+                <div>
+                    <span class="text-xs font-bold text-amber-400 tracking-wider uppercase">Premium Earnings</span>
+                    <h1 id="user-balance" class="text-3xl font-black mt-1">$1,240.00</h1>
+                </div>
+                <div class="flex justify-between items-center text-xs text-gray-400">
+                    <span>Active Premium Followers: <strong class="text-white">124</strong></span>
+                    <button onclick="withdrawEarning()" class="bg-amber-500 text-black font-bold px-4 py-2 rounded-xl active:scale-95 transition-all shadow-lg shadow-amber-500/20">Withdraw Money</button>
+                </div>
+            </div>
+
+            <!-- Local Payment Integration -->
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h3 class="font-bold text-sm text-gray-400">Supported Methods</h3>
+                <div class="flex gap-4">
+                    <div class="flex-1 bg-[#1c1830] p-4 rounded-xl flex items-center justify-between border border-emerald-500/20">
+                        <div>
+                            <span class="text-[10px] text-emerald-400 font-bold uppercase">JazzCash</span>
+                            <p class="text-xs text-gray-400">Direct wallet payout</p>
+                        </div>
+                        <span class="text-2xl">📱</span>
+                    </div>
+                    <div class="flex-1 bg-[#1c1830] p-4 rounded-xl flex items-center justify-between border border-green-500/20">
+                        <div>
+                            <span class="text-[10px] text-green-400 font-bold uppercase">EasyPaisa</span>
+                            <p class="text-xs text-gray-400">Instant payout bank</p>
+                        </div>
+                        <span class="text-2xl">⚡</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CONTENT CREATION PORTAL (+) -->
+        <section id="tab-create" class="hidden p-6 space-y-6">
+            <h2 class="text-xl font-bold"><i class="fa-solid fa-plus-circle text-blue-500 mr-2"></i>Publish New Content</h2>
+            <div class="glass-card p-6 rounded-3xl space-y-4">
+                <textarea placeholder="Write down updates for your premium followers..." class="w-full h-32 bg-[#161224] border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-purple-500" id="postText"></textarea>
+                
+                <div class="flex justify-between items-center gap-4">
+                    <label class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all">
+                        <i class="fa-solid fa-video text-pink-500 text-xl mb-1"></i>
+                        <span class="text-xs font-semibold">Select Video</span>
+                        <input type="file" accept="video/*" class="hidden">
+                    </label>
+                    <label class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all">
+                        <i class="fa-solid fa-lock text-amber-400 text-xl mb-1"></i>
+                        <span class="text-xs font-semibold">Set Price Fee</span>
+                        <input type="checkbox" class="mt-2 accent-amber-500">
+                    </label>
+                </div>
+
+                <button class="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-4 rounded-2xl font-bold active:scale-95 transition-all">Upload & Publish</button>
+            </div>
+        </section>
+
+        <!-- TAB 4: WHATSAPP-STYLE CHAT / COMMUNITY -->
+        <section id="tab-chat" class="hidden h-full flex flex-col">
+            <div class="p-3 border-b border-white/5 bg-[#120e1c] flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold">U</div>
+                    <div>
+                        <h4 class="font-bold text-sm">Trading Squad PK</h4>
+                        <p class="text-[10px] text-emerald-400">Online 14 members</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Message area -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+                <div class="flex items-start gap-2 max-w-[80%]">
+                    <div class="w-8 h-8 rounded-full bg-purple-500 flex-shrink-0 text-xs font-bold flex items-center justify-center">Ali</div>
+                    <div class="bg-[#1c1830] p-3 rounded-2xl rounded-tl-none">
+                        <p class="text-xs text-gray-300">Bhaiyo! Forex signal setup ready hai kya aaj kalyiye?</p>
+                        <span class="text-[9px] text-gray-500 block text-right mt-1">12:30 PM</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-2 max-w-[80%] ml-auto flex-row-reverse">
+                    <div class="w-8 h-8 rounded-full bg-amber-500 flex-shrink-0 text-xs font-bold flex items-center justify-center text-black">U</div>
+                    <div class="bg-purple-600 p-3 rounded-2xl rounded-tr-none text-white">
+                        <p class="text-xs">Yes boss, Gold trade short order set karo 2320 par!</p>
+                        <span class="text-[9px] text-purple-200 block text-right mt-1">12:32 PM</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Input area -->
+            <div class="p-3 border-t border-white/5 bg-[#120e1c] flex items-center gap-3 mb-20">
+                <input type="text" placeholder="Type a message like WhatsApp..." class="flex-1 bg-[#161224] border border-white/10 rounded-full py-3 px-6 text-xs text-white focus:outline-none">
+                <button class="w-10 h-10 rounded-full bg-emerald-500 text-black flex items-center justify-center"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+
+        <!-- TAB 5: FOREX MARKET ENGINE (TradingView Integration) -->
+        <section id="tab-forex" class="hidden p-4 space-y-4">
+            <h2 class="text-xl font-bold flex items-center gap-2 text-green-400">
+                <i class="fa-solid fa-chart-line animate-pulse"></i> Forex Simulator
+            </h2>
+            <!-- Real-Time Chart Area -->
+            <div class="glass-card rounded-3xl p-4 overflow-hidden h-72 relative">
+                <div id="forex-chart" class="w-full h-full"></div>
+            </div>
+
+            <!-- Trade Simulator Action Sheet -->
+            <div class="glass-card p-4 rounded-3xl grid grid-cols-2 gap-4">
+                <button class="bg-emerald-500 text-black font-bold py-4 rounded-2xl active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-trend-up"></i> BUY (LONG)
+                </button>
+                <button class="bg-rose-500 text-white font-bold py-4 rounded-2xl active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-trend-down"></i> SELL (SHORT)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== BOTTOM NAVIGATION (Matching Your Photo EXACTLY) ==================== -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card rounded-t-[32px] py-4 px-6 flex justify-between items-center border-t border-white/5 z-30">
+        <!-- Tab 1: Video Reels (House Icon Style in Image) -->
+        <button onclick="switchTab('reels')" id="btn-reels" class="flex flex-col items-center gap-1 text-white scale-110">
+            <i class="fa-solid fa-house text-xl"></i>
+        </button>
+
+        <!-- Tab 2: Profile/Payment (Wallet Icon Style) -->
+        <button onclick="switchTab('payment')" id="btn-payment" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa-solid fa-user text-xl"></i>
+        </button>
+
+        <!-- Center Upload Tab (PLUS BUTTON) -->
+        <div class="relative -top-5">
+            <button onclick="switchTab('create')" id="btn-create" class="w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/50 flex items-center justify-center text-2xl font-bold active:scale-90 transition-transform">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- Tab 4: Chat / Messaging (Message Icon) -->
+        <button onclick="switchTab('chat')" id="btn-chat" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa-solid fa-message text-xl"></i>
+        </button>
+
+        <!-- Tab 5: Forex Engine (Trading Chart Icon) -->
+        <button onclick="switchTab('forex')" id="btn-forex" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa-solid fa-chart-line text-xl"></i>
+        </button>
+    </nav>
+
+    <!-- ==================== LOGIC ENGINE SCRIPT ==================== -->
+    <script>
+        // Tab switching logic
+        function switchTab(tabId) {
+            // Get all sections
+            const sections = ['reels', 'payment', 'create', 'chat', 'forex'];
+            
+            // Hide all sections, deactivate all buttons
+            sections.forEach(sec => {
+                document.getElementById(`tab-${sec}`).classList.add('hidden');
+                document.getElementById(`btn-${sec}`).classList.remove('text-white', 'scale-110');
+                document.getElementById(`btn-${sec}`).classList.add('text-gray-500');
+            });
+
+            // Show current active section
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('text-white', 'scale-110');
+            document.getElementById(`btn-${tabId}`).classList.remove('text-gray-500');
+
+            // Hide main header on Reels (Full Screen view) for immersive experience
+            const header = document.getElementById('app-header');
+            if(tabId === 'reels') {
+                header.classList.add('hidden');
+            } else {
+                header.classList.remove('hidden');
+            }
+
+            // Initialize TradingView Chart if Forex tab is selected
+            if (tabId === 'forex') {
+                initForexChart();
+            }
+        }
+
+        // Creator monetization simulator
+        function payToCreator(creatorName, amount) {
+            alert(`Umar Super Pay processing...\nPaying $${amount} to ${creatorName} database wallet.`);
+        }
+
+        // Dummy Withdraw handler
+        function withdrawEarning() {
+            alert("Enter your EasyPaisa / JazzCash details to transfer premium subscription earnings.");
+        }
+
+        // Real-Time TradingView Chart Initialization
+        let chartInstance = null;
+        function initForexChart() {
+            const chartDiv = document.getElementById('forex-chart');
+            if (chartInstance !== null) return; // Already rendered
+
+            chartInstance = LightweightCharts.createChart(chartDiv, {
+                layout: {
+                    background: { type: 'solid', color: 'transparent' },
+                    textColor: 'rgba(255, 255, 255, 0.8)',
+                },
+                grid: {
+                    vertLines: { color: 'rgba(139, 92, 246, 0.05)' },
+                    horzLines: { color: 'rgba(139, 92, 246, 0.05)' },
+                },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                priceScale: { borderColor: 'rgba(139, 92, 246, 0.2)' },
+                timeScale: { borderColor: 'rgba(139, 92, 246, 0.2)' },
+            });
+
+            const areaSeries = chartInstance.addAreaSeries({
+                lineColor: '#10b981',
+                topColor: 'rgba(16, 185, 129, 0.4)',
+                bottomColor: 'rgba(16, 185, 129, 0.0)',
+                lineWidth: 2,
+            });
+
+            // Dummy initial data
+            const data = [
+                { time: '2026-07-10', value: 2315.5 },
+                { time: '2026-07-11', value: 2318.2 },
+                { time: '2026-07-12', value: 2312.0 },
+                { time: '2026-07-13', value: 2322.4 },
+                { time: '2026-07-14', value: 2320.1 },
+                { time: '2026-07-15', value: 2325.8 },
+            ];
+            areaSeries.setData(data);
+
+            // Live simulate real-time ticks
+            let lastValue = 2325.8;
+            setInterval(() => {
+                const change = (Math.random() - 0.5) * 2;
+                lastValue = +(lastValue + change).toFixed(2);
+                areaSeries.update({ time: '2026-07-15', value: lastValue });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
