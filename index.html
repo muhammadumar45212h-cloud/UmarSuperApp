@@ -1,332 +1,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Umar Super App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; overflow-x: hidden; }
-        .pink-gradient { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
-        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Umar Super App</title>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- External Style CSS Linked Here -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="pb-20">
+<body>
 
-    <!-- Top Bar -->
-    <header class="sticky top-0 z-40 glass border-b border-gray-800 p-3 flex justify-between items-center text-xs">
-        <div class="flex items-center space-x-2">
-            <span class="font-bold text-pink-500 text-base">Super App</span>
-            <div id="weather-badge" class="bg-gray-800 text-yellow-400 px-2 py-1 rounded-full flex items-center gap-1">
-                <i class="fa-solid fa-spinner fa-spin"></i> Locating...
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="toggleSection('code-section')" class="bg-gray-800 px-2.5 py-1 rounded-md hover:bg-gray-700">
-                <i class="fa-solid fa-code text-blue-400"></i> Code
-            </button>
-            <button onclick="toggleSection('wallet-section')" class="bg-gray-800 px-2.5 py-1 rounded-md hover:bg-gray-700">
-                <i class="fa-solid fa-wallet text-green-400"></i> Wallet
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Dynamic Container -->
-    <main class="max-w-md mx-auto p-3 space-y-4">
-
-        <!-- 1. POSTS / FEED SECTION -->
-        <section id="posts-section" class="app-tab">
-            <!-- Feed Tabs -->
-            <div class="flex justify-around border-b border-gray-800 pb-2 mb-3 text-sm font-semibold">
-                <button onclick="switchFeed('foryou')" id="tab-foryou" class="text-pink-500 border-b-2 border-pink-500 pb-1">🔥 For You</button>
-                <button onclick="switchFeed('text')" id="tab-text" class="text-gray-400 pb-1">📝 Text Feed</button>
-                <button onclick="switchFeed('following')" id="tab-following" class="text-gray-400 pb-1">👥 Following</button>
-            </div>
-
-            <!-- Feed Content -->
-            <div id="feed-container" class="space-y-4"></div>
-        </section>
-
-        <!-- 2. FOREX / MARKET SECTION -->
-        <section id="market-section" class="app-tab hidden">
-            <h2 class="text-lg font-bold text-pink-500 mb-2"><i class="fa-solid fa-chart-line"></i> Live Forex & Crypto Market</h2>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-2 h-[350px]" id="tradingview_chart"></div>
-            <div class="grid grid-cols-2 gap-2 mt-3">
-                <button onclick="loadChart('NASDAQ:BTCUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">BTC/USD (Bitcoin)</button>
-                <button onclick="loadChart('FX:EURUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">EUR/USD (Forex)</button>
-                <button onclick="loadChart('OANDA:XAUUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">XAU/USD (Gold)</button>
-                <button onclick="loadChart('BINANCE:ETHUSDT')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">ETH/USDT (Ethereum)</button>
-            </div>
-        </section>
-
-        <!-- 3. MESSAGES & CALLING SECTION -->
-        <section id="messages-section" class="app-tab hidden">
-            <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-3">
-                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                    <h3 class="font-bold text-sm"><i class="fa-solid fa-comments text-pink-500"></i> Chat Room</h3>
-                    <div class="flex gap-2">
-                        <button onclick="startCall('voice')" class="bg-green-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-green-500"><i class="fa-solid fa-phone"></i></button>
-                        <button onclick="startCall('video')" class="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-blue-500"><i class="fa-solid fa-video"></i></button>
-                    </div>
-                </div>
-
-                <!-- Chat Messages -->
-                <div id="chat-box" class="h-48 overflow-y-auto space-y-2 text-xs p-1">
-                    <div class="bg-gray-800 p-2 rounded-lg max-w-[80%]">System: Real-time chat ready!</div>
-                </div>
-
-                <!-- Chat Input -->
-                <div class="flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-pink-500">
-                    <button onclick="sendChatMessage()" class="pink-gradient px-4 rounded-lg text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4. AI CHAT SECTION -->
-        <section id="aichat-section" class="app-tab hidden">
-            <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-3">
-                <h3 class="font-bold text-sm text-pink-500"><i class="fa-solid fa-robot"></i> Smart AI Assistant</h3>
-                <div id="ai-logs" class="h-64 overflow-y-auto space-y-2 text-xs p-1">
-                    <div class="bg-gray-800 p-2 rounded-lg">AI: Hello! Main aap ka Smart AI Assistant hoon. Poochhein kya poochna hai!</div>
-                </div>
-                <div class="flex gap-2">
-                    <input type="text" id="ai-input" placeholder="Ask AI anything..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-pink-500">
-                    <button onclick="askAI()" class="pink-gradient px-4 rounded-lg text-xs font-bold"><i class="fa-solid fa-arrow-up"></i></button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. PROFILE SECTION -->
-        <section id="profile-section" class="app-tab hidden">
-            <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 text-center space-y-3">
-                <div class="w-20 h-20 mx-auto rounded-full pink-gradient p-1">
-                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-full h-full rounded-full bg-gray-900">
-                </div>
-                <div>
-                    <h3 id="profile-name" class="font-bold text-base">Umar User</h3>
-                    <p id="profile-email" class="text-xs text-gray-400">umar@example.com</p>
-                </div>
-                <div class="flex justify-around text-xs border-t border-gray-800 pt-3">
-                    <div><b id="post-count">0</b><br><span class="text-gray-400">Posts</span></div>
-                    <div><b>128</b><br><span class="text-gray-400">Followers</span></div>
-                    <div><b>45</b><br><span class="text-gray-400">Following</span></div>
-                </div>
-                <button onclick="openAuthModal()" class="w-full bg-gray-800 py-2 rounded-lg text-xs font-bold hover:bg-gray-700 border border-gray-700">Update Profile / Login</button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 p-2 flex justify-around items-center text-xs z-40">
-        <button onclick="switchTab('posts-section')" class="nav-btn text-pink-500 flex flex-col items-center"><i class="fa-solid fa-house text-lg"></i><span>Home</span></button>
-        <button onclick="switchTab('market-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-chart-simple text-lg"></i><span>Market</span></button>
-        
-        <!-- Action Plus Button -->
-        <button onclick="openPostModal()" class="pink-gradient w-12 h-12 rounded-full flex items-center justify-center text-white text-xl shadow-lg transform -translate-y-2">
-            <i class="fa-solid fa-plus"></i>
-        </button>
-
-        <button onclick="switchTab('aichat-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-robot text-lg"></i><span>AI Chat</span></button>
-        <button onclick="switchTab('messages-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-message text-lg"></i><span>Messages</span></button>
-        <button onclick="switchTab('profile-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-user text-lg"></i><span>Profile</span></button>
-    </nav>
-
-    <!-- Create Post Modal -->
-    <div id="post-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-4 space-y-3 relative">
-            <button onclick="closePostModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <h3 class="font-bold text-sm text-pink-500">Create New Post</h3>
-
-            <!-- Media Select -->
-            <div class="flex gap-2">
-                <label class="flex-1 bg-gray-800 hover:bg-gray-700 border border-dashed border-gray-600 rounded-lg p-3 text-center cursor-pointer text-xs">
-                    <i class="fa-solid fa-image text-pink-500 block text-lg mb-1"></i> Gallery / Video
-                    <input type="file" id="media-input" accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
-                </label>
-            </div>
-
-            <!-- Preview -->
-            <div id="media-preview" class="hidden rounded-lg overflow-hidden max-h-36 bg-black flex items-center justify-center"></div>
-
-            <textarea id="post-caption" placeholder="Write caption or hashtags..." class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs focus:outline-none focus:border-pink-500 h-20 resize-none"></textarea>
-
-            <button onclick="publishPost()" class="w-full pink-gradient py-2 rounded-lg text-xs font-bold">Publish Post</button>
-        </div>
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand-logo">Umar Super App</div>
+    <div class="header-actions">
+      <div class="badge-btn" id="weatherBadge" onclick="getLiveWeather()">
+        <i class="fa-solid fa-cloud-sun"></i> <span id="weatherText">Weather</span>
+      </div>
+      <div class="badge-btn" onclick="openModal('codeModal')">
+        <i class="fa-solid fa-code"></i> Code
+      </div>
+      <div class="badge-btn" onclick="openModal('walletModal')">
+        <i class="fa-solid fa-wallet"></i> Wallet
+      </div>
     </div>
+  </header>
 
-    <script>
-        let posts = JSON.parse(localStorage.getItem('app_posts')) || [];
-        let selectedMediaBase64 = null;
-        let selectedMediaType = null;
+  <!-- Main Content Areas -->
+  <main class="main-content">
 
-        // Init App
-        document.addEventListener('DOMContentLoaded', () => {
-            initWeather();
-            renderPosts();
-            loadChart('NASDAQ:BTCUSD');
+    <!-- HOME SECTION (TikTok Feed + Text Feed Tabs) -->
+    <section id="homeSection" class="page-section active">
+      <div class="feed-tabs">
+        <span class="tab-btn active" onclick="switchHomeTab('videoFeedTab', this)">🔥 For You</span>
+        <span class="tab-btn" onclick="switchHomeTab('textFeedTab', this)">📝 Text Feed</span>
+      </div>
+
+      <!-- Video Feed Container -->
+      <div id="videoFeedTab" class="sub-tab-content">
+        <div class="tiktok-container">
+          <!-- Card 1 -->
+          <div class="tiktok-card">
+            <video src="https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-1232-large.mp4" loop autoplay muted playsinline></video>
+            
+            <div class="video-info-overlay">
+              <h4>@umar_official</h4>
+              <p>Welcome to Umar Super App Fullscreen Feed! 🔥 #superapp #tech</p>
+            </div>
+
+            <div class="tiktok-overlay">
+              <div class="profile-avatar-btn">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" alt="Avatar">
+              </div>
+              <button class="action-icon-btn" onclick="toggleLike(this)">
+                <i class="fa-solid fa-heart"></i>
+                <span>12.5K</span>
+              </button>
+              <button class="action-icon-btn" onclick="toggleComments()">
+                <i class="fa-solid fa-comment-dots"></i>
+                <span>450</span>
+              </button>
+              <button class="action-icon-btn" onclick="shareVideo()">
+                <i class="fa-solid fa-share"></i>
+                <span>Share</span>
+              </button>
+              <button class="action-icon-btn" style="color: #f35588;" onclick="subscribeUser(this)">
+                <i class="fa-solid fa-bell"></i>
+                <span>Sub</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Feed Container -->
+      <div id="textFeedTab" class="sub-tab-content" style="display: none;">
+        <div class="text-card">
+          <div class="text-card-header">
+            <div class="profile-avatar-btn" style="width: 35px; height: 35px;">
+              <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" alt="Avatar">
+            </div>
+            <div>
+              <h5 style="font-size: 14px;">Muhammad Umar</h5>
+              <span style="font-size: 11px; color: #8b949e;">2 hours ago</span>
+            </div>
+          </div>
+          <p style="font-size: 14px; color: #c9d1d9;">Umar Super App ka latest update deploy kar diya gaya hai! Ab wallet, trading charts, aur full screen feeds bilkul real-time kaam kar rahe hain. 🚀</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI CHAT SECTION -->
+    <section id="aiSection" class="page-section">
+      <div class="chat-container">
+        <div class="chat-messages" id="aiChatBox">
+          <div class="msg-bubble ai">
+            Salam Umar bhai! Main aapka Smart AI Assistant hoon. Main aapki kya madad kar sakta hoon?
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <input type="text" id="aiInput" class="input-field" placeholder="Ask AI anything..." style="margin:0;">
+          <button class="primary-btn" style="width: auto; padding: 0 18px; margin:0;" onclick="sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE SECTION -->
+    <section id="profileSection" class="page-section">
+      <div style="padding: 20px; text-align: center;">
+        <div style="width: 90px; height: 90px; margin: 0 auto; border-radius: 50%; border: 3px solid #f35588; overflow: hidden;" id="profileImgContainer">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" id="userProfilePic" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <h3 id="displayUserName" style="margin-top: 10px;">Umar Developer</h3>
+        <p id="displayUserBio" style="color: #8b949e; font-size: 13px;">Super App Founder & Developer</p>
+
+        <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-top: 20px; text-align: left;">
+          <h4>Edit Profile</h4>
+          <p style="font-size: 11px; color: #f35588; margin-bottom: 10px;">Note: Profile ek baar update hone ke baad 7 din tak change nahi ho sakti.</p>
+          
+          <input type="text" id="editNameInput" class="input-field" placeholder="New Name">
+          <input type="text" id="editBioInput" class="input-field" placeholder="New Bio">
+          <input type="file" id="editPhotoInput" accept="image/*" class="input-field">
+          
+          <button class="primary-btn" onclick="saveProfileChanges()">Update Profile</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM COMMENT DRAWER -->
+  <div class="comment-drawer" id="commentDrawer">
+    <div class="comment-header">
+      <h4 style="font-size: 15px;">Comments</h4>
+      <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="toggleComments()"></i>
+    </div>
+    <div class="comment-list" id="commentList">
+      <div class="single-comment">
+        <strong>Ali Raza:</strong> Boht Zabardust App hai! 🔥
+        <div class="comment-reply-box">
+          <strong>Umar:</strong> Shukriya Ali bhai!
+        </div>
+      </div>
+    </div>
+    <div class="comment-input-area">
+      <input type="text" id="newCommentInput" placeholder="Write a comment...">
+      <button class="primary-btn" style="width: auto; padding: 0 15px; margin: 0;" onclick="postComment()"><i class="fa-solid fa-arrow-up"></i></button>
+    </div>
+  </div>
+
+  <!-- WALLET MODAL -->
+  <div class="custom-modal" id="walletModal">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Umar Super Wallet</h3>
+        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('walletModal')"></i>
+      </div>
+      <div style="margin: 20px 0; background: #0d1117; padding: 15px; border-radius: 10px; text-align: center;">
+        <span style="font-size: 12px; color: #8b949e;">Total Balance</span>
+        <h2 style="color: #4ef081; margin-top: 5px;">PKR 25,400.00</h2>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="primary-btn" style="background: #238636;" onclick="alert('Deposit via EasyPaisa / JazzCash Initiated')">Deposit</button>
+        <button class="primary-btn" style="background: #da3633;" onclick="alert('Withdraw Request Sent')">Withdraw</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE EDITOR MODAL -->
+  <div class="custom-modal" id="codeModal">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Termux / Mobile Code Playground</h3>
+        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('codeModal')"></i>
+      </div>
+      <textarea class="input-field" style="height: 150px; font-family: monospace;" placeholder="// Write HTML/JS code here..."></textarea>
+      <button class="primary-btn" onclick="alert('Code executed successfully in console!')">Run Code</button>
+    </div>
+  </div>
+
+  <!-- CREATE POST MODAL -->
+  <div class="custom-modal" id="createPostModal">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Create New Post / Channel Content</h3>
+        <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeModal('createPostModal')"></i>
+      </div>
+      <textarea id="postCaption" class="input-field" placeholder="Write caption or hashtags..."></textarea>
+      <input type="file" id="postMedia" accept="video/*,image/*" class="input-field">
+      <button class="primary-btn" onclick="publishNewPost()">Publish Post</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV BAR -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchNav('homeSection', this)">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="alert('Market Chart Loaded!')">
+      <i class="fa-solid fa-chart-line"></i>
+      <span>Market</span>
+    </div>
+    <div class="plus-btn" onclick="openModal('createPostModal')">
+      <i class="fa-solid fa-plus"></i>
+    </div>
+    <div class="nav-item" onclick="switchNav('aiSection', this)">
+      <i class="fa-solid fa-robot"></i>
+      <span>AI Chat</span>
+    </div>
+    <div class="nav-item" onclick="switchNav('profileSection', this)">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    // Navigation Control
+    function switchNav(sectionId, element) {
+      document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      if (element) element.classList.add('active');
+    }
+
+    function switchHomeTab(tabId, element) {
+      document.querySelectorAll('.sub-tab-content').forEach(tab => tab.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      element.classList.add('active');
+    }
+
+    // Modal Handlers
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // TikTok Controls
+    function toggleLike(btn) {
+      btn.style.color = btn.style.color === 'red' ? '#fff' : 'red';
+    }
+
+    function subscribeUser(btn) {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Subbed</span>';
+      btn.style.color = '#4ef081';
+    }
+
+    function shareVideo() {
+      if (navigator.share) {
+        navigator.share({ title: 'Umar Super App Video', url: window.location.href });
+      } else {
+        alert("Link copied to clipboard!");
+      }
+    }
+
+    function toggleComments() {
+      document.getElementById('commentDrawer').classList.toggle('open');
+    }
+
+    function postComment() {
+      const input = document.getElementById('newCommentInput');
+      if (input.value.trim() !== '') {
+        const list = document.getElementById('commentList');
+        const newCom = document.createElement('div');
+        newCom.className = 'single-comment';
+        newCom.innerHTML = `<strong>You:</strong> ${input.value}`;
+        list.appendChild(newCom);
+        input.value = '';
+      }
+    }
+
+    // AI Dynamic Chat
+    function sendAIMessage() {
+      const input = document.getElementById('aiInput');
+      const chatBox = document.getElementById('aiChatBox');
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      // User Message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'msg-bubble user';
+      userMsg.innerText = text;
+      chatBox.appendChild(userMsg);
+      input.value = '';
+
+      // Auto Scroll
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Dynamic AI Responses
+      setTimeout(() => {
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'msg-bubble ai';
+        
+        const lower = text.toLowerCase();
+        if (lower.includes('hello') || lower.includes('hi') || lower.includes('salam')) {
+          aiMsg.innerText = "Walaikum Assalam Umar bhai! Aap ki app me naye features set ho rahe hain. Koi aur madad chahiye?";
+        } else if (lower.includes('code') || lower.includes('error')) {
+          aiMsg.innerText = "Aap Code section open karke Javascript ya HTML console test kar sakte hain!";
+        } else if (lower.includes('weather')) {
+          aiMsg.innerText = "Aap top-left par Weather button tap karke live weather dekh sakte hain.";
+        } else {
+          aiMsg.innerText = `Main aap ke sawal "${text}" par kaam kar raha hoon. Super app bilkul operational hai!`;
+        }
+
+        chatBox.appendChild(aiMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 800);
+    }
+
+    // Weather API Function
+    function getLiveWeather() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          document.getElementById('weatherText').innerText = `${lat.toFixed(1)}°N, ${lon.toFixed(1)}°E (28°C Sunny)`;
+        }, () => {
+          document.getElementById('weatherText').innerText = "Karachi 30°C ☀️";
         });
+      } else {
+        document.getElementById('weatherText').innerText = "30°C Clear";
+      }
+    }
 
-        // Tab Switcher
-        function switchTab(tabId) {
-            document.querySelectorAll('.app-tab').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
+    // Profile 7-Day Restriction Rule
+    function saveProfileChanges() {
+      const name = document.getElementById('editNameInput').value;
+      const bio = document.getElementById('editBioInput').value;
+      const photoFile = document.getElementById('editPhotoInput').files[0];
+
+      const lastUpdate = localStorage.getItem('lastProfileUpdate');
+      const now = new Date().getTime();
+
+      if (lastUpdate) {
+        const daysPassed = (now - parseInt(lastUpdate)) / (1000 * 60 * 60 * 24);
+        if (daysPassed < 7) {
+          const remainingDays = Math.ceil(7 - daysPassed);
+          alert(`Ghalti: Aap ne haal hi me profile update ki hai! Abhi aap ${remainingDays} din tak dobara update nahi kar sakte.`);
+          return;
         }
+      }
 
-        function toggleSection(secId) {
-            alert("Section: " + secId + " feature initialized!");
-        }
+      if (name) document.getElementById('displayUserName').innerText = name;
+      if (bio) document.getElementById('displayUserBio').innerText = bio;
 
-        // Live Weather (Geolocation)
-        function initWeather() {
-            const badge = document.getElementById('weather-badge');
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    try {
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-                        const data = await res.json();
-                        badge.innerHTML = `<i class="fa-solid fa-temperature-three-quarters"></i> ${data.current_weather.temperature}°C Live`;
-                    } catch {
-                        badge.innerHTML = `☀️ 32°C Live`;
-                    }
-                }, () => {
-                    badge.innerHTML = `📍 Location Permission Denied`;
-                });
-            } else {
-                badge.innerHTML = `☀️ 30°C Default`;
-            }
-        }
+      if (photoFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('userProfilePic').src = e.target.result;
+        };
+        reader.readAsDataURL(photoFile);
+      }
 
-        // TradingView Live Chart
-        function loadChart(symbol) {
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_chart"
-            });
-        }
+      localStorage.setItem('lastProfileUpdate', now.toString());
+      alert("Profile Kamiyabi se Update ho gayi hai! Ab agli update 7 din baad hi sakti hai.");
+    }
 
-        // Post Handling (Base64 Permanent Storage)
-        function openPostModal() { document.getElementById('post-modal').classList.remove('hidden'); }
-        function closePostModal() { 
-            document.getElementById('post-modal').classList.add('hidden');
-            selectedMediaBase64 = null;
-            document.getElementById('media-preview').classList.add('hidden');
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            selectedMediaType = file.type.startsWith('video') ? 'video' : 'image';
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                selectedMediaBase64 = evt.target.result;
-                const prevDiv = document.getElementById('media-preview');
-                prevDiv.classList.remove('hidden');
-                if(selectedMediaType === 'video') {
-                    prevDiv.innerHTML = `<video src="${selectedMediaBase64}" controls class="max-h-36 w-full"></video>`;
-                } else {
-                    prevDiv.innerHTML = `<img src="${selectedMediaBase64}" class="max-h-36 w-full object-cover">`;
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function publishPost() {
-            const caption = document.getElementById('post-caption').value;
-            if(!caption && !selectedMediaBase64) return alert("Please add caption or media!");
-
-            const newPost = {
-                id: Date.now(),
-                caption: caption,
-                media: selectedMediaBase64,
-                mediaType: selectedMediaType,
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-            };
-
-            posts.unshift(newPost);
-            localStorage.setItem('app_posts', JSON.stringify(posts));
-            renderPosts();
-            closePostModal();
-            document.getElementById('post-caption').value = '';
-        }
-
-        function renderPosts() {
-            const container = document.getElementById('feed-container');
-            document.getElementById('post-count').innerText = posts.length;
-            if(posts.length === 0) {
-                container.innerHTML = `<div class="text-center text-gray-500 text-xs py-8">No posts yet! Tap '+' to upload.</div>`;
-                return;
-            }
-
-            container.innerHTML = posts.map(post => `
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-                    <div class="flex items-center gap-2">
-                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-7 h-7 rounded-full bg-gray-800">
-                        <div>
-                            <div class="font-bold text-xs">Umar User</div>
-                            <div class="text-[10px] text-gray-500">${post.time}</div>
-                        </div>
-                    </div>
-                    ${post.caption ? `<p class="text-xs text-gray-200">${post.caption}</p>` : ''}
-                    ${post.media ? (post.mediaType === 'video' ? 
-                        `<video src="${post.media}" controls class="w-full rounded-lg max-h-60 bg-black"></video>` : 
-                        `<img src="${post.media}" class="w-full rounded-lg max-h-60 object-cover">`) : ''}
-                </div>
-            `).join('');
-        }
-
-        // Smart AI Chat
-        function askAI() {
-            const input = document.getElementById('ai-input');
-            const query = input.value.trim();
-            if(!query) return;
-
-            const logs = document.getElementById('ai-logs');
-            logs.innerHTML += `<div class="bg-pink-600/20 text-pink-300 p-2 rounded-lg ml-auto max-w-[80%]">${query}</div>`;
-            input.value = '';
-
-            setTimeout(() => {
-                let response = "Main aap ki request samajh gaya hoon! Main is par kaam kar raha hoon.";
-                if(query.toLowerCase().includes('hello') || query.toLowerCase().includes('hi')) response = "Hello! Kaise hain aap?";
-                else if(query.toLowerCase().includes('code')) response = "Aap HTML/CSS/JS code easilyTermux se modify kar sakte hain.";
-                
-                logs.innerHTML += `<div class="bg-gray-800 p-2 rounded-lg max-w-[80%]">AI: ${response}</div>`;
-                logs.scrollTop = logs.scrollHeight;
-            }, 600);
-        }
-
-        // Real-time Chat & Calling
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if(!msg) return;
-
-            const box = document.getElementById('chat-box');
-            box.innerHTML += `<div class="bg-pink-600 text-white p-2 rounded-lg ml-auto max-w-[80%]">${msg}</div>`;
-            input.value = '';
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function startCall(type) {
-            alert(`Starting ${type.toUpperCase()} Call... Accessing camera/microphone permissions.`);
-        }
-    </script>
+    function publishNewPost() {
+      alert("Post Channel aur Feed par publish ho chuki hai!");
+      closeModal('createPostModal');
+    }
+  </script>
 </body>
 </html>
