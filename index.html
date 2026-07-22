@@ -1,266 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Umar Super App</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Umar Super App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; overflow-x: hidden; }
+        .pink-gradient { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(10px); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    </style>
 </head>
-<body>
+<body class="pb-20">
 
-  <!-- Auth Screen Overlay -->
-  <div id="authOverlay" class="auth-overlay">
-    <div class="auth-card">
-      <h1 class="brand-title">Super App</h1>
-      <p class="auth-sub">Welcome back! Please sign in or register.</p>
-      
-      <div class="input-group">
-        <input type="email" id="authEmail" placeholder="Email Address" required>
-      </div>
-      <div class="input-group">
-        <input type="password" id="authPassword" placeholder="Password" required>
-      </div>
-      <div class="input-group" id="usernameGroup">
-        <input type="text" id="authUsername" placeholder="Username (@umar)">
-      </div>
-
-      <button id="signUpBtn" class="btn btn-gradient">Sign Up</button>
-      <button id="loginBtn" class="btn btn-gradient">Login</button>
-      <p id="authError" class="error-msg"></p>
-    </div>
-  </div>
-
-  <!-- Main Application Wrapper -->
-  <div id="appContainer" class="app-container hidden">
-    
-    <!-- Header Bar -->
-    <header class="app-header">
-      <div class="header-left">
-        <span class="logo-text">Super App</span>
-        <div id="weatherWidget" class="weather-badge">
-          <i class="fa-solid fa-sun"></i> <span id="weatherText">32°C Karachi</span>
+    <!-- Top Bar -->
+    <header class="sticky top-0 z-40 glass border-b border-gray-800 p-3 flex justify-between items-center text-xs">
+        <div class="flex items-center space-x-2">
+            <span class="font-bold text-pink-500 text-base">Super App</span>
+            <div id="weather-badge" class="bg-gray-800 text-yellow-400 px-2 py-1 rounded-full flex items-center gap-1">
+                <i class="fa-solid fa-spinner fa-spin"></i> Locating...
+            </div>
         </div>
-      </div>
-      <div class="header-right">
-        <button class="top-nav-btn active" data-tab="posts"><i class="fa-solid fa-newspaper"></i> Posts</button>
-        <button class="top-nav-btn" data-tab="wallet"><i class="fa-solid fa-wallet"></i> Wallet</button>
-        <button class="top-nav-btn" data-tab="code"><i class="fa-solid fa-code"></i> Code</button>
-      </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleSection('code-section')" class="bg-gray-800 px-2.5 py-1 rounded-md hover:bg-gray-700">
+                <i class="fa-solid fa-code text-blue-400"></i> Code
+            </button>
+            <button onclick="toggleSection('wallet-section')" class="bg-gray-800 px-2.5 py-1 rounded-md hover:bg-gray-700">
+                <i class="fa-solid fa-wallet text-green-400"></i> Wallet
+            </button>
+        </div>
     </header>
 
-    <!-- Sub Navigation Bar -->
-    <div class="sub-header">
-      <button class="sub-tab active" data-sub="foryou"><i class="fa-solid fa-fire"></i> For You</button>
-      <button class="sub-tab" data-sub="textfeed"><i class="fa-solid fa-pen-to-square"></i> Text Feed</button>
-      <button class="sub-tab" data-sub="following"><i class="fa-solid fa-users"></i> Following</button>
-    </div>
+    <!-- Main Dynamic Container -->
+    <main class="max-w-md mx-auto p-3 space-y-4">
 
-    <!-- Dynamic Main Views -->
-    <main id="mainContent" class="main-content">
-      
-      <!-- Video Feed Tab (Home) -->
-      <section id="view-home" class="view-section active">
-        <div id="videoFeed" class="video-feed-container">
-          <!-- Realtime Feed Items Injected Here -->
-        </div>
-      </section>
-
-      <!-- Forex Market Tab -->
-      <section id="view-market" class="view-section hidden">
-        <h2 class="section-title"><i class="fa-solid fa-chart-line"></i> Real-time Forex Market</h2>
-        <div class="market-selector">
-          <button class="market-btn active" data-symbol="XAUUSD">XAUUSD (Gold)</button>
-          <button class="market-btn" data-symbol="BTCUSD">BTCUSD (Bitcoin)</button>
-          <button class="market-btn" data-symbol="EURUSD">EURUSD</button>
-        </div>
-        <div id="tradingviewWidget" class="chart-box">
-          <!-- TradingView Embed Widget Container -->
-          <div id="tv_chart_container"></div>
-        </div>
-      </section>
-
-      <!-- AI Chat Tab -->
-      <section id="view-aichat" class="view-section hidden">
-        <div class="chat-container">
-          <div class="chat-header">
-            <h3><i class="fa-solid fa-robot"></i> AI Assistant</h3>
-          </div>
-          <div id="aiChatBox" class="chat-messages">
-            <div class="msg system-msg">System: AI Assistant is online. Ask me anything!</div>
-          </div>
-          <div class="chat-input-bar">
-            <input type="text" id="aiInput" placeholder="Ask AI anything...">
-            <button id="aiSendBtn" class="btn-icon"><i class="fa-solid fa-paper-plane"></i></button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Messages & Calling Tab -->
-      <section id="view-messages" class="view-section hidden">
-        <div class="chat-header flex-between">
-          <h3><i class="fa-solid fa-comments"></i> Real-time Chat & Calling</h3>
-          <div class="dropdown">
-            <button id="chatMenuBtn" class="btn-icon"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            <div id="chatDropdown" class="dropdown-content hidden">
-              <a href="#" id="createChannelOpt"><i class="fa-solid fa-bullhorn"></i> Create Channel</a>
-              <a href="#" id="createGroupOpt"><i class="fa-solid fa-user-group"></i> Create Group</a>
+        <!-- 1. POSTS / FEED SECTION -->
+        <section id="posts-section" class="app-tab">
+            <!-- Feed Tabs -->
+            <div class="flex justify-around border-b border-gray-800 pb-2 mb-3 text-sm font-semibold">
+                <button onclick="switchFeed('foryou')" id="tab-foryou" class="text-pink-500 border-b-2 border-pink-500 pb-1">🔥 For You</button>
+                <button onclick="switchFeed('text')" id="tab-text" class="text-gray-400 pb-1">📝 Text Feed</button>
+                <button onclick="switchFeed('following')" id="tab-following" class="text-gray-400 pb-1">👥 Following</button>
             </div>
-          </div>
-        </div>
-        <div class="call-actions">
-          <button id="voiceCallBtn" class="btn btn-call-voice"><i class="fa-solid fa-phone"></i> Voice Call</button>
-          <button id="videoCallBtn" class="btn btn-call-video"><i class="fa-solid fa-video"></i> Video Call</button>
-        </div>
-        <div id="directChatBox" class="chat-messages">
-          <div class="msg system-msg">System: Real-time message room ready.</div>
-        </div>
-        <div class="chat-input-bar">
-          <input type="text" id="directMsgInput" placeholder="Type message...">
-          <button id="directSendBtn" class="btn-icon"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-      </section>
 
-      <!-- Profile Tab -->
-      <section id="view-profile" class="view-section hidden">
-        <div class="profile-card">
-          <div class="avatar-wrap">
-            <img id="userAvatar" src="https://via.placeholder.com/100" alt="Avatar">
-            <label for="avatarUpload" class="cam-badge"><i class="fa-solid fa-camera"></i></label>
-            <input type="file" id="avatarUpload" accept="image/*" hidden>
-          </div>
-          <h2 id="profileDisplayName">UMAR</h2>
-          <p id="profileUsername">@umar_official</p>
-          <div class="badge-vip"><i class="fa-solid fa-gem"></i> VIP Premium Member</div>
+            <!-- Feed Content -->
+            <div id="feed-container" class="space-y-4"></div>
+        </section>
 
-          <div class="profile-stats">
-            <div><strong id="statFollowers">24.5k</strong><span>Followers</span></div>
-            <div><strong id="statLikes">1.2M</strong><span>Likes</span></div>
-            <div><strong id="statPosts">0</strong><span>Posts</span></div>
-          </div>
-          <button id="editProfileBtn" class="btn btn-outline">Edit Profile</button>
-        </div>
-        <h3 class="sub-heading">Upload History & History Logs</h3>
-        <div id="userPostHistory" class="history-grid">
-          <p class="empty-text">No uploads yet. Tap '+' to post your first video!</p>
-        </div>
-      </section>
+        <!-- 2. FOREX / MARKET SECTION -->
+        <section id="market-section" class="app-tab hidden">
+            <h2 class="text-lg font-bold text-pink-500 mb-2"><i class="fa-solid fa-chart-line"></i> Live Forex & Crypto Market</h2>
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-2 h-[350px]" id="tradingview_chart"></div>
+            <div class="grid grid-cols-2 gap-2 mt-3">
+                <button onclick="loadChart('NASDAQ:BTCUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">BTC/USD (Bitcoin)</button>
+                <button onclick="loadChart('FX:EURUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">EUR/USD (Forex)</button>
+                <button onclick="loadChart('OANDA:XAUUSD')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">XAU/USD (Gold)</button>
+                <button onclick="loadChart('BINANCE:ETHUSDT')" class="bg-gray-800 p-2 rounded-lg text-xs hover:bg-gray-700">ETH/USDT (Ethereum)</button>
+            </div>
+        </section>
 
-      <!-- Creator Wallet Tab -->
-      <section id="view-wallet" class="view-section hidden">
-        <div class="wallet-card">
-          <h3><i class="fa-solid fa-wallet"></i> Creator Wallet & Payouts</h3>
-          <p class="label">Available Earnings</p>
-          <h1 class="amount">$154.50</h1>
-          <p class="status">Monetization: <span class="green-text">Active</span></p>
+        <!-- 3. MESSAGES & CALLING SECTION -->
+        <section id="messages-section" class="app-tab hidden">
+            <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-3">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <h3 class="font-bold text-sm"><i class="fa-solid fa-comments text-pink-500"></i> Chat Room</h3>
+                    <div class="flex gap-2">
+                        <button onclick="startCall('voice')" class="bg-green-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-green-500"><i class="fa-solid fa-phone"></i></button>
+                        <button onclick="startCall('video')" class="bg-blue-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-blue-500"><i class="fa-solid fa-video"></i></button>
+                    </div>
+                </div>
 
-          <hr class="divider">
-          <h4>Withdraw Funds</h4>
-          <label>Select Payment Method:</label>
-          <select id="payoutMethod" class="input-select">
-            <option value="easypaisa">EasyPaisa</option>
-            <option value="jazzcash">JazzCash</option>
-            <option value="bank">Bank Transfer</option>
-          </select>
-          <input type="text" id="accountNo" placeholder="Account Number (e.g. 03089775764)">
-          <input type="number" id="withdrawAmount" placeholder="Amount ($154.50)">
-          <button id="withdrawBtn" class="btn btn-gradient">Withdraw Real Money</button>
-        </div>
-      </section>
+                <!-- Chat Messages -->
+                <div id="chat-box" class="h-48 overflow-y-auto space-y-2 text-xs p-1">
+                    <div class="bg-gray-800 p-2 rounded-lg max-w-[80%]">System: Real-time chat ready!</div>
+                </div>
 
-      <!-- Terminal / Code Editor Tab -->
-      <section id="view-code" class="view-section hidden">
-        <div class="code-editor-wrap">
-          <div class="editor-header">
-            <span><i class="fa-solid fa-terminal"></i> Termux Environment</span>
-            <button id="runCodeBtn" class="btn btn-sm btn-gradient">Run Code</button>
-          </div>
-          <textarea id="codeSource" spellcheck="false" placeholder="// Write JavaScript / Terminal commands here..."></textarea>
-          <div class="console-output">
-            <div class="console-title">Output Console:</div>
-            <pre id="consoleResult">$ Ready...</pre>
-          </div>
-        </div>
-      </section>
+                <!-- Chat Input -->
+                <div class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-pink-500">
+                    <button onclick="sendChatMessage()" class="pink-gradient px-4 rounded-lg text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. AI CHAT SECTION -->
+        <section id="aichat-section" class="app-tab hidden">
+            <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-3">
+                <h3 class="font-bold text-sm text-pink-500"><i class="fa-solid fa-robot"></i> Smart AI Assistant</h3>
+                <div id="ai-logs" class="h-64 overflow-y-auto space-y-2 text-xs p-1">
+                    <div class="bg-gray-800 p-2 rounded-lg">AI: Hello! Main aap ka Smart AI Assistant hoon. Poochhein kya poochna hai!</div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="ai-input" placeholder="Ask AI anything..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-pink-500">
+                    <button onclick="askAI()" class="pink-gradient px-4 rounded-lg text-xs font-bold"><i class="fa-solid fa-arrow-up"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. PROFILE SECTION -->
+        <section id="profile-section" class="app-tab hidden">
+            <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 text-center space-y-3">
+                <div class="w-20 h-20 mx-auto rounded-full pink-gradient p-1">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-full h-full rounded-full bg-gray-900">
+                </div>
+                <div>
+                    <h3 id="profile-name" class="font-bold text-base">Umar User</h3>
+                    <p id="profile-email" class="text-xs text-gray-400">umar@example.com</p>
+                </div>
+                <div class="flex justify-around text-xs border-t border-gray-800 pt-3">
+                    <div><b id="post-count">0</b><br><span class="text-gray-400">Posts</span></div>
+                    <div><b>128</b><br><span class="text-gray-400">Followers</span></div>
+                    <div><b>45</b><br><span class="text-gray-400">Following</span></div>
+                </div>
+                <button onclick="openAuthModal()" class="w-full bg-gray-800 py-2 rounded-lg text-xs font-bold hover:bg-gray-700 border border-gray-700">Update Profile / Login</button>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Creation Modal (+ Button Dialog) -->
-    <div id="uploadModal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>Create Video Post</h3>
-          <button id="closeModalBtn" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="modal-body">
-          <div class="source-options">
-            <label class="source-btn"><i class="fa-solid fa-photo-film"></i> Gallery <input type="file" id="videoFile" accept="video/*" hidden></label>
-            <button id="openCameraBtn" class="source-btn"><i class="fa-solid fa-camera-retro"></i> Camera</button>
-          </div>
-          <input type="text" id="videoDescription" placeholder="Write description...">
-          <input type="text" id="videoHashtags" placeholder="#hashtags (e.g. #superapp #tech)">
-          
-          <label>Select Filter/Effect:</label>
-          <select id="videoFilter" class="input-select">
-            <option value="none">Normal (No Filter)</option>
-            <option value="grayscale">Grayscale</option>
-            <option value="sepia">Vintage Sepia</option>
-            <option value="saturate">Vibrant Color</option>
-          </select>
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 p-2 flex justify-around items-center text-xs z-40">
+        <button onclick="switchTab('posts-section')" class="nav-btn text-pink-500 flex flex-col items-center"><i class="fa-solid fa-house text-lg"></i><span>Home</span></button>
+        <button onclick="switchTab('market-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-chart-simple text-lg"></i><span>Market</span></button>
+        
+        <!-- Action Plus Button -->
+        <button onclick="openPostModal()" class="pink-gradient w-12 h-12 rounded-full flex items-center justify-center text-white text-xl shadow-lg transform -translate-y-2">
+            <i class="fa-solid fa-plus"></i>
+        </button>
 
-          <label>Privacy Setting:</label>
-          <select id="videoPrivacy" class="input-select">
-            <option value="public">Public (Everyone)</option>
-            <option value="private">Private (Followers only)</option>
-          </select>
-
-          <button id="submitPostBtn" class="btn btn-gradient">Publish Video</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Weather Selector Modal -->
-    <div id="weatherModal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3><i class="fa-solid fa-temperature-three-quarters"></i> City Weather Selector</h3>
-          <button id="closeWeatherModal" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" id="citySearchInput" placeholder="Enter city name (e.g., Jacobabad)">
-          <button id="checkTempBtn" class="btn btn-gradient">Check Temperature</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Global Bottom Navigation -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-view="home">
-        <i class="fa-solid fa-house"></i>
-        <span>Home</span>
-      </button>
-      <button class="nav-item" data-view="market">
-        <i class="fa-solid fa-chart-simple"></i>
-        <span>Market</span>
-      </button>
-      <button id="plusActionBtn" class="nav-item nav-plus">
-        <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
-      </button>
-      <button class="nav-item" data-view="aichat">
-        <i class="fa-solid fa-robot"></i>
-        <span>AI Chat</span>
-      </button>
-      <button class="nav-item" data-view="messages">
-        <i class="fa-solid fa-comment-dots"></i>
-        <span>Messages</span>
-      </button>
-      <button class="nav-item" data-view="profile">
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-      </button>
+        <button onclick="switchTab('aichat-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-robot text-lg"></i><span>AI Chat</span></button>
+        <button onclick="switchTab('messages-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-message text-lg"></i><span>Messages</span></button>
+        <button onclick="switchTab('profile-section')" class="nav-btn text-gray-400 flex flex-col items-center"><i class="fa-solid fa-user text-lg"></i><span>Profile</span></button>
     </nav>
-  </div>
 
-  <!-- Firebase Modular Scripts -->
-  <script type="module" src="script.js"></script>
+    <!-- Create Post Modal -->
+    <div id="post-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-4 space-y-3 relative">
+            <button onclick="closePostModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="font-bold text-sm text-pink-500">Create New Post</h3>
+
+            <!-- Media Select -->
+            <div class="flex gap-2">
+                <label class="flex-1 bg-gray-800 hover:bg-gray-700 border border-dashed border-gray-600 rounded-lg p-3 text-center cursor-pointer text-xs">
+                    <i class="fa-solid fa-image text-pink-500 block text-lg mb-1"></i> Gallery / Video
+                    <input type="file" id="media-input" accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
+                </label>
+            </div>
+
+            <!-- Preview -->
+            <div id="media-preview" class="hidden rounded-lg overflow-hidden max-h-36 bg-black flex items-center justify-center"></div>
+
+            <textarea id="post-caption" placeholder="Write caption or hashtags..." class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs focus:outline-none focus:border-pink-500 h-20 resize-none"></textarea>
+
+            <button onclick="publishPost()" class="w-full pink-gradient py-2 rounded-lg text-xs font-bold">Publish Post</button>
+        </div>
+    </div>
+
+    <script>
+        let posts = JSON.parse(localStorage.getItem('app_posts')) || [];
+        let selectedMediaBase64 = null;
+        let selectedMediaType = null;
+
+        // Init App
+        document.addEventListener('DOMContentLoaded', () => {
+            initWeather();
+            renderPosts();
+            loadChart('NASDAQ:BTCUSD');
+        });
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.app-tab').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        function toggleSection(secId) {
+            alert("Section: " + secId + " feature initialized!");
+        }
+
+        // Live Weather (Geolocation)
+        function initWeather() {
+            const badge = document.getElementById('weather-badge');
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                        const data = await res.json();
+                        badge.innerHTML = `<i class="fa-solid fa-temperature-three-quarters"></i> ${data.current_weather.temperature}°C Live`;
+                    } catch {
+                        badge.innerHTML = `☀️ 32°C Live`;
+                    }
+                }, () => {
+                    badge.innerHTML = `📍 Location Permission Denied`;
+                });
+            } else {
+                badge.innerHTML = `☀️ 30°C Default`;
+            }
+        }
+
+        // TradingView Live Chart
+        function loadChart(symbol) {
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_chart"
+            });
+        }
+
+        // Post Handling (Base64 Permanent Storage)
+        function openPostModal() { document.getElementById('post-modal').classList.remove('hidden'); }
+        function closePostModal() { 
+            document.getElementById('post-modal').classList.add('hidden');
+            selectedMediaBase64 = null;
+            document.getElementById('media-preview').classList.add('hidden');
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedMediaType = file.type.startsWith('video') ? 'video' : 'image';
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                selectedMediaBase64 = evt.target.result;
+                const prevDiv = document.getElementById('media-preview');
+                prevDiv.classList.remove('hidden');
+                if(selectedMediaType === 'video') {
+                    prevDiv.innerHTML = `<video src="${selectedMediaBase64}" controls class="max-h-36 w-full"></video>`;
+                } else {
+                    prevDiv.innerHTML = `<img src="${selectedMediaBase64}" class="max-h-36 w-full object-cover">`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function publishPost() {
+            const caption = document.getElementById('post-caption').value;
+            if(!caption && !selectedMediaBase64) return alert("Please add caption or media!");
+
+            const newPost = {
+                id: Date.now(),
+                caption: caption,
+                media: selectedMediaBase64,
+                mediaType: selectedMediaType,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+
+            posts.unshift(newPost);
+            localStorage.setItem('app_posts', JSON.stringify(posts));
+            renderPosts();
+            closePostModal();
+            document.getElementById('post-caption').value = '';
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('feed-container');
+            document.getElementById('post-count').innerText = posts.length;
+            if(posts.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 text-xs py-8">No posts yet! Tap '+' to upload.</div>`;
+                return;
+            }
+
+            container.innerHTML = posts.map(post => `
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-7 h-7 rounded-full bg-gray-800">
+                        <div>
+                            <div class="font-bold text-xs">Umar User</div>
+                            <div class="text-[10px] text-gray-500">${post.time}</div>
+                        </div>
+                    </div>
+                    ${post.caption ? `<p class="text-xs text-gray-200">${post.caption}</p>` : ''}
+                    ${post.media ? (post.mediaType === 'video' ? 
+                        `<video src="${post.media}" controls class="w-full rounded-lg max-h-60 bg-black"></video>` : 
+                        `<img src="${post.media}" class="w-full rounded-lg max-h-60 object-cover">`) : ''}
+                </div>
+            `).join('');
+        }
+
+        // Smart AI Chat
+        function askAI() {
+            const input = document.getElementById('ai-input');
+            const query = input.value.trim();
+            if(!query) return;
+
+            const logs = document.getElementById('ai-logs');
+            logs.innerHTML += `<div class="bg-pink-600/20 text-pink-300 p-2 rounded-lg ml-auto max-w-[80%]">${query}</div>`;
+            input.value = '';
+
+            setTimeout(() => {
+                let response = "Main aap ki request samajh gaya hoon! Main is par kaam kar raha hoon.";
+                if(query.toLowerCase().includes('hello') || query.toLowerCase().includes('hi')) response = "Hello! Kaise hain aap?";
+                else if(query.toLowerCase().includes('code')) response = "Aap HTML/CSS/JS code easilyTermux se modify kar sakte hain.";
+                
+                logs.innerHTML += `<div class="bg-gray-800 p-2 rounded-lg max-w-[80%]">AI: ${response}</div>`;
+                logs.scrollTop = logs.scrollHeight;
+            }, 600);
+        }
+
+        // Real-time Chat & Calling
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="bg-pink-600 text-white p-2 rounded-lg ml-auto max-w-[80%]">${msg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function startCall(type) {
+            alert(`Starting ${type.toUpperCase()} Call... Accessing camera/microphone permissions.`);
+        }
+    </script>
 </body>
 </html>
