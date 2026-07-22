@@ -1,292 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Umar Super App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- TradingView Widget Script -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-  <!-- AUTH MODAL (Strict Login / Signup) -->
-  <div id="auth-modal" class="modal active">
-    <div class="modal-content auth-box">
-      <h2 id="auth-title"><i class="fa-solid fa-shield-halved"></i> Umar Super App</h2>
-      <p id="auth-desc">Login or create an account to continue</p>
-      
-      <input type="email" id="auth-email" placeholder="Enter Email" required />
-      <input type="password" id="auth-password" placeholder="Enter Password" required />
-      <input type="text" id="auth-username" placeholder="Username (Signup only)" />
-
-      <div class="auth-buttons">
-        <button id="btn-login-submit" class="btn btn-primary">Login</button>
-        <button id="btn-signup-submit" class="btn btn-outline">Sign Up</button>
-      </div>
-      <p id="auth-error" class="error-msg"></p>
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <h1 class="brand-title">Super App</h1>
+      <button id="weather-btn" class="weather-chip"><i class="fa-solid fa-sun"></i> <span id="weather-text">32°C Karachi</span></button>
     </div>
-  </div>
-
-  <!-- TOP HEADER -->
-  <header class="top-bar">
-    <div class="logo-area">
-      <span class="app-title">Umar Super</span>
-      <button id="weather-btn" class="weather-pill"><i class="fa-solid fa-sun"></i> <span id="weather-text">32°C Karachi</span></button>
-    </div>
-    <div class="top-nav-buttons">
-      <button class="top-tab active" data-target="feed-section"><i class="fa-solid fa-newspaper"></i> Posts</button>
+    <div class="header-right">
+      <button class="top-tab active" data-target="home-section"><i class="fa-solid fa-newspaper"></i> Posts</button>
       <button class="top-tab" data-target="wallet-section"><i class="fa-solid fa-wallet"></i> Wallet</button>
       <button class="top-tab" data-target="code-section"><i class="fa-solid fa-code"></i> Code</button>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
-  <main class="app-viewport">
+  <!-- Main View Container -->
+  <main class="app-content">
 
-    <!-- 1. HOME / VIDEO FEED SECTION -->
-    <section id="feed-section" class="app-page active">
+    <!-- HOME SECTION (Feeds) -->
+    <section id="home-section" class="app-page active">
       <div class="sub-nav">
-        <button class="sub-tab active" data-sub="for-you">🔥 For You</button>
-        <button class="sub-tab" data-sub="text-posts">📝 Text Feed</button>
-        <button class="sub-tab" data-sub="following">👥 Following</button>
-        <button class="sub-tab" id="btn-start-live">🔴 Go Live</button>
+        <button class="sub-tab active" data-sub="video-feed"><i class="fa-solid fa-fire"></i> For You</button>
+        <button class="sub-tab" data-sub="text-feed"><i class="fa-solid fa-pen-to-square"></i> Text Feed</button>
       </div>
 
-      <!-- VIDEO FEED CONTAINER -->
-      <div id="video-container" class="feed-viewport">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <!-- TEXT FEED CONTAINER (Hidden by default) -->
-      <div id="text-feed-container" class="text-viewport hidden">
-        <div class="create-text-post">
-          <textarea id="text-post-input" placeholder="What's on your mind? Add link, bio or post..."></textarea>
-          <button id="btn-submit-text-post" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Post</button>
+      <!-- Video Feed Container -->
+      <div id="video-feed-container" class="feed-view">
+        <div id="video-cards-wrapper" class="video-stack">
+          <!-- Dynamic Videos injected here -->
         </div>
-        <div id="text-posts-list"></div>
+      </div>
+
+      <!-- Text Feed Container -->
+      <div id="text-feed-container" class="feed-view hidden">
+        <div class="create-text-post">
+          <textarea id="text-post-input" placeholder="Share your thoughts..."></textarea>
+          <button id="btn-submit-text-post" class="primary-btn"><i class="fa-solid fa-paper-plane"></i> Post</button>
+        </div>
+        <div id="text-posts-list" class="posts-list"></div>
       </div>
     </section>
 
-    <!-- 2. FOREX MARKET SECTION -->
+    <!-- MARKET SECTION (Untouched TradingView Chart) -->
     <section id="market-section" class="app-page">
-      <div class="page-header">
-        <h2><i class="fa-solid fa-chart-line"></i> Real-time Forex Market</h2>
-      </div>
       <div class="market-selector">
-        <button class="m-btn active" data-symbol="OANDA:XAUUSD">XAUUSD (Gold)</button>
-        <button class="m-btn" data-symbol="BITSTAMP:BTCUSD">BTCUSD (Bitcoin)</button>
+        <button class="m-btn active" data-symbol="OANDA:XAUUSD">XAUUSD</button>
+        <button class="m-btn" data-symbol="BINANCE:BTCUSDT">BTCUSD</button>
         <button class="m-btn" data-symbol="FX:EURUSD">EURUSD</button>
       </div>
-      <div id="tradingview-widget-container" class="chart-container"></div>
+      <div id="tradingview-widget-container" style="height: calc(100vh - 140px); width:100%;"></div>
     </section>
 
-    <!-- 3. AI CHAT SECTION -->
+    <!-- AI CHAT SECTION -->
     <section id="ai-section" class="app-page">
-      <div class="page-header">
-        <h2><i class="fa-solid fa-robot"></i> AI Assistant & Help</h2>
-      </div>
-      <div id="ai-messages" class="chat-logs">
-        <div class="msg ai-msg">
-          <div class="msg-bubble">Hello Umar! Main aapka AI assistant hoon. Aap koi bhi sawal pooch sakte hain!</div>
+      <div class="chat-wrapper">
+        <div id="ai-messages" class="messages-log"></div>
+        <div class="chat-input-bar">
+          <input type="text" id="ai-input" placeholder="Ask Super AI anything...">
+          <button id="ai-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
-      <div class="chat-input-area">
-        <input type="text" id="ai-input" placeholder="Type message to AI..." />
-        <button id="ai-send-btn" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
     </section>
 
-    <!-- 4. MESSAGES / CHAT / GROUPS SECTION -->
+    <!-- MESSAGES & CHANNELS SECTION -->
     <section id="messages-section" class="app-page">
-      <div class="chat-header-bar">
-        <h2><i class="fa-solid fa-comments"></i> Real-time Chat</h2>
-        <div class="chat-actions">
-          <button id="btn-voice-call" class="btn btn-blue"><i class="fa-solid fa-phone"></i> Voice Call</button>
-          <button id="btn-video-call" class="btn btn-green"><i class="fa-solid fa-video"></i> Video Call</button>
-          <div class="dropdown">
-            <button id="chat-three-dots" class="btn-icon"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            <div id="chat-menu" class="dropdown-content hidden">
-              <button id="btn-create-channel"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
-              <button id="btn-create-group"><i class="fa-solid fa-users"></i> Create Group</button>
-            </div>
+      <div class="msg-type-toggle">
+        <button id="tab-direct-msg" class="msg-tab active">Direct Messages</button>
+        <button id="tab-channels" class="msg-tab">Channels</button>
+        <button id="btn-create-channel" class="icon-action-btn"><i class="fa-solid fa-plus"></i></button>
+      </div>
+
+      <div id="direct-msg-list" class="chat-channel-list"></div>
+      <div id="channels-list" class="chat-channel-list hidden"></div>
+
+      <!-- Active Chat Box Modal -->
+      <div id="chat-room-modal" class="modal-overlay">
+        <div class="modal-box chat-room-box">
+          <div class="chat-room-header">
+            <h3 id="chat-room-title">Chat</h3>
+            <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="chat-logs-container" class="messages-log"></div>
+          <div class="chat-input-bar">
+            <input type="text" id="chat-user-input" placeholder="Type a message...">
+            <button id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
         </div>
       </div>
-
-      <!-- PINNED MESSAGE BANNER -->
-      <div id="pinned-banner" class="pinned-box hidden">
-        <i class="fa-solid fa-thumbtack"></i> <span id="pinned-text">Pinned Message</span>
-      </div>
-
-      <div id="user-chat-logs" class="chat-logs">
-        <div class="msg sys-msg">System: Real-time message room ready.</div>
-      </div>
-
-      <div class="chat-input-area">
-        <button id="btn-attach-media" class="btn-icon"><i class="fa-solid fa-paperclip"></i></button>
-        <input type="file" id="chat-media-input" accept="image/*,video/*" class="hidden" />
-        <input type="text" id="chat-user-input" placeholder="Write a message..." />
-        <button id="chat-send-btn" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
     </section>
 
-    <!-- 5. USER PROFILE SECTION -->
+    <!-- PROFILE SECTION -->
     <section id="profile-section" class="app-page">
       <div class="profile-card">
-        <div class="profile-avatar-wrapper">
-          <img id="profile-img" src="https://via.placeholder.com/100" alt="Avatar" />
-          <button id="btn-edit-avatar" class="avatar-edit-btn"><i class="fa-solid fa-camera"></i></button>
-          <input type="file" id="avatar-file-input" accept="image/*" class="hidden" />
+        <div class="profile-avatar-wrap">
+          <img id="profile-avatar-img" src="https://via.placeholder.com/100" alt="Avatar">
         </div>
-        <h3 id="profile-display-name">umarmuhammad452123</h3>
-        <p id="profile-bio-text">Super App Developer & Creator 🚀</p>
-        <span class="badge-vip"><i class="fa-solid fa-gem"></i> VIP Premium Member</span>
-
-        <div class="profile-stats">
-          <div><strong id="stat-followers">24.5k</strong><span>Followers</span></div>
-          <div><strong id="stat-likes">1.2M</strong><span>Likes</span></div>
-          <div><strong id="stat-posts">0</strong><span>Posts</span></div>
-        </div>
-
-        <button id="btn-edit-profile" class="btn btn-outline-full">Edit Profile</button>
+        <h2 id="profile-display-name">Loading...</h2>
+        <p id="profile-bio-text">Welcome to Super App!</p>
+        <button id="btn-edit-profile" class="secondary-btn"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
       </div>
-
-      <div class="history-section">
-        <h4>Upload History & History Logs</h4>
-        <div id="user-history-list" class="history-list">
-          <p class="empty-text">No uploads yet. Tap '+' to post your first video!</p>
-        </div>
+      <div class="user-uploads-grid">
+        <h3>Upload History</h3>
+        <div id="profile-user-videos" class="grid-layout"></div>
       </div>
     </section>
 
-    <!-- 6. WALLET & EARNINGS SECTION -->
+    <!-- WALLET SECTION -->
     <section id="wallet-section" class="app-page">
-      <div class="page-header">
+      <div class="wallet-container">
         <h2><i class="fa-solid fa-wallet"></i> Creator Wallet & Payouts</h2>
-      </div>
-      <div class="balance-card">
-        <span>Available Earnings</span>
-        <h1 id="wallet-balance">$154.50</h1>
-        <p>Monetization: <strong class="text-green">Active</strong></p>
-      </div>
-
-      <div class="payout-box">
-        <h3>Withdraw Funds</h3>
-        <label>Select Payment Method:</label>
-        <select id="withdraw-method">
-          <option value="easypaisa">EasyPaisa</option>
-          <option value="jazzcash">JazzCash</option>
-          <option value="trc20">TRC20 (USDT)</option>
-          <option value="p2p">P2P Transfer</option>
-        </select>
-        <input type="text" id="withdraw-account" placeholder="Enter Account / Wallet Address" />
-        <input type="number" id="withdraw-amount" placeholder="Amount ($)" />
-        <button id="btn-submit-withdraw" class="btn btn-primary full-btn">Withdraw Real Money</button>
+        <div class="balance-card">
+          <span>Available Earnings</span>
+          <h1>$154.50</h1>
+          <span class="badge active">Monetization: Active</span>
+        </div>
+        <div class="payout-form">
+          <h3>Withdraw Funds</h3>
+          <label>Select Payment Method</label>
+          <select id="payout-method">
+            <option value="EasyPaisa">EasyPaisa</option>
+            <option value="JazzCash">JazzCash</option>
+            <option value="TRC20">TRC20 (USDT)</option>
+            <option value="P2P">P2P Transfer</option>
+          </select>
+          <input type="text" id="payout-account" placeholder="Account Number / Wallet Address">
+          <input type="number" id="payout-amount" placeholder="Amount ($)">
+          <button id="btn-withdraw-payout" class="primary-btn">Withdraw Real Money</button>
+        </div>
       </div>
     </section>
 
-    <!-- 7. REAL-TIME CODE COMPILER SECTION -->
+    <!-- CODE TERMINAL SECTION -->
     <section id="code-section" class="app-page">
-      <div class="page-header">
+      <div class="terminal-container">
         <h2><i class="fa-solid fa-terminal"></i> Terminal / Code Editor</h2>
-      </div>
-      <div class="code-editor-box">
-        <textarea id="code-input" placeholder="// Write HTML / JS / Code here...&#10;console.log('Hello Umar!');"></textarea>
-        <button id="btn-run-code" class="btn btn-green"><i class="fa-solid fa-play"></i> Run Code</button>
-      </div>
-      <div class="code-output-box">
-        <h4>Output Console:</h4>
-        <pre id="code-output">Console ready...</pre>
+        <textarea id="code-input" placeholder="Write JavaScript/Python script here...&#10;e.g. print('Hello Super App')"></textarea>
+        <button id="btn-run-code" class="success-btn"><i class="fa-solid fa-play"></i> Run Code</button>
+        <div class="console-box">
+          <h4>Output Console:</h4>
+          <pre id="code-output">Console output will appear here...</pre>
+        </div>
       </div>
     </section>
 
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- Bottom Navigation Bar -->
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-target="feed-section">
-      <i class="fa-solid fa-house"></i>
-      <span>Home</span>
-    </button>
-    <button class="nav-btn" data-target="market-section">
-      <i class="fa-solid fa-chart-simple"></i>
-      <span>Market</span>
-    </button>
-    <button id="btn-open-upload" class="nav-btn create-btn">
-      <div class="plus-circle"><i class="fa-solid fa-plus"></i></div>
-    </button>
-    <button class="nav-btn" data-target="ai-section">
-      <i class="fa-solid fa-robot"></i>
-      <span>AI Chat</span>
-    </button>
-    <button class="nav-btn" data-target="messages-section">
-      <i class="fa-solid fa-comment-dots"></i>
-      <span>Messages</span>
-    </button>
-    <button class="nav-btn" data-target="profile-section">
-      <i class="fa-solid fa-user"></i>
-      <span>Profile</span>
-    </button>
+    <button class="nav-btn active" data-target="home-section"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="nav-btn" data-target="market-section"><i class="fa-solid fa-chart-line"></i><span>Market</span></button>
+    <button id="btn-open-upload" class="nav-btn-plus"><i class="fa-solid fa-plus"></i></button>
+    <button class="nav-btn" data-target="ai-section"><i class="fa-solid fa-robot"></i><span>AI Chat</span></button>
+    <button class="nav-btn" data-target="messages-section"><i class="fa-solid fa-comments"></i><span>Messages</span></button>
+    <button class="nav-btn" data-target="profile-section"><i class="fa-solid fa-user"></i><span>Profile</span></button>
   </nav>
 
-  <!-- UPLOAD / MEDIA MODAL -->
-  <div id="upload-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3>Create New Post</h3>
-      <div class="upload-options">
-        <button id="btn-use-camera" class="btn btn-outline"><i class="fa-solid fa-camera"></i> Record Video / Camera</button>
-        <label for="video-file-input" class="btn btn-primary"><i class="fa-solid fa-folder-open"></i> Choose from Gallery</label>
-        <input type="file" id="video-file-input" accept="video/*" class="hidden" />
+  <!-- MODALS & OVERLAYS -->
+
+  <!-- Multi-step Auth Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="auth-step-title">Super App Login</h2>
+      <div id="auth-step-1" class="auth-step">
+        <input type="email" id="auth-email" placeholder="Email Address">
+        <input type="password" id="auth-password" placeholder="Password">
+        <div class="btn-row">
+          <button id="btn-login-submit" class="primary-btn">Login</button>
+          <button id="btn-signup-next" class="secondary-btn">Sign Up</button>
+        </div>
       </div>
-      <div id="media-preview-container" class="preview-box hidden">
-        <video id="upload-preview-video" controls></video>
+      <div id="auth-step-2" class="auth-step hidden">
+        <input type="text" id="auth-username" placeholder="Choose Username">
+        <input type="text" id="auth-avatar" placeholder="Avatar Image URL">
+        <button id="btn-signup-complete" class="primary-btn">Complete Registration</button>
       </div>
-      <input type="text" id="upload-desc" placeholder="Write description & hashtags (#viral #umar)" />
-      <button id="btn-publish-video" class="btn btn-primary full-btn">Publish Post</button>
+      <p id="auth-error" class="error-msg"></p>
     </div>
   </div>
 
-  <!-- EDIT PROFILE MODAL -->
-  <div id="edit-profile-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3>Edit Profile</h3>
-      <input type="text" id="edit-name-input" placeholder="Display Name" />
-      <input type="text" id="edit-bio-input" placeholder="Bio" />
-      <button id="btn-save-profile" class="btn btn-primary full-btn">Save Changes</button>
+  <!-- Comments Modal Drawer -->
+  <div id="comment-modal" class="modal-overlay">
+    <div class="modal-box bottom-drawer">
+      <div class="drawer-header">
+        <h3>Comments</h3>
+        <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="comment-reply-banner" class="reply-banner hidden">
+        <span>Replying to comment...</span>
+        <button id="btn-cancel-reply"><i class="fa-solid fa-x"></i></button>
+      </div>
+      <div id="comments-list-box" class="comments-list"></div>
+      <div class="chat-input-bar">
+        <input type="text" id="comment-user-input" placeholder="Add a comment...">
+        <button id="comment-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
     </div>
   </div>
 
-  <!-- WEATHER MODAL -->
-  <div id="weather-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3><i class="fa-solid fa-temperature-three-quarters"></i> City Weather Selector</h3>
-      <input type="text" id="weather-city-input" placeholder="Enter City Name (e.g. Lahore, Dubai)" />
-      <button id="btn-fetch-weather" class="btn btn-primary full-btn">Check Temperature</button>
-      <div id="weather-result" class="weather-info-box"></div>
+  <!-- Video Upload Modal -->
+  <div id="upload-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="drawer-header">
+        <h3>Create Post</h3>
+        <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="attached-comment-badge" class="attached-comment hidden"></div>
+      <input type="file" id="upload-file-input" accept="video/*,image/*">
+      <textarea id="upload-desc" placeholder="Write description & #hashtags..."></textarea>
+      <button id="btn-publish-video" class="primary-btn">Publish Post</button>
     </div>
   </div>
 
-  <!-- CREATE GROUP / CHANNEL MODAL -->
-  <div id="channel-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3 id="channel-modal-title">Create Channel / Group</h3>
-      <input type="text" id="channel-name" placeholder="Name" />
-      <input type="text" id="channel-username" placeholder="Username / Link handle" />
-      <select id="channel-privacy">
-        <option value="public">Public</option>
-        <option value="private">Private</option>
-      </select>
-      <button id="btn-submit-channel" class="btn btn-primary full-btn">Create Now</button>
+  <!-- Weather Modal -->
+  <div id="weather-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="drawer-header">
+        <h3><i class="fa-solid fa-temperature-three-quarters"></i> City Weather Selector</h3>
+        <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <input type="text" id="weather-city-input" placeholder="Enter City Name (e.g. Thull, Karachi)">
+      <button id="btn-fetch-weather" class="primary-btn">Check Temperature</button>
+      <div id="weather-result" class="weather-res"></div>
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script type="module" src="script.js"></script>
+  <!-- Long Press Comment Context Menu -->
+  <div id="comment-context-menu" class="context-menu hidden">
+    <button id="ctx-create-video"><i class="fa-solid fa-video"></i> Create Video For Comment</button>
+    <button id="ctx-like-comment"><i class="fa-solid fa-heart"></i> Like Comment</button>
+  </div>
+
 </body>
 </html>
