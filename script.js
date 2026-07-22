@@ -1,12 +1,33 @@
+// Import Firebase Modules directly via CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged, 
+  signOut 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
-  getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, updateDoc, increment 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-// Firebase Configuration
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
   authDomain: "umarsuperapp.firebaseapp.com",
@@ -17,337 +38,243 @@ const firebaseConfig = {
   measurementId: "G-T8YZKR2SRR"
 };
 
-// Initialize Firebase
+// Initialize Firebase Services
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
+// Global App State
 let currentUser = null;
-let isSignUpMode = false;
+let chartInstance = null;
+let isSignUpMode = true;
 
-// DOM Elements
-const authScreen = document.getElementById('authScreen');
-const authForm = document.getElementById('authForm');
-const toggleAuthBtn = document.getElementById('toggleAuthBtn');
-const additionalFields = document.getElementById('additionalFields');
+// DOM Element Selectors
+const authModal = document.getElementById('authModal');
+const authTitle = document.getElementById('authTitle');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authFullName = document.getElementById('authFullName');
+const authUsername = document.getElementById('authUsername');
+const extraAuthFields = document.getElementById('extraAuthFields');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const toggleAuthMode = document.getElementById('toggleAuthMode');
 const authErrorMsg = document.getElementById('authErrorMsg');
 
-// Navigation View Handlers
-const navItems = document.querySelectorAll('.nav-item');
-const viewSections = document.querySelectorAll('.view-section');
-
-navItems.forEach(item => {
-  item.addEventListener('click', () => {
-    const target = item.getAttribute('data-target');
-    navItems.forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-    
-    viewSections.forEach(section => {
-      section.classList.remove('active-view');
-      if(section.id === target) section.classList.add('active-view');
-    });
-  });
-});
-
-// Auth Handlers
-toggleAuthBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  isSignUpMode = !isSignUpMode;
-  if(isSignUpMode) {
-    document.getElementById('authTitle').innerText = "Create Your Account";
-    document.getElementById('authSubmitBtn').innerText = "Sign Up";
-    additionalFields.classList.remove('hidden');
-    document.getElementById('toggleAuthText').innerText = "Already have an account?";
-    toggleAuthBtn.innerText = "Sign In";
+// --- 1. AUTHENTICATION CONTROLLER ---
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    authModal.classList.add('hidden');
+    loadUserProfile(user.uid);
+    initVideoFeed();
+    initTradingChart();
   } else {
-    document.getElementById('authTitle').innerText = "Welcome to Umar Super App";
-    document.getElementById('authSubmitBtn').innerText = "Sign In";
-    additionalFields.classList.add('hidden');
-    document.getElementById('toggleAuthText').innerText = "Don't have an account?";
-    toggleAuthBtn.innerText = "Sign Up";
+    currentUser = null;
+    authModal.classList.remove('hidden');
   }
 });
 
-authForm.addEventListener('submit', async (e) => {
+toggleAuthMode.addEventListener('click', (e) => {
   e.preventDefault();
-  authErrorMsg.innerText = "";
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPassword').value;
+  isSignUpMode = !isSignUpMode;
+  if (isSignUpMode) {
+    authTitle.innerText = "Welcome to Umar Super App";
+    extraAuthFields.classList.remove('hidden');
+    authSubmitBtn.innerText = "Sign Up / Register";
+  } else {
+    authTitle.innerText = "Login to Your Account";
+    extraAuthFields.classList.add('hidden');
+    authSubmitBtn.innerText = "Login";
+  }
+});
+
+authSubmitBtn.addEventListener('click', async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value.trim();
+  authErrorMsg.classList.add('hidden');
 
   try {
     if (isSignUpMode) {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const name = document.getElementById('authFullName').value || "New User";
-      const username = document.getElementById('authUsername').value || "@user";
-      
-      // Save user profile to Firestore
-      await setDoc(doc(db, "users", userCred.user.uid), {
-        fullName: name,
-        username: username,
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", res.user.uid), {
+        fullName: authFullName.value.trim() || "User",
+        username: authUsername.value.trim() || "user_" + Date.now(),
         email: email,
-        bio: "Welcome to my super app profile!",
-        photoURL: "https://via.placeholder.com/100",
+        walletBalance: 25400.00,
+        followers: 0,
+        following: 0,
         likes: 0,
-        subscribers: 0,
-        postsCount: 0
+        createdAt: serverTimestamp()
       });
     } else {
       await signInWithEmailAndPassword(auth, email, password);
     }
   } catch (err) {
-    if(err.code === 'auth/email-already-in-use') {
-      authErrorMsg.innerText = "Already used this email, please login.";
-    } else {
-      authErrorMsg.innerText = err.message;
-    }
+    authErrorMsg.innerText = err.message;
+    authErrorMsg.classList.remove('hidden');
   }
 });
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    authScreen.classList.add('hidden');
-    loadUserProfile();
-    listenToFeed();
-    initTradingViewChart();
-  } else {
-    authScreen.classList.remove('hidden');
-  }
-});
+document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-// Profile Management
-async function loadUserProfile() {
-  if(!currentUser) return;
-  const docRef = doc(db, "users", currentUser.uid);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()) {
-    const data = docSnap.data();
+// --- 2. USER PROFILE LOADER ---
+async function loadUserProfile(uid) {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
+    const data = userDoc.data();
     document.getElementById('profileDisplayName').innerText = data.fullName;
-    document.getElementById('profileHandle').innerText = data.username;
-    document.getElementById('profileBioText').innerText = data.bio;
-    document.getElementById('profileAvatar').src = data.photoURL;
-    document.getElementById('statLikes').innerText = data.likes || 0;
-    document.getElementById('statSubscribers').innerText = data.subscribers || 0;
-    document.getElementById('statPosts').innerText = data.postsCount || 0;
+    document.getElementById('profileUsername').innerText = "@" + data.username;
+    document.getElementById('profileEmail').innerText = data.email;
+    document.getElementById('followersCount').innerText = data.followers;
+    document.getElementById('followingCount').innerText = data.following;
+    document.getElementById('likesCount').innerText = data.likes;
+    document.getElementById('userWalletBalance').innerText = data.walletBalance.toLocaleString();
   }
 }
 
-document.getElementById('updateProfileBtn').addEventListener('click', async () => {
-  const newName = document.getElementById('editNameInput').value;
-  const newBio = document.getElementById('editBioInput').value;
-  
-  if(!currentUser) return;
-  const updates = {};
-  if(newName) updates.fullName = newName;
-  if(newBio) updates.bio = newBio;
-
-  await updateDoc(doc(db, "users", currentUser.uid), updates);
-  loadUserProfile();
-  alert("Profile updated successfully!");
-});
-
-// Video Feed Functions
-function listenToFeed() {
-  const feedContainer = document.getElementById('videoFeed');
-  const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+// --- 3. VIDEO FEED & UPLOADS ---
+async function initVideoFeed() {
+  const container = document.getElementById('videoContainer');
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
   
   onSnapshot(q, (snapshot) => {
-    feedContainer.innerHTML = "";
+    container.innerHTML = "";
     if(snapshot.empty) {
-      feedContainer.innerHTML = `<div style="padding:40px; text-align:center;">No videos posted yet. Tap + to publish one!</div>`;
+      container.innerHTML = `<div style="padding:40px; text-align:center;">No videos uploaded yet. Click + to post!</div>`;
       return;
     }
-
-    snapshot.forEach(docSnap => {
-      const v = docSnap.data();
-      const videoId = docSnap.id;
+    snapshot.forEach((docSnap) => {
+      const post = docSnap.data();
       const card = document.createElement('div');
       card.className = "video-card";
-      
       card.innerHTML = `
-        <video src="${v.videoUrl}" loop playsinline onclick="this.paused?this.play():this.pause()"></video>
-        <div class="video-actions">
-          <img src="${v.creatorPhoto || 'https://via.placeholder.com/100'}" class="creator-avatar">
-          <div class="action-icon" onclick="likeVideo('${videoId}')">
-            <i class="fa-solid fa-heart"></i>
-            <span>${v.likes || 0}</span>
-          </div>
-          <div class="action-icon">
-            <i class="fa-solid fa-comment"></i>
-            <span>${v.comments || 0}</span>
-          </div>
-          <div class="action-icon" onclick="shareVideo('${videoId}')">
-            <i class="fa-solid fa-share"></i>
-            <span>Share</span>
-          </div>
+        <video src="${post.videoUrl}" loop autoplay muted style="filter: ${post.filter || 'none'}"></video>
+        <div class="video-overlay">
+          <h4>@${post.username}</h4>
+          <p>${post.description}</p>
         </div>
-        <div class="video-info">
-          <h4>${v.creatorName}</h4>
-          <p>${v.description}</p>
-        </div>
-        <div class="end-video-banner hidden">
-          <h2>SUPER APP</h2>
+        <div class="video-side-actions">
+          <button class="action-btn"><i class="fa-solid fa-heart"></i><span>${post.likes || 0}</span></button>
+          <button class="action-btn"><i class="fa-solid fa-comment"></i><span>${post.comments || 0}</span></button>
+          <button class="action-btn"><i class="fa-solid fa-share"></i><span>Share</span></button>
         </div>
       `;
-
-      const videoElement = card.querySelector('video');
-      const banner = card.querySelector('.end-video-banner');
-
-      videoElement.addEventListener('ended', () => {
-        banner.classList.remove('hidden');
-        setTimeout(() => banner.classList.add('hidden'), 2000);
-      });
-
-      feedContainer.appendChild(card);
+      container.appendChild(card);
     });
   });
 }
 
-window.likeVideo = async (id) => {
-  await updateDoc(doc(db, "videos", id), { likes: increment(1) });
+// Upload Form Handler
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if(!currentUser) return;
+
+  const file = document.getElementById('videoFileInput').files[0];
+  const desc = document.getElementById('videoDescription').value;
+  const filter = document.getElementById('videoFilter').value;
+  const privacy = document.getElementById('videoPrivacy').value;
+
+  if (!file) return;
+
+  const storageRef = ref(storage, `videos/${Date.now()}_${file.name}`);
+  await uploadBytes(storageRef, file);
+  const downloadUrl = await getDownloadURL(storageRef);
+
+  await addDoc(collection(db, "posts"), {
+    userId: currentUser.uid,
+    username: authUsername.value || "umar_user",
+    videoUrl: downloadUrl,
+    description: desc,
+    filter: filter,
+    privacy: privacy,
+    likes: 0,
+    comments: 0,
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById('uploadModal').classList.add('hidden');
+});
+
+// --- 4. NAVIGATION & MODALS CONTROLLER ---
+document.querySelectorAll('.nav-btn[data-target]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.app-section').forEach(s => s.classList.add('hidden'));
+    
+    btn.classList.add('active');
+    const target = btn.getAttribute('data-target');
+    document.getElementById(target).classList.remove('hidden');
+  });
+});
+
+// Generic Modal Opener / Closers
+const setupModal = (btnId, modalId, closeId) => {
+  document.getElementById(btnId)?.addEventListener('click', () => document.getElementById(modalId).classList.remove('hidden'));
+  document.getElementById(closeId)?.addEventListener('click', () => document.getElementById(modalId).classList.add('hidden'));
 };
 
-window.shareVideo = (id) => {
-  const shareUrl = `${window.location.origin}?video=${id}`;
-  navigator.clipboard.writeText(shareUrl);
-  alert("Link copied! Open link to view this video in Super App: " + shareUrl);
-};
+setupModal('openCodeBtn', 'codeModal', 'closeCodeBtn');
+setupModal('openWalletBtn', 'walletModal', 'closeWalletBtn');
+setupModal('openUploadBtn', 'uploadModal', 'closeUploadBtn');
+setupModal('globalSearchBtn', 'searchOverlay', 'closeSearchBtn');
+setupModal('menuChannelGroupBtn', 'createChannelModal', 'closeChannelModalBtn');
 
-// Code Compiler Engine
-document.getElementById('openCodeBtn').addEventListener('click', () => {
-  document.getElementById('codeModal').classList.remove('hidden');
-});
-document.getElementById('closeCodeBtn').addEventListener('click', () => {
-  document.getElementById('codeModal').classList.add('hidden');
-});
+// --- 5. REAL-TIME MARKET CHARTS ---
+function initTradingChart() {
+  const chartElement = document.getElementById('tradingChart');
+  if (!chartElement || chartInstance) return;
 
+  chartInstance = LightweightCharts.createChart(chartElement, {
+    layout: { backgroundColor: '#151a23', textColor: '#ffffff' },
+    grid: { vertLines: { color: '#2a3447' }, horzLines: { color: '#2a3447' } },
+    width: chartElement.clientWidth,
+    height: 350
+  });
+
+  const lineSeries = chartInstance.addLineSeries({ color: '#e91e63', lineWidth: 2 });
+  lineSeries.setData([
+    { time: '2026-07-15', value: 2030.5 },
+    { time: '2026-07-16', value: 2035.2 },
+    { time: '2026-07-17', value: 2028.9 },
+    { time: '2026-07-18', value: 2042.1 },
+    { time: '2026-07-19', value: 2050.0 },
+    { time: '2026-07-20', value: 2048.3 },
+    { time: '2026-07-21', value: 2055.6 },
+  ]);
+}
+
+// --- 6. CODE COMPILER ---
 document.getElementById('runCodeBtn').addEventListener('click', () => {
-  const code = document.getElementById('codeCompilerEditor').value;
-  const outputBox = document.getElementById('terminalOutput');
-  outputBox.innerText = "> Executing code...\n";
-  
+  const code = document.getElementById('codeEditor').value;
+  const consoleBox = document.getElementById('codeConsole');
+  consoleBox.innerText = "";
+
+  const oldLog = console.log;
+  console.log = function(...args) {
+    consoleBox.innerText += args.join(' ') + '\n';
+    oldLog.apply(console, args);
+  };
+
   try {
-    let logs = [];
-    const customConsole = { log: (...args) => logs.push(args.join(' ')) };
-    const run = new Function('console', code);
-    run(customConsole);
-    outputBox.innerText = logs.length ? logs.join('\n') : "> Program executed successfully with no output.";
+    new Function(code)();
   } catch (err) {
-    outputBox.innerText = "> Error: " + err.message;
+    consoleBox.innerText = "Error: " + err.message;
   }
 });
 
-// Wallet Operations
-document.getElementById('openWalletBtn').addEventListener('click', () => {
-  document.getElementById('walletModal').classList.remove('hidden');
-});
-document.getElementById('closeWalletBtn').addEventListener('click', () => {
-  document.getElementById('walletModal').classList.add('hidden');
-});
-
-document.getElementById('withdrawBtn').addEventListener('click', () => {
-  document.getElementById('withdrawForm').classList.toggle('hidden');
-});
-
-document.getElementById('confirmWithdrawBtn').addEventListener('click', () => {
-  const phone = document.getElementById('withdrawPhone').value;
-  const amount = document.getElementById('withdrawAmount').value;
-
-  if(!phone || !amount) {
-    alert("Please enter both phone/account number and amount.");
-    return;
-  }
-
-  alert(`Withdrawal request of PKR ${amount} submitted for ${phone}. Funds will transfer after verification.`);
-  document.getElementById('withdrawForm').classList.add('hidden');
-});
-
-// AI Chat Integration
-document.getElementById('sendChatBtn').addEventListener('click', () => {
-  const input = document.getElementById('chatInput');
+// --- 7. AI ASSISTANT ---
+document.getElementById('sendAiBtn').addEventListener('click', () => {
+  const input = document.getElementById('aiInput');
   const text = input.value.trim();
   if(!text) return;
 
-  const box = document.getElementById('chatMessagesBox');
-  box.innerHTML += `<div class="message user-message">${text}</div>`;
+  const chatBox = document.getElementById('aiChatBox');
+  chatBox.innerHTML += `<div class="message user-msg"><p>${text}</p></div>`;
   input.value = "";
 
   setTimeout(() => {
-    box.innerHTML += `<div class="message ai-message">Main aapki query ("${text}") par kaam kar raha hoon. Umar Super App AI completely active hai!</div>`;
-    box.scrollTop = box.scrollHeight;
-  }, 1000);
-});
-
-// Weather API Tool
-document.getElementById('searchWeatherBtn').addEventListener('click', async () => {
-  const city = document.getElementById('weatherCityInput').value;
-  const resContainer = document.getElementById('weatherResult');
-  if(!city) return;
-
-  resContainer.innerHTML = "Fetching live weather updates...";
-  try {
-    const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-    const data = await res.json();
-    const current = data.current_condition[0];
-    resContainer.innerHTML = `
-      <h4>${city.toUpperCase()}</h4>
-      <p>Temperature: <strong>${current.temp_C}°C</strong></p>
-      <p>Weather: ${current.weatherDesc[0].value}</p>
-      <p>Humidity: ${current.humidity}%</p>
-    `;
-  } catch(e) {
-    resContainer.innerHTML = "Failed to load weather data. Please check city name.";
-  }
-});
-
-// TradingView Widget Loader
-function initTradingViewChart() {
-  if (document.getElementById('tradingview_widget')) {
-    new TradingView.widget({
-      "width": "100%",
-      "height": 400,
-      "symbol": "FX:EURUSD",
-      "interval": "D",
-      "timezone": "Etc/UTC",
-      "theme": "dark",
-      "style": "1",
-      "locale": "en",
-      "toolbar_bg": "#f1f3f6",
-      "enable_publishing": false,
-      "container_id": "tradingview_widget"
-    });
-  }
-}
-
-// Upload Video Modal Handler
-document.getElementById('openUploadBtn').addEventListener('click', () => {
-  document.getElementById('uploadModal').classList.remove('hidden');
-});
-document.getElementById('closeUploadBtn').addEventListener('click', () => {
-  document.getElementById('uploadModal').classList.hidden = true;
-  document.getElementById('uploadModal').classList.add('hidden');
-});
-
-document.getElementById('publishVideoBtn').addEventListener('click', async () => {
-  const desc = document.getElementById('videoDescription').value;
-  if(!currentUser) return;
-
-  // Mock upload logic saving object metadata to Firestore
-  await addDoc(collection(db, "videos"), {
-    creatorId: currentUser.uid,
-    creatorName: currentUser.email.split('@')[0],
-    creatorPhoto: "https://via.placeholder.com/100",
-    description: desc,
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    likes: 0,
-    comments: 0,
-    timestamp: new Date()
-  });
-
-  await updateDoc(doc(db, "users", currentUser.uid), {
-    postsCount: increment(1)
-  });
-
-  document.getElementById('uploadModal').classList.add('hidden');
-  alert("Video posted successfully!");
+    chatBox.innerHTML += `<div class="message ai-msg"><p>Processing your query: "${text}". Module operational.</p></div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }, 600);
 });
