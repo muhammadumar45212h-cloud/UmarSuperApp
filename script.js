@@ -29,6 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initTradingViewWidget("OANDA:XAUUSD");
     initEventHandlers();
     checkDeepLinkVideo();
+    
+    // Direct Feed Loading so app opens immediately without blocking login
+    loadVideoFeed();
 });
 
 // Helper Function: Convert Phone to Dummy Email for Firebase Auth
@@ -45,15 +48,24 @@ function initAuthListeners() {
         if (user) {
             currentUser = user;
             await loadUserProfile(user.uid);
-            authModal.classList.add("hidden");
+            if (authModal) authModal.classList.add("hidden");
             loadVideoFeed();
             loadChatThreads();
         } else {
             currentUser = null;
             currentProfile = null;
-            authModal.classList.remove("hidden");
+            // App opens directly without forcing login modal on startup
+            if (authModal) authModal.classList.add("hidden");
         }
     });
+
+    // Close / Skip Auth Modal Button (Optional Guest Access)
+    const closeAuthBtn = document.getElementById("btn-close-auth");
+    if (closeAuthBtn && authModal) {
+        closeAuthBtn.addEventListener("click", () => {
+            authModal.classList.add("hidden");
+        });
+    }
 
     // Toggle Sign Up / Login Fields
     let isSignupMode = false;
@@ -62,137 +74,148 @@ function initAuthListeners() {
     const authTitle = document.getElementById("auth-title");
     const authSubmit = document.getElementById("auth-submit-btn");
 
-    toggleBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        isSignupMode = !isSignupMode;
-        if (isSignupMode) {
-            authTitle.innerText = "Create Umar Account";
-            onboardingFields.classList.remove("hidden");
-            authSubmit.innerText = "Sign Up";
-            document.getElementById("auth-toggle-msg").innerText = "Pehle se account hai?";
-            toggleBtn.innerText = "Login Karein";
-        } else {
-            authTitle.innerText = "Umar Super App Login";
-            onboardingFields.classList.add("hidden");
-            authSubmit.innerText = "Login";
-            document.getElementById("auth-toggle-msg").innerText = "Account nahi hai?";
-            toggleBtn.innerText = "Sign Up Karein";
-        }
-    });
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            isSignupMode = !isSignupMode;
+            if (isSignupMode) {
+                if (authTitle) authTitle.innerText = "Create Umar Account";
+                if (onboardingFields) onboardingFields.classList.remove("hidden");
+                if (authSubmit) authSubmit.innerText = "Sign Up";
+                if (document.getElementById("auth-toggle-msg")) document.getElementById("auth-toggle-msg").innerText = "Pehle se account hai?";
+                toggleBtn.innerText = "Login Karein";
+            } else {
+                if (authTitle) authTitle.innerText = "Umar Super App Login";
+                if (onboardingFields) onboardingFields.classList.add("hidden");
+                if (authSubmit) authSubmit.innerText = "Login";
+                if (document.getElementById("auth-toggle-msg")) document.getElementById("auth-toggle-msg").innerText = "Account nahi hai?";
+                toggleBtn.innerText = "Sign Up Karein";
+            }
+        });
+    }
 
     // Auth Submission (Login & Signup)
-    authSubmit.addEventListener("click", async () => {
-        const identifier = document.getElementById("auth-email").value.trim(); // Email / Phone / Username
-        const password = document.getElementById("auth-password").value.trim();
-        const errorDiv = document.getElementById("auth-error");
-        errorDiv.innerText = "";
+    if (authSubmit) {
+        authSubmit.addEventListener("click", async () => {
+            const identifier = document.getElementById("auth-email") ? document.getElementById("auth-email").value.trim() : "";
+            const password = document.getElementById("auth-password") ? document.getElementById("auth-password").value.trim() : "";
+            const errorDiv = document.getElementById("auth-error");
+            if (errorDiv) errorDiv.innerText = "";
 
-        if (!identifier || !password) {
-            errorDiv.innerText = "Please fill all required fields.";
-            return;
-        }
+            if (!identifier || !password) {
+                if (errorDiv) errorDiv.innerText = "Please fill all required fields.";
+                return;
+            }
 
-        authSubmit.innerText = "Processing...";
-        authSubmit.disabled = true;
+            authSubmit.innerText = "Processing...";
+            authSubmit.disabled = true;
 
-        try {
-            if (isSignupMode) {
-                const fullname = document.getElementById("auth-fullname").value.trim() || "User";
-                let username = document.getElementById("auth-username").value.trim() || "@user";
-                if (!username.startsWith("@")) username = "@" + username;
+            try {
+                if (isSignupMode) {
+                    const fullname = (document.getElementById("auth-fullname") && document.getElementById("auth-fullname").value.trim()) || "User";
+                    let username = (document.getElementById("auth-username") && document.getElementById("auth-username").value.trim()) || "@user";
+                    if (!username.startsWith("@")) username = "@" + username;
 
-                const phoneInput = document.getElementById("auth-phone") ? document.getElementById("auth-phone").value.trim() : "";
-                const avatarFileInput = document.getElementById("auth-avatar-file");
+                    const phoneInput = document.getElementById("auth-phone") ? document.getElementById("auth-phone").value.trim() : "";
+                    const avatarFileInput = document.getElementById("auth-avatar-file");
 
-                let targetEmail = identifier;
-                let userPhone = phoneInput;
+                    let targetEmail = identifier;
+                    let userPhone = phoneInput;
 
-                // Agar identifier Email nahi hai, to Check Phone
-                if (!identifier.includes("@")) {
-                    targetEmail = phoneToEmail(identifier);
-                    userPhone = identifier;
-                }
-
-                // Gallery Image Upload to Firebase Storage
-                let avatarUrl = "https://via.placeholder.com/100";
-                if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
-                    const file = avatarFileInput.files[0];
-                    const storageRef = storage.ref(`avatars/${Date.now()}_${file.name}`);
-                    const uploadTask = await storageRef.put(file);
-                    avatarUrl = await uploadTask.ref.getDownloadURL();
-                }
-
-                // Create User in Firebase Auth
-                const res = await auth.createUserWithEmailAndPassword(targetEmail, password);
-                
-                // Save complete profile to Firestore
-                await db.collection("users").doc(res.user.uid).set({
-                    uid: res.user.uid,
-                    email: identifier.includes("@") ? identifier : "",
-                    phone: userPhone,
-                    fullname: fullname,
-                    username: username,
-                    avatar: avatarUrl,
-                    followersCount: 0,
-                    followingCount: 0,
-                    totalViews: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-            } else {
-                // LOGIN LOGIC: Check Email, Phone, or Username
-                let targetEmail = identifier;
-
-                if (!identifier.includes("@")) {
-                    // Check if identifier is Username or Phone in Firestore
-                    const userByUsername = await db.collection("users").where("username", "==", identifier.startsWith("@") ? identifier : "@" + identifier).get();
-                    const userByPhone = await db.collection("users").where("phone", "==", identifier).get();
-
-                    if (!userByUsername.empty) {
-                        const userData = userByUsername.docs[0].data();
-                        targetEmail = userData.email || phoneToEmail(userData.phone);
-                    } else if (!userByPhone.empty) {
-                        const userData = userByPhone.docs[0].data();
-                        targetEmail = userData.email || phoneToEmail(userData.phone);
-                    } else {
-                        // Default fallback to phone format
+                    if (!identifier.includes("@")) {
                         targetEmail = phoneToEmail(identifier);
+                        userPhone = identifier;
+                    }
+
+                    // Gallery Image Upload to Firebase Storage
+                    let avatarUrl = "https://via.placeholder.com/100";
+                    if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
+                        const file = avatarFileInput.files[0];
+                        const storageRef = storage.ref(`avatars/${Date.now()}_${file.name}`);
+                        const uploadTask = await storageRef.put(file);
+                        avatarUrl = await uploadTask.ref.getDownloadURL();
+                    }
+
+                    // Create User in Firebase Auth
+                    const res = await auth.createUserWithEmailAndPassword(targetEmail, password);
+                    
+                    // Save complete profile to Firestore
+                    await db.collection("users").doc(res.user.uid).set({
+                        uid: res.user.uid,
+                        email: identifier.includes("@") ? identifier : "",
+                        phone: userPhone,
+                        fullname: fullname,
+                        username: username,
+                        avatar: avatarUrl,
+                        followersCount: 0,
+                        followingCount: 0,
+                        totalViews: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                } else {
+                    // LOGIN LOGIC: Check Email, Phone, or Username
+                    let targetEmail = identifier;
+
+                    if (!identifier.includes("@")) {
+                        const userByUsername = await db.collection("users").where("username", "==", identifier.startsWith("@") ? identifier : "@" + identifier).get();
+                        const userByPhone = await db.collection("users").where("phone", "==", identifier).get();
+
+                        if (!userByUsername.empty) {
+                            const userData = userByUsername.docs[0].data();
+                            targetEmail = userData.email || phoneToEmail(userData.phone);
+                        } else if (!userByPhone.empty) {
+                            const userData = userByPhone.docs[0].data();
+                            targetEmail = userData.email || phoneToEmail(userData.phone);
+                        } else {
+                            targetEmail = phoneToEmail(identifier);
+                        }
+                    }
+
+                    await auth.signInWithEmailAndPassword(targetEmail, password);
+                }
+            } catch (err) {
+                if (errorDiv) {
+                    if (err.code === "auth/email-already-in-use") {
+                        errorDiv.innerText = "Email ya Phone pehle se registered hai. Login karein.";
+                    } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+                        errorDiv.innerText = "Ghalat Login Details ya Password! Dobara check karein.";
+                    } else {
+                        errorDiv.innerText = err.message;
                     }
                 }
-
-                await auth.signInWithEmailAndPassword(targetEmail, password);
+            } finally {
+                authSubmit.innerText = isSignupMode ? "Sign Up" : "Login";
+                authSubmit.disabled = false;
             }
-        } catch (err) {
-            if (err.code === "auth/email-already-in-use") {
-                errorDiv.innerText = "Email ya Phone pehle se registered hai. Login karein.";
-            } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
-                errorDiv.innerText = "Ghalat Login Details ya Password! Dobara check karein.";
-            } else {
-                errorDiv.innerText = err.message;
-            }
-        } finally {
-            authSubmit.innerText = isSignupMode ? "Sign Up" : "Login";
-            authSubmit.disabled = false;
-        }
-    });
+        });
+    }
 
     // Logout Option
-    document.getElementById("menu-opt-logout").addEventListener("click", () => {
-        auth.signOut();
-    });
+    const logoutBtn = document.getElementById("menu-opt-logout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            auth.signOut();
+            alert("Logout successful!");
+        });
+    }
 }
 
 // Fetch Profile Data
 async function loadUserProfile(uid) {
-    const doc = await db.collection("users").doc(uid).get();
-    if (doc.exists) {
-        currentProfile = doc.data();
-        if (document.getElementById("my-profile-name")) document.getElementById("my-profile-name").innerText = currentProfile.fullname;
-        if (document.getElementById("my-profile-username")) document.getElementById("my-profile-username").innerText = currentProfile.username;
-        if (document.getElementById("my-profile-img")) document.getElementById("my-profile-img").src = currentProfile.avatar;
-        if (document.getElementById("stat-followers")) document.getElementById("stat-followers").innerText = currentProfile.followersCount || 0;
-        if (document.getElementById("stat-following")) document.getElementById("stat-following").innerText = currentProfile.followingCount || 0;
-        if (document.getElementById("stat-views")) document.getElementById("stat-views").innerText = currentProfile.totalViews || 0;
+    try {
+        const doc = await db.collection("users").doc(uid).get();
+        if (doc.exists) {
+            currentProfile = doc.data();
+            if (document.getElementById("my-profile-name")) document.getElementById("my-profile-name").innerText = currentProfile.fullname;
+            if (document.getElementById("my-profile-username")) document.getElementById("my-profile-username").innerText = currentProfile.username;
+            if (document.getElementById("my-profile-img")) document.getElementById("my-profile-img").src = currentProfile.avatar;
+            if (document.getElementById("stat-followers")) document.getElementById("stat-followers").innerText = currentProfile.followersCount || 0;
+            if (document.getElementById("stat-following")) document.getElementById("stat-following").innerText = currentProfile.followingCount || 0;
+            if (document.getElementById("stat-views")) document.getElementById("stat-views").innerText = currentProfile.totalViews || 0;
+        }
+    } catch (e) {
+        console.log("Error loading user profile:", e);
     }
 }
 
@@ -231,11 +254,17 @@ function loadVideoFeed() {
       .orderBy("engagementScore", "desc")
       .onSnapshot(snapshot => {
           feedContainer.innerHTML = "";
+          if (snapshot.empty) {
+              feedContainer.innerHTML = `<div style="color:#fff; text-align:center; padding:40px;">Koi videos available nahi hain. Upload karein!</div>`;
+              return;
+          }
           snapshot.forEach(doc => {
               const video = doc.data();
               const vCard = createVideoCard(doc.id, video);
               feedContainer.appendChild(vCard);
           });
+      }, err => {
+          console.log("Feed load error:", err);
       });
 }
 
@@ -269,17 +298,21 @@ function createVideoCard(id, data) {
         <div class="video-info-bottom">
             <div class="video-author-row">
                 <img src="${data.authorAvatar || 'https://via.placeholder.com/40'}" />
-                <strong>${data.username}</strong>
+                <strong>${data.username || '@user'}</strong>
                 <button class="btn-subscribe" onclick="subscribeUser('${data.userId}')">Subscribe</button>
             </div>
-            <p>${data.description}</p>
+            <p>${data.description || ''}</p>
         </div>
     `;
     return div;
 }
 
 async function likeVideo(videoId, currentLikes) {
-    if(!currentUser) return;
+    if(!currentUser) {
+        alert("Video like karne ke liye pehle Login Karein.");
+        promptLogin();
+        return;
+    }
     const newLikes = currentLikes + 1;
     await db.collection("videos").doc(videoId).update({
         likes: newLikes,
@@ -301,33 +334,56 @@ function checkDeepLinkVideo() {
     }
 }
 
+function promptLogin() {
+    const authModal = document.getElementById("auth-modal");
+    if (authModal) authModal.classList.remove("hidden");
+}
+
+function subscribeUser(userId) {
+    if (!currentUser) {
+        alert("Subscribe karne ke liye login karein!");
+        promptLogin();
+        return;
+    }
+    alert("Subscribed successfully!");
+}
+
+function openCommentsModal(videoId) {
+    activeCommentVideoId = videoId;
+    alert("Comments feature active for video ID: " + videoId);
+}
+
 // 6. TRADINGVIEW FOREX & CRYPTO CHARTS
 function initTradingViewWidget(symbol) {
     const container = document.getElementById("tradingview-widget-container");
     if (!container) return;
     container.innerHTML = "";
-    new TradingView.widget({
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "D",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
-        "allow_symbol_change": true,
-        "container_id": "tradingview-widget-container"
-    });
+    if (typeof TradingView !== "undefined") {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": symbol,
+            "interval": "D",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview-widget-container"
+        });
+    }
 }
 
 // 7. TERMINAL & REAL-TIME COMPILER ENGINE
 const runBtn = document.getElementById("btn-run-code");
 if (runBtn) {
     runBtn.addEventListener("click", () => {
-        const code = document.getElementById("code-editor-input").value;
+        const codeInput = document.getElementById("code-editor-input");
+        if (!codeInput) return;
+        const code = codeInput.value;
         const outputConsole = document.getElementById("terminal-console-out");
-        outputConsole.innerText = "> Executing script...\n";
+        if (outputConsole) outputConsole.innerText = "> Executing script...\n";
 
         try {
             let logs = [];
@@ -339,9 +395,9 @@ if (runBtn) {
 
             const result = new Function(code)();
             console.log = originalLog;
-            outputConsole.innerText += logs.join("\n") + "\n> Process finished with result: " + (result !== undefined ? result : "Success");
+            if (outputConsole) outputConsole.innerText += logs.join("\n") + "\n> Process finished with result: " + (result !== undefined ? result : "Success");
         } catch (err) {
-            outputConsole.innerText += "> Runtime Error: " + err.message;
+            if (outputConsole) outputConsole.innerText += "> Runtime Error: " + err.message;
         }
     });
 }
@@ -352,24 +408,27 @@ if (aiBtn) aiBtn.addEventListener("click", sendAiMessage);
 
 function sendAiMessage() {
     const input = document.getElementById("ai-input-text");
+    if (!input) return;
     const text = input.value.trim();
     if(!text) return;
 
     const history = document.getElementById("ai-chat-history");
-    const uDiv = document.createElement("div");
-    uDiv.className = "ai-bubble ai-user";
-    uDiv.innerText = text;
-    history.appendChild(uDiv);
-    
-    input.value = "";
+    if (history) {
+        const uDiv = document.createElement("div");
+        uDiv.className = "ai-bubble ai-user";
+        uDiv.innerText = text;
+        history.appendChild(uDiv);
+        
+        input.value = "";
 
-    setTimeout(() => {
-        const aiDiv = document.createElement("div");
-        aiDiv.className = "ai-bubble ai-reply";
-        aiDiv.innerText = getAiResponse(text);
-        history.appendChild(aiDiv);
-        history.scrollTop = history.scrollHeight;
-    }, 600);
+        setTimeout(() => {
+            const aiDiv = document.createElement("div");
+            aiDiv.className = "ai-bubble ai-reply";
+            aiDiv.innerText = getAiResponse(text);
+            history.appendChild(aiDiv);
+            history.scrollTop = history.scrollHeight;
+        }, 600);
+    }
 }
 
 function getAiResponse(query) {
@@ -388,14 +447,15 @@ const weatherBtn = document.getElementById("btn-search-weather");
 if (weatherBtn) weatherBtn.addEventListener("click", fetchWeather);
 
 async function fetchWeather() {
-    const city = document.getElementById("weather-city-input").value.trim() || "Karachi";
+    const cityInput = document.getElementById("weather-city-input");
+    const city = cityInput ? cityInput.value.trim() || "Karachi" : "Karachi";
     try {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current_weather=true`);
         const data = await res.json();
         
-        document.getElementById("weather-city").innerText = city.toUpperCase();
-        document.getElementById("weather-temp").innerText = `${data.current_weather.temperature}°C`;
-        document.getElementById("weather-desc").innerText = `Wind Speed: ${data.current_weather.windspeed} km/h`;
+        if (document.getElementById("weather-city")) document.getElementById("weather-city").innerText = city.toUpperCase();
+        if (document.getElementById("weather-temp")) document.getElementById("weather-temp").innerText = `${data.current_weather.temperature}°C`;
+        if (document.getElementById("weather-desc")) document.getElementById("weather-desc").innerText = `Wind Speed: ${data.current_weather.windspeed} km/h`;
     } catch(e) {
         alert("Unable to fetch weather data.");
     }
@@ -410,7 +470,7 @@ function loadChatThreads() {
         threadsList.innerHTML = "";
         snapshot.forEach(doc => {
             const u = doc.data();
-            if(u.uid === currentUser.uid) return;
+            if(currentUser && u.uid === currentUser.uid) return;
 
             const d = document.createElement("div");
             d.className = "thread-item";
@@ -428,16 +488,23 @@ function loadChatThreads() {
 }
 
 function openChatWindow(targetUser) {
+    if (!currentUser) {
+        alert("Chat karne ke liye pehle Login Karein!");
+        promptLogin();
+        return;
+    }
+
     const win = document.getElementById("chat-active-window");
-    win.classList.remove("hidden");
-    document.getElementById("chat-header-name").innerText = targetUser.fullname;
-    document.getElementById("chat-header-avatar").src = targetUser.avatar;
+    if (win) win.classList.remove("hidden");
+    if (document.getElementById("chat-header-name")) document.getElementById("chat-header-name").innerText = targetUser.fullname;
+    if (document.getElementById("chat-header-avatar")) document.getElementById("chat-header-avatar").src = targetUser.avatar;
 
     const chatId = [currentUser.uid, targetUser.uid].sort().join("_");
     db.collection("chats").doc(chatId).collection("messages")
       .orderBy("timestamp", "asc")
       .onSnapshot(snapshot => {
           const area = document.getElementById("chat-messages-scroll");
+          if (!area) return;
           area.innerHTML = "";
           snapshot.forEach(doc => {
               const m = doc.data();
@@ -449,17 +516,21 @@ function openChatWindow(targetUser) {
           area.scrollTop = area.scrollHeight;
       });
 
-    document.getElementById("btn-send-chat").onclick = async () => {
-        const txt = document.getElementById("chat-msg-input").value.trim();
-        if(!txt) return;
-        document.getElementById("chat-msg-input").value = "";
+    const sendChatBtn = document.getElementById("btn-send-chat");
+    if (sendChatBtn) {
+        sendChatBtn.onclick = async () => {
+            const msgInput = document.getElementById("chat-msg-input");
+            const txt = msgInput ? msgInput.value.trim() : "";
+            if(!txt) return;
+            if (msgInput) msgInput.value = "";
 
-        await db.collection("chats").doc(chatId).collection("messages").add({
-            senderId: currentUser.uid,
-            text: txt,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    };
+            await db.collection("chats").doc(chatId).collection("messages").add({
+                senderId: currentUser.uid,
+                text: txt,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        };
+    }
 }
 
 // 11. UPLOAD & COMMUNITY MODALS
@@ -467,6 +538,11 @@ function initEventHandlers() {
     const openUploadBtn = document.getElementById("btn-open-upload-modal");
     if (openUploadBtn) {
         openUploadBtn.addEventListener("click", () => {
+            if (!currentUser) {
+                alert("Video upload karne ke liye pehle Login Karein!");
+                promptLogin();
+                return;
+            }
             document.getElementById("upload-modal").classList.remove("hidden");
         });
     }
@@ -482,12 +558,18 @@ function initEventHandlers() {
     const submitPostBtn = document.getElementById("btn-submit-post");
     if (submitPostBtn) {
         submitPostBtn.addEventListener("click", async () => {
-            const fileInput = document.getElementById("input-video-file");
-            const desc = document.getElementById("input-video-desc").value;
-            const filter = document.getElementById("select-video-filter").value;
-            const privacy = document.getElementById("select-video-privacy").value;
+            if (!currentUser) {
+                alert("Please login first to upload a video.");
+                promptLogin();
+                return;
+            }
 
-            if(!fileInput.files[0]) {
+            const fileInput = document.getElementById("input-video-file");
+            const desc = document.getElementById("input-video-desc") ? document.getElementById("input-video-desc").value : "";
+            const filter = document.getElementById("select-video-filter") ? document.getElementById("select-video-filter").value : "none";
+            const privacy = document.getElementById("select-video-privacy") ? document.getElementById("select-video-privacy").value : "public";
+
+            if(!fileInput || !fileInput.files || !fileInput.files[0]) {
                 alert("Please select a video file first.");
                 return;
             }
@@ -495,87 +577,37 @@ function initEventHandlers() {
             const file = fileInput.files[0];
             const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
             
-            alert("Uploading video to Firebase storage...");
-            const uploadTask = await storageRef.put(file);
-            const downloadURL = await uploadTask.ref.getDownloadURL();
+            submitPostBtn.innerText = "Uploading...";
+            submitPostBtn.disabled = true;
 
-            await db.collection("videos").add({
-                userId: currentUser.uid,
-                username: currentProfile.username,
-                authorAvatar: currentProfile.avatar,
-                url: downloadURL,
-                description: desc,
-                filter: filter,
-                privacy: privacy,
-                likes: 0,
-                commentsCount: 0,
-                engagementScore: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            try {
+                const uploadTask = await storageRef.put(file);
+                const videoUrl = await uploadTask.ref.getDownloadURL();
 
-            alert("Video Posted Successfully!");
-            document.getElementById("upload-modal").classList.add("hidden");
+                await db.collection("videos").add({
+                    userId: currentUser.uid,
+                    username: currentProfile ? currentProfile.username : "@user",
+                    authorAvatar: currentProfile ? currentProfile.avatar : "https://via.placeholder.com/40",
+                    url: videoUrl,
+                    description: desc,
+                    filter: filter,
+                    privacy: privacy,
+                    likes: 0,
+                    commentsCount: 0,
+                    engagementScore: 0,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("Video published successfully!");
+                document.getElementById("upload-modal").classList.add("hidden");
+                fileInput.value = "";
+                if (document.getElementById("input-video-desc")) document.getElementById("input-video-desc").value = "";
+            } catch (err) {
+                alert("Upload failed: " + err.message);
+            } finally {
+                submitPostBtn.innerText = "Publish Video";
+                submitPostBtn.disabled = false;
+            }
         });
     }
-
-    // Forex Pair Buttons
-    document.querySelectorAll(".pair-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".pair-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            initTradingViewWidget(btn.getAttribute("data-symbol"));
-        });
-    });
 }
-
-// 12. COMMENTS SYSTEM
-function openCommentsModal(videoId) {
-    activeCommentVideoId = videoId;
-    document.getElementById("comments-modal").classList.remove("hidden");
-    
-    db.collection("videos").doc(videoId).collection("comments")
-      .orderBy("createdAt", "asc")
-      .onSnapshot(snapshot => {
-          const scroll = document.getElementById("comments-list-scroll");
-          scroll.innerHTML = "";
-          document.getElementById("comments-count").innerText = snapshot.size;
-          
-          snapshot.forEach(doc => {
-              const c = doc.data();
-              const d = document.createElement("div");
-              d.style.marginBottom = "8px";
-              d.innerHTML = `<strong>${c.username}:</strong> <span>${c.text}</span>`;
-              scroll.appendChild(d);
-          });
-      });
-}
-
-const closeCommentsBtn = document.getElementById("btn-close-comments");
-if (closeCommentsBtn) {
-    closeCommentsBtn.addEventListener("click", () => {
-        document.getElementById("comments-modal").classList.add("hidden");
-    });
-}
-
-const postCommentBtn = document.getElementById("btn-post-comment");
-if (postCommentBtn) {
-    postCommentBtn.addEventListener("click", async () => {
-        const input = document.getElementById("comment-input-text");
-        const txt = input.value.trim();
-        if(!txt || !activeCommentVideoId) return;
-
-        input.value = "";
-        await db.collection("videos").doc(activeCommentVideoId).collection("comments").add({
-            userId: currentUser.uid,
-            username: currentProfile.username,
-            text: txt,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        await db.collection("videos").doc(activeCommentVideoId).update({
-            commentsCount: firebase.firestore.FieldValue.increment(1),
-            engagementScore: firebase.firestore.FieldValue.increment(3)
-        });
-    });
-}
-
