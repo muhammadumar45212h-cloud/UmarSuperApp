@@ -1,4 +1,4 @@
-/* UMAR SUPER APP - ADVANCED CORE SYSTEM SCRIPT */
+/* UMAR SUPER APP - CORE SYSTEM SCRIPT (STRICT AUTH & UI FIXES) */
 
 // 1. FIREBASE CONFIGURATION
 const firebaseConfig = {
@@ -11,8 +11,10 @@ const firebaseConfig = {
   measurementId: "G-T8YZKR2SRR"
 };
 
-// Initialize Firebase App & Services
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
@@ -28,20 +30,19 @@ document.addEventListener("DOMContentLoaded", () => {
     initNavigation();
     initTradingViewWidget("OANDA:XAUUSD");
     initEventHandlers();
-    checkDeepLinkVideo();
     
-    // Load default public feeds
+    // Default feeds
     loadVideoFeed();
     loadTextFeed();
 });
 
-// Helper Function: Convert Phone to Dummy Email for Firebase Auth
+// Helper: Convert Phone to Dummy Internal Email
 function phoneToEmail(phone) {
     const cleanPhone = phone.replace(/[^\d+]/g, '');
     return `phone_${cleanPhone}@umarsuperapp.internal`;
 }
 
-// 3. AUTHENTICATION & ACCESS ENGINE
+// 3. AUTHENTICATION ENGINE (STRICT VALIDATION & BACK BUTTON)
 function initAuthListeners() {
     const authModal = document.getElementById("auth-modal");
     
@@ -59,7 +60,15 @@ function initAuthListeners() {
         }
     });
 
-    // Toggle Sign Up / Login Fields
+    // Close / Back Button on Login Modal
+    const closeAuthBtn = document.getElementById("btn-close-auth");
+    if (closeAuthBtn) {
+        closeAuthBtn.addEventListener("click", () => {
+            if (authModal) authModal.classList.add("hidden");
+        });
+    }
+
+    // Toggle Sign Up / Login Modes
     let isSignupMode = false;
     const toggleBtn = document.getElementById("auth-toggle-btn");
     const onboardingFields = document.getElementById("onboarding-fields");
@@ -86,16 +95,26 @@ function initAuthListeners() {
         });
     }
 
-    // Auth Submission
+    // Auth Submission (Strict Verification)
     if (authSubmit) {
         authSubmit.addEventListener("click", async () => {
-            const identifier = document.getElementById("auth-email") ? document.getElementById("auth-email").value.trim() : "";
-            const password = document.getElementById("auth-password") ? document.getElementById("auth-password").value.trim() : "";
+            const identifierEl = document.getElementById("auth-email");
+            const passwordEl = document.getElementById("auth-password");
             const errorDiv = document.getElementById("auth-error");
+
+            const identifier = identifierEl ? identifierEl.value.trim() : "";
+            const password = passwordEl ? passwordEl.value.trim() : "";
+
             if (errorDiv) errorDiv.innerText = "";
 
+            // Strictly prevent empty login or signup
             if (!identifier || !password) {
-                if (errorDiv) errorDiv.innerText = "Please fill all required fields.";
+                if (errorDiv) errorDiv.innerText = "Email/Phone aur Password daalna zaroori hai!";
+                return;
+            }
+
+            if (password.length < 6) {
+                if (errorDiv) errorDiv.innerText = "Password kam se kam 6 characters ka hona chahiye.";
                 return;
             }
 
@@ -165,9 +184,9 @@ function initAuthListeners() {
             } catch (err) {
                 if (errorDiv) {
                     if (err.code === "auth/email-already-in-use") {
-                        errorDiv.innerText = "Email ya Phone pehle se registered hai.";
+                        errorDiv.innerText = "Aapka email ya phone pehle se registered hai.";
                     } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
-                        errorDiv.innerText = "Ghalat Details ya Password!";
+                        errorDiv.innerText = "Ghalat Login Details ya Password!";
                     } else {
                         errorDiv.innerText = err.message;
                     }
@@ -183,7 +202,7 @@ function initAuthListeners() {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
             auth.signOut();
-            alert("Logout successful!");
+            alert("Logout Hogaya!");
         });
     }
 }
@@ -199,7 +218,6 @@ function resetProfileUI() {
     if (document.getElementById("my-profile-img")) document.getElementById("my-profile-img").src = "https://via.placeholder.com/100";
 }
 
-// Fetch Profile Data
 async function loadUserProfile(uid) {
     try {
         const doc = await db.collection("users").doc(uid).get();
@@ -213,7 +231,7 @@ async function loadUserProfile(uid) {
             if (document.getElementById("stat-views")) document.getElementById("stat-views").innerText = currentProfile.totalViews || 0;
         }
     } catch (e) {
-        console.log("Error loading user profile:", e);
+        console.log("Error loading profile:", e);
     }
 }
 
@@ -226,9 +244,9 @@ function initNavigation() {
         item.addEventListener("click", () => {
             const target = item.getAttribute("data-target");
             
-            // Profile restriction check
+            // Require login when attempting to view profile
             if (target === "section-profile" && !currentUser) {
-                alert("Profile dekhne ke liye pehle Login ya Sign Up karein.");
+                alert("Profile access karne ke liye Login ya Sign Up karein.");
                 promptLogin();
                 return;
             }
@@ -242,7 +260,7 @@ function initNavigation() {
     });
 }
 
-// 5. SEPARATE FEEDS ENGINE (TEXT & VIDEO)
+// 5. FEEDS SYSTEM (VIDEO & TEXT SEPARATE)
 function loadVideoFeed() {
     const feedContainer = document.getElementById("video-feed-container");
     if (!feedContainer) return;
@@ -332,7 +350,7 @@ async function likeVideo(videoId, currentLikes) {
 function shareVideo(videoId, username) {
     const appLink = `https://umar-super-app.web.app/?v=${videoId}`;
     navigator.clipboard.writeText(appLink);
-    alert(`Link Copied for ${username}: ${appLink}`);
+    alert(`Link Copied for ${username}:\n${appLink}`);
 }
 
 function subscribeUser(userId) {
@@ -354,7 +372,7 @@ function openCommentsModal(videoId) {
     alert("Opening comments for video ID: " + videoId);
 }
 
-// 6. TRADINGVIEW FOREX ENGINE
+// 6. TRADINGVIEW FOREX & CRYPTO
 function initTradingViewWidget(symbol) {
     const container = document.getElementById("tradingview-widget-container");
     if (!container) return;
@@ -373,7 +391,7 @@ function initTradingViewWidget(symbol) {
     }
 }
 
-// 7. COMPILER ENGINE (OUTPUT AT BOTTOM FULL SCREEN)
+// 7. COMPILER ENGINE (OUTPUT BELOW EDITOR)
 const runBtn = document.getElementById("btn-run-code");
 if (runBtn) {
     runBtn.addEventListener("click", () => {
@@ -400,16 +418,7 @@ if (runBtn) {
     });
 }
 
-// 8. CHAT ENGINE WITH THREE DOTS (GROUPS / CHANNELS)
-const chatThreeDots = document.getElementById("btn-chat-options");
-if (chatThreeDots) {
-    chatThreeDots.addEventListener("click", () => {
-        const option = prompt("Choose Option:\n1. Create Channel\n2. Create Group\n3. Broadcast Message");
-        if (option === "1") alert("Channel creation opened.");
-        if (option === "2") alert("Group creation opened.");
-    });
-}
-
+// 8. CHAT SYSTEM & SEND MESSAGE FIX
 function loadChatThreads() {
     const threadsList = document.getElementById("chat-threads-list");
     if (!threadsList) return;
@@ -447,6 +456,8 @@ function openChatWindow(targetUser) {
     if (document.getElementById("chat-header-name")) document.getElementById("chat-header-name").innerText = targetUser.fullname;
 
     const chatId = [currentUser.uid, targetUser.uid].sort().join("_");
+    
+    // Realtime messages fetch
     db.collection("chats").doc(chatId).collection("messages")
       .orderBy("timestamp", "asc")
       .onSnapshot(snapshot => {
@@ -462,22 +473,50 @@ function openChatWindow(targetUser) {
           });
           area.scrollTop = area.scrollHeight;
       });
+
+    // Chat Message Send Dedicated Event
+    const chatSendBtn = document.getElementById("btn-send-chat");
+    if (chatSendBtn) {
+        chatSendBtn.onclick = async () => {
+            const input = document.getElementById("chat-msg-input");
+            const text = input ? input.value.trim() : "";
+            if (!text) return;
+            if (input) input.value = "";
+
+            await db.collection("chats").doc(chatId).collection("messages").add({
+                senderId: currentUser.uid,
+                text: text,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        };
+    }
 }
 
-// 9. UPLOAD WITH REALTIME PROGRESS BAR (0% - 100%)
+// 9. VIDEO UPLOAD & REALTIME PROGRESS ENGINE (0%-100%)
 function initEventHandlers() {
-    const openUploadBtn = document.getElementById("btn-open-upload-modal");
-    if (openUploadBtn) {
-        openUploadBtn.addEventListener("click", () => {
+    // Plus (+) Button Click for Video Upload
+    const uploadBtn = document.getElementById("btn-open-upload-modal");
+    if (uploadBtn) {
+        uploadBtn.addEventListener("click", () => {
             if (!currentUser) {
-                alert("Upload karne ke liye Login Karein!");
+                alert("Video upload karne ke liye Login Karein!");
                 promptLogin();
                 return;
             }
-            document.getElementById("upload-modal").classList.remove("hidden");
+            const uploadModal = document.getElementById("upload-modal");
+            if (uploadModal) uploadModal.classList.remove("hidden");
         });
     }
 
+    const closeUploadBtn = document.getElementById("btn-close-upload");
+    if (closeUploadBtn) {
+        closeUploadBtn.addEventListener("click", () => {
+            const uploadModal = document.getElementById("upload-modal");
+            if (uploadModal) uploadModal.classList.add("hidden");
+        });
+    }
+
+    // Video Submit Task
     const submitPostBtn = document.getElementById("btn-submit-post");
     if (submitPostBtn) {
         submitPostBtn.addEventListener("click", async () => {
@@ -490,8 +529,8 @@ function initEventHandlers() {
             const fileInput = document.getElementById("input-video-file");
             const desc = document.getElementById("input-video-desc") ? document.getElementById("input-video-desc").value : "";
 
-            if(!fileInput || !fileInput.files || !fileInput.files[0]) {
-                alert("Video file select karein.");
+            if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+                alert("Pehle koi Video File select karein.");
                 return;
             }
 
@@ -499,7 +538,6 @@ function initEventHandlers() {
             const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
             const uploadTask = storageRef.put(file);
 
-            // Progress bar DOM
             const progressBar = document.getElementById("upload-progress-bar");
             const progressText = document.getElementById("upload-progress-text");
             const progressContainer = document.getElementById("upload-progress-container");
@@ -529,9 +567,10 @@ function initEventHandlers() {
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    alert("Video Posted Successfully!");
+                    alert("Video Post Hogaye!");
                     if (progressContainer) progressContainer.classList.add("hidden");
-                    document.getElementById("upload-modal").classList.add("hidden");
+                    const uploadModal = document.getElementById("upload-modal");
+                    if (uploadModal) uploadModal.classList.add("hidden");
                 }
             );
         });
