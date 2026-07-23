@@ -1,277 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umar Super App</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://s3.tradingview.com/tv.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b1120; color: #f3f4f6; font-family: sans-serif; }
+    .active-tab { color: #06b6d4; border-top: 2px solid #06b6d4; }
+  </style>
 </head>
-<body>
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- TOP HEADER -->
-    <header class="top-header">
-        <div class="logo-area">
-            <i class="fa-solid fa-bolt logo-icon"></i>
-            <span>Umar Super App</span>
-        </div>
-        <div class="header-right">
-            <button id="btn-toggle-menu" class="icon-btn-large"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            
-            <div id="top-dropdown-menu" class="dropdown-menu hidden">
-                <button id="menu-opt-channel" class="menu-item red-btn"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
-                <button class="menu-item blue-btn"><i class="fa-solid fa-users"></i> Create Group</button>
-                <button class="menu-item green-btn"><i class="fa-solid fa-wallet"></i> My Wallet</button>
-                <button id="menu-opt-settings" class="menu-item cyan-btn"><i class="fa-solid fa-gear"></i> Settings</button>
-                <button id="menu-opt-logout" class="menu-item danger-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <!-- 1. FEED -->
-        <section id="section-feed" class="app-section active-section">
-            <div id="tiktok-video-feed" class="tiktok-container">
-                <div class="tiktok-video-card">
-                    <div class="tiktok-overlay-info">
-                        <h3>@umar_dev</h3>
-                        <p>Welcome to Umar Super App Feed!</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. MARKETS -->
-        <section id="section-markets" class="app-section">
-            <h2 class="title-cyan">Forex & Crypto Live Charts</h2>
-            <div class="market-btn-group">
-                <button id="btn-market-xau" class="m-btn btn-red-big">XAUUSD (Gold)</button>
-                <button id="btn-market-btc" class="m-btn btn-blue-big">BTCUSD (Crypto)</button>
-                <button id="btn-market-eur" class="m-btn btn-green-big">EURUSD (Forex)</button>
-            </div>
-            <div id="tradingview-widget-container"></div>
-        </section>
-
-        <!-- 3. CHAT -->
-        <section id="section-chat" class="app-section">
-            <h2 class="title-pink">Messages & Channels</h2>
-            <div id="chat-channels-list" class="threads-list">
-                <p class="sub-info-text">No channels created yet. Tap 3-dots to create!</p>
-            </div>
-        </section>
-
-        <!-- 4. COMPILER -->
-        <section id="section-compiler" class="app-section">
-            <h2 class="title-green">Termux Web Compiler</h2>
-            <p class="sub-info-text">Commands: <span class="cmd-tag red">ls</span>, <span class="cmd-tag blue">st filename</span>, or <span class="cmd-tag green">dt filename</span></p>
-            <textarea id="code-editor-input" placeholder="// Write JS Code or Termux commands here..."></textarea>
-            <button id="btn-run-code" class="btn-run-red"><i class="fa-solid fa-play"></i> RUN CODE / COMMAND</button>
-            <div class="terminal-box">
-                <div class="terminal-header">Terminal Console Output</div>
-                <pre id="terminal-console-out">> System initialized. Ready to execute.</pre>
-            </div>
-        </section>
-
-        <!-- 5. AI -->
-        <section id="section-ai" class="app-section">
-            <h2 class="title-cyan">Umar AI Assistant</h2>
-            <div id="ai-chat-box" class="ai-box">
-                <div class="ai-msg">Hello Umar! Main aapka AI Assistant hoon. Kya hukam hai?</div>
-            </div>
-        </section>
-
-        <!-- 6. WEATHER SECTION (WITH REAL TEMP & GARMI DETECTOR) -->
-        <section id="section-weather" class="app-section">
-            <h2 class="title-amber">Live Weather Search</h2>
-            <div class="weather-search-bar">
-                <input type="text" id="input-weather-city" placeholder="Enter City Name (e.g. Thul, Karachi)...">
-                <button id="btn-search-weather" class="btn-blue-big">SEARCH</button>
-            </div>
-            <div class="weather-card">
-                <h3 id="weather-city-name" class="title-cyan">Search a City</h3>
-                <div id="weather-temp" class="temp-text">--°C</div>
-                <p id="weather-condition" class="sub-info-text">Condition: --</p>
-                <div id="garmi-indicator" class="garmi-box hidden">🔥 BOHOT GARMI HAI! (Heatwave Alert)</div>
-            </div>
-        </section>
-
-        <!-- 7. PROFILE SECTION (WITH SIGN UP / LOGIN TRIGGER) -->
-        <section id="section-profile" class="app-section">
-            <div id="profile-auth-trigger-card" class="auth-trigger-card">
-                <h3 class="title-cyan">Guest User Profile</h3>
-                <p class="sub-info-text">You are currently viewing as guest.</p>
-                <button id="btn-open-auth-modal" class="btn-signup-red"><i class="fa-solid fa-user-plus"></i> SIGN UP / LOGIN</button>
-            </div>
-
-            <div class="profile-header-card">
-                <div class="profile-top-row">
-                    <img id="my-profile-img" src="https://via.placeholder.com/110" class="profile-avatar-large" />
-                    <button id="btn-open-edit-profile" class="btn-cyan-small"><i class="fa-solid fa-pen"></i> Edit Profile</button>
-                </div>
-                
-                <h2 id="my-profile-name" class="p-name">Muhammad Umar</h2>
-                <p id="my-profile-username" class="p-username">@umar_dev</p>
-                <p id="my-profile-bio" class="p-bio">Mobile Developer & Cybersecurity Expert 🚀</p>
-                
-                <div class="profile-stats-row">
-                    <div class="stat-box"><span id="stat-total-posts" class="stat-num blue">0</span><span class="stat-label">Posts</span></div>
-                    <div class="stat-box"><span id="stat-total-likes" class="stat-num red">0</span><span class="stat-label">Likes</span></div>
-                    <div class="stat-box"><span id="stat-total-subs" class="stat-num green">0</span><span class="stat-label">Subscribers</span></div>
-                </div>
-
-                <div id="review-timer-badge" class="review-badge hidden">
-                    <i class="fa-solid fa-clock"></i> Profile Review Active (7-Week Lock)
-                </div>
-            </div>
-
-            <h3 class="gallery-title title-pink"><i class="fa-solid fa-grid-2"></i> My Video Posts</h3>
-            <div id="profile-posts-grid" class="posts-grid-container"></div>
-        </section>
-
-        <!-- 8. SETTINGS -->
-        <section id="section-settings" class="app-section">
-            <h2 class="title-cyan">App Settings & Security</h2>
-            <div class="settings-card">
-                <h3 class="title-red"><i class="fa-solid fa-shield"></i> Security & Account</h3>
-                <button id="btn-change-password" class="btn-blue-medium">Change Password</button>
-            </div>
-        </section>
-    </main>
-
-    <button id="btn-open-upload-modal" class="floating-plus-btn">+</button>
-
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav">
-        <button class="nav-item active" data-target="section-feed"><i class="fa-solid fa-house"></i><span>Feed</span></button>
-        <button class="nav-item" data-target="section-markets"><i class="fa-solid fa-chart-line"></i><span>Markets</span></button>
-        <button class="nav-item" data-target="section-chat"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
-        <button class="nav-item" data-target="section-compiler"><i class="fa-solid fa-code"></i><span>Compiler</span></button>
-        <button class="nav-item" data-target="section-ai"><i class="fa-solid fa-robot"></i><span>AI</span></button>
-        <button class="nav-item" data-target="section-weather"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
-        <button class="nav-item" data-target="section-profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
-    </nav>
-
-    <!-- VIDEO UPLOAD MODAL (ENHANCED) -->
-    <div id="upload-modal" class="modal-overlay hidden">
-        <div class="custom-card upload-modal-card">
-            <button id="btn-close-upload" class="btn-close">&times;</button>
-            <h2 class="title-pink">Post Video Feed</h2>
-            
-            <div class="input-group">
-                <label class="lbl-red">Select Video File</label>
-                <input type="file" id="input-video-file" accept="video/*" class="file-input-red">
-            </div>
-
-            <div class="input-group">
-                <label class="lbl-blue">Caption / Description Effects</label>
-                <textarea id="input-video-desc" placeholder="Write description..."></textarea>
-                <div class="hashtag-row">
-                    <span class="tag-chip" onclick="addTag('#UmarSuperApp')">#UmarSuperApp</span>
-                    <span class="tag-chip" onclick="addTag('#Viral')">#Viral</span>
-                    <span class="tag-chip" onclick="addTag('#Trending')">#Trending</span>
-                    <span class="tag-chip" onclick="addTag('#Coding')">#Coding</span>
-                </div>
-            </div>
-
-            <!-- 50 URDU + ARABIC + ENGLISH SONGS SELECTOR -->
-            <div class="input-group">
-                <label class="lbl-green">Add Background Music / Song</label>
-                <select id="select-song-picker" class="song-select-box">
-                    <option value="">-- Choose Song (50 Urdu, Arabic, English) --</option>
-                    <!-- Urdu Songs Top 50 -->
-                    <option value="u1">🎵 Kahani Suno 2.0 - Kaifi Khalil</option>
-                    <option value="u2">🎵 Pasoori - Ali Sethi x Shae Gill</option>
-                    <option value="u3">🎵 Afsana - Young Stunners</option>
-                    <option value="u4">🎵 Gumaan - Young Stunners</option>
-                    <option value="u5">🎵 Tu Aake Dekhle - King</option>
-                    <option value="u6">🎵 Tajdar-e-Haram - Atif Aslam</option>
-                    <option value="u7">🎵 Zaroori Tha - Rahat Fateh Ali Khan</option>
-                    <option value="u8">🎵 Baarishein - Anuv Jain</option>
-                    <option value="u9">🎵 Gul - Anuv Jain</option>
-                    <option value="u10">🎵 Biba - Hasan Raheem</option>
-                    <option value="u11">🎵 Peechay Hutt - Hasan Raheem x Justin Bibis</option>
-                    <option value="u12">🎵 Kana Yaari - Kaifi Khalil x Eva B</option>
-                    <option value="u13">🎵 Wo Humsafar Tha - Quratulain Balouch</option>
-                    <option value="u14">🎵 Afreen Afreen - Rahat Fateh Ali Khan</option>
-                    <option value="u15">🎵 Tera Woh Pyar - Momina Mustehsan</option>
-                    <option value="u16">🎵 Lar Shoona - Ali Zafar x Gul Panra</option>
-                    <option value="u17">🎵 Sajna - Badshah x Yashal Shahid</option>
-                    <option value="u18">🎵 Faiz-e-Aam - Young Stunners</option>
-                    <option value="u19">🎵 Don't Mind - Young Stunners</option>
-                    <option value="u20">🎵 Asal G - Young Stunners</option>
-                    <option value="u21">🎵 Agency - Talha Anjum</option>
-                    <option value="u22">🎵 Happy Hour - Talhah Yunus</option>
-                    <option value="u23">🎵 Quarantine - Young Stunners</option>
-                    <option value="u24">🎵 Manike Mage Hithe - Yohani</option>
-                    <option value="u25">🎵 Tum Hi Ho - Arijit Singh</option>
-                    <option value="u26">🎵 Kesariya - Arijit Singh</option>
-                    <option value="u27">🎵 Channa Mereya - Arijit Singh</option>
-                    <option value="u28">🎵 Apna Bana Le - Arijit Singh</option>
-                    <option value="u29">🎵 Raataan Lambiyan - Tanishk Bagchi</option>
-                    <option value="u30">🎵 Phir Aur Kya Chahiye - Arijit Singh</option>
-                    <option value="u31">🎵 Jo Tum Mere Ho - Anuv Jain</option>
-                    <option value="u32">🎵 Husn - Anuv Jain</option>
-                    <option value="u33">🎵 Downers At Dusk - Talha Anjum</option>
-                    <option value="u34">🎵 Glass Half Full - Talha Anjum</option>
-                    <option value="u35">🎵 Open Letter - Talha Anjum</option>
-                    <option value="u36">🎵 Secrets - Talha Anjum</option>
-                    <option value="u37">🎵 You Matter - Talha Anjum</option>
-                    <option value="u38">🎵 Benz - Young Stunners</option>
-                    <option value="u39">🎵 Two Of Us - Young Stunners</option>
-                    <option value="u40">🎵 Wishlist - Young Stunners</option>
-                    <option value="u41">🎵 Bol Kaffara Kya Hoga - Sehar Gul Khan</option>
-                    <option value="u42">🎵 Mere Humsafar - Yashal Shahid</option>
-                    <option value="u43">🎵 Habit - Asim Azhar</option>
-                    <option value="u44">🎵 Jo Tu Na Mila - Asim Azhar</option>
-                    <option value="u45">🎵 Ghalat Fehmi - Asim Azhar</option>
-                    <option value="u46">🎵 Tera Woh Pyar - Momina</option>
-                    <option value="u47">🎵 Baari - Bilal Saeed x Momina</option>
-                    <option value="u48">🎵 Ucha Lamba Kad - Alycia</option>
-                    <option value="u49">🎵 Mast Nazron Se - Lakhwinder</option>
-                    <option value="u50">🎵 Dil Dil Pakistan - Vital Signs</option>
-                    <!-- Arabic & English Top Hits -->
-                    <option value="a1">🎶 Ya Lili - Balti (Arabic)</option>
-                    <option value="a2">🎶 Clandestina - Arabic Remix</option>
-                    <option value="e1">🎧 Blinding Lights - The Weeknd (English)</option>
-                    <option value="e2">🎧 Shape of You - Ed Sheeran (English)</option>
-                </select>
-            </div>
-
-            <button id="btn-submit-post" class="btn-upload-red-large">UPLOAD & PUBLISH VIDEO</button>
-        </div>
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center z-10">
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid font-bold text-cyan-400 text-xl">⚡</i>
+      <h1 class="text-xl font-bold text-cyan-400">Super App</h1>
     </div>
+    
+    <div class="flex items-center space-x-3">
+      <!-- Added Plus Button next to Header controls -->
+      <button onclick="openModal('createPostModal')" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg shadow-md hover:opacity-90">
+        +
+      </button>
+      
+      <!-- Notification Icon -->
+      <button onclick="alert('No new notifications')" class="text-gray-300 hover:text-white text-lg">
+        <i class="fa-solid fa-bell"></i>
+      </button>
 
-    <!-- CREATE CHANNEL MODAL -->
-    <div id="channel-modal" class="modal-overlay hidden">
-        <div class="custom-card">
-            <button id="btn-close-channel" class="btn-close">&times;</button>
-            <h2 class="title-red">Create New Channel</h2>
-            <div class="input-group">
-                <label class="lbl-cyan">Channel Name</label>
-                <input type="text" id="input-channel-name" placeholder="e.g. Umar Crypto Signals">
-            </div>
-            <button id="btn-confirm-create-channel" class="btn-red-big">Create Channel Now</button>
-        </div>
+      <!-- 3-Dot Menu Button -->
+      <button onclick="toggleMenu()" class="text-cyan-400 text-2xl focus:outline-none">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
     </div>
+  </header>
 
-    <!-- SIGN UP / LOGIN MODAL -->
-    <div id="auth-modal" class="modal-overlay hidden">
-        <div class="custom-card">
-            <button id="btn-close-auth" class="btn-close">&times;</button>
-            <h2 class="title-cyan">Sign Up / Login</h2>
-            <div class="input-group">
-                <label class="lbl-red">Email / Phone</label>
-                <input type="text" placeholder="Enter email or phone">
-            </div>
-            <div class="input-group">
-                <label class="lbl-green">Password</label>
-                <input type="password" placeholder="Enter password">
-            </div>
-            <button class="btn-red-big">Submit & Login</button>
-        </div>
+  <!-- Dropdown Menu Overlay -->
+  <div id="dropdownMenu" class="hidden absolute top-14 right-4 bg-slate-900 border border-cyan-500/30 rounded-xl p-3 shadow-2xl z-50 w-56 space-y-2">
+    <button onclick="openModal('createChannelModal'); toggleMenu();" class="w-full text-left bg-pink-600 hover:bg-pink-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+      📢 Create Channel
+    </button>
+    <button onclick="openModal('createGroupModal'); toggleMenu();" class="w-full text-left bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+      👥 Create Group
+    </button>
+    <button onclick="openModal('walletModal'); toggleMenu();" class="w-full text-left bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+      💳 My Wallet
+    </button>
+    <button onclick="openModal('settingsModal'); toggleMenu();" class="w-full text-left bg-cyan-500 hover:bg-cyan-600 text-slate-950 py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+      ⚙️ Settings
+    </button>
+    <button onclick="logout(); toggleMenu();" class="w-full text-left bg-red-800 hover:bg-red-900 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+      ↪️ Logout
+    </button>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 overflow-y-auto p-4" id="mainContainer">
+
+    <!-- FEED TAB -->
+    <section id="tab-feed" class="tab-content space-y-4">
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
+        <span class="text-cyan-400 font-bold">@umar_dev</span>
+        <p class="text-gray-300 mt-1">Welcome to Super App Feed!</p>
+      </div>
+      <div id="feedPosts" class="space-y-4">
+        <!-- Sample Posts dynamically appended here -->
+      </div>
+    </section>
+
+    <!-- MARKETS TAB -->
+    <section id="tab-markets" class="tab-content hidden space-y-3">
+      <h2 class="text-cyan-400 font-bold text-lg">Forex & Crypto Live Charts</h2>
+      <button class="w-full bg-pink-600 text-white py-3 rounded-xl font-bold">XAUUSD (Gold)</button>
+      <button class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">BTCUSD (Crypto)</button>
+      <button class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold">EURUSD (Forex)</button>
+    </section>
+
+    <!-- CHAT TAB -->
+    <section id="tab-chat" class="tab-content hidden space-y-3">
+      <h2 class="text-pink-500 font-bold text-lg">Messages & Channels</h2>
+      <div onclick="openChannelChat('super app official')" class="bg-slate-900 border border-pink-500/40 p-3 rounded-xl cursor-pointer hover:bg-slate-800">
+        <h3 class="text-cyan-400 font-bold flex items-center gap-2">📢 super app official</h3>
+        <p class="text-emerald-400 text-xs mt-1">Channel Created Successfully! (Tap to chat)</p>
+      </div>
+      <div id="customChannelsList" class="space-y-2"></div>
+    </section>
+
+    <!-- COMPILER TAB -->
+    <section id="tab-compiler" class="tab-content hidden space-y-3">
+      <h2 class="text-emerald-400 font-bold text-lg">Termux Web Compiler</h2>
+      <textarea id="compilerInput" class="w-full h-32 bg-slate-900 border border-blue-600 rounded-xl p-3 text-sm text-gray-200 focus:outline-none" placeholder="// Write JS Code or commands..."></textarea>
+      <button onclick="runCompiler()" class="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-3 rounded-xl">► RUN CODE / COMMAND</button>
+      <div class="bg-slate-900 border border-emerald-500/40 p-3 rounded-xl text-xs font-mono text-emerald-400" id="compilerOutput">
+        Terminal Console Output
+      </div>
+    </section>
+
+    <!-- AI TAB -->
+    <section id="tab-ai" class="tab-content hidden space-y-3">
+      <h2 class="text-cyan-400 font-bold text-lg">AI Assistant</h2>
+      <div class="bg-slate-900 p-4 rounded-xl text-sm text-cyan-300">
+        Hello! Main aapka AI Assistant hoon. Kya hukam hai?
+      </div>
+    </section>
+
+    <!-- WEATHER TAB -->
+    <section id="tab-weather" class="tab-content hidden space-y-3">
+      <h2 class="text-amber-500 font-bold text-lg">Live Weather Search</h2>
+      <div class="flex gap-2">
+        <input type="text" id="weatherSearchInput" placeholder="Enter City Name..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-sm text-white focus:outline-none">
+        <button onclick="searchWeather()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">SEARCH</button>
+      </div>
+      <div class="bg-slate-900 border border-amber-500/40 p-4 rounded-xl text-center space-y-2">
+        <h3 class="text-cyan-400 font-bold text-xl" id="cityName">THULL</h3>
+        <p class="text-red-500 font-extrabold text-4xl" id="cityTemp">42°C</p>
+        <p class="text-cyan-300 text-xs" id="cityCond">Condition: Extreme Heatwave / Sunny</p>
+      </div>
+    </section>
+
+    <!-- PROFILE TAB -->
+    <section id="tab-profile" class="tab-content hidden space-y-4">
+      <div class="bg-slate-900 border border-pink-500/50 p-4 rounded-xl text-center space-y-2">
+        <p class="text-cyan-400 font-bold text-sm">Guest User Profile</p>
+        <p class="text-gray-400 text-xs">You are currently viewing as guest.</p>
+        <button onclick="openModal('authModal')" class="bg-pink-600 text-white font-bold text-xs py-2 px-4 rounded-lg">
+          👤+ SIGN UP / LOGIN
+        </button>
+      </div>
+
+      <div class="space-y-1">
+        <h2 class="text-cyan-400 font-bold text-xl" id="profileDisplayName">Muhammad Umar</h2>
+        <p class="text-cyan-600 text-xs" id="profileDisplayUsername">@umar_dev</p>
+        <p class="text-cyan-300 text-xs">Mobile Developer & Cybersecurity Expert 🚀</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALS SECTION -->
+
+  <!-- Authentication Modal (Signup / Login) -->
+  <div id="authModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-blue-500/50 rounded-2xl p-5 w-full max-w-sm space-y-3 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('authModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
+      <h3 class="text-cyan-400 font-bold text-lg">Sign Up / Login</h3>
+      <input type="text" id="regName" placeholder="Full Name" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <input type="text" id="regUsername" placeholder="Username" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <input type="tel" id="regPhone" placeholder="Phone Number" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <input type="email" id="regEmail" placeholder="Email Address" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <input type="password" id="regPassword" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <input type="text" id="regPhoto" placeholder="Profile Photo URL (Optional)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
+      <button onclick="handleAuth()" class="w-full bg-pink-600 text-white font-bold py-2 rounded-xl text-sm">Submit & Login</button>
     </div>
+  </div>
 
-    <script src="script.js"></script>
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-emerald-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative text-center">
+      <button onclick="closeModal('walletModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
+      <h3 class="text-emerald-400 font-bold text-lg">My Wallet</h3>
+      <div class="bg-slate-800 p-4 rounded-xl">
+        <p class="text-gray-400 text-xs">Available Balance</p>
+        <p class="text-2xl font-bold text-white">$0.00 USD</p>
+      </div>
+      <button onclick="alert('Deposit Feature Coming Soon')" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-xl text-sm">Deposit Money</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-cyan-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative">
+      <button onclick="closeModal('settingsModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
+      <h3 class="text-cyan-400 font-bold text-lg">App Settings</h3>
+      <p class="text-gray-300 text-xs">Manage Notifications, Privacy & Account Configurations.</p>
+    </div>
+  </div>
+
+  <!-- Create Post Modal -->
+  <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-purple-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative">
+      <button onclick="closeModal('createPostModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
+      <h3 class="text-purple-400 font-bold text-lg">Create New Post</h3>
+      <textarea id="postContent" placeholder="Write something or video URL..." class="w-full h-24 bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm"></textarea>
+      <button onclick="addPost()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-sm">Publish Post</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bg-slate-900 border-t border-slate-800 flex justify-around py-2 z-10 text-xs">
+    <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center active-tab">
+      <i class="fa-solid fa-house text-base"></i> Feed
+    </button>
+    <button onclick="switchTab('markets')" id="nav-markets" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-chart-line text-base"></i> Markets
+    </button>
+    <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-comments text-base"></i> Chat
+    </button>
+    <button onclick="switchTab('compiler')" id="nav-compiler" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-code text-base"></i> Compiler
+    </button>
+    <button onclick="switchTab('ai')" id="nav-ai" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-robot text-base"></i> AI
+    </button>
+    <button onclick="switchTab('weather')" id="nav-weather" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-cloud-sun text-base"></i> Weather
+    </button>
+    <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-gray-400">
+      <i class="fa-solid fa-user text-base"></i> Profile
+    </button>
+  </nav>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab', 'text-cyan-400'));
+      
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      document.getElementById('nav-' + tabId).classList.add('active-tab');
+    }
+
+    function toggleMenu() {
+      document.getElementById('dropdownMenu').classList.toggle('hidden');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function handleAuth() {
+      const name = document.getElementById('regName').value;
+      const username = document.getElementById('regUsername').value;
+      if (name) {
+        document.getElementById('profileDisplayName').innerText = name;
+        document.getElementById('profileDisplayUsername').innerText = '@' + (username || 'user');
+        closeModal('authModal');
+        alert('Account updated successfully!');
+      }
+    }
+
+    function addPost() {
+      const content = document.getElementById('postContent').value;
+      if (content) {
+        const feed = document.getElementById('feedPosts');
+        const post = document.createElement('div');
+        post.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
+        post.innerHTML = `<span class="text-cyan-400 font-bold">User</span><p class="text-gray-200 mt-1">${content}</p>`;
+        feed.prepend(post);
+        document.getElementById('postContent').value = '';
+        closeModal('createPostModal');
+      }
+    }
+
+    function openChannelChat(name) {
+      alert('Opening channel chat: ' + name);
+    }
+
+    function runCompiler() {
+      const code = document.getElementById('compilerInput').value;
+      document.getElementById('compilerOutput').innerText = code ? 'Executing:\n' + code : 'No code entered.';
+    }
+  </script>
 </body>
 </html>
