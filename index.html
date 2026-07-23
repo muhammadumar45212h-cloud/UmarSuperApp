@@ -22,8 +22,8 @@
             <input type="text" id="searchInput" placeholder="Search users, videos, markets...">
         </div>
         <div class="header-right">
-            <button class="icon-btn" onclick="openNotifications()"><i class="fa-solid fa-bell"></i></button>
-            <button class="icon-btn" onclick="toggleSettings()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <button class="icon-btn" id="notifBtn"><i class="fa-solid fa-bell"></i></button>
+            <button class="icon-btn" id="settingsMenuBtn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
         </div>
     </header>
 
@@ -36,22 +36,37 @@
 
         <!-- 2. Chat & Channels Tab -->
         <section id="chatTab" class="tab-content">
-            <div class="sub-nav">
-                <button class="sub-btn active" onclick="switchChatSubTab('directChats')">Chats</button>
-                <button class="sub-btn" onclick="switchChatSubTab('channelsTab')">Channels & Groups</button>
+            <div class="chat-header-bar">
+                <div class="sub-nav">
+                    <button class="sub-btn active" id="subBtnChats">Chats</button>
+                    <button class="sub-btn" id="subBtnChannels">Channels & Groups</button>
+                </div>
+                <div class="call-icons">
+                    <button class="icon-btn" id="voiceCallBtn"><i class="fa-solid fa-phone"></i></button>
+                    <button class="icon-btn" id="videoCallBtn"><i class="fa-solid fa-video"></i></button>
+                </div>
             </div>
             
             <div id="directChats" class="chat-section">
                 <div id="chatMessagesBox" class="chat-messages"></div>
+                
+                <!-- Voice Preview Box -->
+                <div id="voicePreviewBox" class="voice-preview-box" style="display:none;">
+                    <span class="wave-icon">∆|||||||||•••</span>
+                    <span id="voiceTimer">00:00</span>
+                    <button class="btn-secondary" id="cancelVoiceBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
                 <div class="chat-input-row">
+                    <button class="icon-btn-accent" id="micRecordBtn"><i class="fa-solid fa-microphone"></i></button>
                     <input type="text" id="chatMessageInput" placeholder="Type a message...">
-                    <button onclick="sendDirectMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="btn-primary" id="sendMessageBtn"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
 
             <div id="channelsTab" class="chat-section" style="display:none;">
                 <div class="channel-actions">
-                    <button class="btn-primary" onclick="createChannelPrompt()">+ Create Channel/Group</button>
+                    <button class="btn-primary" id="createChannelBtn">+ Create Channel/Group</button>
                 </div>
                 <div id="channelsListContainer" style="margin-top:10px;"></div>
             </div>
@@ -60,8 +75,15 @@
         <!-- 3. Forex Market Live Tab -->
         <section id="forexTab" class="tab-content">
             <div class="forex-container">
-                <h3>Live Forex & Crypto Pairs</h3>
-                <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="tradingview-frame"></iframe>
+                <div class="forex-header">
+                    <h3>Live Market Charts</h3>
+                    <select id="marketPairSelect" class="pair-dropdown">
+                        <option value="FX:XAUUSD">Gold (XAUUSD)</option>
+                        <option value="BINANCE:BTCUSDT">Bitcoin (BTCUSD)</option>
+                        <option value="FX:EURUSD">Euro (EURUSD)</option>
+                    </select>
+                </div>
+                <iframe id="tradingViewIframe" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="tradingview-frame"></iframe>
             </div>
         </section>
 
@@ -70,8 +92,8 @@
             <div class="weather-container">
                 <h3>Live City Weather Search</h3>
                 <div class="weather-search-row">
-                    <input type="text" id="weatherCityInput" placeholder="Enter City/Country (e.g. Karachi, London)...">
-                    <button onclick="fetchWeatherInfo()"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <input type="text" id="weatherCityInput" placeholder="Enter City/Country (e.g. Thull, Karachi)...">
+                    <button id="searchWeatherBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
                 <div id="weatherResultDisplay" class="weather-card">
                     <h2 id="weatherCityName">Search a City</h2>
@@ -86,58 +108,64 @@
             <div class="terminal-container">
                 <h3>JavaScript Code Terminal</h3>
                 <textarea id="terminalCodeInput" placeholder="// Write JS Code here...&#10;console.log('Hello Umar!');"></textarea>
-                <button class="big-red-btn" onclick="runJSCompiler(document.getElementById('terminalCodeInput').value)">
+                <button class="big-red-btn" id="runCodeBtn">
                     <i class="fa-solid fa-play"></i> RUN CODE
                 </button>
                 <pre id="compilerOutput" class="terminal-output"></pre>
             </div>
         </section>
 
-        <!-- 6. Profile & Wallet Tab -->
+        <!-- 6. Profile Tab -->
         <section id="profileTab" class="tab-content">
             <div class="profile-container">
                 <div class="profile-card">
                     <img id="userProfilePic" src="https://via.placeholder.com/100" class="avatar-large">
                     <h2 id="userDisplayName">User Profile</h2>
                     <p id="userHandle">@username</p>
+                    <p id="userBioText" style="color:#aaa; font-size:12px; margin-top:4px;">No bio added yet.</p>
+                    <button class="btn-secondary" id="editProfileOpenBtn" style="margin-top:10px;"><i class="fa-solid fa-pen"></i> Edit Profile</button>
                 </div>
 
-                <!-- Real Wallet System -->
-                <div class="wallet-card">
-                    <h3><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h3>
-                    <div class="balance-display">
-                        <span id="walletBalanceVal">Rs. 0.00</span>
-                    </div>
-                    <div class="wallet-buttons">
-                        <button onclick="handleWalletDeposit()" class="btn-primary">Deposit</button>
-                        <button onclick="handleWalletWithdraw()" class="btn-secondary">Withdraw</button>
-                    </div>
-                </div>
-
-                <!-- Offline Saved Videos List -->
-                <div class="saved-videos-card">
-                    <h3><i class="fa-solid fa-download"></i> Saved Videos (Up to 100)</h3>
-                    <div id="savedVideosContainer"></div>
+                <!-- User Videos Feed Grid (TikTok Style) -->
+                <div style="margin-top:15px;">
+                    <h3>My Videos</h3>
+                    <div id="myVideosGrid" class="user-videos-grid"></div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Bottom Navigation Bar (Centered (+) Plus Button) -->
+    <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="switchTab('reelsTab', this)"><i class="fa-solid fa-film"></i><span>Reels</span></button>
-        <button class="nav-btn" onclick="switchTab('chatTab', this)"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
+        <button class="nav-btn active" data-tab="reelsTab"><i class="fa-solid fa-film"></i><span>Reels</span></button>
+        <button class="nav-btn" data-tab="chatTab"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
         
         <!-- CENTER (+) BUTTON -->
-        <button class="center-add-btn" onclick="openUploadModal()"><i class="fa-solid fa-plus"></i></button>
+        <button class="center-add-btn" id="centerPlusBtn"><i class="fa-solid fa-plus"></i></button>
 
-        <button class="nav-btn" onclick="switchTab('forexTab', this)"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
-        <button class="nav-btn" onclick="switchTab('weatherTab', this)"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
-        <button class="nav-btn" onclick="switchTab('terminalTab', this)"><i class="fa-solid fa-code"></i><span>Terminal</span></button>
-        <button class="nav-btn" onclick="switchTab('profileTab', this)"><i class="fa-solid fa-user"></i><span>Profile</span></button>
+        <button class="nav-btn" data-tab="forexTab"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
+        <button class="nav-btn" data-tab="weatherTab"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
+        <button class="nav-btn" data-tab="terminalTab"><i class="fa-solid fa-code"></i><span>Terminal</span></button>
+        <button class="nav-btn" data-tab="profileTab"><i class="fa-solid fa-user"></i><span>Profile</span></button>
     </nav>
 
     <!-- Modals -->
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>Edit Profile</h2>
+            <img id="editProfilePicPreview" src="https://via.placeholder.com/100" class="avatar-large">
+            <button class="btn-secondary" id="changePhotoBtn"><i class="fa-solid fa-camera"></i> Change Photo</button>
+            <input type="file" id="editPhotoInput" accept="image/*" style="display:none">
+            <input type="text" id="editNameInput" placeholder="Full Name">
+            <input type="text" id="editUsernameInput" placeholder="@username">
+            <input type="text" id="editBioInput" placeholder="Bio">
+            <button class="btn-primary" id="saveProfileBtn">Save Changes</button>
+            <button class="close-btn" id="closeEditProfileBtn">Cancel</button>
+        </div>
+    </div>
+
     <!-- Auth Modal -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-card">
@@ -146,22 +174,10 @@
             <input type="email" id="authEmailInput" placeholder="Email Address">
             <input type="password" id="authPasswordInput" placeholder="Password">
             <div class="modal-actions">
-                <button onclick="handleAuthAction('login')" class="btn-primary">Log In</button>
-                <button onclick="handleAuthAction('signup')" class="btn-secondary">Sign Up</button>
+                <button id="loginSubmitBtn" class="btn-primary">Log In</button>
+                <button id="signupSubmitBtn" class="btn-secondary">Sign Up</button>
             </div>
-            <button onclick="closeModal('authModal')" class="close-btn">Continue as Guest</button>
-        </div>
-    </div>
-
-    <!-- Onboarding Modal -->
-    <div id="onboardingModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Setup Profile</h2>
-            <img id="onboardPreviewImg" src="https://via.placeholder.com/100" class="avatar-large" onclick="triggerProfilePhotoPicker()">
-            <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhotoSelected(event)">
-            <input type="text" id="onboardNameInput" placeholder="Full Name">
-            <input type="text" id="onboardUsernameInput" placeholder="@username">
-            <button onclick="completeUserOnboarding()" class="btn-primary">Save Profile</button>
+            <button id="guestContinueBtn" class="close-btn">Continue as Guest</button>
         </div>
     </div>
 
@@ -169,8 +185,8 @@
     <div id="uploadModal" class="modal-overlay">
         <div class="modal-card">
             <h2>Upload Video Reel</h2>
-            <button onclick="triggerGalleryVideoPicker()" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Video</button>
-            <input type="file" id="galleryVideoInput" accept="video/*" style="display:none" onchange="handleVideoFileSelected(event)">
+            <button id="chooseVideoBtn" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Video</button>
+            <input type="file" id="galleryVideoInput" accept="video/*" style="display:none">
             
             <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
                 <video id="previewVideoTag" style="width:100%; max-height:180px; border-radius:8px;" controls></video>
@@ -180,9 +196,37 @@
                     <option value="grayscale(100%)">B&W Filter</option>
                     <option value="sepia(100%)">Vintage Filter</option>
                 </select>
-                <button onclick="publishVideoPost()" class="btn-primary" style="margin-top:10px;">Publish</button>
+                <button id="publishVideoBtn" class="btn-primary" style="margin-top:10px;">Publish</button>
             </div>
-            <button onclick="closeUploadModal()" class="close-btn">Cancel</button>
+            <button id="closeUploadBtn" class="close-btn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Settings & Management Modal (Three Dots) -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>App Settings & Tools</h2>
+            
+            <!-- Real Balance Wallet inside Settings -->
+            <div class="wallet-card">
+                <h3><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h3>
+                <div class="balance-display">
+                    <span id="walletBalanceVal">Rs. 0.00</span>
+                </div>
+                <div class="wallet-buttons">
+                    <button id="walletDepositBtn" class="btn-primary">Deposit</button>
+                    <button id="walletWithdrawBtn" class="btn-secondary">Withdraw</button>
+                </div>
+            </div>
+
+            <!-- Saved Videos / Offline Manager -->
+            <div class="saved-videos-card">
+                <h3><i class="fa-solid fa-download"></i> Saved Videos (Max 100)</h3>
+                <div id="savedVideosContainer"></div>
+            </div>
+
+            <button id="logoutBtn" class="btn-secondary" style="background:#ef4444; color:#fff; margin-top:10px;">Logout Account</button>
+            <button id="closeSettingsBtn" class="close-btn" style="margin-top:10px;">Close</button>
         </div>
     </div>
 
@@ -193,18 +237,9 @@
             <div id="commentsListContainer" style="max-height:200px; overflow-y:auto; margin:10px 0;"></div>
             <div style="display:flex; gap:5px;">
                 <input type="text" id="commentInput" placeholder="Add comment...">
-                <button onclick="submitComment()" class="btn-primary">Post</button>
+                <button id="submitCommentBtn" class="btn-primary">Post</button>
             </div>
-            <button onclick="closeCommentsModal()" class="close-btn" style="margin-top:10px;">Close</button>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>App Options</h2>
-            <button onclick="handleLogout()" class="btn-secondary" style="background:#ef4444; color:#fff;">Logout Account</button>
-            <button onclick="closeModal('settingsModal')" class="close-btn" style="margin-top:10px;">Close</button>
+            <button id="closeCommentsBtn" class="close-btn" style="margin-top:10px;">Close</button>
         </div>
     </div>
 

@@ -23,7 +23,6 @@ body {
     overflow: hidden;
 }
 
-/* Toast Message */
 .toast {
     position: fixed;
     top: 15px;
@@ -40,7 +39,6 @@ body {
     text-align: center;
 }
 
-/* Header UI */
 .app-header {
     display: flex;
     align-items: center;
@@ -68,8 +66,6 @@ body {
     gap: 6px;
 }
 
-.search-bar i { color: var(--text-muted); font-size: 12px; }
-
 .search-bar input {
     background: none;
     border: none;
@@ -79,25 +75,15 @@ body {
     outline: none;
 }
 
-.header-right {
-    display: flex;
-    gap: 8px;
-}
+.header-right { display: flex; gap: 8px; }
+.icon-btn { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; }
+.icon-btn-accent { background: #334155; border: none; color: var(--accent-blue); padding: 10px; border-radius: 50%; cursor: pointer; }
 
-.icon-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-/* Main Content Area */
 .main-content {
     flex: 1;
     position: relative;
     overflow: hidden;
-    margin-bottom: 60px; /* Leave space for bottom nav bar */
+    margin-bottom: 60px;
 }
 
 .tab-content {
@@ -107,11 +93,8 @@ body {
     overflow-y: auto;
 }
 
-.tab-content.active-tab {
-    display: block;
-}
+.tab-content.active-tab { display: block; }
 
-/* Reels Container & Side Actions */
 .reels-container {
     height: 100%;
     overflow-y: snap-mandatory;
@@ -152,19 +135,9 @@ body {
     height: 38px;
     border-radius: 50%;
     border: 2px solid var(--accent-pink);
+    object-fit: cover;
 }
 
-.btn-subscribe {
-    background: var(--accent-pink);
-    border: none;
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-/* Right Side Action Bar */
 .action-sidebar {
     position: absolute;
     right: 12px;
@@ -189,17 +162,53 @@ body {
     cursor: pointer;
 }
 
-.action-btn span {
-    font-size: 10px;
-    margin-top: 3px;
+.action-btn span { font-size: 10px; margin-top: 3px; }
+
+/* Chat Section Extensions */
+.chat-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #0f172a;
 }
 
-/* Bottom Navigation Bar Layout */
+.call-icons { display: flex; gap: 12px; }
+
+.chat-section { padding: 10px; }
+
+.voice-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1e293b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.wave-icon { color: var(--accent-pink); font-weight: bold; letter-spacing: 2px; }
+
+/* Forex Select Pairs */
+.forex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.pair-dropdown {
+    background: #1e293b;
+    color: #fff;
+    border: 1px solid #334155;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+/* Navigation Bar */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     height: 60px;
     background: #0f172a;
     border-top: 1px solid #1e293b;
@@ -207,180 +216,96 @@ body {
     align-items: center;
     justify-content: space-around;
     z-index: 900;
-    padding: 0 5px;
 }
 
 .nav-btn {
-    background: none;
-    border: none;
+    background: none; border: none;
     color: var(--text-muted);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 14px;
-    gap: 2px;
+    display: flex; flex-direction: column;
+    align-items: center; font-size: 14px; gap: 2px;
     cursor: pointer;
 }
 
-.nav-btn span {
-    font-size: 9px;
-}
+.nav-btn span { font-size: 9px; }
+.nav-btn.active { color: var(--accent-pink); }
 
-.nav-btn.active {
-    color: var(--accent-pink);
-}
-
-/* CENTER (+) BUTTON */
 .center-add-btn {
-    width: 46px;
-    height: 46px;
+    width: 46px; height: 46px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
-    border: none;
-    color: #fff;
-    font-size: 20px;
+    border: none; color: #fff; font-size: 20px;
     box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
-    cursor: pointer;
-    margin-bottom: 10px;
+    cursor: pointer; margin-bottom: 10px;
 }
 
-/* Terminal Screen Red Button */
-.terminal-container {
-    padding: 15px;
-}
-
-#terminalCodeInput {
-    width: 100%;
-    height: 140px;
-    background: #000;
-    color: #00ffcc;
-    padding: 10px;
-    font-family: monospace;
-    border-radius: 6px;
+/* User Videos Grid (TikTok style) */
+.user-videos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
     margin-top: 10px;
-    border: 1px solid #334155;
+}
+
+.user-video-item {
+    position: relative;
+    aspect-ratio: 9/16;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.user-video-item video {
+    width: 100%; height: 100%; object-fit: cover;
+}
+
+.delete-video-btn {
+    position: absolute;
+    top: 4px; right: 4px;
+    background: rgba(239, 68, 68, 0.8);
+    color: #fff; border: none;
+    padding: 4px 6px; border-radius: 4px;
+    cursor: pointer; font-size: 10px;
 }
 
 .big-red-btn {
-    width: 100%;
-    padding: 12px;
-    background: #dc2626;
-    color: #fff;
-    font-weight: bold;
-    font-size: 15px;
-    border: none;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+    width: 100%; padding: 12px;
+    background: #dc2626; color: #fff;
+    font-weight: bold; font-size: 15px;
+    border: none; border-radius: 8px;
+    margin-top: 10px; cursor: pointer;
 }
 
-.terminal-output {
-    background: #000;
-    color: #00ffcc;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 6px;
-    min-height: 80px;
-    font-family: monospace;
-}
-
-/* Weather & Wallet UI */
-.weather-container, .profile-container, .chat-container, .forex-container {
-    padding: 15px;
-}
-
-.weather-search-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.weather-search-row input {
-    flex: 1;
-    padding: 10px;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    color: #fff;
-}
-
-.weather-search-row button {
-    background: var(--accent-blue);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    color: #000;
-}
-
-.weather-card, .wallet-card, .saved-videos-card, .profile-card {
-    background: var(--card-bg);
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 15px;
-    text-align: center;
-}
-
-.wallet-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.balance-display {
-    font-size: 24px;
-    font-weight: bold;
-    color: #00ffcc;
-    margin: 10px 0;
-}
-
-/* TradingView Frame */
-.tradingview-frame {
-    width: 100%;
-    height: 70vh;
-    border: none;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-/* Modals System */
 .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none; align-items: center; justify-content: center;
     z-index: 1000;
 }
 
 .modal-card {
     background: var(--card-bg);
-    width: 85%;
-    max-width: 380px;
-    padding: 20px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    width: 88%; max-width: 380px;
+    padding: 20px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 90vh; overflow-y: auto;
 }
 
 .modal-card input {
-    background: #0f172a;
-    border: 1px solid #334155;
-    padding: 10px;
-    border-radius: 6px;
-    color: #fff;
+    background: #0f172a; border: 1px solid #334155;
+    padding: 10px; border-radius: 6px; color: #fff;
 }
 
 .btn-primary { background: var(--accent-pink); color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; flex: 1; }
 .btn-secondary { background: #334155; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; flex: 1; }
 .close-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; }
 .avatar-large { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto; object-fit: cover; }
-.sub-nav { display: flex; gap: 10px; margin-bottom: 10px; }
+.sub-nav { display: flex; gap: 10px; }
 .sub-btn { flex: 1; padding: 8px; background: #1e293b; border: none; color: #fff; border-radius: 6px; }
 .sub-btn.active { background: var(--accent-pink); }
-.chat-messages { height: 300px; background: #0f172a; border-radius: 8px; padding: 10px; overflow-y: auto; }
-.chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+.chat-messages { height: 260px; background: #0f172a; border-radius: 8px; padding: 10px; overflow-y: auto; }
+.chat-input-row { display: flex; gap: 8px; align-items: center; }
 .chat-input-row input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; }
-.chat-input-row button { background: var(--accent-blue); border: none; padding: 10px 15px; border-radius: 6px; color: #000; }
+.tradingview-frame { width: 100%; height: 65vh; border: none; border-radius: 8px; }
+.wallet-card, .saved-videos-card, .profile-card, .weather-card { background: #0f172a; padding: 12px; border-radius: 8px; margin-top: 10px; text-align: center; }
+.balance-display { font-size: 22px; font-weight: bold; color: #00ffcc; margin: 8px 0; }
+.wallet-buttons { display: flex; gap: 8px; }
