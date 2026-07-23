@@ -1,18 +1,27 @@
-// Import Firebase SDK Modules
+// Import Firebase Modular SDK v10.8.0
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
     getFirestore, 
     collection, 
     addDoc, 
     doc, 
-    getDocs, 
-    updateDoc, 
-    arrayUnion, 
-    onSnapshot 
+    setDoc, 
+    getDoc, 
+    onSnapshot, 
+    query, 
+    orderBy, 
+    updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase Config
+// Firebase App Config
 const firebaseConfig = {
   apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
   authDomain: "umarsuperapp.firebaseapp.com",
@@ -23,343 +32,461 @@ const firebaseConfig = {
   measurementId: "G-T8YZKR2SRR"
 };
 
-// Initialize Firebase App & Firestore Database
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Local State & App Logic
-(function() {
-    const USERS_KEY = 'super_app_users';
-    const CURRENT_USER_KEY = 'super_app_current_user';
-    const SESSIONS_KEY = 'super_app_sessions';
+// Application State Variables
+let currentUser = null;
+let activeCommentPostId = null;
+let activeReplyToCommentId = null;
 
-    let users = JSON.parse(localStorage.getItem(USERS_KEY)) || {};
-    let currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY)) || null;
-    let sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY)) || [];
+let selectedVideoBase64 = null;
+let selectedProfilePhotoBase64 = null;
+let selectedChannelPhotoBase64 = null;
+let selectedGroupPhotoBase64 = null;
 
-    let posts = [
-        {
-            id: 'p1',
-            username: '@official_channel',
-            videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-            title: 'Welcome to Super App Reels!',
-            description: '#superapp #viral #trending',
-            likes: {},
-            likesCount: 120,
-            comments: [
-                {
-                    id: 'c1',
-                    username: '@umar_dev',
-                    userPhoto: 'https://via.placeholder.com/40',
-                    text: 'Super app is looking amazing with Firebase integration! 🔥',
-                    timestamp: Date.now() - 3600000,
-                    replies: [
-                        {
-                            id: 'r1',
-                            username: '@official_channel',
-                            userPhoto: 'https://via.placeholder.com/40',
-                            text: 'Thanks Umar bhai! Real-time DB is active now.',
-                            timestamp: Date.now() - 1800000
-                        }
-                    ]
-                }
-            ]
-        }
-    ];
+let postsData = [];
 
-    let activeCommentPostId = null;
-    let activeReplyToCommentId = null;
+// Auth Listener
+onAuthStateChanged(auth, async (user) => {
+    const authModal = document.getElementById('authModal');
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
 
-    function saveLocalUser() {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-        localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-    }
-
-    // Register Function
-    window.handleRegister = function(identifier, password, name, photoUrl) {
-        if (!identifier || !password || password.length < 6 || !name) {
-            alert('Password must be at least 6 characters and all fields required.');
-            return false;
-        }
-        if (users[identifier]) {
-            alert('User already exists!');
-            return false;
-        }
-        const newUser = {
-            id: 'user_' + Date.now(),
-            identifier,
-            name,
-            password,
-            photoUrl: photoUrl || 'https://via.placeholder.com/150',
-            createdAt: Date.now()
-        };
-        users[identifier] = newUser;
-        currentUser = newUser;
-        
-        sessions.push({
-            userId: newUser.id,
-            deviceName: 'Mobile Device',
-            loginTime: Date.now()
-        });
-
-        saveLocalUser();
-        alert('Account Created Successfully!');
-        location.reload();
-        return true;
-    };
-
-    // Login Function
-    window.handleLogin = function(identifier, password) {
-        if (users[identifier] && users[identifier].password === password) {
-            currentUser = users[identifier];
-            saveLocalUser();
-            location.reload();
-            return true;
+        if (userSnap.exists()) {
+            currentUser = { uid: user.uid, email: user.email, ...userSnap.data() };
+            if (authModal) authModal.style.display = 'none';
+            listenToReelsFeed();
         } else {
-            alert('Invalid credentials!');
-            return false;
+            if (authModal) authModal.style.display = 'none';
+            document.getElementById('onboardingModal').style.display = 'flex';
         }
-    };
-
-    // Settings Toggle & Logout
-    window.toggleSettings = function() {
-        const modal = document.getElementById('settingsModal');
-        if (modal) {
-            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-        }
-    };
-
-    window.handleLogout = function() {
+    } else {
         currentUser = null;
-        localStorage.removeItem(CURRENT_USER_KEY);
-        alert('Logged out successfully.');
-        location.reload();
-    };
+        if (authModal) authModal.style.display = 'flex';
+    }
+});
 
-    // Device Removal Restriction (1 Week Rule)
-    window.removeSessionDevice = function(sessionIndex) {
-        const session = sessions[sessionIndex];
-        if (!session) return;
-        const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-        if ((Date.now() - session.loginTime) < ONE_WEEK_MS) {
-            alert("Security Alert: Device removal disabled within 1 week of initial login.");
-            return;
-        }
-        sessions.splice(sessionIndex, 1);
-        saveLocalUser();
-        alert("Device removed successfully.");
-        location.reload();
-    };
+// Authentication Handler
+window.handleAuthAction = async function(type) {
+    const email = document.getElementById('authEmailInput').value.trim();
+    const password = document.getElementById('authPasswordInput').value.trim();
 
-    // REAL LIKES
-    window.toggleLike = function(postId) {
-        if (!currentUser) {
-            alert("Please log in to like videos!");
-            return;
-        }
-        const post = posts.find(p => p.id === postId);
-        if (!post) return;
-
-        if (post.likes[currentUser.id]) {
-            delete post.likes[currentUser.id];
-            post.likesCount--;
-        } else {
-            post.likes[currentUser.id] = true;
-            post.likesCount++;
-        }
-        if (window.renderReels) window.renderReels();
-    };
-
-    // COMMENTS MODAL & REPLIES SYSTEM
-    window.openCommentsModal = function(postId) {
-        activeCommentPostId = postId;
-        activeReplyToCommentId = null;
-        const modal = document.getElementById('commentsModal');
-        if (!modal) return;
-        
-        renderCommentsList();
-        modal.style.display = 'flex';
-    };
-
-    window.closeCommentsModal = function() {
-        const modal = document.getElementById('commentsModal');
-        if (modal) modal.style.display = 'none';
-        activeCommentPostId = null;
-        activeReplyToCommentId = null;
-    };
-
-    function renderCommentsList() {
-        const listContainer = document.getElementById('commentsListContainer');
-        const replyTag = document.getElementById('replyingToTag');
-        if (!listContainer) return;
-
-        const post = posts.find(p => p.id === activeCommentPostId);
-        if (!post || !post.comments) {
-            listContainer.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">No comments yet.</div>';
-            return;
-        }
-
-        if (activeReplyToCommentId && replyTag) {
-            const replyTarget = post.comments.find(c => c.id === activeReplyToCommentId);
-            replyTag.style.display = 'block';
-            replyTag.innerText = `Replying to ${replyTarget ? replyTarget.username : 'comment'} (Tap to cancel)`;
-        } else if (replyTag) {
-            replyTag.style.display = 'none';
-        }
-
-        let html = '';
-        post.comments.forEach(comment => {
-            html += `
-                <div class="comment-item">
-                    <div class="comment-header">
-                        <img src="${comment.userPhoto}" class="comment-avatar" />
-                        <span class="comment-user">${comment.username}</span>
-                    </div>
-                    <div class="comment-text">${comment.text}</div>
-                    <button class="comment-reply-btn" onclick="setReplyTarget('${comment.id}')">Reply</button>
-                    
-                    ${comment.replies && comment.replies.length > 0 ? `
-                        <div class="replies-container">
-                            ${comment.replies.map(r => `
-                                <div class="reply-item">
-                                    <div class="comment-header">
-                                        <img src="${r.userPhoto}" class="reply-avatar" />
-                                        <span class="comment-user">${r.username}</span>
-                                    </div>
-                                    <div class="comment-text">${r.text}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        });
-        listContainer.innerHTML = html;
+    if (!email || !password) {
+        alert("Enter both email and password.");
+        return;
     }
 
-    window.setReplyTarget = function(commentId) {
-        activeReplyToCommentId = commentId;
-        renderCommentsList();
-        const input = document.getElementById('commentInput');
-        if (input) input.focus();
-    };
-
-    window.cancelReplyTarget = function() {
-        activeReplyToCommentId = null;
-        renderCommentsList();
-    };
-
-    window.submitComment = function() {
-        const input = document.getElementById('commentInput');
-        if (!input || !input.value.trim()) return;
-
-        if (!currentUser) {
-            alert("Please log in to comment!");
-            return;
-        }
-
-        const post = posts.find(p => p.id === activeCommentPostId);
-        if (!post) return;
-
-        const commentText = input.value.trim();
-
-        if (activeReplyToCommentId) {
-            const targetComment = post.comments.find(c => c.id === activeReplyToCommentId);
-            if (targetComment) {
-                if (!targetComment.replies) targetComment.replies = [];
-                targetComment.replies.push({
-                    id: 'r_' + Date.now(),
-                    username: '@' + currentUser.name.toLowerCase().replace(/\s+/g, '_'),
-                    userPhoto: currentUser.photoUrl || 'https://via.placeholder.com/40',
-                    text: commentText,
-                    timestamp: Date.now()
-                });
-            }
+    try {
+        if (type === 'signup') {
+            await createUserWithEmailAndPassword(auth, email, password);
+            alert("Account created!");
         } else {
-            post.comments.push({
-                id: 'c_' + Date.now(),
-                username: '@' + currentUser.name.toLowerCase().replace(/\s+/g, '_'),
-                userPhoto: currentUser.photoUrl || 'https://via.placeholder.com/40',
-                text: commentText,
-                timestamp: Date.now(),
-                replies: []
-            });
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Login successful!");
         }
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            alert("This email is already registered! Please login.");
+        } else {
+            alert("Auth Error: " + error.message);
+        }
+    }
+};
 
-        input.value = '';
-        activeReplyToCommentId = null;
-        renderCommentsList();
+// Profile Photo Selection from Mobile Gallery
+window.triggerProfilePhotoPicker = function() {
+    document.getElementById('profilePhotoInput').click();
+};
+
+window.handleProfilePhotoSelected = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        selectedProfilePhotoBase64 = e.target.result;
+        document.getElementById('onboardPreviewImg').src = selectedProfilePhotoBase64;
+    };
+    reader.readAsDataURL(file);
+};
+
+// Complete Profile Registration
+window.completeUserOnboarding = async function() {
+    const name = document.getElementById('onboardNameInput').value.trim();
+    const username = document.getElementById('onboardUsernameInput').value.trim();
+
+    if (!name || !username) {
+        alert("Name and Username are required.");
+        return;
+    }
+
+    const userData = {
+        name,
+        username: username.startsWith('@') ? username : '@' + username,
+        photoUrl: selectedProfilePhotoBase64 || 'https://via.placeholder.com/150',
+        followersCount: 0,
+        createdAt: Date.now()
     };
 
-    // AI Dynamic Chat
-    window.askAI = function(userQuery) {
-        if (!userQuery.trim()) return "Please enter a question.";
-        const query = userQuery.toLowerCase();
+    await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+    currentUser = { uid: auth.currentUser.uid, email: auth.currentUser.email, ...userData };
+    document.getElementById('onboardingModal').style.display = 'none';
+    listenToReelsFeed();
+};
+
+window.handleLogout = function() {
+    signOut(auth).then(() => location.reload());
+};
+
+// Real-Time Feed Engine
+function listenToReelsFeed() {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+        postsData = [];
+        snapshot.forEach((docSnap) => {
+            postsData.push({ id: docSnap.id, ...docSnap.data() });
+        });
         
-        if (query.includes("hello") || query.includes("hi") || query.includes("salam")) {
-            return `Hello ${currentUser ? currentUser.name : 'User'}! Welcome to Super App powered by Firebase.`;
-        } else if (query.includes("code") || query.includes("js") || query.includes("python")) {
-            return "Use our Compiler tab to execute JavaScript snippets on your device!";
-        } else if (query.includes("forex") || query.includes("gold") || query.includes("btc")) {
-            return "Live charts are available under the Markets tab!";
-        } else {
-            return `You asked: "${userQuery}". AI service is fully connected!`;
-        }
+        postsData.sort((a, b) => {
+            const rankA = (a.likesCount || 0) * 2 + (a.comments ? a.comments.length : 0) * 3;
+            const rankB = (b.likesCount || 0) * 2 + (b.comments ? b.comments.length : 0) * 3;
+            return rankB - rankA;
+        });
+
+        renderReelsUI();
+    });
+}
+
+function renderReelsUI() {
+    const container = document.getElementById('reelsFeedContainer');
+    if (!container) return;
+
+    if (postsData.length === 0) {
+        container.innerHTML = `
+            <div class="reel-card" style="display:flex; align-items:center; justify-content:center; text-align:center;">
+                <div>
+                    <h3>No Videos Published Yet</h3>
+                    <p style="color:var(--text-muted);">Tap (+) to post a reel from Gallery!</p>
+                </div>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    postsData.forEach((post) => {
+        const isLiked = post.likes && currentUser && post.likes[currentUser.uid];
+        const shareLink = `${window.location.origin}?reelId=${post.id}&ref=${currentUser ? currentUser.username : 'app'}`;
+
+        html += `
+            <div class="reel-card" id="reel-${post.id}">
+                <div class="video-container">
+                    <video src="${post.videoUrl}" style="filter: ${post.filter || 'none'}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
+                </div>
+                <div class="video-overlay">
+                    <div class="channel-info">
+                        <img src="${post.userPhoto || 'https://via.placeholder.com/40'}" class="avatar">
+                        <span class="username">${post.username || '@user'}</span>
+                        <button class="btn-subscribe">Subscribe</button>
+                    </div>
+                    <div class="video-title">${post.description || ''}</div>
+                </div>
+                <div class="action-sidebar">
+                    <button class="action-btn" onclick="toggleLikePost('${post.id}')">
+                        <i class="fa-solid fa-heart" style="color:${isLiked ? '#e91e63' : '#fff'}"></i>
+                        <span>${post.likesCount || 0}</span>
+                    </button>
+                    <button class="action-btn" onclick="openCommentsModal('${post.id}')">
+                        <i class="fa-solid fa-comment"></i>
+                        <span>${post.comments ? post.comments.length : 0}</span>
+                    </button>
+                    <button class="action-btn" onclick="sharePostLink('${shareLink}')">
+                        <i class="fa-solid fa-share"></i>
+                        <span>Share</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+window.toggleLikePost = async function(postId) {
+    if (!currentUser) return alert("Log in to like videos!");
+    const postRef = doc(db, "posts", postId);
+    const post = postsData.find(p => p.id === postId);
+    if (!post) return;
+
+    const likes = post.likes || {};
+    let likesCount = post.likesCount || 0;
+
+    if (likes[currentUser.uid]) {
+        delete likes[currentUser.uid];
+        likesCount = Math.max(0, likesCount - 1);
+    } else {
+        likes[currentUser.uid] = true;
+        likesCount++;
+    }
+
+    await updateDoc(postRef, { likes, likesCount });
+};
+
+// Video Gallery & Camera Selection Handlers
+window.triggerGalleryVideoPicker = function() {
+    document.getElementById('galleryVideoInput').click();
+};
+
+window.triggerCameraVideoPicker = function() {
+    document.getElementById('cameraVideoInput').click();
+};
+
+window.handleVideoFileSelected = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        selectedVideoBase64 = e.target.result;
+        const videoTag = document.getElementById('previewVideoTag');
+        videoTag.src = selectedVideoBase64;
+        document.getElementById('videoPreviewContainer').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+};
+
+window.publishVideoPost = async function() {
+    if (!selectedVideoBase64) {
+        alert("Please select a video file from Gallery or Camera.");
+        return;
+    }
+
+    const description = document.getElementById('videoDescriptionInput').value.trim();
+    const filter = document.getElementById('videoEffectFilter').value;
+    const visibility = document.getElementById('videoVisibilitySelect').value;
+
+    const newPost = {
+        userId: currentUser.uid,
+        username: currentUser.username,
+        userPhoto: currentUser.photoUrl,
+        videoUrl: selectedVideoBase64,
+        description,
+        filter,
+        visibility,
+        likes: {},
+        likesCount: 0,
+        comments: [],
+        createdAt: Date.now()
     };
 
-    // Termux Compiler Real Execution
-    window.runJSCompiler = function(code) {
-        const outputBox = document.getElementById('compilerOutput');
-        if (!code.trim()) {
-            outputBox.innerText = "Error: Code snippet is empty.";
-            outputBox.style.color = "#ff4d4d";
-            return;
-        }
-        try {
-            let logs = [];
-            const customConsole = {
-                log: (...args) => logs.push(args.join(' ')),
-                error: (...args) => logs.push("Error: " + args.join(' ')),
-                warn: (...args) => logs.push("Warning: " + args.join(' '))
-            };
-            const runFn = new Function('console', code);
-            const result = runFn(customConsole);
-            
-            if (logs.length > 0) {
-                outputBox.innerText = logs.join('\n');
-                outputBox.style.color = "#00ffcc";
-            } else if (result !== undefined) {
-                outputBox.innerText = "Result: " + result;
-                outputBox.style.color = "#00ffcc";
-            } else {
-                outputBox.innerText = "Execution finished successfully (No output).";
-                outputBox.style.color = "#00ffcc";
-            }
-        } catch (err) {
-            outputBox.innerText = "Error: " + err.message;
-            outputBox.style.color = "#ff4d4d";
-        }
-    };
+    await addDoc(collection(db, "posts"), newPost);
+    alert("Video Reel Published!");
+    closeUploadModal();
+};
 
-    // Download & Share
-    window.shareVideo = function(videoUrl, title) {
-        if (navigator.share) {
-            navigator.share({ title: title || 'Super App Video', url: videoUrl });
-        } else {
-            navigator.clipboard.writeText(videoUrl);
-            alert("Video link copied to clipboard!");
-        }
+// Channel & Group Photo Pickers from Gallery
+window.triggerChannelPhotoPicker = function() { document.getElementById('channelPhotoInput').click(); };
+window.handleChannelPhotoSelected = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = (evt) => {
+        selectedChannelPhotoBase64 = evt.target.result;
+        document.getElementById('channelPreviewImg').src = selectedChannelPhotoBase64;
     };
+    r.readAsDataURL(file);
+};
 
-    window.downloadVideo = function(videoUrl, fileName) {
-        const a = document.createElement('a');
-        a.href = videoUrl;
-        a.download = fileName || 'super_app_video.mp4';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert("Downloading video...");
+window.triggerGroupPhotoPicker = function() { document.getElementById('groupPhotoInput').click(); };
+window.handleGroupPhotoSelected = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = (evt) => {
+        selectedGroupPhotoBase64 = evt.target.result;
+        document.getElementById('groupPreviewImg').src = selectedGroupPhotoBase64;
     };
+    r.readAsDataURL(file);
+};
 
-})();
+window.saveNewChannel = async function() {
+    const name = document.getElementById('channelName').value.trim();
+    if (!name) return alert("Enter channel name");
+
+    await addDoc(collection(db, "channels"), {
+        name,
+        photo: selectedChannelPhotoBase64 || '',
+        owner: currentUser.uid,
+        createdAt: Date.now()
+    });
+    alert("Channel created!");
+    closeModal('channelModal');
+};
+
+window.saveNewGroup = async function() {
+    const name = document.getElementById('groupName').value.trim();
+    if (!name) return alert("Enter group name");
+
+    await addDoc(collection(db, "groups"), {
+        name,
+        photo: selectedGroupPhotoBase64 || '',
+        owner: currentUser.uid,
+        createdAt: Date.now()
+    });
+    alert("Group created!");
+    closeModal('groupModal');
+};
+
+// Comments Modal System
+window.openCommentsModal = function(postId) {
+    activeCommentPostId = postId;
+    activeReplyToCommentId = null;
+    document.getElementById('commentsModal').style.display = 'flex';
+    renderCommentsList();
+};
+
+window.closeCommentsModal = function() {
+    document.getElementById('commentsModal').style.display = 'none';
+};
+
+function renderCommentsList() {
+    const listContainer = document.getElementById('commentsListContainer');
+    const post = postsData.find(p => p.id === activeCommentPostId);
+    if (!post || !post.comments || post.comments.length === 0) {
+        listContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No comments yet.</div>';
+        return;
+    }
+
+    let html = '';
+    post.comments.forEach(c => {
+        html += `
+            <div style="background:#1e293b; padding:8px 12px; border-radius:10px; margin-bottom:8px;">
+                <div style="font-weight:bold; color:var(--accent-blue); font-size:12px;">${c.username}</div>
+                <div style="font-size:13px;">${c.text}</div>
+            </div>
+        `;
+    });
+    listContainer.innerHTML = html;
+}
+
+window.submitComment = async function() {
+    const input = document.getElementById('commentInput');
+    const text = input.value.trim();
+    if (!text || !activeCommentPostId) return;
+
+    const postRef = doc(db, "posts", activeCommentPostId);
+    const post = postsData.find(p => p.id === activeCommentPostId);
+
+    if (!post.comments) post.comments = [];
+    post.comments.push({
+        id: 'c_' + Date.now(),
+        username: currentUser.username,
+        text: text
+    });
+
+    await updateDoc(postRef, { comments: post.comments });
+    input.value = '';
+    renderCommentsList();
+};
+
+// AI Assistant Response System
+window.sendAIMessage = function() {
+    const input = document.getElementById('aiQueryInput');
+    const queryStr = input.value.trim();
+    if (!queryStr) return;
+
+    const box = document.getElementById('aiChatBox');
+    box.innerHTML += `<div><strong>You:</strong> ${queryStr}</div>`;
+    input.value = '';
+
+    setTimeout(() => {
+        let reply = "I am Super App AI. Direct gallery upload and real-time database are fully active!";
+        const q = queryStr.toLowerCase();
+        if (q.includes("hello") || q.includes("hi")) reply = `Hello ${currentUser ? currentUser.name : ''}! How can I help you?`;
+        
+        box.innerHTML += `<div style="color:var(--accent-green);"><strong>AI:</strong> ${reply}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }, 400);
+};
+
+// Termux Execution Terminal
+window.runJSCompiler = function(code) {
+    const outputBox = document.getElementById('compilerOutput');
+    if (!code.trim()) {
+        outputBox.innerText = "Error: Input string empty.";
+        outputBox.style.color = "#ff4d4d";
+        return;
+    }
+    try {
+        let logs = [];
+        const customConsole = {
+            log: (...args) => logs.push(args.join(' ')),
+            error: (...args) => logs.push("Error: " + args.join(' '))
+        };
+        const runFn = new Function('console', code);
+        runFn(customConsole);
+        outputBox.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully.";
+        outputBox.style.color = "#00ffcc";
+    } catch (err) {
+        outputBox.innerText = "Execution Error: " + err.message;
+        outputBox.style.color = "#ff4d4d";
+    }
+};
+
+window.searchWeather = function() {
+    const city = document.getElementById('weatherCityInput').value.trim();
+    const display = document.getElementById('weatherDisplay');
+    if (!city) return;
+
+    const temp = Math.floor(Math.random() * 15) + 25;
+    display.innerHTML = `
+        <h4 style="margin:6px 0;">City: ${city}</h4>
+        <p style="font-size:20px; color:var(--accent-gold); margin:0;">${temp}°C</p>
+    `;
+};
+
+window.sendDirectMessage = function() {
+    const input = document.getElementById('chatMessageInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const box = document.getElementById('chatMessagesBox');
+    box.innerHTML += `<div style="text-align:right; color:var(--accent-blue);"><b>You:</b> ${msg}</div>`;
+    input.value = '';
+    box.scrollTop = box.scrollHeight;
+};
+
+window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active-tab');
+    event.currentTarget.classList.add('active');
+};
+
+window.openUploadModal = function() { document.getElementById('uploadModal').style.display = 'flex'; };
+window.closeUploadModal = function() { 
+    document.getElementById('uploadModal').style.display = 'none';
+    selectedVideoBase64 = null;
+};
+window.toggleSettings = function() { 
+    const m = document.getElementById('settingsModal');
+    m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+};
+window.toggleChatMenu = function() {
+    const d = document.getElementById('chatMenuDropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+};
+window.openCreateChannelModal = function() { document.getElementById('channelModal').style.display = 'flex'; };
+window.openCreateGroupModal = function() { document.getElementById('groupModal').style.display = 'flex'; };
+window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+
+window.sharePostLink = function(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+        alert("Direct reel link copied to clipboard!");
+    }
+};

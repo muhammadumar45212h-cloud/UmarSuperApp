@@ -9,13 +9,13 @@
 </head>
 <body>
 
-    <!-- App Top Navigation Bar -->
+    <!-- Header Navigation -->
     <header class="app-header">
         <div class="logo">
             <h2>Umar Super App</h2>
         </div>
         
-        <!-- Global Search Bar with Filters -->
+        <!-- Search Bar -->
         <div class="search-container">
             <input type="text" id="globalSearchInput" placeholder="Search users, reels, channels..." oninput="handleGlobalSearch()">
             <div class="search-filters" id="searchFilters" style="display: none;">
@@ -32,7 +32,7 @@
         </div>
     </header>
 
-    <!-- Main Dynamic Navigation Tabs -->
+    <!-- Top Navigation Tabs -->
     <nav class="top-nav-tabs">
         <button class="tab-btn active" onclick="switchTab('reelsTab')"><i class="fa-solid fa-film"></i> Reels</button>
         <button class="tab-btn" onclick="switchTab('chatTab')"><i class="fa-solid fa-comments"></i> Chat</button>
@@ -45,16 +45,16 @@
     <!-- TAB 1: Short Videos / Reels Container -->
     <div id="reelsTab" class="tab-content active-tab">
         <main class="feed-container" id="reelsFeedContainer">
-            <!-- Dynamic Video Feed Loaded via Script -->
+            <!-- Dynamic Video Feed -->
         </main>
 
-        <!-- Floating + Button to Upload Video / Go Live -->
+        <!-- Floating Action Button for Upload -->
         <div class="floating-upload-btn" onclick="openUploadModal()">
             <i class="fa-solid fa-plus"></i>
         </div>
     </div>
 
-    <!-- TAB 2: Real-time Chat & Voice/Video Call Drawer -->
+    <!-- TAB 2: Real-time Chat -->
     <div id="chatTab" class="tab-content">
         <div class="chat-wrapper">
             <div class="chat-header">
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: Forex Live Market Charts -->
+    <!-- TAB 3: Forex Live Charts -->
     <div id="marketTab" class="tab-content">
         <div class="market-container">
             <h3><i class="fa-solid fa-chart-line"></i> Real-Time Forex Charts (XAUUSD / BTCUSD)</h3>
@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <!-- TAB 4: Full Screen Termux JS/Python Compiler Terminal -->
+    <!-- TAB 4: Termux JS Terminal Compiler -->
     <div id="compilerTab" class="tab-content">
         <div class="terminal-container">
             <div class="terminal-header">
@@ -114,7 +114,7 @@
         </div>
     </div>
 
-    <!-- TAB 6: AI Chat Assistant -->
+    <!-- TAB 6: AI Assistant Chat -->
     <div id="aiTab" class="tab-content">
         <div class="ai-chat-wrapper">
             <div class="chat-header">
@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    <!-- Bottom Sheet Comments Modal -->
+    <!-- Comments Sheet Overlay -->
     <div class="comments-modal-overlay" id="commentsModal">
         <div class="comments-modal-content">
             <div class="comments-header">
@@ -146,24 +146,27 @@
         </div>
     </div>
 
-    <!-- Video Upload & Camera Studio Modal -->
+    <!-- Video Upload / Camera Studio Modal -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal-card">
-            <h3><i class="fa-solid fa-video"></i> Create Post / Short Reel</h3>
+            <h3><i class="fa-solid fa-video"></i> Post Reel from Gallery / Camera</h3>
             
             <div class="upload-options">
-                <button onclick="triggerFilePicker()"><i class="fa-solid fa-folder-open"></i> Pick Video</button>
-                <button onclick="openCameraRecorder()"><i class="fa-solid fa-camera"></i> Camera Record</button>
+                <button onclick="triggerGalleryVideoPicker()"><i class="fa-solid fa-images"></i> Pick from Gallery</button>
+                <button onclick="triggerCameraVideoPicker()"><i class="fa-solid fa-camera"></i> Record Camera</button>
                 <button onclick="initiateLiveStream()"><i class="fa-solid fa-broadcast-tower"></i> Go Live</button>
             </div>
-            <input type="file" id="videoFileInput" accept="video/*" style="display:none;" onchange="handleFileSelected(event)">
+
+            <!-- Hidden Direct Inputs for Gallery and Camera -->
+            <input type="file" id="galleryVideoInput" accept="video/*" style="display:none;" onchange="handleVideoFileSelected(event)">
+            <input type="file" id="cameraVideoInput" accept="video/*" capture="environment" style="display:none;" onchange="handleVideoFileSelected(event)">
 
             <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
                 <video id="previewVideoTag" controls style="width:100%; max-height:200px; border-radius:8px;"></video>
             </div>
 
-            <div class="input-group">
-                <label>Filters / Effects:</label>
+            <div class="input-group" style="margin-top:10px;">
+                <label style="font-size:12px; color:var(--text-muted);">Effects Filter:</label>
                 <select id="videoEffectFilter">
                     <option value="none">Normal (No Filter)</option>
                     <option value="sepia(0.8)">Vintage Sepia</option>
@@ -174,42 +177,46 @@
             </div>
 
             <div class="input-group">
-                <input type="text" id="videoDescriptionInput" placeholder="Title & Description (#hashtags)" />
+                <input type="text" id="videoDescriptionInput" placeholder="Description & #hashtags" />
             </div>
 
             <div class="input-group">
                 <select id="videoVisibilitySelect">
-                    <option value="public">Public (Visible to World)</option>
+                    <option value="public">Public (Everyone)</option>
                     <option value="private">Private (Only Me)</option>
                 </select>
             </div>
 
             <div class="modal-actions">
-                <button class="btn-primary" onclick="publishVideoPost()">Publish Video</button>
+                <button class="btn-primary" onclick="publishVideoPost()">Publish Reel</button>
                 <button class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Auth Onboarding Modal (Step 2 after Sign-Up) -->
+    <!-- Auth Profile Onboarding Modal (Gallery Photo Select) -->
     <div class="modal-overlay" id="onboardingModal">
         <div class="modal-card">
-            <h3>Complete Profile Setup</h3>
-            <p style="font-size:12px; color:var(--text-muted);">Configure your account identity before proceeding.</p>
-            <div class="input-group">
-                <input type="text" id="onboardNameInput" placeholder="Display Name (e.g. Umar Dev)">
+            <h3>Profile Setup</h3>
+            <p style="font-size:12px; color:var(--text-muted);">Select Profile Picture from Gallery & Fill details.</p>
+            
+            <div class="photo-picker-box" onclick="triggerProfilePhotoPicker()">
+                <img id="onboardPreviewImg" src="https://via.placeholder.com/80" class="avatar-preview">
+                <span style="font-size:12px; color:var(--accent-blue);">Tap to Select Photo from Gallery</span>
+            </div>
+            <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="handleProfilePhotoSelected(event)">
+
+            <div class="input-group" style="margin-top:10px;">
+                <input type="text" id="onboardNameInput" placeholder="Display Name (e.g. Umar)">
             </div>
             <div class="input-group">
                 <input type="text" id="onboardUsernameInput" placeholder="Unique Username (e.g. @umar_super)">
             </div>
-            <div class="input-group">
-                <input type="text" id="onboardPhotoInput" placeholder="Profile Photo Image URL (Optional)">
-            </div>
-            <button class="btn-primary" onclick="completeUserOnboarding()">Save & Continue</button>
+            <button class="btn-primary" onclick="completeUserOnboarding()">Save Profile</button>
         </div>
     </div>
 
-    <!-- Auth Login / Sign Up Modal -->
+    <!-- Login / Sign Up Modal -->
     <div class="modal-overlay" id="authModal" style="display: flex;">
         <div class="modal-card">
             <h3 id="authTitle">Welcome to Super App</h3>
@@ -242,11 +249,16 @@
     <div class="modal-overlay" id="channelModal">
         <div class="modal-card">
             <h3>Create Broadcast Channel</h3>
-            <div class="input-group"><input type="text" id="channelName" placeholder="Channel Name"></div>
+            <div class="photo-picker-box" onclick="triggerChannelPhotoPicker()">
+                <img id="channelPreviewImg" src="https://via.placeholder.com/60" class="avatar-preview" style="width:50px; height:50px;">
+                <span style="font-size:11px; color:var(--accent-blue);">Select Channel Icon from Gallery</span>
+            </div>
+            <input type="file" id="channelPhotoInput" accept="image/*" style="display:none;" onchange="handleChannelPhotoSelected(event)">
+
+            <div class="input-group" style="margin-top:8px;"><input type="text" id="channelName" placeholder="Channel Name"></div>
             <div class="input-group"><input type="text" id="channelHandle" placeholder="Username Handle"></div>
             <div class="input-group"><input type="text" id="channelLink" placeholder="Custom Link (slug)"></div>
             <div class="input-group"><input type="text" id="channelPhone" placeholder="Mobile / Email Link"></div>
-            <div class="input-group"><input type="text" id="channelPhoto" placeholder="Photo URL"></div>
             <div class="input-group">
                 <select id="channelPrivacy"><option value="public">Public</option><option value="private">Private</option></select>
             </div>
@@ -259,16 +271,19 @@
     <div class="modal-overlay" id="groupModal">
         <div class="modal-card">
             <h3>Create Community Group</h3>
-            <div class="input-group"><input type="text" id="groupName" placeholder="Group Name"></div>
+            <div class="photo-picker-box" onclick="triggerGroupPhotoPicker()">
+                <img id="groupPreviewImg" src="https://via.placeholder.com/60" class="avatar-preview" style="width:50px; height:50px;">
+                <span style="font-size:11px; color:var(--accent-blue);">Select Group Icon from Gallery</span>
+            </div>
+            <input type="file" id="groupPhotoInput" accept="image/*" style="display:none;" onchange="handleGroupPhotoSelected(event)">
+
+            <div class="input-group" style="margin-top:8px;"><input type="text" id="groupName" placeholder="Group Name"></div>
             <div class="input-group"><input type="text" id="groupHandle" placeholder="@groupusername"></div>
-            <div class="input-group"><input type="text" id="groupPhoto" placeholder="Group Icon Photo URL"></div>
             <button class="btn-primary" onclick="saveNewGroup()">Create Group</button>
             <button class="btn-secondary" onclick="closeModal('groupModal')">Cancel</button>
         </div>
     </div>
 
-    <!-- JS Module Link -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
-
