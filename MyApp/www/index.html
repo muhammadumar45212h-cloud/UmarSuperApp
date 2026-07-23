@@ -9,28 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- TradingView Widget Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        /* Small Red Sign-up button link styling */
-        .auth-toggle-text {
-            font-size: 13px;
-            margin-top: 12px;
-        }
-        .auth-toggle-text a {
-            color: #ff4d4d;
-            font-weight: 600;
-            font-size: 12px;
-            text-decoration: none;
-            margin-left: 4px;
-        }
-        .auth-toggle-text a:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- 1. AUTHENTICATION OVERLAY (By default hidden rakha hai taake app direct khule) -->
-    <div id="auth-modal" class="auth-overlay hidden">
+    <!-- 1. AUTHENTICATION OVERLAY (Login / Signup + Onboarding) -->
+    <div id="auth-modal" class="auth-overlay">
         <div class="auth-card" id="auth-form-card">
             <h2 id="auth-title">Umar Super App Login</h2>
             <p class="auth-sub">Enter your details to access live features</p>
@@ -41,10 +24,11 @@
             <div id="onboarding-fields" class="hidden">
                 <input type="text" id="auth-fullname" placeholder="Full Name (e.g. Muhammad Umar)" />
                 <input type="text" id="auth-username" placeholder="Username (@umar_dev)" />
-                <input type="tel" id="auth-phone" placeholder="Phone Number" />
+                <input type="tel" id="auth-phone" placeholder="Phone Number (e.g. 03001234567)" />
                 
-                <label style="color:#aaa; font-size:11px; display:block; margin-top:8px; text-align:left;">Profile Photo (Select from Gallery):</label>
-                <input type="file" id="auth-avatar-file" accept="image/*" style="background:#222; color:#fff; padding:6px; margin-top:4px; border-radius:5px; width:100%; font-size:12px;" />
+                <!-- Direct Mobile Gallery Image Selector -->
+                <label style="color:#aaa; font-size:12px; display:block; margin-top:8px; text-align:left;">Profile Photo (Select from Gallery):</label>
+                <input type="file" id="auth-avatar-file" accept="image/*" style="background:#222; color:#fff; padding:6px; margin-top:4px; border-radius:5px; width:100%;" />
             </div>
 
             <button id="auth-submit-btn" class="btn-primary">Login</button>
@@ -76,7 +60,7 @@
                 <button id="btn-top-menu" class="icon-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
             </div>
 
-            <!-- Top Dropdown Menu -->
+            <!-- Top Dropdown Menu (Channels & Groups Creation) -->
             <div id="top-dropdown-menu" class="dropdown-menu hidden">
                 <button id="menu-opt-channel"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
                 <button id="menu-opt-group"><i class="fa-solid fa-users"></i> Create Group</button>
@@ -85,7 +69,7 @@
             </div>
         </header>
 
-        <!-- GLOBAL SEARCH FILTER BAR -->
+        <!-- GLOBAL SEARCH FILTER BAR (Triggers on Search focus) -->
         <div id="search-filter-bar" class="search-filter-bar hidden">
             <button class="filter-chip active" data-filter="all">All</button>
             <button class="filter-chip" data-filter="users">Users</button>
@@ -353,7 +337,7 @@
         </div>
     </div>
 
-    <!-- FIREBASE SDKs -->
+    <!-- FIREBASE SDKs (Modular/Compat CDN for direct browser run) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
