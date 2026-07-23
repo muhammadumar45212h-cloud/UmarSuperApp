@@ -1,4 +1,4 @@
-// Import Firebase Modular SDK v10.8.0
+// Import Firebase Modular SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getAuth, 
@@ -35,25 +35,28 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Application State
+// State Variables
 let currentUser = null;
 let activeCommentPostId = null;
-
 let selectedVideoBase64 = null;
 let selectedProfilePhotoBase64 = null;
-
 let postsData = [];
 
-// App Startup: Open Directly without Auth Popup
+// Toast Notification Helper
+function showToast(message) {
+    const toast = document.getElementById('toastNotification');
+    if(!toast) return;
+    toast.innerText = message;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+// App Startup
 document.addEventListener("DOMContentLoaded", () => {
-    const authModal = document.getElementById('authModal');
-    if (authModal) authModal.style.display = 'none';
-    
-    // Load Reels feed on start
     listenToReelsFeed();
 });
 
-// Firebase Auth Observer
+// Auth Observer
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
@@ -62,7 +65,6 @@ onAuthStateChanged(auth, async (user) => {
         if (userSnap.exists()) {
             currentUser = { uid: user.uid, email: user.email, ...userSnap.data() };
             document.getElementById('authModal').style.display = 'none';
-            document.getElementById('onboardingModal').style.display = 'none';
         } else {
             document.getElementById('authModal').style.display = 'none';
             document.getElementById('onboardingModal').style.display = 'flex';
@@ -72,10 +74,10 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Guard Function: Ask Auth only when interacting
+// Auth Guard
 function requireAuth(actionCallback) {
     if (!currentUser) {
-        alert("Pehle Login ya Sign Up karein!");
+        showToast("Pehle Login ya Sign Up karein!");
         document.getElementById('authModal').style.display = 'flex';
         return false;
     }
@@ -83,62 +85,52 @@ function requireAuth(actionCallback) {
     return true;
 }
 
-// Tab Switcher (Original Layout Preserved)
+// Tabs Controller
 window.switchTab = function(tabId, element) {
-    const contents = document.querySelectorAll('.tab-content');
-    contents.forEach(content => content.classList.remove('active-tab'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-    const buttons = document.querySelectorAll('.tab-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-
-    const selectedTab = document.getElementById(tabId);
-    if (selectedTab) selectedTab.classList.add('active-tab');
-
-    if (element) {
-        element.classList.add('active');
-    } else if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
-    }
+    const activeContent = document.getElementById(tabId);
+    if (activeContent) activeContent.classList.add('active-tab');
+    if (element) element.classList.add('active');
 };
 
-// Auth Handler
+// Auth Actions
 window.handleAuthAction = async function(type) {
     const email = document.getElementById('authEmailInput').value.trim();
     const password = document.getElementById('authPasswordInput').value.trim();
 
     if (!email || !password) {
-        alert("Email aur Password dono required hain.");
+        showToast("Email aur Password dono likhein.");
         return;
     }
 
     try {
         if (type === 'signup') {
             await createUserWithEmailAndPassword(auth, email, password);
-            alert("Account ban gaya!");
+            showToast("Account ban gaya!");
         } else {
             await signInWithEmailAndPassword(auth, email, password);
-            alert("Login ho gaya!");
+            showToast("Login ho gaya!");
+            document.getElementById('authModal').style.display = 'none';
         }
     } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
-            alert("Yeh email pehle se registered hai! Log In par click karein.");
-        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-            alert("Password ya Email galat hai.");
+            showToast("Email registered hai! Log In dabaayein.");
+        } else if (error.code === 'auth/invalid-credential') {
+            showToast("Password ya Email ghalt hai.");
         } else {
-            alert("Auth Error: " + error.message);
+            showToast("Auth Error: " + error.message);
         }
     }
 };
 
-// Onboarding Profile Photo
-window.triggerProfilePhotoPicker = function() {
-    document.getElementById('profilePhotoInput').click();
-};
+// Profile Setup
+window.triggerProfilePhotoPicker = function() { document.getElementById('profilePhotoInput').click(); };
 
 window.handleProfilePhotoSelected = function(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         selectedProfilePhotoBase64 = e.target.result;
@@ -152,7 +144,7 @@ window.completeUserOnboarding = async function() {
     const username = document.getElementById('onboardUsernameInput').value.trim();
 
     if (!name || !username) {
-        alert("Name aur Username zaroori hain.");
+        showToast("Name aur Username required hain.");
         return;
     }
 
@@ -166,13 +158,10 @@ window.completeUserOnboarding = async function() {
     await setDoc(doc(db, "users", auth.currentUser.uid), userData);
     currentUser = { uid: auth.currentUser.uid, email: auth.currentUser.email, ...userData };
     document.getElementById('onboardingModal').style.display = 'none';
+    showToast("Profile Complete!");
 };
 
-window.handleLogout = function() {
-    signOut(auth).then(() => location.reload());
-};
-
-// Real-Time Feed Engine
+// Reels Feed
 function listenToReelsFeed() {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -192,8 +181,8 @@ function renderReelsUI() {
         container.innerHTML = `
             <div class="reel-card" style="display:flex; align-items:center; justify-content:center; text-align:center;">
                 <div>
-                    <h3>Koi Video Upload Nahi Hui</h3>
-                    <p style="color:var(--text-muted);">(+) Button dabayein video post karne ke liye</p>
+                    <h3>No Videos Found</h3>
+                    <p style="color:var(--text-muted);">(+) button se reel post karein</p>
                 </div>
             </div>`;
         return;
@@ -204,7 +193,7 @@ function renderReelsUI() {
         const isLiked = post.likes && currentUser && post.likes[currentUser.uid];
 
         html += `
-            <div class="reel-card" id="reel-${post.id}">
+            <div class="reel-card">
                 <div class="video-container">
                     <video src="${post.videoUrl}" style="filter: ${post.filter || 'none'}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
                 </div>
@@ -212,7 +201,6 @@ function renderReelsUI() {
                     <div class="channel-info">
                         <img src="${post.userPhoto || 'https://via.placeholder.com/40'}" class="avatar">
                         <span class="username">${post.username || '@user'}</span>
-                        <button class="btn-subscribe" onclick="requireAuth()">Subscribe</button>
                     </div>
                     <div class="video-title">${post.description || ''}</div>
                 </div>
@@ -225,10 +213,6 @@ function renderReelsUI() {
                         <i class="fa-solid fa-comment"></i>
                         <span>${post.comments ? post.comments.length : 0}</span>
                     </button>
-                    <button class="action-btn" onclick="sharePostLink('${post.id}')">
-                        <i class="fa-solid fa-share"></i>
-                        <span>Share</span>
-                    </button>
                 </div>
             </div>
         `;
@@ -236,7 +220,7 @@ function renderReelsUI() {
     container.innerHTML = html;
 }
 
-// Protected Actions
+// Like Post
 window.toggleLikePost = function(postId) {
     requireAuth(async () => {
         const postRef = doc(db, "posts", postId);
@@ -258,6 +242,7 @@ window.toggleLikePost = function(postId) {
     });
 };
 
+// Upload Modal
 window.openUploadModal = function() {
     requireAuth(() => {
         document.getElementById('uploadModal').style.display = 'flex';
@@ -265,17 +250,14 @@ window.openUploadModal = function() {
 };
 
 window.triggerGalleryVideoPicker = function() { document.getElementById('galleryVideoInput').click(); };
-window.triggerCameraVideoPicker = function() { document.getElementById('cameraVideoInput').click(); };
 
 window.handleVideoFileSelected = function(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         selectedVideoBase64 = e.target.result;
-        const videoTag = document.getElementById('previewVideoTag');
-        videoTag.src = selectedVideoBase64;
+        document.getElementById('previewVideoTag').src = selectedVideoBase64;
         document.getElementById('videoPreviewContainer').style.display = 'block';
     };
     reader.readAsDataURL(file);
@@ -283,7 +265,7 @@ window.handleVideoFileSelected = function(event) {
 
 window.publishVideoPost = function() {
     requireAuth(async () => {
-        if (!selectedVideoBase64) return alert("Pehle video choose karein.");
+        if (!selectedVideoBase64) return showToast("Video select karein.");
 
         const description = document.getElementById('videoDescriptionInput').value.trim();
         const filter = document.getElementById('videoEffectFilter').value;
@@ -304,34 +286,32 @@ window.publishVideoPost = function() {
         };
 
         await addDoc(collection(db, "posts"), newPost);
-        alert("Video Publish Ho Gayi!");
+        showToast("Video Upload Ho Gayi!");
         closeUploadModal();
     });
 };
 
-// Comments Handling
+// Comments
 window.openCommentsModal = function(postId) {
     activeCommentPostId = postId;
     document.getElementById('commentsModal').style.display = 'flex';
     renderCommentsList();
 };
 
-window.closeCommentsModal = function() {
-    document.getElementById('commentsModal').style.display = 'none';
-};
+window.closeCommentsModal = function() { document.getElementById('commentsModal').style.display = 'none'; };
 
 function renderCommentsList() {
     const listContainer = document.getElementById('commentsListContainer');
     const post = postsData.find(p => p.id === activeCommentPostId);
     if (!post || !post.comments || post.comments.length === 0) {
-        listContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Koi comment nahi hai.</div>';
+        listContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No comments.</div>';
         return;
     }
 
     let html = '';
     post.comments.forEach(c => {
         html += `
-            <div style="background:#1e293b; padding:8px 12px; border-radius:10px; margin-bottom:8px;">
+            <div style="background:#0f172a; padding:8px 12px; border-radius:8px; margin-bottom:8px;">
                 <div style="font-weight:bold; color:var(--accent-blue); font-size:12px;">${c.username}</div>
                 <div style="font-size:13px;">${c.text}</div>
             </div>
@@ -350,11 +330,7 @@ window.submitComment = function() {
         const post = postsData.find(p => p.id === activeCommentPostId);
 
         if (!post.comments) post.comments = [];
-        post.comments.push({
-            id: 'c_' + Date.now(),
-            username: currentUser.username,
-            text: text
-        });
+        post.comments.push({ id: 'c_' + Date.now(), username: currentUser.username, text: text });
 
         await updateDoc(postRef, { comments: post.comments });
         input.value = '';
@@ -362,7 +338,7 @@ window.submitComment = function() {
     });
 };
 
-// Chat & Terminal Guard
+// Controls & Settings
 window.sendDirectMessage = function() {
     requireAuth(() => {
         const input = document.getElementById('chatMessageInput');
@@ -370,7 +346,7 @@ window.sendDirectMessage = function() {
         if (!msg) return;
 
         const box = document.getElementById('chatMessagesBox');
-        box.innerHTML += `<div style="text-align:right; color:var(--accent-blue);"><b>You:</b> ${msg}</div>`;
+        box.innerHTML += `<div style="text-align:right; color:var(--accent-blue); margin-bottom:5px;"><b>You:</b> ${msg}</div>`;
         input.value = '';
         box.scrollTop = box.scrollHeight;
     });
@@ -379,45 +355,26 @@ window.sendDirectMessage = function() {
 window.runJSCompiler = function(code) {
     requireAuth(() => {
         const outputBox = document.getElementById('compilerOutput');
-        if (!code.trim()) {
-            outputBox.innerText = "Error: Input empty.";
-            outputBox.style.color = "#ff4d4d";
-            return;
-        }
         try {
             let logs = [];
-            const customConsole = {
-                log: (...args) => logs.push(args.join(' ')),
-                error: (...args) => logs.push("Error: " + args.join(' '))
-            };
+            const customConsole = { log: (...args) => logs.push(args.join(' ')) };
             const runFn = new Function('console', code);
             runFn(customConsole);
-            outputBox.innerText = logs.length > 0 ? logs.join('\n') : "Success.";
-            outputBox.style.color = "#00ffcc";
+            outputBox.innerText = logs.join('\n') || "Done.";
         } catch (err) {
             outputBox.innerText = "Error: " + err.message;
-            outputBox.style.color = "#ff4d4d";
         }
     });
 };
 
-// General UI Modals
-window.closeUploadModal = function() { 
-    document.getElementById('uploadModal').style.display = 'none';
-    selectedVideoBase64 = null;
-};
-
-window.toggleSettings = function() { 
+window.toggleSettings = function() {
     const m = document.getElementById('settingsModal');
     m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
 };
 
-window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
-
-window.sharePostLink = function(postId) {
-    const url = `${window.location.origin}?reel=${postId}`;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url);
-        alert("Reel link copy ho gaya!");
-    }
+window.handleLogout = function() {
+    signOut(auth).then(() => location.reload());
 };
+
+window.closeUploadModal = function() { document.getElementById('uploadModal').style.display = 'none'; };
+window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
