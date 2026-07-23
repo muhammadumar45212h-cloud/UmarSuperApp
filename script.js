@@ -35,28 +35,25 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Application State Variables
+// Application State
 let currentUser = null;
 let activeCommentPostId = null;
 
 let selectedVideoBase64 = null;
 let selectedProfilePhotoBase64 = null;
-let selectedChannelPhotoBase64 = null;
-let selectedGroupPhotoBase64 = null;
 
 let postsData = [];
 
-// App Startup: Guest Mode Active By Default
+// App Startup: Open Directly without Auth Popup
 document.addEventListener("DOMContentLoaded", () => {
-    // Hide Auth modal by default so app opens directly
     const authModal = document.getElementById('authModal');
     if (authModal) authModal.style.display = 'none';
     
-    // Start loading public reels feed immediately
+    // Load Reels feed on start
     listenToReelsFeed();
 });
 
-// Auth Listener - Silent Background Check
+// Firebase Auth Observer
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
@@ -75,10 +72,10 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Helper Function: Check if user is logged in before allowing action
+// Guard Function: Ask Auth only when interacting
 function requireAuth(actionCallback) {
     if (!currentUser) {
-        alert("Please Login or Sign Up first to perform this action!");
+        alert("Pehle Login ya Sign Up karein!");
         document.getElementById('authModal').style.display = 'flex';
         return false;
     }
@@ -86,39 +83,54 @@ function requireAuth(actionCallback) {
     return true;
 }
 
-// Authentication Handler with Better Error Catching
+// Tab Switcher (Original Layout Preserved)
+window.switchTab = function(tabId, element) {
+    const contents = document.querySelectorAll('.tab-content');
+    contents.forEach(content => content.classList.remove('active-tab'));
+
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) selectedTab.classList.add('active-tab');
+
+    if (element) {
+        element.classList.add('active');
+    } else if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+};
+
+// Auth Handler
 window.handleAuthAction = async function(type) {
     const email = document.getElementById('authEmailInput').value.trim();
     const password = document.getElementById('authPasswordInput').value.trim();
 
     if (!email || !password) {
-        alert("Please enter both email and password.");
+        alert("Email aur Password dono required hain.");
         return;
     }
 
     try {
         if (type === 'signup') {
             await createUserWithEmailAndPassword(auth, email, password);
-            alert("Account created successfully!");
+            alert("Account ban gaya!");
         } else {
             await signInWithEmailAndPassword(auth, email, password);
-            alert("Login successful!");
+            alert("Login ho gaya!");
         }
     } catch (error) {
-        console.error("Auth error code:", error.code);
         if (error.code === 'auth/email-already-in-use') {
-            alert("This email is already registered! Click 'Log In' instead of Sign Up.");
+            alert("Yeh email pehle se registered hai! Log In par click karein.");
         } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-            alert("Incorrect password or email. Please check your credentials.");
-        } else if (error.code === 'auth/user-not-found') {
-            alert("No account found with this email. Click 'Sign Up' to create one.");
+            alert("Password ya Email galat hai.");
         } else {
             alert("Auth Error: " + error.message);
         }
     }
 };
 
-// Profile Setup Handlers
+// Onboarding Profile Photo
 window.triggerProfilePhotoPicker = function() {
     document.getElementById('profilePhotoInput').click();
 };
@@ -140,7 +152,7 @@ window.completeUserOnboarding = async function() {
     const username = document.getElementById('onboardUsernameInput').value.trim();
 
     if (!name || !username) {
-        alert("Name and Username are required.");
+        alert("Name aur Username zaroori hain.");
         return;
     }
 
@@ -160,7 +172,7 @@ window.handleLogout = function() {
     signOut(auth).then(() => location.reload());
 };
 
-// Real-Time Reels Feed Engine (Public Viewable)
+// Real-Time Feed Engine
 function listenToReelsFeed() {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -180,8 +192,8 @@ function renderReelsUI() {
         container.innerHTML = `
             <div class="reel-card" style="display:flex; align-items:center; justify-content:center; text-align:center;">
                 <div>
-                    <h3>No Videos Published Yet</h3>
-                    <p style="color:var(--text-muted);">Tap (+) to post a reel from Gallery!</p>
+                    <h3>Koi Video Upload Nahi Hui</h3>
+                    <p style="color:var(--text-muted);">(+) Button dabayein video post karne ke liye</p>
                 </div>
             </div>`;
         return;
@@ -224,7 +236,7 @@ function renderReelsUI() {
     container.innerHTML = html;
 }
 
-// Protected Actions (Triggers Login Prompt if Guest)
+// Protected Actions
 window.toggleLikePost = function(postId) {
     requireAuth(async () => {
         const postRef = doc(db, "posts", postId);
@@ -271,7 +283,7 @@ window.handleVideoFileSelected = function(event) {
 
 window.publishVideoPost = function() {
     requireAuth(async () => {
-        if (!selectedVideoBase64) return alert("Please select a video file first.");
+        if (!selectedVideoBase64) return alert("Pehle video choose karein.");
 
         const description = document.getElementById('videoDescriptionInput').value.trim();
         const filter = document.getElementById('videoEffectFilter').value;
@@ -292,12 +304,12 @@ window.publishVideoPost = function() {
         };
 
         await addDoc(collection(db, "posts"), newPost);
-        alert("Reel Published!");
+        alert("Video Publish Ho Gayi!");
         closeUploadModal();
     });
 };
 
-// Comments System
+// Comments Handling
 window.openCommentsModal = function(postId) {
     activeCommentPostId = postId;
     document.getElementById('commentsModal').style.display = 'flex';
@@ -312,7 +324,7 @@ function renderCommentsList() {
     const listContainer = document.getElementById('commentsListContainer');
     const post = postsData.find(p => p.id === activeCommentPostId);
     if (!post || !post.comments || post.comments.length === 0) {
-        listContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">No comments yet.</div>';
+        listContainer.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Koi comment nahi hai.</div>';
         return;
     }
 
@@ -350,7 +362,7 @@ window.submitComment = function() {
     });
 };
 
-// Chat & Terminal Require Login
+// Chat & Terminal Guard
 window.sendDirectMessage = function() {
     requireAuth(() => {
         const input = document.getElementById('chatMessageInput');
@@ -368,7 +380,7 @@ window.runJSCompiler = function(code) {
     requireAuth(() => {
         const outputBox = document.getElementById('compilerOutput');
         if (!code.trim()) {
-            outputBox.innerText = "Error: Input string empty.";
+            outputBox.innerText = "Error: Input empty.";
             outputBox.style.color = "#ff4d4d";
             return;
         }
@@ -380,24 +392,16 @@ window.runJSCompiler = function(code) {
             };
             const runFn = new Function('console', code);
             runFn(customConsole);
-            outputBox.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully.";
+            outputBox.innerText = logs.length > 0 ? logs.join('\n') : "Success.";
             outputBox.style.color = "#00ffcc";
         } catch (err) {
-            outputBox.innerText = "Execution Error: " + err.message;
+            outputBox.innerText = "Error: " + err.message;
             outputBox.style.color = "#ff4d4d";
         }
     });
 };
 
-// Navigation & Modals Controls
-window.switchTab = function(tabId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(tabId).classList.add('active-tab');
-    if (event) event.currentTarget.classList.add('active');
-};
-
+// General UI Modals
 window.closeUploadModal = function() { 
     document.getElementById('uploadModal').style.display = 'none';
     selectedVideoBase64 = null;
@@ -414,6 +418,6 @@ window.sharePostLink = function(postId) {
     const url = `${window.location.origin}?reel=${postId}`;
     if (navigator.clipboard) {
         navigator.clipboard.writeText(url);
-        alert("Reel link copied!");
+        alert("Reel link copy ho gaya!");
     }
 };
