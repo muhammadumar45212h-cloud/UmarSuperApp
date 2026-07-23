@@ -1,4 +1,4 @@
-/* UMAR SUPER APP - CORE SYSTEM SCRIPT */
+/* UMAR SUPER APP - ADVANCED CORE SYSTEM SCRIPT */
 
 // 1. FIREBASE CONFIGURATION
 const firebaseConfig = {
@@ -30,8 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initEventHandlers();
     checkDeepLinkVideo();
     
-    // Direct Feed Loading so app opens immediately without blocking login
+    // Load default public feeds
     loadVideoFeed();
+    loadTextFeed();
 });
 
 // Helper Function: Convert Phone to Dummy Email for Firebase Auth
@@ -40,7 +41,7 @@ function phoneToEmail(phone) {
     return `phone_${cleanPhone}@umarsuperapp.internal`;
 }
 
-// 3. AUTHENTICATION ENGINE (Email / Phone / Username + Gallery Photo)
+// 3. AUTHENTICATION & ACCESS ENGINE
 function initAuthListeners() {
     const authModal = document.getElementById("auth-modal");
     
@@ -54,18 +55,9 @@ function initAuthListeners() {
         } else {
             currentUser = null;
             currentProfile = null;
-            // App opens directly without forcing login modal on startup
-            if (authModal) authModal.classList.add("hidden");
+            resetProfileUI();
         }
     });
-
-    // Close / Skip Auth Modal Button (Optional Guest Access)
-    const closeAuthBtn = document.getElementById("btn-close-auth");
-    if (closeAuthBtn && authModal) {
-        closeAuthBtn.addEventListener("click", () => {
-            authModal.classList.add("hidden");
-        });
-    }
 
     // Toggle Sign Up / Login Fields
     let isSignupMode = false;
@@ -94,7 +86,7 @@ function initAuthListeners() {
         });
     }
 
-    // Auth Submission (Login & Signup)
+    // Auth Submission
     if (authSubmit) {
         authSubmit.addEventListener("click", async () => {
             const identifier = document.getElementById("auth-email") ? document.getElementById("auth-email").value.trim() : "";
@@ -127,7 +119,6 @@ function initAuthListeners() {
                         userPhone = identifier;
                     }
 
-                    // Gallery Image Upload to Firebase Storage
                     let avatarUrl = "https://via.placeholder.com/100";
                     if (avatarFileInput && avatarFileInput.files && avatarFileInput.files[0]) {
                         const file = avatarFileInput.files[0];
@@ -136,10 +127,8 @@ function initAuthListeners() {
                         avatarUrl = await uploadTask.ref.getDownloadURL();
                     }
 
-                    // Create User in Firebase Auth
                     const res = await auth.createUserWithEmailAndPassword(targetEmail, password);
                     
-                    // Save complete profile to Firestore
                     await db.collection("users").doc(res.user.uid).set({
                         uid: res.user.uid,
                         email: identifier.includes("@") ? identifier : "",
@@ -154,7 +143,6 @@ function initAuthListeners() {
                     });
 
                 } else {
-                    // LOGIN LOGIC: Check Email, Phone, or Username
                     let targetEmail = identifier;
 
                     if (!identifier.includes("@")) {
@@ -177,9 +165,9 @@ function initAuthListeners() {
             } catch (err) {
                 if (errorDiv) {
                     if (err.code === "auth/email-already-in-use") {
-                        errorDiv.innerText = "Email ya Phone pehle se registered hai. Login karein.";
+                        errorDiv.innerText = "Email ya Phone pehle se registered hai.";
                     } else if (err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
-                        errorDiv.innerText = "Ghalat Login Details ya Password! Dobara check karein.";
+                        errorDiv.innerText = "Ghalat Details ya Password!";
                     } else {
                         errorDiv.innerText = err.message;
                     }
@@ -191,7 +179,6 @@ function initAuthListeners() {
         });
     }
 
-    // Logout Option
     const logoutBtn = document.getElementById("menu-opt-logout");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
@@ -199,6 +186,17 @@ function initAuthListeners() {
             alert("Logout successful!");
         });
     }
+}
+
+function promptLogin() {
+    const authModal = document.getElementById("auth-modal");
+    if (authModal) authModal.classList.remove("hidden");
+}
+
+function resetProfileUI() {
+    if (document.getElementById("my-profile-name")) document.getElementById("my-profile-name").innerText = "Guest User";
+    if (document.getElementById("my-profile-username")) document.getElementById("my-profile-username").innerText = "@guest";
+    if (document.getElementById("my-profile-img")) document.getElementById("my-profile-img").src = "https://via.placeholder.com/100";
 }
 
 // Fetch Profile Data
@@ -219,7 +217,7 @@ async function loadUserProfile(uid) {
     }
 }
 
-// 4. NAVIGATION ENGINE
+// 4. NAVIGATION ENGINE (PROFILE RESTRICTION)
 function initNavigation() {
     const navItems = document.querySelectorAll(".nav-item");
     const sections = document.querySelectorAll(".app-section");
@@ -227,6 +225,14 @@ function initNavigation() {
     navItems.forEach(item => {
         item.addEventListener("click", () => {
             const target = item.getAttribute("data-target");
+            
+            // Profile restriction check
+            if (target === "section-profile" && !currentUser) {
+                alert("Profile dekhne ke liye pehle Login ya Sign Up karein.");
+                promptLogin();
+                return;
+            }
+
             navItems.forEach(n => n.classList.remove("active"));
             sections.forEach(s => s.classList.remove("active-section"));
 
@@ -234,18 +240,9 @@ function initNavigation() {
             if (document.getElementById(target)) document.getElementById(target).classList.add("active-section");
         });
     });
-
-    // Top Dropdown Menu
-    const topMenuBtn = document.getElementById("btn-top-menu");
-    const dropMenu = document.getElementById("top-dropdown-menu");
-    if (topMenuBtn && dropMenu) {
-        topMenuBtn.addEventListener("click", () => {
-            dropMenu.classList.toggle("hidden");
-        });
-    }
 }
 
-// 5. SHORT VIDEO FEED & ALGORITHM
+// 5. SEPARATE FEEDS ENGINE (TEXT & VIDEO)
 function loadVideoFeed() {
     const feedContainer = document.getElementById("video-feed-container");
     if (!feedContainer) return;
@@ -254,17 +251,35 @@ function loadVideoFeed() {
       .orderBy("engagementScore", "desc")
       .onSnapshot(snapshot => {
           feedContainer.innerHTML = "";
-          if (snapshot.empty) {
-              feedContainer.innerHTML = `<div style="color:#fff; text-align:center; padding:40px;">Koi videos available nahi hain. Upload karein!</div>`;
-              return;
-          }
           snapshot.forEach(doc => {
               const video = doc.data();
               const vCard = createVideoCard(doc.id, video);
               feedContainer.appendChild(vCard);
           });
-      }, err => {
-          console.log("Feed load error:", err);
+      });
+}
+
+function loadTextFeed() {
+    const textFeedContainer = document.getElementById("text-feed-container");
+    if (!textFeedContainer) return;
+
+    db.collection("text_posts")
+      .orderBy("createdAt", "desc")
+      .onSnapshot(snapshot => {
+          textFeedContainer.innerHTML = "";
+          snapshot.forEach(doc => {
+              const post = doc.data();
+              const pCard = document.createElement("div");
+              pCard.className = "text-post-card";
+              pCard.innerHTML = `
+                  <div class="post-header">
+                      <img src="${post.avatar || 'https://via.placeholder.com/40'}" />
+                      <strong>${post.username}</strong>
+                  </div>
+                  <p class="post-text-content">${post.text}</p>
+              `;
+              textFeedContainer.appendChild(pCard);
+          });
       });
 }
 
@@ -272,15 +287,14 @@ function createVideoCard(id, data) {
     const div = document.createElement("div");
     div.className = "video-card";
     
-    let filterStyle = "";
-    if(data.filter === "sepia") filterStyle = "filter: sepia(0.8);";
-    if(data.filter === "grayscale") filterStyle = "filter: grayscale(1);";
-    if(data.filter === "blur") filterStyle = "filter: blur(2px);";
-
     div.innerHTML = `
-        <video src="${data.url}" loop playsinline style="${filterStyle}" onclick="this.paused ? this.play() : this.pause()"></video>
+        <video src="${data.url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
         
         <div class="video-overlay-actions">
+            <div class="action-btn-group">
+                <img class="action-avatar" src="${data.authorAvatar || 'https://via.placeholder.com/40'}" />
+                <button class="btn-subscribe-small" onclick="subscribeUser('${data.userId}')">+</button>
+            </div>
             <div class="action-btn-group">
                 <button onclick="likeVideo('${id}', ${data.likes || 0})"><i class="fa-solid fa-heart"></i></button>
                 <span>${data.likes || 0}</span>
@@ -296,11 +310,7 @@ function createVideoCard(id, data) {
         </div>
 
         <div class="video-info-bottom">
-            <div class="video-author-row">
-                <img src="${data.authorAvatar || 'https://via.placeholder.com/40'}" />
-                <strong>${data.username || '@user'}</strong>
-                <button class="btn-subscribe" onclick="subscribeUser('${data.userId}')">Subscribe</button>
-            </div>
+            <strong>${data.username || '@user'}</strong>
             <p>${data.description || ''}</p>
         </div>
     `;
@@ -309,13 +319,12 @@ function createVideoCard(id, data) {
 
 async function likeVideo(videoId, currentLikes) {
     if(!currentUser) {
-        alert("Video like karne ke liye pehle Login Karein.");
+        alert("Pehle Login Karein!");
         promptLogin();
         return;
     }
-    const newLikes = currentLikes + 1;
     await db.collection("videos").doc(videoId).update({
-        likes: newLikes,
+        likes: currentLikes + 1,
         engagementScore: firebase.firestore.FieldValue.increment(2)
     });
 }
@@ -323,37 +332,29 @@ async function likeVideo(videoId, currentLikes) {
 function shareVideo(videoId, username) {
     const appLink = `https://umar-super-app.web.app/?v=${videoId}`;
     navigator.clipboard.writeText(appLink);
-    alert(`Video Link Copied for ${username}! Share anywhere:\n${appLink}`);
-}
-
-function checkDeepLinkVideo() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('v');
-    if (videoId) {
-        console.log("Loading shared video target:", videoId);
-    }
-}
-
-function promptLogin() {
-    const authModal = document.getElementById("auth-modal");
-    if (authModal) authModal.classList.remove("hidden");
+    alert(`Link Copied for ${username}: ${appLink}`);
 }
 
 function subscribeUser(userId) {
     if (!currentUser) {
-        alert("Subscribe karne ke liye login karein!");
+        alert("Subscribe karne ke liye Login karein!");
         promptLogin();
         return;
     }
-    alert("Subscribed successfully!");
+    alert("Subscribed!");
 }
 
 function openCommentsModal(videoId) {
+    if (!currentUser) {
+        alert("Comment karne ke liye Login karein!");
+        promptLogin();
+        return;
+    }
     activeCommentVideoId = videoId;
-    alert("Comments feature active for video ID: " + videoId);
+    alert("Opening comments for video ID: " + videoId);
 }
 
-// 6. TRADINGVIEW FOREX & CRYPTO CHARTS
+// 6. TRADINGVIEW FOREX ENGINE
 function initTradingViewWidget(symbol) {
     const container = document.getElementById("tradingview-widget-container");
     if (!container) return;
@@ -367,23 +368,20 @@ function initTradingViewWidget(symbol) {
             "theme": "dark",
             "style": "1",
             "locale": "en",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": false,
-            "allow_symbol_change": true,
             "container_id": "tradingview-widget-container"
         });
     }
 }
 
-// 7. TERMINAL & REAL-TIME COMPILER ENGINE
+// 7. COMPILER ENGINE (OUTPUT AT BOTTOM FULL SCREEN)
 const runBtn = document.getElementById("btn-run-code");
 if (runBtn) {
     runBtn.addEventListener("click", () => {
         const codeInput = document.getElementById("code-editor-input");
-        if (!codeInput) return;
-        const code = codeInput.value;
         const outputConsole = document.getElementById("terminal-console-out");
-        if (outputConsole) outputConsole.innerText = "> Executing script...\n";
+        if (!codeInput || !outputConsole) return;
+        
+        outputConsole.innerText = "> Executing script...\n";
 
         try {
             let logs = [];
@@ -393,75 +391,25 @@ if (runBtn) {
                 originalLog.apply(console, args);
             };
 
-            const result = new Function(code)();
+            const result = new Function(codeInput.value)();
             console.log = originalLog;
-            if (outputConsole) outputConsole.innerText += logs.join("\n") + "\n> Process finished with result: " + (result !== undefined ? result : "Success");
+            outputConsole.innerText += logs.join("\n") + "\n> Output: " + (result !== undefined ? result : "Success");
         } catch (err) {
-            if (outputConsole) outputConsole.innerText += "> Runtime Error: " + err.message;
+            outputConsole.innerText += "> Runtime Error: " + err.message;
         }
     });
 }
 
-// 8. AI ASSISTANT CHAT ENGINE
-const aiBtn = document.getElementById("btn-send-ai");
-if (aiBtn) aiBtn.addEventListener("click", sendAiMessage);
-
-function sendAiMessage() {
-    const input = document.getElementById("ai-input-text");
-    if (!input) return;
-    const text = input.value.trim();
-    if(!text) return;
-
-    const history = document.getElementById("ai-chat-history");
-    if (history) {
-        const uDiv = document.createElement("div");
-        uDiv.className = "ai-bubble ai-user";
-        uDiv.innerText = text;
-        history.appendChild(uDiv);
-        
-        input.value = "";
-
-        setTimeout(() => {
-            const aiDiv = document.createElement("div");
-            aiDiv.className = "ai-bubble ai-reply";
-            aiDiv.innerText = getAiResponse(text);
-            history.appendChild(aiDiv);
-            history.scrollTop = history.scrollHeight;
-        }, 600);
-    }
+// 8. CHAT ENGINE WITH THREE DOTS (GROUPS / CHANNELS)
+const chatThreeDots = document.getElementById("btn-chat-options");
+if (chatThreeDots) {
+    chatThreeDots.addEventListener("click", () => {
+        const option = prompt("Choose Option:\n1. Create Channel\n2. Create Group\n3. Broadcast Message");
+        if (option === "1") alert("Channel creation opened.");
+        if (option === "2") alert("Group creation opened.");
+    });
 }
 
-function getAiResponse(query) {
-    const q = query.toLowerCase();
-    if(q.includes("forex") || q.includes("gold") || q.includes("xauusd")) {
-        return "Forex markets mein XAUUSD key technical indicators current level support level ko retest kar rahe hain. Aap Market tab check karein.";
-    } else if(q.includes("code") || q.includes("script")) {
-        return "Aap Super App ke 'Compiler' tab mein JavaScript code likh kar real-time output check kar sakte hain.";
-    } else {
-        return "Main aapki kya madad kar sakta hoon? Umar Super App active hai aur sabhi real-time services sync hain.";
-    }
-}
-
-// 9. WEATHER ENGINE
-const weatherBtn = document.getElementById("btn-search-weather");
-if (weatherBtn) weatherBtn.addEventListener("click", fetchWeather);
-
-async function fetchWeather() {
-    const cityInput = document.getElementById("weather-city-input");
-    const city = cityInput ? cityInput.value.trim() || "Karachi" : "Karachi";
-    try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current_weather=true`);
-        const data = await res.json();
-        
-        if (document.getElementById("weather-city")) document.getElementById("weather-city").innerText = city.toUpperCase();
-        if (document.getElementById("weather-temp")) document.getElementById("weather-temp").innerText = `${data.current_weather.temperature}°C`;
-        if (document.getElementById("weather-desc")) document.getElementById("weather-desc").innerText = `Wind Speed: ${data.current_weather.windspeed} km/h`;
-    } catch(e) {
-        alert("Unable to fetch weather data.");
-    }
-}
-
-// 10. REAL-TIME CHAT & MESSAGING ENGINE
 function loadChatThreads() {
     const threadsList = document.getElementById("chat-threads-list");
     if (!threadsList) return;
@@ -478,7 +426,7 @@ function loadChatThreads() {
                 <img src="${u.avatar || 'https://via.placeholder.com/40'}" />
                 <div>
                     <strong>${u.fullname}</strong>
-                    <p style="font-size:0.75rem; color:var(--text-sub);">${u.username}</p>
+                    <p style="font-size:0.75rem; color:#aaa;">${u.username}</p>
                 </div>
             `;
             d.onclick = () => openChatWindow(u);
@@ -489,7 +437,7 @@ function loadChatThreads() {
 
 function openChatWindow(targetUser) {
     if (!currentUser) {
-        alert("Chat karne ke liye pehle Login Karein!");
+        alert("Chat karne ke liye Login Karein!");
         promptLogin();
         return;
     }
@@ -497,7 +445,6 @@ function openChatWindow(targetUser) {
     const win = document.getElementById("chat-active-window");
     if (win) win.classList.remove("hidden");
     if (document.getElementById("chat-header-name")) document.getElementById("chat-header-name").innerText = targetUser.fullname;
-    if (document.getElementById("chat-header-avatar")) document.getElementById("chat-header-avatar").src = targetUser.avatar;
 
     const chatId = [currentUser.uid, targetUser.uid].sort().join("_");
     db.collection("chats").doc(chatId).collection("messages")
@@ -515,31 +462,15 @@ function openChatWindow(targetUser) {
           });
           area.scrollTop = area.scrollHeight;
       });
-
-    const sendChatBtn = document.getElementById("btn-send-chat");
-    if (sendChatBtn) {
-        sendChatBtn.onclick = async () => {
-            const msgInput = document.getElementById("chat-msg-input");
-            const txt = msgInput ? msgInput.value.trim() : "";
-            if(!txt) return;
-            if (msgInput) msgInput.value = "";
-
-            await db.collection("chats").doc(chatId).collection("messages").add({
-                senderId: currentUser.uid,
-                text: txt,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        };
-    }
 }
 
-// 11. UPLOAD & COMMUNITY MODALS
+// 9. UPLOAD WITH REALTIME PROGRESS BAR (0% - 100%)
 function initEventHandlers() {
     const openUploadBtn = document.getElementById("btn-open-upload-modal");
     if (openUploadBtn) {
         openUploadBtn.addEventListener("click", () => {
             if (!currentUser) {
-                alert("Video upload karne ke liye pehle Login Karein!");
+                alert("Upload karne ke liye Login Karein!");
                 promptLogin();
                 return;
             }
@@ -547,67 +478,62 @@ function initEventHandlers() {
         });
     }
 
-    const closeUploadBtn = document.getElementById("btn-close-upload");
-    if (closeUploadBtn) {
-        closeUploadBtn.addEventListener("click", () => {
-            document.getElementById("upload-modal").classList.add("hidden");
-        });
-    }
-
-    // Video Post Submission
     const submitPostBtn = document.getElementById("btn-submit-post");
     if (submitPostBtn) {
         submitPostBtn.addEventListener("click", async () => {
             if (!currentUser) {
-                alert("Please login first to upload a video.");
+                alert("Login Required!");
                 promptLogin();
                 return;
             }
 
             const fileInput = document.getElementById("input-video-file");
             const desc = document.getElementById("input-video-desc") ? document.getElementById("input-video-desc").value : "";
-            const filter = document.getElementById("select-video-filter") ? document.getElementById("select-video-filter").value : "none";
-            const privacy = document.getElementById("select-video-privacy") ? document.getElementById("select-video-privacy").value : "public";
 
             if(!fileInput || !fileInput.files || !fileInput.files[0]) {
-                alert("Please select a video file first.");
+                alert("Video file select karein.");
                 return;
             }
 
             const file = fileInput.files[0];
             const storageRef = storage.ref(`videos/${Date.now()}_${file.name}`);
-            
-            submitPostBtn.innerText = "Uploading...";
-            submitPostBtn.disabled = true;
+            const uploadTask = storageRef.put(file);
 
-            try {
-                const uploadTask = await storageRef.put(file);
-                const videoUrl = await uploadTask.ref.getDownloadURL();
+            // Progress bar DOM
+            const progressBar = document.getElementById("upload-progress-bar");
+            const progressText = document.getElementById("upload-progress-text");
+            const progressContainer = document.getElementById("upload-progress-container");
 
-                await db.collection("videos").add({
-                    userId: currentUser.uid,
-                    username: currentProfile ? currentProfile.username : "@user",
-                    authorAvatar: currentProfile ? currentProfile.avatar : "https://via.placeholder.com/40",
-                    url: videoUrl,
-                    description: desc,
-                    filter: filter,
-                    privacy: privacy,
-                    likes: 0,
-                    commentsCount: 0,
-                    engagementScore: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            if (progressContainer) progressContainer.classList.remove("hidden");
 
-                alert("Video published successfully!");
-                document.getElementById("upload-modal").classList.add("hidden");
-                fileInput.value = "";
-                if (document.getElementById("input-video-desc")) document.getElementById("input-video-desc").value = "";
-            } catch (err) {
-                alert("Upload failed: " + err.message);
-            } finally {
-                submitPostBtn.innerText = "Publish Video";
-                submitPostBtn.disabled = false;
-            }
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (progressBar) progressBar.style.width = progress + "%";
+                    if (progressText) progressText.innerText = Math.round(progress) + "% Uploading...";
+                }, 
+                (error) => {
+                    alert("Upload error: " + error.message);
+                }, 
+                async () => {
+                    const videoUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                    await db.collection("videos").add({
+                        userId: currentUser.uid,
+                        username: currentProfile ? currentProfile.username : "@user",
+                        authorAvatar: currentProfile ? currentProfile.avatar : "https://via.placeholder.com/40",
+                        url: videoUrl,
+                        description: desc,
+                        likes: 0,
+                        commentsCount: 0,
+                        engagementScore: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    alert("Video Posted Successfully!");
+                    if (progressContainer) progressContainer.classList.add("hidden");
+                    document.getElementById("upload-modal").classList.add("hidden");
+                }
+            );
         });
     }
 }
