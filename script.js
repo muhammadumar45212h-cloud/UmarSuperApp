@@ -1,4 +1,6 @@
-/* UMAR SUPER APP - MASTER INTEGRATION CODE */
+/* ==========================================================
+   UMAR SUPER APP - FULLSCREEN ROUTING & CORE ENGINE
+   ========================================================== */
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
@@ -18,84 +20,76 @@ const storage = firebase.storage();
 
 let currentUser = null;
 let currentProfile = null;
-let virtualFileSystem = { "index.js": "console.log('Welcome to Umar Compiler');" };
+let virtualFileSystem = { "app.js": "console.log('Umar Super App Compiler Active');" };
 
 document.addEventListener("DOMContentLoaded", () => {
     initAuth();
-    initNavigation();
+    initCleanNavigation();
     initTradingView("OANDA:XAUUSD");
     initMarketSwitchers();
     initWeatherSearch();
-    initCompiler();
-    initUploadEngine();
+    initVirtualCompiler();
 });
 
-/* 1. AUTHENTICATION & RESTRICTIONS */
+/* 1. STRICT PAGE ISOLATION ROUTING */
+function initCleanNavigation() {
+    const navItems = document.querySelectorAll(".nav-item");
+    const sections = document.querySelectorAll(".app-section");
+
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const targetId = item.getAttribute("data-target");
+
+            // Auth Protection Check
+            if ((targetId === "section-profile" || targetId === "section-chat") && !currentUser) {
+                alert("Login Required!");
+                document.getElementById("auth-modal").classList.remove("hidden");
+                return;
+            }
+
+            // Hide ALL sections completely
+            sections.forEach(sec => {
+                sec.classList.remove("active-section");
+            });
+
+            // Remove Active from ALL nav items
+            navItems.forEach(nav => {
+                nav.classList.remove("active");
+            });
+
+            // Activate Target Section Only
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add("active-section");
+            }
+            item.classList.add("active");
+        });
+    });
+}
+
+/* 2. AUTHENTICATION & MODALS */
 function initAuth() {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
             const doc = await db.collection("users").doc(user.uid).get();
-            if (doc.exists) {
-                currentProfile = doc.data();
-                updateProfileUI();
-            }
+            if (doc.exists) currentProfile = doc.data();
+            document.getElementById("auth-modal").classList.add("hidden");
         } else {
             currentUser = null;
             currentProfile = null;
         }
     });
 
-    const closeBtn = document.getElementById("btn-close-auth");
-    if (closeBtn) {
-        closeBtn.onclick = () => {
+    const closeAuth = document.getElementById("btn-close-auth");
+    if (closeAuth) {
+        closeAuth.onclick = () => {
             document.getElementById("auth-modal").classList.add("hidden");
         };
     }
 }
 
-function updateProfileUI() {
-    if (!currentProfile) return;
-    if (document.getElementById("my-profile-name")) document.getElementById("my-profile-name").innerText = currentProfile.fullname;
-    if (document.getElementById("my-profile-username")) document.getElementById("my-profile-username").innerText = currentProfile.username;
-    
-    // Monetization Check
-    checkCreatorMonetization(currentProfile.totalViews || 0, currentProfile.followersCount || 0);
-}
-
-function checkCreatorMonetization(views, subs) {
-    let earnings = 0;
-    if (views >= 1000000) earnings += 20;
-    if (subs >= 10000) earnings += 20;
-    
-    const monTag = document.getElementById("monetization-status-tag");
-    if (monTag) {
-        monTag.innerText = `Monetization: $${earnings} Available`;
-    }
-}
-
-/* 2. NAVIGATION & GUEST PROTECTION */
-function initNavigation() {
-    const items = document.querySelectorAll(".nav-item");
-    items.forEach(item => {
-        item.addEventListener("click", () => {
-            const target = item.getAttribute("data-target");
-            if ((target === "section-profile" || target === "section-chat") && !currentUser) {
-                alert("Aapko is section mein jaane ke liye Login karna zaroori hai.");
-                document.getElementById("auth-modal").classList.remove("hidden");
-                return;
-            }
-            document.querySelectorAll(".app-section").forEach(s => s.classList.remove("active-section"));
-            document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-            
-            item.classList.add("active");
-            const section = document.getElementById(target);
-            if (section) section.classList.add("active-section");
-        });
-    });
-}
-
-/* 3. TRADINGVIEW MULTI-ASSET SWITCHER */
+/* 3. TRADINGVIEW MULTI-ASSET CHARTS */
 function initTradingView(symbol) {
     const container = document.getElementById("tradingview-widget-container");
     if (!container) return;
@@ -124,7 +118,7 @@ function initMarketSwitchers() {
     if (btnEur) btnEur.onclick = () => initTradingView("FX:EURUSD");
 }
 
-/* 4. GLOBAL LIVE WEATHER ENGINE */
+/* 4. GLOBAL WEATHER SEARCH ENGINE */
 function initWeatherSearch() {
     const searchBtn = document.getElementById("btn-search-weather");
     if (!searchBtn) return;
@@ -138,50 +132,58 @@ function initWeatherSearch() {
             const data = await res.json();
 
             if (data.cod !== 200) {
-                alert("City nahi mili, sahi naam dakhil karein.");
+                alert("City not found!");
                 return;
             }
 
             document.getElementById("weather-city-name").innerText = `${data.name}, ${data.sys.country}`;
             document.getElementById("weather-temp").innerText = `${Math.round(data.main.temp)}°C`;
             document.getElementById("weather-condition").innerText = data.weather[0].description;
-            document.getElementById("weather-humidity").innerText = `Humidity: ${data.main.humidity}%`;
-            document.getElementById("weather-wind").innerText = `Wind: ${data.wind.speed} km/h`;
         } catch (e) {
-            alert("Weather data fetch karne mein masla hua.");
+            alert("Weather search failed!");
         }
     };
 }
 
-/* 5. VIRTUAL FILE COMPILER ENGINE */
-function initCompiler() {
+/* 5. VIRTUAL FILE COMPILER (LS, ST, DT COMMANDS) */
+function initVirtualCompiler() {
     const runBtn = document.getElementById("btn-run-code");
     if (!runBtn) return;
 
     runBtn.onclick = () => {
-        const input = document.getElementById("code-editor-input").value;
+        const input = document.getElementById("code-editor-input").value.trim();
         const out = document.getElementById("terminal-console-out");
         out.innerText = "";
 
-        if (input.trim() === "ls") {
-            out.innerText = Object.keys(virtualFileSystem).join("\n");
+        // List Files Command
+        if (input === "ls") {
+            const files = Object.keys(virtualFileSystem);
+            out.innerText = files.length ? files.join("\n") : "[Empty Directory]";
             return;
         }
 
+        // Create File Command (st filename)
         if (input.startsWith("st ")) {
             const fileName = input.split(" ")[1];
-            virtualFileSystem[fileName] = "// New File";
-            out.innerText = `File '${fileName}' created successfully.`;
+            if (!fileName) { out.innerText = "Error: File name required!"; return; }
+            virtualFileSystem[fileName] = "// Created file";
+            out.innerText = `[Success]: File '${fileName}' created. Type 'ls' to view.`;
             return;
         }
 
+        // Delete File Command (dt filename)
         if (input.startsWith("dt ")) {
             const fileName = input.split(" ")[1];
-            delete virtualFileSystem[fileName];
-            out.innerText = `File '${fileName}' deleted.`;
+            if (virtualFileSystem[fileName]) {
+                delete virtualFileSystem[fileName];
+                out.innerText = `[Success]: File '${fileName}' deleted.`;
+            } else {
+                out.innerText = `[Error]: File '${fileName}' not found.`;
+            }
             return;
         }
 
+        // Regular JS Execution
         try {
             let logs = [];
             const oldLog = console.log;
@@ -190,39 +192,9 @@ function initCompiler() {
             const result = eval(input);
             console.log = oldLog;
 
-            out.innerText = logs.join("\n") + (result !== undefined ? `\n> Returned: ${result}` : "");
+            out.innerText = logs.join("\n") + (result !== undefined ? `\n> Output: ${result}` : "");
         } catch (err) {
-            out.innerText = `[Execution Error]: ${err.message}`;
+            out.innerText = `[Runtime Error]: ${err.message}`;
         }
     };
-}
-
-/* 6. UPLOAD & FLOATING BUTTON ENGINE */
-function initUploadEngine() {
-    const floatBtn = document.getElementById("btn-open-upload-modal");
-    if (floatBtn) {
-        floatBtn.onclick = () => {
-            if (!currentUser) {
-                alert("Upload karne ke liye pehle Login Karein!");
-                document.getElementById("auth-modal").classList.remove("hidden");
-                return;
-            }
-            document.getElementById("upload-modal").classList.remove("hidden");
-        };
-    }
-}
-
-/* 7. WITHDRAWAL PAYMENT SYSTEM */
-function requestWithdrawal(method, amount, addressDetails) {
-    if (!currentUser) return;
-    db.collection("withdrawals").add({
-        userId: currentUser.uid,
-        amount: amount,
-        method: method, // 'TRC20', 'EasyPaisa', 'JazzCash', 'P2P'
-        details: addressDetails,
-        status: "Pending",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        alert("Withdrawal request submit ho gayi hai!");
-    });
 }
