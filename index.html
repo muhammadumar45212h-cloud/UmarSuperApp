@@ -21,44 +21,42 @@
             <span>Umar Super App</span>
         </div>
         <div class="header-right">
-            <button id="btn-toggle-menu" class="icon-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <button id="btn-toggle-menu" class="icon-btn-large"><i class="fa-solid fa-ellipsis-vertical"></i></button>
             
-            <!-- POPUP MENU (HIDDEN BY DEFAULT) -->
+            <!-- POPUP MENU -->
             <div id="top-dropdown-menu" class="dropdown-menu hidden">
-                <button class="menu-item"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
-                <button class="menu-item"><i class="fa-solid fa-users"></i> Create Group</button>
-                <button class="menu-item"><i class="fa-solid fa-wallet"></i> My Wallet</button>
-                <button id="menu-opt-logout" class="menu-item danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                <button class="menu-item red-btn"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
+                <button class="menu-item blue-btn"><i class="fa-solid fa-users"></i> Create Group</button>
+                <button class="menu-item green-btn"><i class="fa-solid fa-wallet"></i> My Wallet</button>
+                <button id="menu-opt-settings" class="menu-item cyan-btn"><i class="fa-solid fa-gear"></i> Settings</button>
+                <button id="menu-opt-logout" class="menu-item danger-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA (SECTIONS ISOLATED) -->
+    <!-- MAIN CONTENT ISOLATED PAGES -->
     <main>
-        <!-- 1. FEED SECTION -->
+        <!-- 1. FEED SECTION (TIKTOK STYLE HIGH SPEED SCROLL) -->
         <section id="section-feed" class="app-section active-section">
-            <div class="feed-header">
-                <h2>Video Feed</h2>
-            </div>
-            <div id="video-feed-container" class="feed-scroll-container">
-                <!-- Dynamic Videos Here -->
+            <div id="tiktok-video-feed" class="tiktok-container">
+                <!-- Dynamic High-Speed Snapping Videos rendered via JS -->
             </div>
         </section>
 
         <!-- 2. MARKETS SECTION -->
         <section id="section-markets" class="app-section">
-            <h2>Market Live Charts</h2>
+            <h2 class="title-cyan">Forex & Crypto Live Charts</h2>
             <div class="market-btn-group">
-                <button id="btn-market-xau" class="m-btn active">XAUUSD (Gold)</button>
-                <button id="btn-market-btc" class="m-btn">BTCUSD</button>
-                <button id="btn-market-eur" class="m-btn">EURUSD</button>
+                <button id="btn-market-xau" class="m-btn btn-red-big">XAUUSD (Gold)</button>
+                <button id="btn-market-btc" class="m-btn btn-blue-big">BTCUSD (Crypto)</button>
+                <button id="btn-market-eur" class="m-btn btn-green-big">EURUSD (Forex)</button>
             </div>
             <div id="tradingview-widget-container"></div>
         </section>
 
         <!-- 3. CHAT SECTION -->
         <section id="section-chat" class="app-section">
-            <h2>Messages & Channels</h2>
+            <h2 class="title-pink">Messages & Channels</h2>
             <div id="chat-threads-list" class="threads-list">
                 <!-- Dynamic Chat Users -->
             </div>
@@ -66,31 +64,35 @@
 
         <!-- 4. COMPILER SECTION -->
         <section id="section-compiler" class="app-section">
-            <h2>Termux Web Compiler</h2>
-            <p class="sub-info">Type <code>ls</code>, <code>st filename</code>, or <code>dt filename</code></p>
-            <textarea id="code-editor-input" placeholder="// Write JS Code or commands here..."></textarea>
-            <button id="btn-run-code" class="btn-action green">Run Code / Command</button>
+            <h2 class="title-green">Termux Web Compiler</h2>
+            <p class="sub-info-text">Commands: <span class="cmd-tag red">ls</span>, <span class="cmd-tag blue">st filename</span>, or <span class="cmd-tag green">dt filename</span></p>
+            
+            <textarea id="code-editor-input" placeholder="// Write JS Code or Termux commands here..."></textarea>
+            
+            <button id="btn-run-code" class="btn-run-red">
+                <i class="fa-solid fa-play"></i> RUN CODE / COMMAND
+            </button>
             
             <div class="terminal-box">
-                <div class="terminal-header">Output Console</div>
-                <pre id="terminal-console-out">> Ready to execute.</pre>
+                <div class="terminal-header">Terminal Console Output</div>
+                <pre id="terminal-console-out">> System initialized. Ready to execute.</pre>
             </div>
         </section>
 
         <!-- 5. AI ASSISTANT SECTION -->
         <section id="section-ai" class="app-section">
-            <h2>Umar AI Assistant</h2>
+            <h2 class="title-cyan">Umar AI Assistant</h2>
             <div id="ai-chat-box" class="ai-box">
-                <div class="ai-msg">Hello! Main Umar AI Assistant hoon. Main aapki kya madad karoon?</div>
+                <div class="ai-msg">Hello Umar! Main aapka AI Assistant hoon. Kya hukam hai?</div>
             </div>
         </section>
 
         <!-- 6. WEATHER SECTION -->
         <section id="section-weather" class="app-section">
-            <h2>Live Weather Search</h2>
+            <h2 class="title-amber">Live Weather Search</h2>
             <div class="weather-search-bar">
-                <input type="text" id="input-weather-city" placeholder="Enter city name (e.g. London, Karachi)...">
-                <button id="btn-search-weather" class="btn-action blue">Search</button>
+                <input type="text" id="input-weather-city" placeholder="Enter City Name...">
+                <button id="btn-search-weather" class="btn-blue-big">SEARCH</button>
             </div>
             <div class="weather-card">
                 <h3 id="weather-city-name">Search a City</h3>
@@ -99,19 +101,85 @@
             </div>
         </section>
 
-        <!-- 7. PROFILE SECTION -->
+        <!-- 7. PROFILE SECTION (ADVANCED STATS & POST GRID) -->
         <section id="section-profile" class="app-section">
-            <div class="profile-card">
-                <img id="my-profile-img" src="https://via.placeholder.com/100" class="profile-avatar" />
-                <h3 id="my-profile-name">User Name</h3>
-                <p id="my-profile-username">@username</p>
-                <div id="monetization-status-tag" class="monetize-badge">Monetization Active</div>
+            <div class="profile-header-card">
+                <div class="profile-top-row">
+                    <img id="my-profile-img" src="https://via.placeholder.com/110" class="profile-avatar-large" />
+                    <button id="btn-open-edit-profile" class="btn-cyan-small"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+                </div>
+                
+                <h2 id="my-profile-name" class="p-name">Muhammad Umar</h2>
+                <p id="my-profile-username" class="p-username">@umar_dev</p>
+                <p id="my-profile-bio" class="p-bio">Mobile Developer & Cybersecurity Expert 🚀</p>
+                
+                <!-- PROFILE STATS ROW -->
+                <div class="profile-stats-row">
+                    <div class="stat-box">
+                        <span id="stat-total-posts" class="stat-num blue">0</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="stat-total-likes" class="stat-num red">0</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="stat-total-subs" class="stat-num green">0</span>
+                        <span class="stat-label">Subscribers</span>
+                    </div>
+                </div>
+
+                <div id="review-timer-badge" class="review-badge hidden">
+                    <i class="fa-solid fa-clock"></i> Profile Review Active (7-Week Lock)
+                </div>
+            </div>
+
+            <h3 class="gallery-title title-pink"><i class="fa-solid fa-grid-2"></i> My Video Posts</h3>
+            <div id="profile-posts-grid" class="posts-grid-container">
+                <!-- User's Real Posts Rendered Here -->
+            </div>
+        </section>
+
+        <!-- 8. SETTINGS & OFFLINE SECTION -->
+        <section id="section-settings" class="app-section">
+            <h2 class="title-cyan">App Settings & Security</h2>
+            
+            <!-- SECURITY SETTINGS -->
+            <div class="settings-card">
+                <h3 class="title-red"><i class="fa-solid fa-shield"></i> Security & Account</h3>
+                <button id="btn-change-password" class="btn-blue-medium">Change Password</button>
+                <button id="btn-change-email" class="btn-blue-medium">Change Email</button>
+                <button id="btn-change-phone" class="btn-blue-medium">Change Phone Number</button>
+            </div>
+
+            <!-- MULTI-SESSION ADMIN CONTROL -->
+            <div class="settings-card">
+                <h3 class="title-green"><i class="fa-solid fa-desktop"></i> Active Sessions (Admin)</h3>
+                <div id="active-sessions-list">
+                    <!-- Session Controls rendered via JS -->
+                </div>
+            </div>
+
+            <!-- OFFLINE VIDEO DOWNLOADER ENGINE -->
+            <div class="settings-card">
+                <h3 class="title-amber"><i class="fa-solid fa-download"></i> Offline Video Downloader</h3>
+                <p class="sub-info-text">Download videos directly to App Storage (Not Phone Gallery)</p>
+                
+                <div class="offline-controls">
+                    <button id="btn-download-100" class="btn-green-big">Download 100 Videos</button>
+                    <button id="btn-download-200" class="btn-purple-big">Download 200 Videos</button>
+                </div>
+
+                <h4 class="title-cyan" style="margin-top:15px;">Watch Offline Videos</h4>
+                <div id="offline-videos-container" class="offline-playlist">
+                    <!-- Offline Downloaded Videos Saved Here -->
+                </div>
             </div>
         </section>
     </main>
 
     <!-- FLOATING UPLOAD (+) BUTTON -->
-    <button id="btn-open-upload-modal" class="floating-btn">+</button>
+    <button id="btn-open-upload-modal" class="floating-plus-btn">+</button>
 
     <!-- BOTTOM NAVIGATION BAR -->
     <nav class="bottom-nav">
@@ -145,46 +213,44 @@
         </button>
     </nav>
 
-    <!-- AUTH MODAL (CLEAN FULLSCREEN OVERLAY) -->
-    <div id="auth-modal" class="modal-overlay hidden">
-        <div class="login-card">
-            <button id="btn-close-auth" class="btn-close-modal">&times;</button>
-            <h2 id="auth-title">Umar Super App Login</h2>
-            <p class="subtitle">Enter details to access features</p>
+    <!-- EDIT PROFILE MODAL -->
+    <div id="edit-profile-modal" class="modal-overlay hidden">
+        <div class="custom-card">
+            <button id="btn-close-edit-profile" class="btn-close">&times;</button>
+            <h2 class="title-cyan">Update Profile</h2>
+            <p class="sub-info-text">Note: Changes require 7-week review cycle.</p>
             
             <div class="input-group">
-                <input type="text" id="auth-email" placeholder="Email / Phone / Username">
+                <label class="lbl-red">Full Name</label>
+                <input type="text" id="edit-input-name" placeholder="New Name">
             </div>
             <div class="input-group">
-                <input type="password" id="auth-password" placeholder="Password">
+                <label class="lbl-blue">Bio</label>
+                <textarea id="edit-input-bio" placeholder="Update your Bio..."></textarea>
+            </div>
+            <div class="input-group">
+                <label class="lbl-green">Profile Picture</label>
+                <input type="file" id="edit-input-photo" accept="image/*">
             </div>
 
-            <div id="onboarding-fields" class="hidden">
-                <div class="input-group">
-                    <input type="text" id="auth-fullname" placeholder="Full Name">
-                </div>
-                <div class="input-group">
-                    <input type="text" id="auth-username" placeholder="@username">
-                </div>
-            </div>
-
-            <button id="auth-submit-btn" class="btn-primary">Login</button>
-            <p class="signup-text"><span id="auth-toggle-msg">Account nahi hai?</span> <a href="#" id="auth-toggle-btn">Sign Up</a></p>
+            <button id="btn-submit-profile-update" class="btn-red-big">Submit For 7-Week Review</button>
         </div>
     </div>
 
-    <!-- UPLOAD MODAL -->
+    <!-- VIDEO UPLOAD MODAL -->
     <div id="upload-modal" class="modal-overlay hidden">
-        <div class="login-card">
-            <button id="btn-close-upload" class="btn-close-modal">&times;</button>
-            <h2>Post Video</h2>
+        <div class="custom-card">
+            <button id="btn-close-upload" class="btn-close">&times;</button>
+            <h2 class="title-pink">Post TikTok Video</h2>
             <div class="input-group">
+                <label class="lbl-blue">Select Video File</label>
                 <input type="file" id="input-video-file" accept="video/*">
             </div>
             <div class="input-group">
-                <textarea id="input-video-desc" placeholder="Video description..."></textarea>
+                <label class="lbl-green">Video Description / Caption</label>
+                <textarea id="input-video-desc" placeholder="Write caption..."></textarea>
             </div>
-            <button id="btn-submit-post" class="btn-primary">Upload Video</button>
+            <button id="btn-submit-post" class="btn-red-big">Upload & Post</button>
         </div>
     </div>
 
