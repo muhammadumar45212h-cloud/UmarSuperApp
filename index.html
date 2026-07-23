@@ -2,270 +2,420 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Super App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background-color: #0b1120; color: #f3f4f6; font-family: sans-serif; }
+    body { background-color: #0b1120; color: #f3f4f6; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
     .active-tab { color: #06b6d4; border-top: 2px solid #06b6d4; }
   </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
   <!-- Header -->
-  <header class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center z-10">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid font-bold text-cyan-400 text-xl">⚡</i>
-      <h1 class="text-xl font-bold text-cyan-400">Super App</h1>
+  <header class="bg-slate-900 border-b border-slate-800 px-3 py-2 flex justify-between items-center z-10">
+    <div class="flex items-center space-x-1.5">
+      <span class="text-cyan-400 font-bold text-lg">⚡</span>
+      <h1 class="text-lg font-bold text-cyan-400">Super App</h1>
     </div>
     
-    <div class="flex items-center space-x-3">
-      <!-- Added Plus Button next to Header controls -->
-      <button onclick="openModal('createPostModal')" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2 rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg shadow-md hover:opacity-90">
+    <div class="flex items-center space-x-2">
+      <!-- Plus Button for Quick Post -->
+      <button onclick="openModal('createPostModal')" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-base shadow hover:opacity-90">
         +
       </button>
       
       <!-- Notification Icon -->
-      <button onclick="alert('No new notifications')" class="text-gray-300 hover:text-white text-lg">
+      <button onclick="alert('No new notifications')" class="text-gray-300 text-sm p-1">
         <i class="fa-solid fa-bell"></i>
       </button>
 
       <!-- 3-Dot Menu Button -->
-      <button onclick="toggleMenu()" class="text-cyan-400 text-2xl focus:outline-none">
+      <button onclick="toggleMenu()" class="text-cyan-400 text-lg p-1 focus:outline-none">
         <i class="fa-solid fa-ellipsis-vertical"></i>
       </button>
     </div>
   </header>
 
-  <!-- Dropdown Menu Overlay -->
-  <div id="dropdownMenu" class="hidden absolute top-14 right-4 bg-slate-900 border border-cyan-500/30 rounded-xl p-3 shadow-2xl z-50 w-56 space-y-2">
-    <button onclick="openModal('createChannelModal'); toggleMenu();" class="w-full text-left bg-pink-600 hover:bg-pink-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+  <!-- 5-Color Dropdown Menu Overlay -->
+  <div id="dropdownMenu" class="hidden absolute top-12 right-2 bg-slate-900 border border-slate-700 rounded-xl p-2 shadow-2xl z-50 w-48 space-y-1.5">
+    <button onclick="openModal('createChannelModal'); toggleMenu();" class="w-full text-left bg-pink-600 hover:bg-pink-700 text-white py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-2">
       📢 Create Channel
     </button>
-    <button onclick="openModal('createGroupModal'); toggleMenu();" class="w-full text-left bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+    <button onclick="openModal('createGroupModal'); toggleMenu();" class="w-full text-left bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-2">
       👥 Create Group
     </button>
-    <button onclick="openModal('walletModal'); toggleMenu();" class="w-full text-left bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+    <button onclick="openModal('walletModal'); toggleMenu();" class="w-full text-left bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-2">
       💳 My Wallet
     </button>
-    <button onclick="openModal('settingsModal'); toggleMenu();" class="w-full text-left bg-cyan-500 hover:bg-cyan-600 text-slate-950 py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
-      ⚙️ Settings
+    <button onclick="openModal('adminSettingsModal'); toggleMenu();" class="w-full text-left bg-amber-500 hover:bg-amber-600 text-slate-950 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-2">
+      ⚙️ Admin Settings
     </button>
-    <button onclick="logout(); toggleMenu();" class="w-full text-left bg-red-800 hover:bg-red-900 text-white py-2 px-3 rounded-lg text-sm font-semibold flex items-center gap-2">
+    <button onclick="logout(); toggleMenu();" class="w-full text-left bg-red-600 hover:bg-red-700 text-white py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-2">
       ↪️ Logout
     </button>
   </div>
 
-  <!-- Main Content Container -->
-  <main class="flex-1 overflow-y-auto p-4" id="mainContainer">
+  <!-- Main Scrollable Container -->
+  <main class="flex-1 overflow-y-auto p-3" id="mainContainer">
 
     <!-- FEED TAB -->
-    <section id="tab-feed" class="tab-content space-y-4">
-      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-        <span class="text-cyan-400 font-bold">@umar_dev</span>
-        <p class="text-gray-300 mt-1">Welcome to Super App Feed!</p>
-      </div>
-      <div id="feedPosts" class="space-y-4">
-        <!-- Sample Posts dynamically appended here -->
+    <section id="tab-feed" class="tab-content space-y-3">
+      <div id="feedPosts" class="space-y-3">
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
+          <span class="text-cyan-400 font-bold text-xs">@umar_dev</span>
+          <p class="text-gray-300 text-xs mt-1">Welcome to Super App Feed!</p>
+        </div>
       </div>
     </section>
 
-    <!-- MARKETS TAB -->
+    <!-- MARKETS TAB (TradingView Live Chart Embed) -->
     <section id="tab-markets" class="tab-content hidden space-y-3">
-      <h2 class="text-cyan-400 font-bold text-lg">Forex & Crypto Live Charts</h2>
-      <button class="w-full bg-pink-600 text-white py-3 rounded-xl font-bold">XAUUSD (Gold)</button>
-      <button class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">BTCUSD (Crypto)</button>
-      <button class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold">EURUSD (Forex)</button>
+      <h2 class="text-cyan-400 font-bold text-sm">Forex & Crypto Live Charts</h2>
+      <div class="flex gap-2">
+        <button onclick="loadChart('OANDA:XAUUSD')" class="flex-1 bg-pink-600 text-white py-2 rounded-lg text-xs font-bold">Gold (XAUUSD)</button>
+        <button onclick="loadChart('BITSTAMP:BTCUSD')" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-xs font-bold">Bitcoin (BTC)</button>
+        <button onclick="loadChart('OANDA:EURUSD')" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg text-xs font-bold">Euro (EURUSD)</button>
+      </div>
+
+      <!-- TradingView Container -->
+      <div id="tradingview_chart_container" class="w-full h-80 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <iframe id="tv_iframe" class="w-full h-full" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=OANDA%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC"></iframe>
+      </div>
     </section>
 
     <!-- CHAT TAB -->
     <section id="tab-chat" class="tab-content hidden space-y-3">
-      <h2 class="text-pink-500 font-bold text-lg">Messages & Channels</h2>
-      <div onclick="openChannelChat('super app official')" class="bg-slate-900 border border-pink-500/40 p-3 rounded-xl cursor-pointer hover:bg-slate-800">
-        <h3 class="text-cyan-400 font-bold flex items-center gap-2">📢 super app official</h3>
-        <p class="text-emerald-400 text-xs mt-1">Channel Created Successfully! (Tap to chat)</p>
+      <h2 class="text-pink-500 font-bold text-sm">Messages & Channels</h2>
+      <div id="channelsList" class="space-y-2">
+        <div onclick="openChat('Super App Official Channel')" class="bg-slate-900 border border-pink-500/40 p-3 rounded-xl cursor-pointer">
+          <h3 class="text-cyan-400 font-bold text-xs flex items-center gap-1">📢 Super App Official</h3>
+          <p class="text-gray-400 text-[10px] mt-0.5">Official updates & announcements.</p>
+        </div>
       </div>
-      <div id="customChannelsList" class="space-y-2"></div>
+      
+      <!-- Active Chat Box Overlay -->
+      <div id="activeChatBox" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2">
+        <div class="flex justify-between border-b border-slate-800 pb-1">
+          <span class="text-xs font-bold text-cyan-400" id="chatTitle">Chat</span>
+          <button onclick="closeChat()" class="text-xs text-red-400 font-bold">✕ Close</button>
+        </div>
+        <div id="chatMessages" class="h-36 overflow-y-auto space-y-1 text-xs text-gray-300"></div>
+        <div class="flex gap-1">
+          <input type="text" id="chatInput" placeholder="Type message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-2 text-xs">
+          <button onclick="sendMessage()" class="bg-cyan-600 text-white px-3 py-1 rounded-lg text-xs font-bold">Send</button>
+        </div>
+      </div>
     </section>
 
-    <!-- COMPILER TAB -->
+    <!-- TERMUX COMPILER & FILE SYSTEM TAB -->
     <section id="tab-compiler" class="tab-content hidden space-y-3">
-      <h2 class="text-emerald-400 font-bold text-lg">Termux Web Compiler</h2>
-      <textarea id="compilerInput" class="w-full h-32 bg-slate-900 border border-blue-600 rounded-xl p-3 text-sm text-gray-200 focus:outline-none" placeholder="// Write JS Code or commands..."></textarea>
-      <button onclick="runCompiler()" class="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-3 rounded-xl">► RUN CODE / COMMAND</button>
-      <div class="bg-slate-900 border border-emerald-500/40 p-3 rounded-xl text-xs font-mono text-emerald-400" id="compilerOutput">
+      <h2 class="text-emerald-400 font-bold text-sm">Termux Web Compiler & File System</h2>
+      
+      <!-- File Management Controls -->
+      <div class="bg-slate-900 border border-slate-800 p-2 rounded-xl space-y-2">
+        <div class="flex gap-1">
+          <input type="text" id="fileNameInput" placeholder="filename.js" class="flex-1 bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs">
+          <button onclick="createFile()" class="bg-emerald-600 text-white px-2 py-1 rounded text-xs font-bold">+ File</button>
+        </div>
+        <div id="fileList" class="flex flex-wrap gap-1"></div>
+      </div>
+
+      <textarea id="compilerInput" class="w-full h-28 bg-slate-900 border border-blue-600/50 rounded-xl p-2 text-xs font-mono text-gray-200 focus:outline-none" placeholder="// Write JS Code or console commands..."></textarea>
+      <button onclick="runCompiler()" class="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-2 rounded-xl text-xs">► RUN CODE</button>
+      <div class="bg-slate-900 border border-emerald-500/40 p-2 rounded-xl text-[11px] font-mono text-emerald-400 min-h-[60px]" id="compilerOutput">
         Terminal Console Output
       </div>
     </section>
 
     <!-- AI TAB -->
     <section id="tab-ai" class="tab-content hidden space-y-3">
-      <h2 class="text-cyan-400 font-bold text-lg">AI Assistant</h2>
-      <div class="bg-slate-900 p-4 rounded-xl text-sm text-cyan-300">
-        Hello! Main aapka AI Assistant hoon. Kya hukam hai?
+      <h2 class="text-cyan-400 font-bold text-sm">AI Assistant</h2>
+      <div class="bg-slate-900 p-3 rounded-xl text-xs text-cyan-300">
+        Hello Umar! Main aapka AI Assistant hoon. Kaise madad karoon?
       </div>
     </section>
 
     <!-- WEATHER TAB -->
     <section id="tab-weather" class="tab-content hidden space-y-3">
-      <h2 class="text-amber-500 font-bold text-lg">Live Weather Search</h2>
+      <h2 class="text-amber-500 font-bold text-sm">Live Weather Search</h2>
       <div class="flex gap-2">
-        <input type="text" id="weatherSearchInput" placeholder="Enter City Name..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-sm text-white focus:outline-none">
-        <button onclick="searchWeather()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">SEARCH</button>
+        <input type="text" id="weatherSearchInput" placeholder="Enter City Name..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-xs text-white focus:outline-none">
+        <button onclick="searchWeather()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold">SEARCH</button>
       </div>
-      <div class="bg-slate-900 border border-amber-500/40 p-4 rounded-xl text-center space-y-2">
-        <h3 class="text-cyan-400 font-bold text-xl" id="cityName">THULL</h3>
-        <p class="text-red-500 font-extrabold text-4xl" id="cityTemp">42°C</p>
-        <p class="text-cyan-300 text-xs" id="cityCond">Condition: Extreme Heatwave / Sunny</p>
+      <div class="bg-slate-900 border border-amber-500/40 p-4 rounded-xl text-center space-y-1">
+        <h3 class="text-cyan-400 font-bold text-lg" id="cityName">THULL</h3>
+        <p class="text-red-500 font-extrabold text-3xl" id="cityTemp">42°C</p>
+        <p class="text-cyan-300 text-[11px]" id="cityCond">Condition: Extreme Heatwave / Sunny</p>
       </div>
     </section>
 
     <!-- PROFILE TAB -->
-    <section id="tab-profile" class="tab-content hidden space-y-4">
-      <div class="bg-slate-900 border border-pink-500/50 p-4 rounded-xl text-center space-y-2">
-        <p class="text-cyan-400 font-bold text-sm">Guest User Profile</p>
-        <p class="text-gray-400 text-xs">You are currently viewing as guest.</p>
-        <button onclick="openModal('authModal')" class="bg-pink-600 text-white font-bold text-xs py-2 px-4 rounded-lg">
-          👤+ SIGN UP / LOGIN
+    <section id="tab-profile" class="tab-content hidden space-y-3">
+      <div id="guestBox" class="bg-slate-900 border border-pink-500/50 p-3 rounded-xl text-center space-y-1.5">
+        <p class="text-cyan-400 font-bold text-xs">Guest User Profile</p>
+        <button onclick="openModal('authModal')" class="bg-pink-600 text-white font-bold text-xs py-1.5 px-3 rounded-lg">
+          👤 SIGN UP / LOGIN
         </button>
       </div>
 
-      <div class="space-y-1">
-        <h2 class="text-cyan-400 font-bold text-xl" id="profileDisplayName">Muhammad Umar</h2>
+      <div class="space-y-0.5">
+        <h2 class="text-cyan-400 font-bold text-lg" id="profileDisplayName">Muhammad Umar</h2>
         <p class="text-cyan-600 text-xs" id="profileDisplayUsername">@umar_dev</p>
-        <p class="text-cyan-300 text-xs">Mobile Developer & Cybersecurity Expert 🚀</p>
+        <p class="text-cyan-300 text-[11px]">Mobile Developer & Cybersecurity Expert 🚀</p>
       </div>
     </section>
 
   </main>
 
-  <!-- MODALS SECTION -->
+  <!-- MODALS -->
 
-  <!-- Authentication Modal (Signup / Login) -->
-  <div id="authModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-blue-500/50 rounded-2xl p-5 w-full max-w-sm space-y-3 relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeModal('authModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
-      <h3 class="text-cyan-400 font-bold text-lg">Sign Up / Login</h3>
-      <input type="text" id="regName" placeholder="Full Name" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <input type="text" id="regUsername" placeholder="Username" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <input type="tel" id="regPhone" placeholder="Phone Number" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <input type="email" id="regEmail" placeholder="Email Address" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <input type="password" id="regPassword" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <input type="text" id="regPhoto" placeholder="Profile Photo URL (Optional)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm">
-      <button onclick="handleAuth()" class="w-full bg-pink-600 text-white font-bold py-2 rounded-xl text-sm">Submit & Login</button>
+  <!-- Signup / Login Modal -->
+  <div id="authModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-blue-500/50 rounded-xl p-4 w-full max-w-xs space-y-2 relative">
+      <button onclick="closeModal('authModal')" class="absolute top-2 right-3 text-pink-500 font-bold">✕</button>
+      <h3 class="text-cyan-400 font-bold text-sm">Sign Up / Login</h3>
+      <input type="text" id="regName" placeholder="Full Name" class="w-full bg-slate-800 border border-slate-700 p-1.5 rounded text-xs">
+      <input type="text" id="regUsername" placeholder="Username" class="w-full bg-slate-800 border border-slate-700 p-1.5 rounded text-xs">
+      <input type="password" id="regPassword" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 p-1.5 rounded text-xs">
+      <button onclick="handleAuth()" class="w-full bg-pink-600 text-white font-bold py-1.5 rounded text-xs">Login / Register</button>
+    </div>
+  </div>
+
+  <!-- Create Channel Modal -->
+  <div id="createChannelModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-pink-500 rounded-xl p-4 w-full max-w-xs space-y-2 relative">
+      <button onclick="closeModal('createChannelModal')" class="absolute top-2 right-3 text-pink-500 font-bold">✕</button>
+      <h3 class="text-pink-400 font-bold text-sm">Create Channel</h3>
+      <input type="text" id="channelNameInput" placeholder="Channel Name" class="w-full bg-slate-800 border border-slate-700 p-1.5 rounded text-xs">
+      <button onclick="createChannel()" class="w-full bg-pink-600 text-white font-bold py-1.5 rounded text-xs">Create Now</button>
+    </div>
+  </div>
+
+  <!-- Create Group Modal -->
+  <div id="createGroupModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-blue-500 rounded-xl p-4 w-full max-w-xs space-y-2 relative">
+      <button onclick="closeModal('createGroupModal')" class="absolute top-2 right-3 text-blue-500 font-bold">✕</button>
+      <h3 class="text-blue-400 font-bold text-sm">Create Group</h3>
+      <input type="text" id="groupNameInput" placeholder="Group Name" class="w-full bg-slate-800 border border-slate-700 p-1.5 rounded text-xs">
+      <button onclick="createGroup()" class="w-full bg-blue-600 text-white font-bold py-1.5 rounded text-xs">Create Group</button>
     </div>
   </div>
 
   <!-- Wallet Modal -->
-  <div id="walletModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-emerald-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative text-center">
-      <button onclick="closeModal('walletModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
-      <h3 class="text-emerald-400 font-bold text-lg">My Wallet</h3>
-      <div class="bg-slate-800 p-4 rounded-xl">
-        <p class="text-gray-400 text-xs">Available Balance</p>
-        <p class="text-2xl font-bold text-white">$0.00 USD</p>
+  <div id="walletModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-emerald-500 rounded-xl p-4 w-full max-w-xs space-y-2 relative text-center">
+      <button onclick="closeModal('walletModal')" class="absolute top-2 right-3 text-emerald-500 font-bold">✕</button>
+      <h3 class="text-emerald-400 font-bold text-sm">My Wallet</h3>
+      <div class="bg-slate-800 p-3 rounded-lg">
+        <p class="text-gray-400 text-[10px]">Balance</p>
+        <p class="text-xl font-bold text-white">$0.00 USD</p>
       </div>
-      <button onclick="alert('Deposit Feature Coming Soon')" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-xl text-sm">Deposit Money</button>
     </div>
   </div>
 
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-cyan-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative">
-      <button onclick="closeModal('settingsModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
-      <h3 class="text-cyan-400 font-bold text-lg">App Settings</h3>
-      <p class="text-gray-300 text-xs">Manage Notifications, Privacy & Account Configurations.</p>
+  <!-- Admin Settings Modal -->
+  <div id="adminSettingsModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-amber-500 rounded-xl p-4 w-full max-w-xs space-y-2 relative">
+      <button onclick="closeModal('adminSettingsModal')" class="absolute top-2 right-3 text-amber-500 font-bold">✕</button>
+      <h3 class="text-amber-400 font-bold text-sm">Admin Settings</h3>
+      <p class="text-gray-300 text-xs">App Configurations & Control Panel.</p>
     </div>
   </div>
 
-  <!-- Create Post Modal -->
-  <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-purple-500 rounded-2xl p-5 w-full max-w-sm space-y-3 relative">
-      <button onclick="closeModal('createPostModal')" class="absolute top-3 right-3 text-pink-500 font-bold text-lg">✕</button>
-      <h3 class="text-purple-400 font-bold text-lg">Create New Post</h3>
-      <textarea id="postContent" placeholder="Write something or video URL..." class="w-full h-24 bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm"></textarea>
-      <button onclick="addPost()" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-sm">Publish Post</button>
+  <!-- Create Post Modal (Gallery Upload Supported) -->
+  <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-purple-500 rounded-xl p-4 w-full max-w-xs space-y-2 relative">
+      <button onclick="closeModal('createPostModal')" class="absolute top-2 right-3 text-purple-500 font-bold">✕</button>
+      <h3 class="text-purple-400 font-bold text-sm">Upload Video / Post</h3>
+      <textarea id="postContent" placeholder="Write description..." class="w-full h-16 bg-slate-800 border border-slate-700 p-1.5 rounded text-xs"></textarea>
+      
+      <!-- Gallery File Input -->
+      <label class="block text-xs text-gray-300">Select Video/Photo from Gallery:</label>
+      <input type="file" id="mediaFileInput" accept="video/*,image/*" class="w-full text-xs text-gray-400 file:bg-slate-800 file:border-0 file:text-cyan-400 file:px-2 file:py-1 file:rounded">
+      
+      <button onclick="publishGalleryPost()" class="w-full bg-purple-600 text-white font-bold py-1.5 rounded text-xs">Publish Post</button>
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
-  <nav class="bg-slate-900 border-t border-slate-800 flex justify-around py-2 z-10 text-xs">
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="bg-slate-900 border-t border-slate-800 flex justify-around py-1.5 z-10 text-[10px]">
     <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center active-tab">
-      <i class="fa-solid fa-house text-base"></i> Feed
+      <i class="fa-solid fa-house text-xs"></i> Feed
     </button>
     <button onclick="switchTab('markets')" id="nav-markets" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-chart-line text-base"></i> Markets
+      <i class="fa-solid fa-chart-line text-xs"></i> Markets
     </button>
     <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-comments text-base"></i> Chat
+      <i class="fa-solid fa-comments text-xs"></i> Chat
     </button>
     <button onclick="switchTab('compiler')" id="nav-compiler" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-code text-base"></i> Compiler
+      <i class="fa-solid fa-code text-xs"></i> Compiler
     </button>
     <button onclick="switchTab('ai')" id="nav-ai" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-robot text-base"></i> AI
+      <i class="fa-solid fa-robot text-xs"></i> AI
     </button>
     <button onclick="switchTab('weather')" id="nav-weather" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-cloud-sun text-base"></i> Weather
+      <i class="fa-solid fa-cloud-sun text-xs"></i> Weather
     </button>
     <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-user text-base"></i> Profile
+      <i class="fa-solid fa-user text-xs"></i> Profile
     </button>
   </nav>
 
   <script>
+    // Tab Switch Logic
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab', 'text-cyan-400'));
-      
       document.getElementById('tab-' + tabId).classList.remove('hidden');
       document.getElementById('nav-' + tabId).classList.add('active-tab');
     }
 
-    function toggleMenu() {
-      document.getElementById('dropdownMenu').classList.toggle('hidden');
+    // Modal Control Logic
+    function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('hidden'); }
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // Live Chart Switcher
+    function loadChart(symbol) {
+      const iframe = document.getElementById('tv_iframe');
+      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC`;
     }
 
-    function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
+    // Post Creation from Gallery File
+    function publishGalleryPost() {
+      const text = document.getElementById('postContent').value;
+      const fileInput = document.getElementById('mediaFileInput');
+      const feed = document.getElementById('feedPosts');
+
+      const card = document.createElement('div');
+      card.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl space-y-2";
+      card.innerHTML = `<span class="text-cyan-400 font-bold text-xs">@umar_dev</span><p class="text-gray-200 text-xs">${text}</p>`;
+
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const mediaUrl = URL.createObjectURL(file);
+        
+        if (file.type.startsWith('video/')) {
+          card.innerHTML += `<video controls class="w-full rounded-lg max-h-60" src="${mediaUrl}"></video>
+            <a href="${mediaUrl}" download="video.mp4" class="inline-block bg-cyan-600 text-white text-[10px] font-bold py-1 px-2 rounded mt-1">📥 Download Video</a>`;
+        } else if (file.type.startsWith('image/')) {
+          card.innerHTML += `<img class="w-full rounded-lg max-h-60 object-cover" src="${mediaUrl}">`;
+        }
+      }
+
+      feed.prepend(card);
+      document.getElementById('postContent').value = '';
+      fileInput.value = '';
+      closeModal('createPostModal');
     }
 
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
-
+    // Authentication Logic
     function handleAuth() {
       const name = document.getElementById('regName').value;
       const username = document.getElementById('regUsername').value;
       if (name) {
         document.getElementById('profileDisplayName').innerText = name;
         document.getElementById('profileDisplayUsername').innerText = '@' + (username || 'user');
+        document.getElementById('guestBox').classList.add('hidden');
         closeModal('authModal');
-        alert('Account updated successfully!');
       }
     }
 
-    function addPost() {
-      const content = document.getElementById('postContent').value;
-      if (content) {
-        const feed = document.getElementById('feedPosts');
-        const post = document.createElement('div');
-        post.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
-        post.innerHTML = `<span class="text-cyan-400 font-bold">User</span><p class="text-gray-200 mt-1">${content}</p>`;
-        feed.prepend(post);
-        document.getElementById('postContent').value = '';
-        closeModal('createPostModal');
+    function logout() {
+      document.getElementById('guestBox').classList.remove('hidden');
+      document.getElementById('profileDisplayName').innerText = 'Guest User';
+      document.getElementById('profileDisplayUsername').innerText = '@guest';
+      alert('Logged out successfully!');
+    }
+
+    // Channels & Groups Creation
+    function createChannel() {
+      const name = document.getElementById('channelNameInput').value;
+      if (name) {
+        const list = document.getElementById('channelsList');
+        list.innerHTML += `<div onclick="openChat('${name}')" class="bg-slate-900 border border-pink-500/40 p-3 rounded-xl cursor-pointer">
+          <h3 class="text-cyan-400 font-bold text-xs">📢 ${name}</h3>
+        </div>`;
+        document.getElementById('channelNameInput').value = '';
+        closeModal('createChannelModal');
       }
     }
 
-    function openChannelChat(name) {
-      alert('Opening channel chat: ' + name);
+    function createGroup() {
+      const name = document.getElementById('groupNameInput').value;
+      if (name) {
+        const list = document.getElementById('channelsList');
+        list.innerHTML += `<div onclick="openChat('${name}')" class="bg-slate-900 border border-blue-500/40 p-3 rounded-xl cursor-pointer">
+          <h3 class="text-blue-400 font-bold text-xs">👥 ${name}</h3>
+        </div>`;
+        document.getElementById('groupNameInput').value = '';
+        closeModal('createGroupModal');
+      }
+    }
+
+    // Active Chat Logic
+    let currentChat = '';
+    function openChat(title) {
+      currentChat = title;
+      document.getElementById('chatTitle').innerText = title;
+      document.getElementById('activeChatBox').classList.remove('hidden');
+    }
+    function closeChat() { document.getElementById('activeChatBox').classList.add('hidden'); }
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      if (input.value) {
+        const msgBox = document.getElementById('chatMessages');
+        msgBox.innerHTML += `<div><b class="text-cyan-400">You:</b> ${input.value}</div>`;
+        input.value = '';
+      }
+    }
+
+    // Termux File Management & Compiler
+    let virtualFiles = {};
+    function createFile() {
+      const name = document.getElementById('fileNameInput').value;
+      if (name) {
+        virtualFiles[name] = "// Empty File";
+        renderFiles();
+        document.getElementById('fileNameInput').value = '';
+      }
+    }
+    function renderFiles() {
+      const list = document.getElementById('fileList');
+      list.innerHTML = '';
+      Object.keys(virtualFiles).forEach(f => {
+        list.innerHTML += `<span class="bg-slate-800 text-cyan-300 text-[10px] px-2 py-0.5 rounded flex items-center gap-1">
+          ${f} <b onclick="deleteFile('${f}')" class="text-red-400 cursor-pointer">✕</b>
+        </span>`;
+      });
+    }
+    function deleteFile(name) {
+      delete virtualFiles[name];
+      renderFiles();
     }
 
     function runCompiler() {
       const code = document.getElementById('compilerInput').value;
-      document.getElementById('compilerOutput').innerText = code ? 'Executing:\n' + code : 'No code entered.';
+      const out = document.getElementById('compilerOutput');
+      try {
+        let res = eval(code);
+        out.innerText = 'Result:\n' + JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.innerText = 'Error: ' + err.message;
+      }
+    }
+
+    // Weather Search
+    function searchWeather() {
+      const city = document.getElementById('weatherSearchInput').value;
+      if (city) {
+        document.getElementById('cityName').innerText = city.toUpperCase();
+        document.getElementById('cityTemp').innerText = '32°C';
+        document.getElementById('cityCond').innerText = 'Condition: Clear / Normal Weather';
+      }
     }
   </script>
 </body>
