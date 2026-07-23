@@ -1,365 +1,193 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Umar Super App</title>
     <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- TradingView Widget Script -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        /* Small Red Sign-up button link styling */
-        .auth-toggle-text {
-            font-size: 13px;
-            margin-top: 12px;
-        }
-        .auth-toggle-text a {
-            color: #ff4d4d;
-            font-weight: 600;
-            font-size: 12px;
-            text-decoration: none;
-            margin-left: 4px;
-        }
-        .auth-toggle-text a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 </head>
 <body>
 
-    <!-- 1. AUTHENTICATION OVERLAY (By default hidden rakha hai taake app direct khule) -->
-    <div id="auth-modal" class="auth-overlay hidden">
-        <div class="auth-card" id="auth-form-card">
-            <h2 id="auth-title">Umar Super App Login</h2>
-            <p class="auth-sub">Enter your details to access live features</p>
-            <input type="text" id="auth-email" placeholder="Email / Phone / Username" required />
-            <input type="password" id="auth-password" placeholder="Password" required />
+    <!-- TOP APP HEADER -->
+    <header class="top-header">
+        <div class="logo-area">
+            <i class="fa-solid fa-bolt logo-icon"></i>
+            <span>Umar Super App</span>
+        </div>
+        <div class="header-right">
+            <button id="btn-toggle-menu" class="icon-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
             
-            <!-- ONBOARDING FIELDS FOR SIGNUP -->
+            <!-- POPUP MENU (HIDDEN BY DEFAULT) -->
+            <div id="top-dropdown-menu" class="dropdown-menu hidden">
+                <button class="menu-item"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
+                <button class="menu-item"><i class="fa-solid fa-users"></i> Create Group</button>
+                <button class="menu-item"><i class="fa-solid fa-wallet"></i> My Wallet</button>
+                <button id="menu-opt-logout" class="menu-item danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA (SECTIONS ISOLATED) -->
+    <main>
+        <!-- 1. FEED SECTION -->
+        <section id="section-feed" class="app-section active-section">
+            <div class="feed-header">
+                <h2>Video Feed</h2>
+            </div>
+            <div id="video-feed-container" class="feed-scroll-container">
+                <!-- Dynamic Videos Here -->
+            </div>
+        </section>
+
+        <!-- 2. MARKETS SECTION -->
+        <section id="section-markets" class="app-section">
+            <h2>Market Live Charts</h2>
+            <div class="market-btn-group">
+                <button id="btn-market-xau" class="m-btn active">XAUUSD (Gold)</button>
+                <button id="btn-market-btc" class="m-btn">BTCUSD</button>
+                <button id="btn-market-eur" class="m-btn">EURUSD</button>
+            </div>
+            <div id="tradingview-widget-container"></div>
+        </section>
+
+        <!-- 3. CHAT SECTION -->
+        <section id="section-chat" class="app-section">
+            <h2>Messages & Channels</h2>
+            <div id="chat-threads-list" class="threads-list">
+                <!-- Dynamic Chat Users -->
+            </div>
+        </section>
+
+        <!-- 4. COMPILER SECTION -->
+        <section id="section-compiler" class="app-section">
+            <h2>Termux Web Compiler</h2>
+            <p class="sub-info">Type <code>ls</code>, <code>st filename</code>, or <code>dt filename</code></p>
+            <textarea id="code-editor-input" placeholder="// Write JS Code or commands here..."></textarea>
+            <button id="btn-run-code" class="btn-action green">Run Code / Command</button>
+            
+            <div class="terminal-box">
+                <div class="terminal-header">Output Console</div>
+                <pre id="terminal-console-out">> Ready to execute.</pre>
+            </div>
+        </section>
+
+        <!-- 5. AI ASSISTANT SECTION -->
+        <section id="section-ai" class="app-section">
+            <h2>Umar AI Assistant</h2>
+            <div id="ai-chat-box" class="ai-box">
+                <div class="ai-msg">Hello! Main Umar AI Assistant hoon. Main aapki kya madad karoon?</div>
+            </div>
+        </section>
+
+        <!-- 6. WEATHER SECTION -->
+        <section id="section-weather" class="app-section">
+            <h2>Live Weather Search</h2>
+            <div class="weather-search-bar">
+                <input type="text" id="input-weather-city" placeholder="Enter city name (e.g. London, Karachi)...">
+                <button id="btn-search-weather" class="btn-action blue">Search</button>
+            </div>
+            <div class="weather-card">
+                <h3 id="weather-city-name">Search a City</h3>
+                <div id="weather-temp" class="temp-text">--°C</div>
+                <p id="weather-condition">Condition: --</p>
+            </div>
+        </section>
+
+        <!-- 7. PROFILE SECTION -->
+        <section id="section-profile" class="app-section">
+            <div class="profile-card">
+                <img id="my-profile-img" src="https://via.placeholder.com/100" class="profile-avatar" />
+                <h3 id="my-profile-name">User Name</h3>
+                <p id="my-profile-username">@username</p>
+                <div id="monetization-status-tag" class="monetize-badge">Monetization Active</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FLOATING UPLOAD (+) BUTTON -->
+    <button id="btn-open-upload-modal" class="floating-btn">+</button>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-target="section-feed">
+            <i class="fa-solid fa-house"></i>
+            <span>Feed</span>
+        </button>
+        <button class="nav-item" data-target="section-markets">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Markets</span>
+        </button>
+        <button class="nav-item" data-target="section-chat">
+            <i class="fa-solid fa-comments"></i>
+            <span>Chat</span>
+        </button>
+        <button class="nav-item" data-target="section-compiler">
+            <i class="fa-solid fa-code"></i>
+            <span>Compiler</span>
+        </button>
+        <button class="nav-item" data-target="section-ai">
+            <i class="fa-solid fa-robot"></i>
+            <span>AI</span>
+        </button>
+        <button class="nav-item" data-target="section-weather">
+            <i class="fa-solid fa-cloud-sun"></i>
+            <span>Weather</span>
+        </button>
+        <button class="nav-item" data-target="section-profile">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <!-- AUTH MODAL (CLEAN FULLSCREEN OVERLAY) -->
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="login-card">
+            <button id="btn-close-auth" class="btn-close-modal">&times;</button>
+            <h2 id="auth-title">Umar Super App Login</h2>
+            <p class="subtitle">Enter details to access features</p>
+            
+            <div class="input-group">
+                <input type="text" id="auth-email" placeholder="Email / Phone / Username">
+            </div>
+            <div class="input-group">
+                <input type="password" id="auth-password" placeholder="Password">
+            </div>
+
             <div id="onboarding-fields" class="hidden">
-                <input type="text" id="auth-fullname" placeholder="Full Name (e.g. Muhammad Umar)" />
-                <input type="text" id="auth-username" placeholder="Username (@umar_dev)" />
-                <input type="tel" id="auth-phone" placeholder="Phone Number" />
-                
-                <label style="color:#aaa; font-size:11px; display:block; margin-top:8px; text-align:left;">Profile Photo (Select from Gallery):</label>
-                <input type="file" id="auth-avatar-file" accept="image/*" style="background:#222; color:#fff; padding:6px; margin-top:4px; border-radius:5px; width:100%; font-size:12px;" />
+                <div class="input-group">
+                    <input type="text" id="auth-fullname" placeholder="Full Name">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="auth-username" placeholder="@username">
+                </div>
             </div>
 
             <button id="auth-submit-btn" class="btn-primary">Login</button>
-            <p class="auth-toggle-text">
-                <span id="auth-toggle-msg">Account nahi hai?</span> 
-                <a href="#" id="auth-toggle-btn">Sign Up Karein</a>
-            </p>
-            <div id="auth-error" class="error-msg"></div>
+            <p class="signup-text"><span id="auth-toggle-msg">Account nahi hai?</span> <a href="#" id="auth-toggle-btn">Sign Up</a></p>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="app-container" class="app-wrapper">
-        
-        <!-- TOP APP BAR -->
-        <header class="top-bar">
-            <div class="top-logo">
-                <i class="fa-solid fa-bolt icon-brand"></i>
-                <span>Umar Super App</span>
-            </div>
-            
-            <!-- Global Search Area -->
-            <div class="top-search-box">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="global-search-input" placeholder="Search profiles, videos, channels..." />
-            </div>
-
-            <div class="top-actions">
-                <button id="btn-top-menu" class="icon-btn"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            </div>
-
-            <!-- Top Dropdown Menu -->
-            <div id="top-dropdown-menu" class="dropdown-menu hidden">
-                <button id="menu-opt-channel"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
-                <button id="menu-opt-group"><i class="fa-solid fa-users"></i> Create Group</button>
-                <button id="menu-opt-wallet"><i class="fa-solid fa-wallet"></i> My Wallet & Earnings</button>
-                <button id="menu-opt-logout" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-            </div>
-        </header>
-
-        <!-- GLOBAL SEARCH FILTER BAR -->
-        <div id="search-filter-bar" class="search-filter-bar hidden">
-            <button class="filter-chip active" data-filter="all">All</button>
-            <button class="filter-chip" data-filter="users">Users</button>
-            <button class="filter-chip" data-filter="videos">Videos</button>
-            <button class="filter-chip" data-filter="channels">Channels</button>
-            <button class="filter-chip" data-filter="groups">Groups</button>
-        </div>
-
-        <!-- MAIN DYNAMIC CONTENT SCREEN CONTAINER -->
-        <main id="main-content-viewport" class="content-viewport">
-            
-            <!-- TAB 1: SHORT VIDEO FEED -->
-            <section id="sec-feed" class="app-section active-section">
-                <div id="video-feed-container" class="video-feed-scroll">
-                    <!-- Dynamic Videos Render Here -->
-                </div>
-            </section>
-
-            <!-- TAB 2: REAL-TIME FOREX & CRYPTO CHARTS -->
-            <section id="sec-forex" class="app-section">
-                <div class="forex-header">
-                    <h3><i class="fa-solid fa-chart-line"></i> Market Charts</h3>
-                    <div class="pair-selector">
-                        <button class="pair-btn active" data-symbol="OANDA:XAUUSD">XAUUSD (Gold)</button>
-                        <button class="pair-btn" data-symbol="BITSTAMP:BTCUSD">BTCUSD</button>
-                        <button class="pair-btn" data-symbol="FX:EURUSD">EURUSD</button>
-                    </div>
-                </div>
-                <div id="tradingview-widget-container" class="tv-container"></div>
-            </section>
-
-            <!-- TAB 3: REAL-TIME MESSAGES & CHAT -->
-            <section id="sec-chat" class="app-section">
-                <div class="chat-layout">
-                    <div class="chat-threads-sidebar">
-                        <div class="chat-search">
-                            <input type="text" placeholder="Search conversations..." />
-                        </div>
-                        <div id="chat-threads-list" class="threads-list">
-                            <!-- Dynamic Chat List -->
-                        </div>
-                    </div>
-                    <div id="chat-active-window" class="chat-window hidden">
-                        <div class="chat-window-header">
-                            <div class="chat-user-info">
-                                <img id="chat-header-avatar" src="https://via.placeholder.com/40" alt="Avatar" />
-                                <div>
-                                    <h4 id="chat-header-name">User Name</h4>
-                                    <span id="chat-header-status" class="status-online">Online</span>
-                                </div>
-                            </div>
-                            <div class="chat-call-actions">
-                                <button id="btn-voice-call" class="icon-btn"><i class="fa-solid fa-phone"></i></button>
-                                <button id="btn-video-call" class="icon-btn"><i class="fa-solid fa-video"></i></button>
-                            </div>
-                        </div>
-                        <div id="chat-messages-scroll" class="chat-messages-area"></div>
-                        <div class="chat-input-bar">
-                            <input type="text" id="chat-msg-input" placeholder="Write a message..." />
-                            <button id="btn-send-chat" class="btn-primary-circle"><i class="fa-solid fa-paper-plane"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: REAL-TIME TERMINAL & CODE COMPILER -->
-            <section id="sec-coding" class="app-section">
-                <div class="terminal-header">
-                    <span><i class="fa-solid fa-terminal"></i> Termux Web Compiler</span>
-                    <button id="btn-run-code" class="btn-run"><i class="fa-solid fa-play"></i> Run Code</button>
-                </div>
-                <div class="editor-container">
-                    <textarea id="code-editor-input" spellcheck="false" placeholder="// Write JavaScript / HTML / CSS here..."></textarea>
-                </div>
-                <div class="terminal-output-panel">
-                    <div class="panel-label">Terminal Console Output:</div>
-                    <pre id="terminal-console-out">> System initialized. Ready to execute.</pre>
-                </div>
-            </section>
-
-            <!-- TAB 5: AI ASSISTANT CHAT -->
-            <section id="sec-ai" class="app-section">
-                <div class="ai-container">
-                    <div class="ai-header">
-                        <i class="fa-solid fa-robot"></i> Umar AI Assistant
-                    </div>
-                    <div id="ai-chat-history" class="ai-history">
-                        <div class="ai-bubble ai-reply">
-                            Hello! Main Umar AI Assistant hoon. Aap coding, markets, ya app features ke baare mein kuch bhi pooch sakte hain.
-                        </div>
-                    </div>
-                    <div class="ai-input-bar">
-                        <input type="text" id="ai-input-text" placeholder="Ask AI anything..." />
-                        <button id="btn-send-ai" class="btn-primary-circle"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 6: WEATHER & TEMPERATURE -->
-            <section id="sec-weather" class="app-section">
-                <div class="weather-wrapper">
-                    <h3><i class="fa-solid fa-cloud-sun-rain"></i> Live Weather Search</h3>
-                    <div class="weather-search-row">
-                        <input type="text" id="weather-city-input" placeholder="Enter City/Country (e.g., Karachi, London)" />
-                        <button id="btn-search-weather" class="btn-primary">Search Weather</button>
-                    </div>
-                    <div id="weather-display-card" class="weather-card">
-                        <h2 id="weather-city">Karachi, PK</h2>
-                        <div class="weather-temp" id="weather-temp">32°C</div>
-                        <p id="weather-desc">Clear Sky / Warm</p>
-                        <div class="weather-details">
-                            <span>Humidity: <strong id="weather-humidity">65%</strong></span>
-                            <span>Wind: <strong id="weather-wind">14 km/h</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 7: USER PROFILE -->
-            <section id="sec-profile" class="app-section">
-                <div class="profile-header-card">
-                    <img id="my-profile-img" src="https://via.placeholder.com/100" class="profile-avatar-lg" alt="Profile Photo" />
-                    <h3 id="my-profile-name">User Name</h3>
-                    <p id="my-profile-username">@username</p>
-                    <div class="profile-stats-row">
-                        <div class="stat-item"><strong id="stat-followers">0</strong> Followers</div>
-                        <div class="stat-item"><strong id="stat-following">0</strong> Following</div>
-                        <div class="stat-item"><strong id="stat-views">0</strong> Total Views</div>
-                    </div>
-                    <button id="btn-monetize-status" class="btn-secondary-sm"><i class="fa-solid fa-gem"></i> Monetization Active</button>
-                </div>
-                <div class="profile-tabs">
-                    <h4>My Uploaded Short Videos</h4>
-                    <div id="my-videos-grid" class="videos-grid">
-                        <!-- Dynamic User Videos -->
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- FLOATING ACTION BUTTON (+) FOR VIDEO UPLOAD & LIVE STREAM -->
-        <button id="btn-open-upload-modal" class="fab-upload-btn">
-            <i class="fa-solid fa-plus"></i>
-        </button>
-
-        <!-- BOTTOM NAVIGATION BAR -->
-        <nav class="bottom-nav">
-            <button class="nav-item active" data-target="sec-feed">
-                <i class="fa-solid fa-house"></i>
-                <span>Feed</span>
-            </button>
-            <button class="nav-item" data-target="sec-forex">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span>Markets</span>
-            </button>
-            <button class="nav-item" data-target="sec-chat">
-                <i class="fa-solid fa-comments"></i>
-                <span>Chat</span>
-            </button>
-            <button class="nav-item" data-target="sec-coding">
-                <i class="fa-solid fa-code"></i>
-                <span>Compiler</span>
-            </button>
-            <button class="nav-item" data-target="sec-ai">
-                <i class="fa-solid fa-robot"></i>
-                <span>AI</span>
-            </button>
-            <button class="nav-item" data-target="sec-weather">
-                <i class="fa-solid fa-cloud-sun"></i>
-                <span>Weather</span>
-            </button>
-            <button class="nav-item" data-target="sec-profile">
-                <i class="fa-solid fa-user"></i>
-                <span>Profile</span>
-            </button>
-        </nav>
-
-    </div>
-
-    <!-- MODAL 1: VIDEO UPLOAD & LIVESTREAM MODAL -->
+    <!-- UPLOAD MODAL -->
     <div id="upload-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Post Video / Go Live</h3>
-                <button id="btn-close-upload" class="icon-btn-close">&times;</button>
+        <div class="login-card">
+            <button id="btn-close-upload" class="btn-close-modal">&times;</button>
+            <h2>Post Video</h2>
+            <div class="input-group">
+                <input type="file" id="input-video-file" accept="video/*">
             </div>
-            <div class="modal-body">
-                <div class="upload-type-selector">
-                    <button id="tab-video-upload" class="tab-btn active">Video Upload</button>
-                    <button id="tab-livestream" class="tab-btn">Go Live</button>
-                </div>
-
-                <!-- FORM: VIDEO UPLOAD -->
-                <div id="form-video-upload" class="upload-sub-form">
-                    <label class="file-picker-label">
-                        <i class="fa-solid fa-file-video"></i> Select Video / Record Camera
-                        <input type="file" id="input-video-file" accept="video/*" />
-                    </label>
-                    <input type="text" id="input-video-desc" placeholder="Video description #hashtags..." />
-                    <select id="select-video-filter">
-                        <option value="none">Filter: Normal</option>
-                        <option value="sepia">Filter: Vintage Warm</option>
-                        <option value="grayscale">Filter: B&W Cinematic</option>
-                        <option value="blur">Filter: Soft Glow</option>
-                    </select>
-                    <select id="select-video-privacy">
-                        <option value="public">Public (Everyone)</option>
-                        <option value="private">Private (Only Me)</option>
-                    </select>
-                    <button id="btn-submit-post" class="btn-primary">Post Video</button>
-                </div>
-
-                <!-- FORM: LIVESTREAMING -->
-                <div id="form-livestream" class="upload-sub-form hidden">
-                    <input type="text" id="input-live-title" placeholder="Stream Title..." />
-                    <select id="select-live-privacy">
-                        <option value="public">Public Stream</option>
-                        <option value="followers">Followers Only</option>
-                    </select>
-                    <button id="btn-start-stream" class="btn-primary btn-live-color">Start Live Stream Camera</button>
-                    <video id="live-stream-preview" autoplay playsinline muted class="hidden live-preview-box"></video>
-                </div>
+            <div class="input-group">
+                <textarea id="input-video-desc" placeholder="Video description..."></textarea>
             </div>
+            <button id="btn-submit-post" class="btn-primary">Upload Video</button>
         </div>
     </div>
 
-    <!-- MODAL 2: CHANNEL / GROUP CREATION -->
-    <div id="community-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="comm-modal-title">Create Community</h3>
-                <button id="btn-close-comm" class="icon-btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="comm-name" placeholder="Name (e.g. Umar Forex Traders)" required />
-                <input type="text" id="comm-username" placeholder="Username Handle (@umar_traders)" required />
-                <input type="text" id="comm-photo" placeholder="Photo URL" />
-                <select id="comm-privacy">
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                </select>
-                <div class="confirm-check">
-                    <label><input type="checkbox" id="comm-confirm-check" /> Do you really want to create this?</label>
-                </div>
-                <button id="btn-submit-comm" class="btn-primary">Create Now</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 3: COMMENTS OVERLAY -->
-    <div id="comments-modal" class="modal-overlay hidden">
-        <div class="modal-box comments-modal-box">
-            <div class="modal-header">
-                <h3>Comments (<span id="comments-count">0</span>)</h3>
-                <button id="btn-close-comments" class="icon-btn-close">&times;</button>
-            </div>
-            <div id="comments-list-scroll" class="comments-scroll">
-                <!-- Dynamic Comments -->
-            </div>
-            <div class="comments-input-row">
-                <input type="text" id="comment-input-text" placeholder="Add a reply..." />
-                <button id="btn-post-comment" class="btn-primary-circle"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- FIREBASE SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    
-    <!-- MAIN APP SCRIPT -->
     <script src="script.js"></script>
 </body>
 </html>

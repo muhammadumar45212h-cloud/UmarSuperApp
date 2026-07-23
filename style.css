@@ -1,5 +1,5 @@
 /* ==========================================================
-   UMAR SUPER APP - FULLSCREEN CLEAN ISOLATED STYLING
+   UMAR SUPER APP - ISOLATED FULL-PAGE DESIGN (NO OVERLAP)
    ========================================================== */
 
 * {
@@ -9,19 +9,17 @@
     font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-/* BASE COLOR SCHEME (NO WHITE - PURE DARK NEON 5-COLOR THEME) */
+/* 5 COLOR PALETTE (DARK, CYAN, PURPLE, PINK, GREEN) */
 body {
-    background-color: #080c14; /* Base Dark */
-    color: #e2e8f0;
+    background-color: #080c14; /* Pure Dark Background */
+    color: #f1f5f9;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
-    position: relative;
 }
 
-/* APP HEADER */
-header {
+/* HEADER STYLING */
+.top-header {
     background: #0f172a;
     padding: 14px 18px;
     border-bottom: 2px solid #1e293b;
@@ -30,17 +28,60 @@ header {
     align-items: center;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 500;
 }
 
-header h1 {
-    font-size: 20px;
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: #00f2fe; /* Neon Cyan */
     font-weight: 800;
-    letter-spacing: 0.5px;
+    font-size: 18px;
 }
 
-/* SCREEN SECTIONS ISOLATION (FIXES OVERLAPPING) */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* DROPDOWN MENU */
+.header-right {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 35px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    width: 170px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+    z-index: 1000;
+}
+
+.dropdown-menu.hidden { display: none !important; }
+
+.menu-item {
+    background: transparent;
+    border: none;
+    color: #e2e8f0;
+    padding: 12px;
+    text-align: left;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.menu-item.danger { color: #f43f5e; }
+
+/* MAIN CONTENT ISOLATION (FIXES SCREEN MIXING) */
 main {
     flex: 1;
     position: relative;
@@ -48,30 +89,28 @@ main {
 }
 
 .app-section {
-    display: none !important; /* Force hidden by default */
-    width: 100%;
-    min-height: calc(100vh - 150px);
+    display: none !important; /* Forces complete hiding of other pages */
     padding: 16px;
-    background: #080c14;
+    width: 100%;
 }
 
 .app-section.active-section {
-    display: block !important; /* Only active section renders full screen */
+    display: block !important; /* Shows ONLY active page */
 }
 
-/* BOTTOM NAVIGATION BAR */
+/* BOTTOM NAV BAR */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 70px;
+    height: 65px;
     background: #0f172a;
     border-top: 1px solid #1e293b;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 9999;
+    z-index: 900;
 }
 
 .nav-item {
@@ -79,48 +118,40 @@ main {
     flex-direction: column;
     align-items: center;
     color: #64748b;
-    font-size: 11px;
-    cursor: pointer;
+    font-size: 10px;
     background: transparent;
     border: none;
-    outline: none;
+    cursor: pointer;
 }
 
-.nav-item i {
-    font-size: 20px;
-    margin-bottom: 4px;
-}
+.nav-item i { font-size: 18px; margin-bottom: 2px; }
 
-/* DIFFERENT NEON COLOR FOR ACTIVE NAV ITEMS */
+/* NEON ACTIVE COLORS FOR EACH PAGE */
 .nav-item[data-target="section-feed"].active { color: #8b5cf6; }  /* Electric Purple */
-.nav-item[data-target="section-markets"].active { color: #3b82f6; } /* Neon Blue */
+.nav-item[data-target="section-markets"].active { color: #3b82f6; } /* Blue */
 .nav-item[data-target="section-chat"].active { color: #ec4899; }    /* Pink */
 .nav-item[data-target="section-compiler"].active { color: #10b981; }/* Neon Green */
 .nav-item[data-target="section-ai"].active { color: #00f2fe; }      /* Cyan */
-.nav-item[data-target="section-weather"].active { color: #f59e0b; } /* Orange/Amber */
+.nav-item[data-target="section-weather"].active { color: #f59e0b; } /* Amber */
 .nav-item[data-target="section-profile"].active { color: #ec4899; }  /* Pink */
 
-/* FLOATING PLUS (+), BUTTON (POSITION FIXED & CLEAN) */
-#btn-open-upload-modal {
+/* FLOATING PLUS (+) BUTTON */
+.floating-btn {
     position: fixed;
-    bottom: 82px;
-    right: 20px;
-    width: 58px;
-    height: 58px;
+    bottom: 78px;
+    right: 18px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ec4899, #8b5cf6); /* Pink to Purple */
-    color: #ffffff;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    color: white;
+    font-size: 28px;
     border: none;
-    font-size: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 18px rgba(236, 72, 153, 0.4);
-    cursor: pointer;
-    z-index: 9998;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.5);
+    z-index: 800;
 }
 
-/* FULLSCREEN MODALS (AUTH & UPLOAD) */
+/* MODALS (AUTH & UPLOAD) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -132,111 +163,79 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 2000;
 }
 
-.modal-overlay.hidden {
-    display: none !important;
-}
+.modal-overlay.hidden { display: none !important; }
 
 .login-card {
     background: #0f172a;
     border: 1px solid #1e293b;
-    padding: 28px 22px;
-    border-radius: 16px;
+    padding: 25px 20px;
+    border-radius: 14px;
     width: 90%;
-    max-width: 380px;
+    max-width: 360px;
     text-align: center;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 
 .btn-close-modal {
     position: absolute;
-    top: 14px;
-    right: 18px;
+    top: 10px;
+    right: 15px;
     background: transparent;
     border: none;
     color: #ec4899;
-    font-size: 22px;
+    font-size: 24px;
     cursor: pointer;
 }
 
-/* FORM ELEMENTS */
-.input-group {
-    margin-bottom: 14px;
-    text-align: left;
-}
-
-.input-group input, 
-.input-group select, 
-.input-group textarea {
+.input-group input, .input-group textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: 12px;
     background: #1e293b;
     border: 1px solid #334155;
     border-radius: 8px;
     color: #00f2fe;
-    font-size: 13px;
+    margin-bottom: 12px;
     outline: none;
 }
 
-.input-group input:focus {
-    border-color: #8b5cf6;
-}
-
-/* COLORFUL BUTTONS */
 .btn-primary {
     width: 100%;
     padding: 12px;
     background: linear-gradient(135deg, #8b5cf6, #3b82f6);
     border: none;
     border-radius: 8px;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
+    color: white;
+    font-weight: bold;
 }
 
-/* COMPILER & FULLSCREEN TERMINAL */
+/* COMPILER STYLING */
 #code-editor-input {
     width: 100%;
-    height: 220px;
+    height: 200px;
     background: #020617;
     color: #38bdf8;
     font-family: monospace;
-    padding: 14px;
+    padding: 12px;
     border: 1px solid #1e293b;
-    border-radius: 10px;
-    resize: none;
-    margin-bottom: 12px;
-}
-
-#terminal-console-out {
-    width: 100%;
-    min-height: 140px;
-    background: #000000;
-    color: #10b981; /* Neon Green Code Output */
-    font-family: monospace;
-    padding: 14px;
-    border-radius: 10px;
-    border: 1px solid #10b981;
-    white-space: pre-wrap;
-}
-
-/* MARKET TRADING CHART SWITCHES */
-.market-btn-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
-.market-btn-group button {
-    flex: 1;
-    padding: 10px;
-    background: #1e293b;
-    border: 1px solid #334155;
-    color: #00f2fe;
     border-radius: 8px;
-    font-weight: 600;
+    margin-bottom: 10px;
 }
+
+.terminal-box {
+    margin-top: 12px;
+    background: #000;
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.terminal-header { color: #10b981; font-size: 11px; margin-bottom: 6px; font-weight: bold; }
+#terminal-console-out { color: #10b981; font-family: monospace; font-size: 12px; white-space: pre-wrap; }
+
+/* MARKET BUTTONS */
+.market-btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+.m-btn { flex: 1; padding: 10px; background: #1e293b; border: 1px solid #334155; color: #00f2fe; border-radius: 6px; }
+#tradingview-widget-container { height: 400px; width: 100%; border-radius: 8px; overflow: hidden; }
