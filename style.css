@@ -17,13 +17,13 @@
 body {
     background-color: var(--bg-dark);
     color: var(--text-white);
-    overflow-x: hidden;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
-/* Toast Message Style */
+/* Toast Message */
 .toast {
     position: fixed;
     top: 15px;
@@ -34,94 +34,84 @@ body {
     padding: 10px 20px;
     border-radius: 20px;
     border: 1px solid var(--accent-blue);
-    box-shadow: 0 4px 15px rgba(0,210,255,0.3);
     z-index: 9999;
     font-size: 13px;
     display: none;
     text-align: center;
 }
 
-/* App Header */
+/* Header UI */
 .app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 15px;
+    padding: 10px 12px;
     background: #0f172a;
     border-bottom: 1px solid #1e293b;
+    gap: 8px;
 }
 
 .logo {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     color: var(--accent-blue);
-}
-
-.search-bar input {
-    background: #1e293b;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 15px;
-    color: #fff;
-    font-size: 12px;
-    outline: none;
-}
-
-.settings-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-/* Nav Tabs */
-.nav-tabs {
-    display: flex;
-    background: #0f172a;
-    border-bottom: 1px solid #1e293b;
-    overflow-x: auto;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 10px 5px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    cursor: pointer;
     white-space: nowrap;
 }
 
-.tab-btn.active {
-    color: #fff;
-    border-bottom: 2px solid var(--accent-pink);
-    background: rgba(233, 30, 99, 0.1);
+.search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #1e293b;
+    padding: 6px 10px;
+    border-radius: 20px;
+    gap: 6px;
 }
 
-/* Main Layout */
+.search-bar i { color: var(--text-muted); font-size: 12px; }
+
+.search-bar input {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    width: 100%;
+    outline: none;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Main Content Area */
 .main-content {
     flex: 1;
     position: relative;
     overflow: hidden;
+    margin-bottom: 60px; /* Leave space for bottom nav bar */
 }
 
 .tab-content {
     display: none;
     height: 100%;
     width: 100%;
+    overflow-y: auto;
 }
 
 .tab-content.active-tab {
     display: block;
 }
 
-/* Reels Container */
+/* Reels Container & Side Actions */
 .reels-container {
     height: 100%;
     overflow-y: snap-mandatory;
@@ -158,55 +148,199 @@ body {
 }
 
 .avatar {
-    width: 35px;
-    height: 35px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
+    border: 2px solid var(--accent-pink);
 }
 
+.btn-subscribe {
+    background: var(--accent-pink);
+    border: none;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+/* Right Side Action Bar */
 .action-sidebar {
     position: absolute;
-    right: 15px;
+    right: 12px;
     bottom: 30px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
     align-items: center;
     z-index: 10;
 }
 
 .action-btn {
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.5);
     border: none;
     color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 18px;
-    padding: 8px;
+    font-size: 20px;
+    padding: 10px;
     border-radius: 50%;
+    cursor: pointer;
 }
 
 .action-btn span {
     font-size: 10px;
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
-/* Bottom Center Floating Button */
-.floating-add-btn {
+/* Bottom Navigation Bar Layout */
+.bottom-nav {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 50px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 900;
+    padding: 0 5px;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 14px;
+    gap: 2px;
+    cursor: pointer;
+}
+
+.nav-btn span {
+    font-size: 9px;
+}
+
+.nav-btn.active {
+    color: var(--accent-pink);
+}
+
+/* CENTER (+) BUTTON */
+.center-add-btn {
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-pink), var(--accent-blue));
     border: none;
     color: #fff;
     font-size: 20px;
-    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5);
-    z-index: 99;
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4);
     cursor: pointer;
+    margin-bottom: 10px;
+}
+
+/* Terminal Screen Red Button */
+.terminal-container {
+    padding: 15px;
+}
+
+#terminalCodeInput {
+    width: 100%;
+    height: 140px;
+    background: #000;
+    color: #00ffcc;
+    padding: 10px;
+    font-family: monospace;
+    border-radius: 6px;
+    margin-top: 10px;
+    border: 1px solid #334155;
+}
+
+.big-red-btn {
+    width: 100%;
+    padding: 12px;
+    background: #dc2626;
+    color: #fff;
+    font-weight: bold;
+    font-size: 15px;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+}
+
+.terminal-output {
+    background: #000;
+    color: #00ffcc;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    min-height: 80px;
+    font-family: monospace;
+}
+
+/* Weather & Wallet UI */
+.weather-container, .profile-container, .chat-container, .forex-container {
+    padding: 15px;
+}
+
+.weather-search-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.weather-search-row input {
+    flex: 1;
+    padding: 10px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #fff;
+}
+
+.weather-search-row button {
+    background: var(--accent-blue);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #000;
+}
+
+.weather-card, .wallet-card, .saved-videos-card, .profile-card {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.wallet-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.balance-display {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ffcc;
+    margin: 10px 0;
+}
+
+/* TradingView Frame */
+.tradingview-frame {
+    width: 100%;
+    height: 70vh;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
 }
 
 /* Modals System */
@@ -239,102 +373,14 @@ body {
     color: #fff;
 }
 
-.modal-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-primary {
-    flex: 1;
-    background: var(--accent-pink);
-    color: #fff;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-secondary {
-    flex: 1;
-    background: #334155;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-}
-
-/* Chat & Forex & Terminal UI */
-.chat-container, .forex-container, .terminal-container {
-    padding: 15px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-messages {
-    flex: 1;
-    background: #0f172a;
-    border-radius: 8px;
-    padding: 10px;
-    overflow-y: auto;
-}
-
-.chat-input-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.chat-input-row input {
-    flex: 1;
-    padding: 10px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    color: #fff;
-}
-
-.chat-input-row button {
-    background: var(--accent-blue);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    color: #000;
-}
-
-.tradingview-frame {
-    width: 100%;
-    height: 80vh;
-    border: none;
-    border-radius: 8px;
-}
-
-#terminalCodeInput {
-    width: 100%;
-    height: 120px;
-    background: #000;
-    color: #00ffcc;
-    padding: 10px;
-    font-family: monospace;
-    border-radius: 6px;
-    margin-top: 10px;
-}
-
-.terminal-output {
-    background: #000;
-    color: #00ffcc;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 6px;
-    min-height: 80px;
-    font-family: monospace;
-}
+.btn-primary { background: var(--accent-pink); color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; flex: 1; }
+.btn-secondary { background: #334155; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; flex: 1; }
+.close-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; }
+.avatar-large { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto; object-fit: cover; }
+.sub-nav { display: flex; gap: 10px; margin-bottom: 10px; }
+.sub-btn { flex: 1; padding: 8px; background: #1e293b; border: none; color: #fff; border-radius: 6px; }
+.sub-btn.active { background: var(--accent-pink); }
+.chat-messages { height: 300px; background: #0f172a; border-radius: 8px; padding: 10px; overflow-y: auto; }
+.chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+.chat-input-row input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; }
+.chat-input-row button { background: var(--accent-blue); border: none; padding: 10px 15px; border-radius: 6px; color: #000; }

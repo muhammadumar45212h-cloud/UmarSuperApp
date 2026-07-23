@@ -9,72 +9,140 @@
 </head>
 <body>
 
-    <!-- Top Toast Notification -->
+    <!-- Toast Notification -->
     <div id="toastNotification" class="toast"></div>
 
-    <!-- Header / Navbar -->
+    <!-- Top Header Navigation -->
     <header class="app-header">
-        <div class="logo">Umar Super App</div>
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search users, reels, crypto...">
+        <div class="header-left">
+            <span class="logo">Umar Super App</span>
         </div>
-        <button class="settings-btn" onclick="toggleSettings()"><i class="fa-solid fa-gear"></i></button>
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search users, videos, markets...">
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" onclick="openNotifications()"><i class="fa-solid fa-bell"></i></button>
+            <button class="icon-btn" onclick="toggleSettings()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('reelsTab', this)"><i class="fa-solid fa-film"></i> Reels</button>
-        <button class="tab-btn" onclick="switchTab('chatTab', this)"><i class="fa-solid fa-comments"></i> Chat</button>
-        <button class="tab-btn" onclick="switchTab('forexTab', this)"><i class="fa-solid fa-chart-line"></i> Forex</button>
-        <button class="tab-btn" onclick="switchTab('terminalTab', this)"><i class="fa-solid fa-code"></i> Terminal</button>
-    </nav>
-
-    <!-- Main Content Screens -->
+    <!-- Main Screens Container -->
     <main class="main-content">
-        <!-- Reels Feed Tab -->
+        <!-- 1. Reels Feed Tab -->
         <section id="reelsTab" class="tab-content active-tab">
             <div id="reelsFeedContainer" class="reels-container"></div>
         </section>
 
-        <!-- Chat Tab -->
+        <!-- 2. Chat & Channels Tab -->
         <section id="chatTab" class="tab-content">
-            <div class="chat-container">
+            <div class="sub-nav">
+                <button class="sub-btn active" onclick="switchChatSubTab('directChats')">Chats</button>
+                <button class="sub-btn" onclick="switchChatSubTab('channelsTab')">Channels & Groups</button>
+            </div>
+            
+            <div id="directChats" class="chat-section">
                 <div id="chatMessagesBox" class="chat-messages"></div>
                 <div class="chat-input-row">
                     <input type="text" id="chatMessageInput" placeholder="Type a message...">
                     <button onclick="sendDirectMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
+
+            <div id="channelsTab" class="chat-section" style="display:none;">
+                <div class="channel-actions">
+                    <button class="btn-primary" onclick="createChannelPrompt()">+ Create Channel/Group</button>
+                </div>
+                <div id="channelsListContainer" style="margin-top:10px;"></div>
+            </div>
         </section>
 
-        <!-- Forex Tab -->
+        <!-- 3. Forex Market Live Tab -->
         <section id="forexTab" class="tab-content">
             <div class="forex-container">
-                <h3>Live Market Pair Charts</h3>
+                <h3>Live Forex & Crypto Pairs</h3>
                 <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="tradingview-frame"></iframe>
             </div>
         </section>
 
-        <!-- Terminal Tab -->
+        <!-- 4. Weather Tab -->
+        <section id="weatherTab" class="tab-content">
+            <div class="weather-container">
+                <h3>Live City Weather Search</h3>
+                <div class="weather-search-row">
+                    <input type="text" id="weatherCityInput" placeholder="Enter City/Country (e.g. Karachi, London)...">
+                    <button onclick="fetchWeatherInfo()"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+                <div id="weatherResultDisplay" class="weather-card">
+                    <h2 id="weatherCityName">Search a City</h2>
+                    <h1 id="weatherTempDisplay">--°C</h1>
+                    <p id="weatherDesc">Real-time climate details</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Terminal / JS Compiler Tab -->
         <section id="terminalTab" class="tab-content">
             <div class="terminal-container">
-                <h3>JS Compiler / Terminal</h3>
-                <textarea id="terminalCodeInput" placeholder="// Write JavaScript code here...&#10;console.log('Hello Umar!');"></textarea>
-                <button onclick="runJSCompiler(document.getElementById('terminalCodeInput').value)">Execute Code</button>
+                <h3>JavaScript Code Terminal</h3>
+                <textarea id="terminalCodeInput" placeholder="// Write JS Code here...&#10;console.log('Hello Umar!');"></textarea>
+                <button class="big-red-btn" onclick="runJSCompiler(document.getElementById('terminalCodeInput').value)">
+                    <i class="fa-solid fa-play"></i> RUN CODE
+                </button>
                 <pre id="compilerOutput" class="terminal-output"></pre>
+            </div>
+        </section>
+
+        <!-- 6. Profile & Wallet Tab -->
+        <section id="profileTab" class="tab-content">
+            <div class="profile-container">
+                <div class="profile-card">
+                    <img id="userProfilePic" src="https://via.placeholder.com/100" class="avatar-large">
+                    <h2 id="userDisplayName">User Profile</h2>
+                    <p id="userHandle">@username</p>
+                </div>
+
+                <!-- Real Wallet System -->
+                <div class="wallet-card">
+                    <h3><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h3>
+                    <div class="balance-display">
+                        <span id="walletBalanceVal">Rs. 0.00</span>
+                    </div>
+                    <div class="wallet-buttons">
+                        <button onclick="handleWalletDeposit()" class="btn-primary">Deposit</button>
+                        <button onclick="handleWalletWithdraw()" class="btn-secondary">Withdraw</button>
+                    </div>
+                </div>
+
+                <!-- Offline Saved Videos List -->
+                <div class="saved-videos-card">
+                    <h3><i class="fa-solid fa-download"></i> Saved Videos (Up to 100)</h3>
+                    <div id="savedVideosContainer"></div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Bottom Center Plus Floating Button -->
-    <button class="floating-add-btn" onclick="openUploadModal()"><i class="fa-solid fa-plus"></i></button>
+    <!-- Bottom Navigation Bar (Centered (+) Plus Button) -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('reelsTab', this)"><i class="fa-solid fa-film"></i><span>Reels</span></button>
+        <button class="nav-btn" onclick="switchTab('chatTab', this)"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
+        
+        <!-- CENTER (+) BUTTON -->
+        <button class="center-add-btn" onclick="openUploadModal()"><i class="fa-solid fa-plus"></i></button>
+
+        <button class="nav-btn" onclick="switchTab('forexTab', this)"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
+        <button class="nav-btn" onclick="switchTab('weatherTab', this)"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
+        <button class="nav-btn" onclick="switchTab('terminalTab', this)"><i class="fa-solid fa-code"></i><span>Terminal</span></button>
+        <button class="nav-btn" onclick="switchTab('profileTab', this)"><i class="fa-solid fa-user"></i><span>Profile</span></button>
+    </nav>
 
     <!-- Modals -->
     <!-- Auth Modal -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-card">
             <h2>Welcome to Umar App</h2>
-            <p style="color:#aaa; font-size:12px; margin-bottom:15px;">Login or Sign Up to interact</p>
+            <p style="color:#aaa; font-size:12px;">Login or Sign Up to interact</p>
             <input type="email" id="authEmailInput" placeholder="Email Address">
             <input type="password" id="authPasswordInput" placeholder="Password">
             <div class="modal-actions">
@@ -85,10 +153,10 @@
         </div>
     </div>
 
-    <!-- Onboarding Profile Modal -->
+    <!-- Onboarding Modal -->
     <div id="onboardingModal" class="modal-overlay">
         <div class="modal-card">
-            <h2>Complete Profile</h2>
+            <h2>Setup Profile</h2>
             <img id="onboardPreviewImg" src="https://via.placeholder.com/100" class="avatar-large" onclick="triggerProfilePhotoPicker()">
             <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" onchange="handleProfilePhotoSelected(event)">
             <input type="text" id="onboardNameInput" placeholder="Full Name">
@@ -97,37 +165,24 @@
         </div>
     </div>
 
-    <!-- Video Upload Modal -->
+    <!-- Upload Modal -->
     <div id="uploadModal" class="modal-overlay">
         <div class="modal-card">
             <h2>Upload Video Reel</h2>
-            <button onclick="triggerGalleryVideoPicker()" class="btn-secondary"><i class="fa-solid fa-folder"></i> Gallery</button>
+            <button onclick="triggerGalleryVideoPicker()" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Video</button>
             <input type="file" id="galleryVideoInput" accept="video/*" style="display:none" onchange="handleVideoFileSelected(event)">
             
             <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
-                <video id="previewVideoTag" style="width:100%; max-height:200px; border-radius:8px;" controls></video>
+                <video id="previewVideoTag" style="width:100%; max-height:180px; border-radius:8px;" controls></video>
                 <input type="text" id="videoDescriptionInput" placeholder="Add caption..." style="margin-top:8px;">
                 <select id="videoEffectFilter" style="margin-top:8px; width:100%; padding:8px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px;">
-                    <option value="none">Normal</option>
-                    <option value="grayscale(100%)">B&W</option>
-                    <option value="sepia(100%)">Vintage</option>
-                </select>
-                <select id="videoVisibilitySelect" style="margin-top:8px; width:100%; padding:8px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px;">
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
+                    <option value="none">Normal Filter</option>
+                    <option value="grayscale(100%)">B&W Filter</option>
+                    <option value="sepia(100%)">Vintage Filter</option>
                 </select>
                 <button onclick="publishVideoPost()" class="btn-primary" style="margin-top:10px;">Publish</button>
             </div>
             <button onclick="closeUploadModal()" class="close-btn">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>App Settings</h2>
-            <button onclick="handleLogout()" class="btn-secondary" style="background:#ef4444; color:#fff;">Logout Account</button>
-            <button onclick="closeModal('settingsModal')" class="close-btn" style="margin-top:10px;">Close</button>
         </div>
     </div>
 
@@ -141,6 +196,15 @@
                 <button onclick="submitComment()" class="btn-primary">Post</button>
             </div>
             <button onclick="closeCommentsModal()" class="close-btn" style="margin-top:10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>App Options</h2>
+            <button onclick="handleLogout()" class="btn-secondary" style="background:#ef4444; color:#fff;">Logout Account</button>
+            <button onclick="closeModal('settingsModal')" class="close-btn" style="margin-top:10px;">Close</button>
         </div>
     </div>
 
