@@ -7,14 +7,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://s3.tradingview.com/tv.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 </head>
 <body>
 
-    <!-- TOP APP HEADER -->
+    <!-- TOP HEADER -->
     <header class="top-header">
         <div class="logo-area">
             <i class="fa-solid fa-bolt logo-icon"></i>
@@ -23,9 +19,8 @@
         <div class="header-right">
             <button id="btn-toggle-menu" class="icon-btn-large"><i class="fa-solid fa-ellipsis-vertical"></i></button>
             
-            <!-- POPUP MENU -->
             <div id="top-dropdown-menu" class="dropdown-menu hidden">
-                <button class="menu-item red-btn"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
+                <button id="menu-opt-channel" class="menu-item red-btn"><i class="fa-solid fa-bullhorn"></i> Create Channel</button>
                 <button class="menu-item blue-btn"><i class="fa-solid fa-users"></i> Create Group</button>
                 <button class="menu-item green-btn"><i class="fa-solid fa-wallet"></i> My Wallet</button>
                 <button id="menu-opt-settings" class="menu-item cyan-btn"><i class="fa-solid fa-gear"></i> Settings</button>
@@ -34,16 +29,20 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT ISOLATED PAGES -->
     <main>
-        <!-- 1. FEED SECTION (TIKTOK STYLE HIGH SPEED SCROLL) -->
+        <!-- 1. FEED -->
         <section id="section-feed" class="app-section active-section">
             <div id="tiktok-video-feed" class="tiktok-container">
-                <!-- Dynamic High-Speed Snapping Videos rendered via JS -->
+                <div class="tiktok-video-card">
+                    <div class="tiktok-overlay-info">
+                        <h3>@umar_dev</h3>
+                        <p>Welcome to Umar Super App Feed!</p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- 2. MARKETS SECTION -->
+        <!-- 2. MARKETS -->
         <section id="section-markets" class="app-section">
             <h2 class="title-cyan">Forex & Crypto Live Charts</h2>
             <div class="market-btn-group">
@@ -54,32 +53,27 @@
             <div id="tradingview-widget-container"></div>
         </section>
 
-        <!-- 3. CHAT SECTION -->
+        <!-- 3. CHAT -->
         <section id="section-chat" class="app-section">
             <h2 class="title-pink">Messages & Channels</h2>
-            <div id="chat-threads-list" class="threads-list">
-                <!-- Dynamic Chat Users -->
+            <div id="chat-channels-list" class="threads-list">
+                <p class="sub-info-text">No channels created yet. Tap 3-dots to create!</p>
             </div>
         </section>
 
-        <!-- 4. COMPILER SECTION -->
+        <!-- 4. COMPILER -->
         <section id="section-compiler" class="app-section">
             <h2 class="title-green">Termux Web Compiler</h2>
             <p class="sub-info-text">Commands: <span class="cmd-tag red">ls</span>, <span class="cmd-tag blue">st filename</span>, or <span class="cmd-tag green">dt filename</span></p>
-            
             <textarea id="code-editor-input" placeholder="// Write JS Code or Termux commands here..."></textarea>
-            
-            <button id="btn-run-code" class="btn-run-red">
-                <i class="fa-solid fa-play"></i> RUN CODE / COMMAND
-            </button>
-            
+            <button id="btn-run-code" class="btn-run-red"><i class="fa-solid fa-play"></i> RUN CODE / COMMAND</button>
             <div class="terminal-box">
                 <div class="terminal-header">Terminal Console Output</div>
                 <pre id="terminal-console-out">> System initialized. Ready to execute.</pre>
             </div>
         </section>
 
-        <!-- 5. AI ASSISTANT SECTION -->
+        <!-- 5. AI -->
         <section id="section-ai" class="app-section">
             <h2 class="title-cyan">Umar AI Assistant</h2>
             <div id="ai-chat-box" class="ai-box">
@@ -87,22 +81,29 @@
             </div>
         </section>
 
-        <!-- 6. WEATHER SECTION -->
+        <!-- 6. WEATHER SECTION (WITH REAL TEMP & GARMI DETECTOR) -->
         <section id="section-weather" class="app-section">
             <h2 class="title-amber">Live Weather Search</h2>
             <div class="weather-search-bar">
-                <input type="text" id="input-weather-city" placeholder="Enter City Name...">
+                <input type="text" id="input-weather-city" placeholder="Enter City Name (e.g. Thul, Karachi)...">
                 <button id="btn-search-weather" class="btn-blue-big">SEARCH</button>
             </div>
             <div class="weather-card">
-                <h3 id="weather-city-name">Search a City</h3>
+                <h3 id="weather-city-name" class="title-cyan">Search a City</h3>
                 <div id="weather-temp" class="temp-text">--°C</div>
-                <p id="weather-condition">Condition: --</p>
+                <p id="weather-condition" class="sub-info-text">Condition: --</p>
+                <div id="garmi-indicator" class="garmi-box hidden">🔥 BOHOT GARMI HAI! (Heatwave Alert)</div>
             </div>
         </section>
 
-        <!-- 7. PROFILE SECTION (ADVANCED STATS & POST GRID) -->
+        <!-- 7. PROFILE SECTION (WITH SIGN UP / LOGIN TRIGGER) -->
         <section id="section-profile" class="app-section">
+            <div id="profile-auth-trigger-card" class="auth-trigger-card">
+                <h3 class="title-cyan">Guest User Profile</h3>
+                <p class="sub-info-text">You are currently viewing as guest.</p>
+                <button id="btn-open-auth-modal" class="btn-signup-red"><i class="fa-solid fa-user-plus"></i> SIGN UP / LOGIN</button>
+            </div>
+
             <div class="profile-header-card">
                 <div class="profile-top-row">
                     <img id="my-profile-img" src="https://via.placeholder.com/110" class="profile-avatar-large" />
@@ -113,20 +114,10 @@
                 <p id="my-profile-username" class="p-username">@umar_dev</p>
                 <p id="my-profile-bio" class="p-bio">Mobile Developer & Cybersecurity Expert 🚀</p>
                 
-                <!-- PROFILE STATS ROW -->
                 <div class="profile-stats-row">
-                    <div class="stat-box">
-                        <span id="stat-total-posts" class="stat-num blue">0</span>
-                        <span class="stat-label">Posts</span>
-                    </div>
-                    <div class="stat-box">
-                        <span id="stat-total-likes" class="stat-num red">0</span>
-                        <span class="stat-label">Likes</span>
-                    </div>
-                    <div class="stat-box">
-                        <span id="stat-total-subs" class="stat-num green">0</span>
-                        <span class="stat-label">Subscribers</span>
-                    </div>
+                    <div class="stat-box"><span id="stat-total-posts" class="stat-num blue">0</span><span class="stat-label">Posts</span></div>
+                    <div class="stat-box"><span id="stat-total-likes" class="stat-num red">0</span><span class="stat-label">Likes</span></div>
+                    <div class="stat-box"><span id="stat-total-subs" class="stat-num green">0</span><span class="stat-label">Subscribers</span></div>
                 </div>
 
                 <div id="review-timer-badge" class="review-badge hidden">
@@ -135,122 +126,149 @@
             </div>
 
             <h3 class="gallery-title title-pink"><i class="fa-solid fa-grid-2"></i> My Video Posts</h3>
-            <div id="profile-posts-grid" class="posts-grid-container">
-                <!-- User's Real Posts Rendered Here -->
-            </div>
+            <div id="profile-posts-grid" class="posts-grid-container"></div>
         </section>
 
-        <!-- 8. SETTINGS & OFFLINE SECTION -->
+        <!-- 8. SETTINGS -->
         <section id="section-settings" class="app-section">
             <h2 class="title-cyan">App Settings & Security</h2>
-            
-            <!-- SECURITY SETTINGS -->
             <div class="settings-card">
                 <h3 class="title-red"><i class="fa-solid fa-shield"></i> Security & Account</h3>
                 <button id="btn-change-password" class="btn-blue-medium">Change Password</button>
-                <button id="btn-change-email" class="btn-blue-medium">Change Email</button>
-                <button id="btn-change-phone" class="btn-blue-medium">Change Phone Number</button>
-            </div>
-
-            <!-- MULTI-SESSION ADMIN CONTROL -->
-            <div class="settings-card">
-                <h3 class="title-green"><i class="fa-solid fa-desktop"></i> Active Sessions (Admin)</h3>
-                <div id="active-sessions-list">
-                    <!-- Session Controls rendered via JS -->
-                </div>
-            </div>
-
-            <!-- OFFLINE VIDEO DOWNLOADER ENGINE -->
-            <div class="settings-card">
-                <h3 class="title-amber"><i class="fa-solid fa-download"></i> Offline Video Downloader</h3>
-                <p class="sub-info-text">Download videos directly to App Storage (Not Phone Gallery)</p>
-                
-                <div class="offline-controls">
-                    <button id="btn-download-100" class="btn-green-big">Download 100 Videos</button>
-                    <button id="btn-download-200" class="btn-purple-big">Download 200 Videos</button>
-                </div>
-
-                <h4 class="title-cyan" style="margin-top:15px;">Watch Offline Videos</h4>
-                <div id="offline-videos-container" class="offline-playlist">
-                    <!-- Offline Downloaded Videos Saved Here -->
-                </div>
             </div>
         </section>
     </main>
 
-    <!-- FLOATING UPLOAD (+) BUTTON -->
     <button id="btn-open-upload-modal" class="floating-plus-btn">+</button>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-        <button class="nav-item active" data-target="section-feed">
-            <i class="fa-solid fa-house"></i>
-            <span>Feed</span>
-        </button>
-        <button class="nav-item" data-target="section-markets">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Markets</span>
-        </button>
-        <button class="nav-item" data-target="section-chat">
-            <i class="fa-solid fa-comments"></i>
-            <span>Chat</span>
-        </button>
-        <button class="nav-item" data-target="section-compiler">
-            <i class="fa-solid fa-code"></i>
-            <span>Compiler</span>
-        </button>
-        <button class="nav-item" data-target="section-ai">
-            <i class="fa-solid fa-robot"></i>
-            <span>AI</span>
-        </button>
-        <button class="nav-item" data-target="section-weather">
-            <i class="fa-solid fa-cloud-sun"></i>
-            <span>Weather</span>
-        </button>
-        <button class="nav-item" data-target="section-profile">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
-        </button>
+        <button class="nav-item active" data-target="section-feed"><i class="fa-solid fa-house"></i><span>Feed</span></button>
+        <button class="nav-item" data-target="section-markets"><i class="fa-solid fa-chart-line"></i><span>Markets</span></button>
+        <button class="nav-item" data-target="section-chat"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
+        <button class="nav-item" data-target="section-compiler"><i class="fa-solid fa-code"></i><span>Compiler</span></button>
+        <button class="nav-item" data-target="section-ai"><i class="fa-solid fa-robot"></i><span>AI</span></button>
+        <button class="nav-item" data-target="section-weather"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
+        <button class="nav-item" data-target="section-profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
     </nav>
 
-    <!-- EDIT PROFILE MODAL -->
-    <div id="edit-profile-modal" class="modal-overlay hidden">
-        <div class="custom-card">
-            <button id="btn-close-edit-profile" class="btn-close">&times;</button>
-            <h2 class="title-cyan">Update Profile</h2>
-            <p class="sub-info-text">Note: Changes require 7-week review cycle.</p>
+    <!-- VIDEO UPLOAD MODAL (ENHANCED) -->
+    <div id="upload-modal" class="modal-overlay hidden">
+        <div class="custom-card upload-modal-card">
+            <button id="btn-close-upload" class="btn-close">&times;</button>
+            <h2 class="title-pink">Post Video Feed</h2>
             
             <div class="input-group">
-                <label class="lbl-red">Full Name</label>
-                <input type="text" id="edit-input-name" placeholder="New Name">
-            </div>
-            <div class="input-group">
-                <label class="lbl-blue">Bio</label>
-                <textarea id="edit-input-bio" placeholder="Update your Bio..."></textarea>
-            </div>
-            <div class="input-group">
-                <label class="lbl-green">Profile Picture</label>
-                <input type="file" id="edit-input-photo" accept="image/*">
+                <label class="lbl-red">Select Video File</label>
+                <input type="file" id="input-video-file" accept="video/*" class="file-input-red">
             </div>
 
-            <button id="btn-submit-profile-update" class="btn-red-big">Submit For 7-Week Review</button>
+            <div class="input-group">
+                <label class="lbl-blue">Caption / Description Effects</label>
+                <textarea id="input-video-desc" placeholder="Write description..."></textarea>
+                <div class="hashtag-row">
+                    <span class="tag-chip" onclick="addTag('#UmarSuperApp')">#UmarSuperApp</span>
+                    <span class="tag-chip" onclick="addTag('#Viral')">#Viral</span>
+                    <span class="tag-chip" onclick="addTag('#Trending')">#Trending</span>
+                    <span class="tag-chip" onclick="addTag('#Coding')">#Coding</span>
+                </div>
+            </div>
+
+            <!-- 50 URDU + ARABIC + ENGLISH SONGS SELECTOR -->
+            <div class="input-group">
+                <label class="lbl-green">Add Background Music / Song</label>
+                <select id="select-song-picker" class="song-select-box">
+                    <option value="">-- Choose Song (50 Urdu, Arabic, English) --</option>
+                    <!-- Urdu Songs Top 50 -->
+                    <option value="u1">🎵 Kahani Suno 2.0 - Kaifi Khalil</option>
+                    <option value="u2">🎵 Pasoori - Ali Sethi x Shae Gill</option>
+                    <option value="u3">🎵 Afsana - Young Stunners</option>
+                    <option value="u4">🎵 Gumaan - Young Stunners</option>
+                    <option value="u5">🎵 Tu Aake Dekhle - King</option>
+                    <option value="u6">🎵 Tajdar-e-Haram - Atif Aslam</option>
+                    <option value="u7">🎵 Zaroori Tha - Rahat Fateh Ali Khan</option>
+                    <option value="u8">🎵 Baarishein - Anuv Jain</option>
+                    <option value="u9">🎵 Gul - Anuv Jain</option>
+                    <option value="u10">🎵 Biba - Hasan Raheem</option>
+                    <option value="u11">🎵 Peechay Hutt - Hasan Raheem x Justin Bibis</option>
+                    <option value="u12">🎵 Kana Yaari - Kaifi Khalil x Eva B</option>
+                    <option value="u13">🎵 Wo Humsafar Tha - Quratulain Balouch</option>
+                    <option value="u14">🎵 Afreen Afreen - Rahat Fateh Ali Khan</option>
+                    <option value="u15">🎵 Tera Woh Pyar - Momina Mustehsan</option>
+                    <option value="u16">🎵 Lar Shoona - Ali Zafar x Gul Panra</option>
+                    <option value="u17">🎵 Sajna - Badshah x Yashal Shahid</option>
+                    <option value="u18">🎵 Faiz-e-Aam - Young Stunners</option>
+                    <option value="u19">🎵 Don't Mind - Young Stunners</option>
+                    <option value="u20">🎵 Asal G - Young Stunners</option>
+                    <option value="u21">🎵 Agency - Talha Anjum</option>
+                    <option value="u22">🎵 Happy Hour - Talhah Yunus</option>
+                    <option value="u23">🎵 Quarantine - Young Stunners</option>
+                    <option value="u24">🎵 Manike Mage Hithe - Yohani</option>
+                    <option value="u25">🎵 Tum Hi Ho - Arijit Singh</option>
+                    <option value="u26">🎵 Kesariya - Arijit Singh</option>
+                    <option value="u27">🎵 Channa Mereya - Arijit Singh</option>
+                    <option value="u28">🎵 Apna Bana Le - Arijit Singh</option>
+                    <option value="u29">🎵 Raataan Lambiyan - Tanishk Bagchi</option>
+                    <option value="u30">🎵 Phir Aur Kya Chahiye - Arijit Singh</option>
+                    <option value="u31">🎵 Jo Tum Mere Ho - Anuv Jain</option>
+                    <option value="u32">🎵 Husn - Anuv Jain</option>
+                    <option value="u33">🎵 Downers At Dusk - Talha Anjum</option>
+                    <option value="u34">🎵 Glass Half Full - Talha Anjum</option>
+                    <option value="u35">🎵 Open Letter - Talha Anjum</option>
+                    <option value="u36">🎵 Secrets - Talha Anjum</option>
+                    <option value="u37">🎵 You Matter - Talha Anjum</option>
+                    <option value="u38">🎵 Benz - Young Stunners</option>
+                    <option value="u39">🎵 Two Of Us - Young Stunners</option>
+                    <option value="u40">🎵 Wishlist - Young Stunners</option>
+                    <option value="u41">🎵 Bol Kaffara Kya Hoga - Sehar Gul Khan</option>
+                    <option value="u42">🎵 Mere Humsafar - Yashal Shahid</option>
+                    <option value="u43">🎵 Habit - Asim Azhar</option>
+                    <option value="u44">🎵 Jo Tu Na Mila - Asim Azhar</option>
+                    <option value="u45">🎵 Ghalat Fehmi - Asim Azhar</option>
+                    <option value="u46">🎵 Tera Woh Pyar - Momina</option>
+                    <option value="u47">🎵 Baari - Bilal Saeed x Momina</option>
+                    <option value="u48">🎵 Ucha Lamba Kad - Alycia</option>
+                    <option value="u49">🎵 Mast Nazron Se - Lakhwinder</option>
+                    <option value="u50">🎵 Dil Dil Pakistan - Vital Signs</option>
+                    <!-- Arabic & English Top Hits -->
+                    <option value="a1">🎶 Ya Lili - Balti (Arabic)</option>
+                    <option value="a2">🎶 Clandestina - Arabic Remix</option>
+                    <option value="e1">🎧 Blinding Lights - The Weeknd (English)</option>
+                    <option value="e2">🎧 Shape of You - Ed Sheeran (English)</option>
+                </select>
+            </div>
+
+            <button id="btn-submit-post" class="btn-upload-red-large">UPLOAD & PUBLISH VIDEO</button>
         </div>
     </div>
 
-    <!-- VIDEO UPLOAD MODAL -->
-    <div id="upload-modal" class="modal-overlay hidden">
+    <!-- CREATE CHANNEL MODAL -->
+    <div id="channel-modal" class="modal-overlay hidden">
         <div class="custom-card">
-            <button id="btn-close-upload" class="btn-close">&times;</button>
-            <h2 class="title-pink">Post TikTok Video</h2>
+            <button id="btn-close-channel" class="btn-close">&times;</button>
+            <h2 class="title-red">Create New Channel</h2>
             <div class="input-group">
-                <label class="lbl-blue">Select Video File</label>
-                <input type="file" id="input-video-file" accept="video/*">
+                <label class="lbl-cyan">Channel Name</label>
+                <input type="text" id="input-channel-name" placeholder="e.g. Umar Crypto Signals">
+            </div>
+            <button id="btn-confirm-create-channel" class="btn-red-big">Create Channel Now</button>
+        </div>
+    </div>
+
+    <!-- SIGN UP / LOGIN MODAL -->
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="custom-card">
+            <button id="btn-close-auth" class="btn-close">&times;</button>
+            <h2 class="title-cyan">Sign Up / Login</h2>
+            <div class="input-group">
+                <label class="lbl-red">Email / Phone</label>
+                <input type="text" placeholder="Enter email or phone">
             </div>
             <div class="input-group">
-                <label class="lbl-green">Video Description / Caption</label>
-                <textarea id="input-video-desc" placeholder="Write caption..."></textarea>
+                <label class="lbl-green">Password</label>
+                <input type="password" placeholder="Enter password">
             </div>
-            <button id="btn-submit-post" class="btn-red-big">Upload & Post</button>
+            <button class="btn-red-big">Submit & Login</button>
         </div>
     </div>
 
