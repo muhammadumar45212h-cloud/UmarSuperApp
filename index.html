@@ -2,122 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Super App</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    <!-- TradingView Widget -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-    <!-- Fixed Header -->
-    <header class="top-bar">
+    <!-- Dynamic Header -->
+    <header class="top-bar" id="appHeader">
         <div class="logo">Super App</div>
         <div class="search-container">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" placeholder="Search profiles, videos, market...">
+            <input type="text" placeholder="Search profiles, videos...">
         </div>
         <div class="top-icons">
             <i class="fa-regular fa-bell"></i>
-            <i class="fa-solid fa-ellipsis-vertical" onclick="openSettings()"></i>
+            <i class="fa-solid fa-ellipsis-vertical" onclick="openFullSettings()"></i>
         </div>
     </header>
 
-    <!-- Main Content Tabs -->
+    <!-- Main Screens View -->
     <main class="main-content">
 
-        <!-- 1. Reels Tab -->
+        <!-- 1. TikTok Style Full-Screen Reels -->
         <section id="tab-reels" class="tab-page active">
-            <div id="videoFeed" class="reels-feed-container">
-                <!-- Posts dynamic yahan load honge -->
+            <div id="reelsContainer" class="reels-vertical-container">
+                <!-- Reels dynamically render hongi -->
             </div>
         </section>
 
-        <!-- 2. Text Feed Tab -->
+        <!-- 2. Text Feed Page -->
         <section id="tab-textfeed" class="tab-page">
-            <div class="card">
-                <h3>Create Text Post</h3>
-                <textarea id="textPostInput" class="input-dark" placeholder="What's on your mind?"></textarea>
-                <button class="btn-pink margin-top-sm" onclick="publishTextPost()">Post</button>
+            <div class="create-post-card">
+                <div class="post-header">
+                    <img src="https://via.placeholder.com/45" class="avatar-small">
+                    <textarea id="textPostInput" placeholder="What's on your mind?"></textarea>
+                </div>
+                <button class="btn-post" onclick="publishTextPost()"><i class="fa-solid fa-paper-plane"></i> Post</button>
             </div>
-            <div id="textPostsContainer" class="feed-list margin-top">
-                <!-- Text posts render yahan honge -->
-            </div>
+            <div id="textPostsContainer" class="text-feed-list"></div>
         </section>
 
-        <!-- 3. Live Chat Tab -->
+        <!-- 3. Advanced Gallery & Voice Chat Page -->
         <section id="tab-chat" class="tab-page">
-            <div class="card chat-card">
-                <h3>Live Community Chat</h3>
-                <div id="chatMessages" class="chat-box"></div>
-                <div class="chat-input-row">
+            <div class="chat-wrapper">
+                <div id="chatMessages" class="chat-messages-area"></div>
+                <div class="chat-bottom-bar">
+                    <button class="chat-icon-btn" onclick="triggerGallery()"><i class="fa-solid fa-image"></i></button>
+                    <input type="file" id="chatGalleryInput" accept="image/*" class="hidden" onchange="sendGalleryPhoto(event)">
                     <input type="text" id="chatInput" placeholder="Type a message...">
-                    <button class="btn-pink" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="chat-icon-btn"><i class="fa-solid fa-microphone"></i></button>
+                    <button class="btn-send-chat" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </section>
 
-        <!-- 4. Code Runner IDE Tab -->
+        <!-- 4. Interactive Code IDE -->
         <section id="tab-ide" class="tab-page">
-            <div class="card">
-                <h3><i class="fa-solid fa-code"></i> Mobile Code IDE Runner</h3>
-                <textarea id="codeEditor" class="code-editor" placeholder="HTML / CSS / JS code yahan likhein..."></textarea>
-                <button class="btn-primary margin-top-sm" onclick="runCode()"><i class="fa-solid fa-play"></i> Run Code</button>
+            <div class="ide-container">
+                <h3><i class="fa-solid fa-code"></i> Mobile IDE Runner</h3>
+                <textarea id="codeEditor" class="code-editor" placeholder="Write HTML/CSS/JS here..."></textarea>
+                <button class="btn-run" onclick="runCode()"><i class="fa-solid fa-play"></i> Run Code</button>
+                <div class="preview-title">Live Output:</div>
                 <iframe id="codeOutput" class="code-preview" title="Output"></iframe>
             </div>
         </section>
 
-        <!-- 5. Forex Tab -->
-        <section id="tab-forex" class="tab-page">
-            <h2 class="section-title">Live Market Charts</h2>
-            <div class="select-wrapper">
-                <select id="marketPairSelect" onchange="changeMarketChart()">
-                    <option value="FX:XAUUSD">Gold (XAUUSD)</option>
-                    <option value="BINANCE:BTCUSDT">Bitcoin (BTCUSD)</option>
-                    <option value="FX:EURUSD">Euro (EURUSD)</option>
-                </select>
-            </div>
-            <div id="tradingview_widget" class="chart-container margin-top"></div>
-        </section>
-
-        <!-- 6. Weather Tab -->
-        <section id="tab-weather" class="tab-page">
-            <h2 class="section-title">Live Weather</h2>
-            <div class="weather-search">
-                <input type="text" id="cityInput" placeholder="Enter City/Country..." class="input-dark">
-                <button class="btn-pink margin-top-sm" onclick="getWeather()"><i class="fa-solid fa-magnifying-glass"></i> Search Weather</button>
-            </div>
-            <div class="weather-display">
-                <h1 id="cityName">Search a City</h1>
-                <h2 id="cityTemp">--°C</h2>
-                <p id="cityDesc">Real-time climate details</p>
-            </div>
-        </section>
-
-        <!-- 7. Profile Tab (Updated Order: Image -> Username -> Bio -> Videos) -->
+        <!-- 5. Profile Tab -->
         <section id="tab-profile" class="tab-page">
-            <div class="profile-container">
-                <div class="avatar-box">
-                    <img id="userAvatarImg" src="https://via.placeholder.com/120" alt="Profile Picture">
-                </div>
-                <h2 id="profileUsername">@username</h2>
-                <p id="profileBio" class="bio-text">No bio added yet.</p>
-                <button class="btn-secondary" onclick="editProfile()"><i class="fa-solid fa-pen"></i> Edit Profile</button>
-                
-                <hr class="divider">
-
-                <h3>My Posted Videos</h3>
-                <div id="myVideosGrid" class="my-videos-grid">
-                    <!-- Posted user videos show yahan honge -->
-                </div>
+            <div class="profile-header">
+                <img id="userAvatarImg" src="https://via.placeholder.com/100" class="profile-pic">
+                <h2 id="profileUsername">@umar_developer</h2>
+                <p id="profileBio">Building the Super App Platform 🚀</p>
             </div>
+            <div class="profile-videos-title">My Videos</div>
+            <div id="myVideosGrid" class="profile-grid"></div>
         </section>
 
     </main>
@@ -129,58 +89,55 @@
         <button class="nav-item" onclick="switchTab('chat', this)"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
         <button class="nav-item plus-btn" onclick="openUploadModal()"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></button>
         <button class="nav-item" onclick="switchTab('ide', this)"><i class="fa-solid fa-code"></i><span>IDE</span></button>
-        <button class="nav-item" onclick="switchTab('forex', this)"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
         <button class="nav-item" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></button>
     </nav>
+
+    <!-- Full-Screen Settings Page -->
+    <div id="fullSettingsPage" class="full-screen-settings hidden">
+        <div class="settings-header">
+            <i class="fa-solid fa-arrow-left" onclick="closeFullSettings()"></i>
+            <h2>Settings & Account</h2>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item"><i class="fa-solid fa-id-card"></i> <span>Account & ID Info</span></div>
+            <div class="setting-item"><i class="fa-solid fa-palette"></i> <span>Theme Color</span> 
+                <input type="color" id="themeColorPicker" onchange="changeAppTheme(this.value)">
+            </div>
+            <div class="setting-item"><i class="fa-solid fa-download"></i> <span>Downloaded Videos</span></div>
+            
+            <!-- Real Balance Wallet -->
+            <div class="wallet-card">
+                <h3>Real Balance Wallet</h3>
+                <div class="balance-display" id="walletBalance">Rs. 2,500.00</div>
+                <div class="wallet-actions">
+                    <button class="btn-deposit" onclick="depositMoney()">Deposit</button>
+                    <button class="btn-withdraw" onclick="withdrawMoney()">Withdraw</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Sheet Overlay -->
+    <div id="commentsDrawer" class="comments-drawer hidden">
+        <div class="drawer-header">
+            <span>Comments</span>
+            <i class="fa-solid fa-xmark" onclick="closeComments()"></i>
+        </div>
+        <div id="commentsList" class="comments-list"></div>
+        <div class="comment-input-box">
+            <input type="text" id="newCommentInput" placeholder="Add a comment...">
+            <button onclick="addComment()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <!-- Upload Modal -->
     <div id="uploadModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h3>Upload Reel / Photo</h3>
-            <input type="file" id="modalFileInput" accept="video/*,image/*" onchange="previewMedia(event)">
-            <div id="previewBox" class="preview-box hidden"></div>
-            <input type="text" id="mediaCaption" class="input-dark margin-top-sm" placeholder="Add caption...">
-            <button class="btn-pink margin-top-sm" onclick="publishMedia()">Publish Now</button>
-            <button class="btn-link" onclick="closeUploadModal()">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Settings & Account Update Modal -->
-    <div id="settingsModal" class="modal-overlay hidden">
-        <div class="modal-card scrollable-modal">
-            <h2>Settings & Privacy</h2>
-            
-            <!-- Account Info & Email Change -->
-            <div class="info-card">
-                <h4><i class="fa-solid fa-user-gear"></i> Account Info</h4>
-                <label>Current Email:</label>
-                <input type="email" id="userEmailInput" class="input-dark" value="umar@gmail.com">
-                <button class="btn-primary-sm margin-top-sm" onclick="updateAccountEmail()">Change Email</button>
-                
-                <label class="margin-top-sm block">New Password:</label>
-                <input type="password" id="userPasswordInput" class="input-dark" placeholder="Enter new password">
-                <button class="btn-primary-sm margin-top-sm" onclick="updateAccountPassword()">Change Password</button>
-            </div>
-
-            <!-- Speed Customization Setting -->
-            <div class="info-card">
-                <h4><i class="fa-solid fa-gauge-high"></i> App Speed Settings</h4>
-                <p>Speed Level: <span id="speedValue">900</span> / 1000</p>
-                <input type="range" id="appSpeedSlider" min="100" max="1000" value="900" oninput="adjustAppSpeed(this.value)">
-            </div>
-
-            <!-- Wallet -->
-            <div class="info-card wallet-card">
-                <h4><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h4>
-                <h2 id="walletBalance">Rs. 0.00</h2>
-                <div class="wallet-actions margin-top-sm">
-                    <button class="btn-pink-sm" onclick="depositMoney()">Deposit</button>
-                    <button class="btn-dark-sm" onclick="withdrawMoney()">Withdraw</button>
-                </div>
-            </div>
-
-            <button class="btn-red" onclick="logoutUser()">Logout Account</button>
-            <button class="btn-link" onclick="closeSettingsModal()">Close</button>
+            <h3>Upload Reel</h3>
+            <input type="file" id="modalFileInput" accept="video/*">
+            <input type="text" id="mediaCaption" class="input-dark margin-top" placeholder="Add caption & #hashtags...">
+            <button class="btn-post margin-top" onclick="publishMedia()">Publish Reel</button>
+            <button class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
         </div>
     </div>
 

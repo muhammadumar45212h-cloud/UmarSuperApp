@@ -1,125 +1,136 @@
-// Global Posts Array with Storage Support
-let userPosts = JSON.parse(localStorage.getItem('app_posts')) || [];
-let appSpeed = 900;
+let reelsData = [
+    {
+        id: 101,
+        user: "@aqib_official",
+        description: "New status video #viral #trending",
+        url: "https://www.w3schools.com/html/mov_bbb.mp4",
+        likes: 1240,
+        comments: [
+            { user: "@umar", text: "Zabardast editing!" },
+            { user: "@ali", text: "Nice video bhai!" }
+        ]
+    }
+];
 
 window.onload = function() {
-    renderPosts();
+    renderReels();
 };
 
-// Switch Tabs
-function switchTab(tabName, element) {
-    document.querySelectorAll('.tab-page').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+function renderReels() {
+    const container = document.getElementById('reelsContainer');
+    container.innerHTML = "";
 
-    document.getElementById(`tab-${tabName}`).classList.add('active');
-    if (element) element.classList.add('active');
-
-    if (tabName === 'forex') loadTradingViewWidget('FX:XAUUSD');
-}
-
-// Media Upload logic with Instant Local Feed Rendering
-function publishMedia() {
-    const fileInput = document.getElementById('modalFileInput');
-    const caption = document.getElementById('mediaCaption').value;
-
-    if (!fileInput.files[0]) {
-        alert("Pehle Video ya Photo Select Karein!");
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const fileURL = URL.createObjectURL(file);
-
-    const newPost = {
-        id: Date.now(),
-        type: file.type.startsWith('video/') ? 'video' : 'image',
-        url: fileURL,
-        caption: caption,
-        timestamp: new Date().toLocaleTimeString()
-    };
-
-    userPosts.unshift(newPost);
-    localStorage.setItem('app_posts', JSON.stringify(userPosts));
-
-    renderPosts();
-    closeUploadModal();
-    alert("Post Upload Hogayi!");
-}
-
-function renderPosts() {
-    const videoFeed = document.getElementById('videoFeed');
-    const myVideosGrid = document.getElementById('myVideosGrid');
-    
-    videoFeed.innerHTML = "";
-    myVideosGrid.innerHTML = "";
-
-    userPosts.forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'video-card card';
-        
-        if (post.type === 'video') {
-            item.innerHTML = `
-                <video src="${post.url}" controls></video>
-                <p style="margin-top:8px;">${post.caption}</p>
-            `;
-        } else {
-            item.innerHTML = `
-                <img src="${post.url}" style="width:100%; border-radius:8px;">
-                <p style="margin-top:8px;">${post.caption}</p>
-            `;
-        }
-
-        videoFeed.appendChild(item.cloneNode(true));
-        myVideosGrid.appendChild(item);
+    reelsData.forEach((reel, index) => {
+        const reelItem = document.createElement('div');
+        reelItem.className = 'reel-item';
+        reelItem.innerHTML = `
+            <video class="reel-video" src="${reel.url}" loop onclick="togglePlay(this)"></video>
+            <div class="reel-overlay">
+                <h3>${reel.user}</h3>
+                <p>${reel.description}</p>
+            </div>
+            <div class="reel-side-actions">
+                <div class="action-btn" onclick="likeReel(${index})">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>${reel.likes}</span>
+                </div>
+                <div class="action-btn" onclick="openComments(${index})">
+                    <i class="fa-solid fa-comment"></i>
+                    <span>${reel.comments.length}</span>
+                </div>
+                <div class="action-btn" onclick="shareReel(${reel.id}, '${reel.user}', '${reel.description}')">
+                    <i class="fa-solid fa-share"></i>
+                    <span>Share</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(reelItem);
     });
 }
 
-// Text Post logic
-function publishTextPost() {
-    const text = document.getElementById('textPostInput').value;
-    if (!text) return;
-
-    const container = document.getElementById('textPostsContainer');
-    const postCard = document.createElement('div');
-    postCard.className = 'card margin-top-sm';
-    postCard.innerText = text;
-    container.prepend(postCard);
-
-    document.getElementById('textPostInput').value = "";
+function togglePlay(video) {
+    if (video.paused) video.play();
+    else video.pause();
 }
 
-// Code IDE Logic
+function likeReel(index) {
+    reelsData[index].likes++;
+    renderReels();
+}
+
+// Deep Link Sharing Logic
+function shareReel(id, user, desc) {
+    const shareUrl = `https://superapp.link/video?id=${id}&creator=${encodeURIComponent(user)}`;
+    navigator.clipboard.writeText(shareUrl);
+    alert(`Link Copied!\n\n${shareUrl}\n\nClicking this link directly opens video inside Super App.`);
+}
+
+// Comments Sheet Logic
+let currentActiveReel = 0;
+function openComments(index) {
+    currentActiveReel = index;
+    const list = document.getElementById('commentsList');
+    list.innerHTML = "";
+    
+    reelsData[index].comments.forEach(c => {
+        const div = document.createElement('div');
+        div.style.padding = "6px 0";
+        div.innerHTML = `<strong>${c.user}:</strong> ${c.text}`;
+        list.appendChild(div);
+    });
+
+    document.getElementById('commentsDrawer').classList.remove('hidden');
+}
+
+function addComment() {
+    const input = document.getElementById('newCommentInput');
+    if (!input.value) return;
+
+    reelsData[currentActiveReel].comments.push({
+        user: "@me",
+        text: input.value
+    });
+
+    openComments(currentActiveReel);
+    input.value = "";
+}
+
+function closeComments() {
+    document.getElementById('commentsDrawer').classList.add('hidden');
+}
+
+// Real IDE Execution
 function runCode() {
     const code = document.getElementById('codeEditor').value;
-    const output = document.getElementById('codeOutput').contentWindow.document;
-    output.open();
-    output.write(code);
-    output.close();
+    const iframe = document.getElementById('codeOutput').contentWindow.document;
+    iframe.open();
+    iframe.write(code);
+    iframe.close();
 }
 
-// Account Email & Password Changes
-function updateAccountEmail() {
-    const newEmail = document.getElementById('userEmailInput').value;
-    alert("Account Email updated to: " + newEmail);
+// Navigation Tabs
+function switchTab(tab, el) {
+    document.querySelectorAll('.tab-page').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (el) el.classList.add('active');
 }
 
-function updateAccountPassword() {
-    const newPass = document.getElementById('userPasswordInput').value;
-    if (newPass.length < 6) {
-        alert("Password must be at least 6 characters!");
-        return;
+// Full-screen Settings
+function openFullSettings() { document.getElementById('fullSettingsPage').classList.remove('hidden'); }
+function closeFullSettings() { document.getElementById('fullSettingsPage').classList.add('hidden'); }
+
+function changeAppTheme(color) {
+    document.documentElement.style.setProperty('--primary-color', color);
+}
+
+function triggerGallery() { document.getElementById('chatGalleryInput').click(); }
+
+function sendGalleryPhoto(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const url = URL.createObjectURL(file);
+        const area = document.getElementById('chatMessages');
+        area.innerHTML += `<div style="text-align:right; margin:8px;"><img src="${url}" style="max-width:180px; border-radius:10px;"></div>`;
     }
-    alert("Account Password updated successfully!");
 }
-
-// App Speed Settings Logic
-function adjustAppSpeed(val) {
-    appSpeed = val;
-    document.getElementById('speedValue').innerText = val;
-}
-
-// Modals
-function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
-function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
-function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
-function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
