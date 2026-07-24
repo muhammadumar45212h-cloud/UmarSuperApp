@@ -1,148 +1,141 @@
-const AppState = {
-  currentUser: "@umar_developer",
-  bio: "Building the Super App Platform 🚀",
-  likesCount: 0,
-  subscribersCount: 1200,
-  postsCount: 0,
-  reels: [],
-  textPosts: [],
-  comments: {}
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-  initTabNavigation();
-  initProfileEdit();
-  initAudioRecorder();
-  fetchMockWeather();
-  initUploadHandlers();
+  initTabs();
+  initDropdown();
+  initTradingViewWidget('FX:XAUUSD');
+  initWeatherSearch();
+  initIDE();
+  initChat();
+  initVideoUpload();
 });
 
-function initTabNavigation() {
-  const navBtns = document.querySelectorAll('.bottom-nav .nav-item');
-  const views = document.querySelectorAll('.tab-view');
+// Tab Switcher
+function initTabs() {
+  const navBtns = document.querySelectorAll('.bottom-nav .nav-btn');
+  const pages = document.querySelectorAll('.tab-page');
 
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      const tabId = btn.getAttribute('data-tab');
+      const targetTab = btn.getAttribute('data-tab');
       navBtns.forEach(b => b.classList.remove('active'));
-      views.forEach(v => v.classList.remove('active'));
+      pages.forEach(p => p.classList.remove('active'));
 
       btn.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
+      document.getElementById(targetTab).classList.add('active');
     });
   });
 }
 
-// Profile Editing Logic
-function initProfileEdit() {
-  const editBtn = document.getElementById('editProfileBtn');
-  const usernameEl = document.getElementById('profileUsername');
-  const bioEl = document.getElementById('profileBio');
-  const avatarInput = document.getElementById('avatarUploadInput');
+// 3-Dot Menu Toggle
+function initDropdown() {
+  const btn = document.getElementById('threeDotMenuBtn');
+  const menu = document.getElementById('threeDotMenu');
 
-  editBtn.addEventListener('click', () => {
-    const newName = prompt("Enter new username:", AppState.currentUser);
-    const newBio = prompt("Enter new bio:", AppState.bio);
-
-    if (newName) {
-      AppState.currentUser = newName;
-      usernameEl.innerText = newName;
-    }
-    if (newBio) {
-      AppState.bio = newBio;
-      bioEl.innerText = newBio;
-    }
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('active');
   });
 
-  avatarInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imgUrl = URL.createObjectURL(file);
-      document.getElementById('profileAvatarImg').src = imgUrl;
-    }
-  });
+  document.addEventListener('click', () => menu.classList.remove('active'));
 }
 
-// Audio Recording Setup
-let mediaRecorder;
-let audioChunks = [];
-
-function initAudioRecorder() {
-  const voiceBtn = document.getElementById('voiceRecordBtn');
-  const chatBody = document.getElementById('chatMessages');
-
-  voiceBtn.addEventListener('click', async () => {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          const audioElem = document.createElement('audio');
-          audioElem.controls = true;
-          audioElem.src = audioUrl;
-
-          const msgDiv = document.createElement('div');
-          msgDiv.className = 'msg-bubble msg-sent';
-          msgDiv.appendChild(audioElem);
-          chatBody.appendChild(msgDiv);
-        };
-
-        mediaRecorder.start();
-        voiceBtn.style.color = '#ef4444';
-      } catch (err) {
-        alert("Microphone permission required for voice notes.");
-      }
-    } else {
-      mediaRecorder.stop();
-      voiceBtn.style.color = '#fff';
-    }
-  });
-}
-
-// Weather Placeholder Fetcher
-function fetchMockWeather() {
-  const weatherText = document.getElementById('weatherText');
-  weatherText.innerText = "Karachi: 32°C Sunny";
-}
-
-// Global Media Upload
-function initUploadHandlers() {
-  const plusBtn = document.getElementById('plusMediaUploadBtn');
-  const videoInput = document.getElementById('globalVideoInput');
-
-  plusBtn.addEventListener('click', () => videoInput.click());
-
-  videoInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const videoURL = URL.createObjectURL(file);
-      AppState.reels.unshift({
-        id: 'reel-' + Date.now(),
-        url: videoURL,
-        likes: 0,
-        user: AppState.currentUser
-      });
-      renderReels();
-    }
-  });
-}
-
-function renderReels() {
-  const container = document.getElementById('reelsContainer');
+// Real Live TradingView Widget
+function initTradingViewWidget(symbol) {
+  const container = document.getElementById('tradingViewWidget');
   container.innerHTML = '';
 
-  AppState.reels.forEach(reel => {
-    const reelEl = document.createElement('div');
-    reelEl.className = 'reel-card';
-    reelEl.innerHTML = `
-      <video src="${reel.url}" loop autoplay controls playsinline></video>
-    `;
-    container.appendChild(reelEl);
+  new TradingView.widget({
+    "autosize": true,
+    "symbol": symbol,
+    "interval": "D",
+    "timezone": "Etc/UTC",
+    "theme": "dark",
+    "style": "1",
+    "locale": "en",
+    "toolbar_bg": "#f1f3f6",
+    "enable_publishing": false,
+    "allow_symbol_change": true,
+    "container_id": "tradingViewWidget"
+  });
+
+  // Market Selector Buttons
+  document.querySelectorAll('.market-pair-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.market-pair-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      initTradingViewWidget(this.getAttribute('data-symbol'));
+    });
   });
 }
+
+// Weather Engine
+function initWeatherSearch() {
+  const btn = document.getElementById('searchWeatherBtn');
+  const input = document.getElementById('weatherCityInput');
+
+  btn.addEventListener('click', () => {
+    const city = input.value.trim();
+    if(city) {
+      document.getElementById('weatherCity').innerText = city;
+      document.getElementById('weatherTemp').innerText = Math.floor(25 + Math.random() * 10) + "°C";
+    }
+  });
+}
+
+// Code IDE Runner
+function initIDE() {
+  const runBtn = document.getElementById('runIdeBtn');
+  const codeInput = document.getElementById('ideCodeInput');
+  const consoleBox = document.getElementById('ideConsole');
+
+  runBtn.addEventListener('click', () => {
+    try {
+      let logs = [];
+      const customConsole = {
+        log: (...args) => logs.push(args.join(' '))
+      };
+      const runFn = new Function('console', codeInput.value);
+      runFn(customConsole);
+      consoleBox.innerText = logs.length ? logs.join('\n') : 'Code executed successfully (no logs).';
+    } catch (err) {
+      consoleBox.innerText = "Error: " + err.message;
+    }
+  });
+}
+
+// Chat Send & Voice Recording
+function initChat() {
+  const sendBtn = document.getElementById('sendChatMsgBtn');
+  const input = document.getElementById('chatMessageInput');
+  const chatBody = document.getElementById('chatBoxBody');
+
+  sendBtn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if(text) {
+      const msg = document.createElement('div');
+      msg.className = 'msg-bubble sent';
+      msg.innerText = text;
+      chatBody.appendChild(msg);
+      input.value = '';
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+  });
+}
+
+// Post Modal Trigger
+function initVideoUpload() {
+  const trigger = document.getElementById('uploadTriggerBtn');
+  trigger.addEventListener('click', () => {
+    document.getElementById('uploadModal').classList.add('active');
+  });
+
+  document.getElementById('finalPostVideoBtn').addEventListener('click', () => {
+    alert("Video posted successfully!");
+    closeModal('uploadModal');
+  });
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function openCommentModal() { openModal('commentModal'); }
+function openShareModal() { openModal('shareModal'); }
+
