@@ -2,216 +2,295 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Umar Super App</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b111e; color: #ffffff; padding-bottom: 70px; }
+    
+    /* Header & Navigation */
+    header { background: #111927; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1f293d; position: sticky; top: 0; z-index: 100; }
+    .logo { font-size: 20px; font-weight: bold; }
+    .search-box { display: flex; align-items: center; background: #1c2536; padding: 6px 12px; border-radius: 20px; width: 60%; }
+    .search-box input { background: transparent; border: none; color: white; width: 100%; outline: none; margin-left: 8px; }
+    
+    /* Input Styling Updates */
+    textarea, input[type="text"] {
+      width: 100%;
+      background: #1c2536;
+      border: 1px solid #2b384e;
+      border-radius: 8px;
+      color: #fff;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+      resize: vertical;
+    }
+    textarea.spacious { min-height: 110px; }
+
+    /* Buttons */
+    .btn { background: #e91e63; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-secondary { background: #2b384e; }
+    
+    /* Feed Sections */
+    .section { display: none; padding: 16px; }
+    .section.active { display: block; }
+    
+    /* Reels Player */
+    .reel-card { position: relative; width: 100%; height: 80vh; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .reel-overlay { position: absolute; bottom: 20px; left: 16px; right: 60px; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
+    .reel-actions { position: absolute; right: 16px; bottom: 40px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+    .action-btn { background: rgba(0,0,0,0.4); border-radius: 50%; padding: 10px; cursor: pointer; text-align: center; font-size: 12px; }
+
+    /* Posts & Feed */
+    .post-card { background: #111927; padding: 16px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #1f293d; }
+    .post-card a { color: #38ef7d; text-decoration: underline; word-break: break-all; }
+    .post-actions { display: flex; gap: 16px; margin-top: 12px; font-size: 14px; color: #a0aec0; }
+
+    /* Long-Press Modal */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background: #111927; padding: 20px; border-radius: 12px; width: 85%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Bottom Nav Bar */
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: #111927; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #1f293d; z-index: 100; }
+    .nav-item { color: #a0aec0; text-decoration: none; font-size: 11px; text-align: center; }
+    .nav-item.active { color: #e91e63; }
+    .add-btn { background: linear-gradient(135deg, #e91e63, #9c27b0); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; font-size: 20px; }
+  </style>
 </head>
 <body>
 
-  <!-- Top Header -->
-  <header class="top-bar">
-    <div class="brand-title">Super App</div>
-    <div class="header-search">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="globalSearch" placeholder="Search profiles, videos...">
-    </div>
-    <div class="header-actions">
-      <i class="fa-regular fa-bell" onclick="alert('No new notifications')"></i>
-      <div class="menu-dropdown-wrapper">
-        <i class="fa-solid fa-ellipsis-vertical" id="threeDotMenuBtn"></i>
-        <div class="dropdown-menu" id="threeDotMenu">
-          <a href="#" onclick="openModal('settingsModal')"><i class="fa-solid fa-gear"></i> Settings</a>
-          <a href="#" onclick="alert('Privacy Mode Active')"><i class="fa-solid fa-user-shield"></i> Privacy</a>
-          <a href="#" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> Reload App</a>
-        </div>
-      </div>
+  <header>
+    <div class="logo">Super App</div>
+    <div class="search-box">
+      🔍 <input type="text" id="globalSearch" placeholder="Search profiles, videos..." onkeyup="handleSearch()">
     </div>
   </header>
 
-  <!-- Main Content Views -->
-  <main class="app-main">
+  <!-- REELS FEED SECTION -->
+  <div id="reels-sec" class="section active">
+    <div id="reelsContainer"></div>
+  </div>
 
-    <!-- REELS TAB -->
-    <section id="view-reels" class="tab-page active">
-      <div class="reels-viewport" id="reelsContainer">
-        <!-- Dynamic Reels loaded via JS -->
-      </div>
-    </section>
+  <!-- TEXT FEED SECTION -->
+  <div id="textfeed-sec" class="section">
+    <div style="margin-bottom: 16px;">
+      <textarea id="textPostInput" class="spacious" placeholder="Share what's on your mind... (Links are auto-formatted)"></textarea>
+      <button class="btn" style="margin-top: 8px;" onclick="addTextPost()">✈️ Post</button>
+    </div>
+    <div id="textPostContainer"></div>
+  </div>
 
-    <!-- TEXT FEED TAB -->
-    <section id="view-textfeed" class="tab-page">
-      <div class="post-creator-card">
-        <textarea id="textPostInput" placeholder="Share what's on your mind..."></textarea>
-        <button id="postSubmitBtn" class="btn-primary" onclick="createFeedPost()"><i class="fa-solid fa-paper-plane"></i> Post</button>
-      </div>
-      <div class="feed-posts-list" id="feedPostsList"></div>
-    </section>
+  <!-- CHAT SECTION -->
+  <div id="chat-sec" class="section">
+    <h3>Chats & Groups</h3>
+    <div id="chatList" style="margin-top: 12px;"></div>
+  </div>
 
-    <!-- CHAT TAB -->
-    <section id="view-chat" class="tab-page">
-      <div class="chat-header-bar">
-        <div class="user-profile-badge">
-          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" class="avatar-sm">
-          <div>
-            <div class="active-user-name">Ali Ahmed</div>
-            <span class="online-status">Online</span>
-          </div>
-        </div>
-        <div class="call-controls">
-          <button class="icon-circle-btn" onclick="alert('Calling Ali Ahmed...')"><i class="fa-solid fa-phone"></i></button>
-          <button class="icon-circle-btn" onclick="alert('Starting Video Call...')"><i class="fa-solid fa-video"></i></button>
-        </div>
-      </div>
+  <!-- IDE SECTION -->
+  <div id="ide-sec" class="section">
+    <h3> Mobile Code IDE</h3>
+    <textarea id="ideCode" class="spacious" style="font-family: monospace; margin-top: 10px;" placeholder='print("hello world")'></textarea>
+    <button class="btn" style="margin-top: 8px;" onclick="runCode()">▶ Run Code</button>
+    <div style="margin-top: 16px;">
+      <strong>Terminal Output:</strong>
+      <pre id="ideOutput" style="background: #000; padding: 12px; border-radius: 8px; margin-top: 6px; color: #38ef7d; min-height: 80px;">Ready...</pre>
+    </div>
+  </div>
 
-      <div class="chat-box-body" id="chatBoxBody">
-        <div class="msg-bubble received">Hey Umar! How is the app build going?</div>
-        <div class="msg-bubble sent">It's working smooth! All features connected.</div>
-      </div>
+  <!-- PROFILE SECTION -->
+  <div id="profile-sec" class="section">
+    <div style="text-align: center; padding: 20px 0;">
+      <img id="profilePic" src="https://via.placeholder.com/100" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #e91e63;">
+      <h2 id="profileUsername">@umar_developer</h2>
+      <p id="profileBio" style="color: #a0aec0; margin: 8px 0;">Building the Super App Platform 🚀</p>
+      <button class="btn btn-secondary" onclick="openProfileEdit()">✏️ Edit Profile</button>
+    </div>
+  </div>
 
-      <div class="chat-input-toolbar">
-        <label for="chatAttach" class="chat-icon-btn"><i class="fa-solid fa-image"></i></label>
-        <input type="file" id="chatAttach" hidden accept="image/*" onchange="sendChatImage(this)">
-        <input type="text" id="chatMessageInput" placeholder="Type a message...">
-        <button id="voiceRecordBtn" class="chat-icon-btn" onclick="toggleVoiceRecording()"><i class="fa-solid fa-microphone" id="micIcon"></i></button>
-        <button id="sendChatMsgBtn" class="chat-send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </section>
-
-    <!-- FULL SCREEN MARKET TAB -->
-    <section id="view-market" class="tab-page">
-      <div class="market-nav">
-        <button class="market-pair-btn active" onclick="switchMarketSymbol('FX:XAUUSD', this)">XAUUSD (Gold)</button>
-        <button class="market-pair-btn" onclick="switchMarketSymbol('BITSTAMP:BTCUSD', this)">BTCUSD</button>
-        <button class="market-pair-btn" onclick="switchMarketSymbol('FX:EURUSD', this)">EURUSD</button>
-      </div>
-      <div class="chart-wrapper-fullscreen" id="tradingViewWidget"></div>
-    </section>
-
-    <!-- IDE TAB -->
-    <section id="view-ide" class="tab-page">
-      <div class="ide-container">
-        <h3><i class="fa-solid fa-code"></i> Mobile Code IDE</h3>
-        <textarea id="ideCodeInput" placeholder="// Write JavaScript code here...&#10;console.log('Hello Super App!');"></textarea>
-        <button id="runIdeBtn" class="btn-primary" onclick="runJavaScriptCode()"><i class="fa-solid fa-play"></i> Run Code</button>
-        <h4>Terminal Output:</h4>
-        <div class="ide-console" id="ideConsole">Ready...</div>
-      </div>
-    </section>
-
-    <!-- PROFILE TAB -->
-    <section id="view-profile" class="tab-page">
-      <div class="profile-layout">
-        <!-- Weather Card -->
-        <div class="weather-card">
-          <div class="weather-search">
-            <input type="text" id="weatherCityInput" placeholder="Search city/country...">
-            <button onclick="searchWeather()"><i class="fa-solid fa-magnifying-glass"></i></button>
-          </div>
-          <div class="weather-info">
-            <i class="fa-solid fa-cloud-sun weather-icon"></i>
-            <div>
-              <span class="temp-text" id="weatherTemp">32°C</span>
-              <span class="city-text" id="weatherCity">Karachi, PK</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Profile Info -->
-        <div class="profile-header-center">
-          <div class="profile-photo-container">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" id="profileAvatarImg">
-          </div>
-          <h2 id="displayUsername">@umar_developer</h2>
-          <p id="displayBio">Building the Super App Platform 🚀</p>
-          <button class="btn-secondary" onclick="openModal('editProfileModal')"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
-        </div>
-
-        <!-- Dynamic Stats Row -->
-        <div class="profile-stats-row">
-          <div class="stat-box"><strong id="statLikes">12.5K</strong><span>Total Likes</span></div>
-          <div class="stat-box"><strong id="statSubs">1.2K</strong><span>Subscribers</span></div>
-          <div class="stat-box"><strong id="statVideos">0</strong><span>Total Videos</span></div>
-        </div>
-
-        <div class="user-videos-section">
-          <h3>Posted Videos</h3>
-          <div class="video-grid" id="userVideoGrid">
-            <p class="empty-msg" id="emptyVideoMsg">No uploaded videos yet.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Navigation Bar -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-tab="view-reels"><i class="fa-solid fa-film"></i><span>Reels</span></button>
-    <button class="nav-btn" data-tab="view-textfeed"><i class="fa-solid fa-font"></i><span>Text Feed</span></button>
-    <button class="nav-btn" data-tab="view-chat"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
-    <button class="nav-plus-btn" onclick="openModal('uploadModal')"><i class="fa-solid fa-plus"></i></button>
-    <button class="nav-btn" data-tab="view-market"><i class="fa-solid fa-chart-line"></i><span>Market</span></button>
-    <button class="nav-btn" data-tab="view-ide"><i class="fa-solid fa-code"></i><span>IDE</span></button>
-    <button class="nav-btn" data-tab="view-profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
-  </nav>
+  <!-- LONG PRESS MODAL -->
+  <div id="longPressModal" class="modal">
+    <div class="modal-content">
+      <h3>Post Options</h3>
+      <button class="btn btn-secondary" onclick="forwardPost()">↗️ Forward</button>
+      <button class="btn btn-secondary" onclick="copyPostText()">📋 Copy Text</button>
+      <button class="btn btn-secondary" style="color: #ff5252;" onclick="reportPost()">⚠️ Report ID</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
 
   <!-- EDIT PROFILE MODAL -->
-  <div class="modal-overlay" id="editProfileModal">
-    <div class="modal-sheet">
+  <div id="editProfileModal" class="modal">
+    <div class="modal-content">
       <h3>Edit Profile</h3>
-      <label>Profile Picture:</label>
-      <input type="file" id="newAvatarInput" accept="image/*">
-      <label>Username:</label>
-      <input type="text" id="newUsernameInput" value="@umar_developer">
-      <label>Bio:</label>
-      <textarea id="newBioInput" rows="2">Building the Super App Platform 🚀</textarea>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
-        <button class="btn-primary" onclick="saveProfileChanges()">Save Changes</button>
-      </div>
+      <input type="text" id="editUsername" placeholder="Username">
+      <textarea id="editBio" class="spacious" placeholder="Bio (Links allowed)"></textarea>
+      <button class="btn" onclick="saveProfile()">Save Changes</button>
+      <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
     </div>
   </div>
 
-  <!-- UPLOAD VIDEO MODAL -->
-  <div class="modal-overlay" id="uploadModal">
-    <div class="modal-sheet">
-      <h3>Upload Reel Video</h3>
-      <input type="file" id="reelFileInput" accept="video/*">
-      <textarea id="reelDescInput" placeholder="Add video description..."></textarea>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
-        <button class="btn-primary" onclick="handleVideoPost()">Post Video</button>
-      </div>
-    </div>
-  </div>
+  <!-- BOTTOM NAVIGATION -->
+  <nav>
+    <a href="#" class="nav-item active" onclick="switchTab('reels-sec', this)">Reels</a>
+    <a href="#" class="nav-item" onclick="switchTab('textfeed-sec', this)">Text Feed</a>
+    <a href="#" class="nav-item" onclick="switchTab('chat-sec', this)">Chat</a>
+    <div class="add-btn" onclick="openUploadModal()">+</div>
+    <a href="#" class="nav-item" onclick="switchTab('ide-sec', this)">IDE</a>
+    <a href="#" class="nav-item" onclick="switchTab('profile-sec', this)">Profile</a>
+  </nav>
 
-  <!-- COMMENTS DRAWER MODAL -->
-  <div class="modal-overlay" id="commentModal">
-    <div class="modal-sheet drawer-large">
-      <div class="drawer-header">
-        <h3>Comments</h3>
-        <i class="fa-solid fa-xmark" onclick="closeModal('commentModal')"></i>
-      </div>
-      <div class="comments-body" id="commentsList"></div>
-      <div class="comment-input-area">
-        <input type="text" id="commentTextInput" placeholder="Write a comment...">
-        <button class="btn-primary" onclick="addComment()"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </div>
-  </div>
+  <script>
+    // App State Management & LocalStorage Persistence
+    let state = {
+      user: JSON.parse(localStorage.getItem('user_profile')) || { username: 'umar_developer', bio: 'Building the Super App Platform 🚀' },
+      posts: JSON.parse(localStorage.getItem('app_posts')) || [],
+      selectedPostText: ''
+    };
 
-  <!-- SETTINGS MODAL -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-sheet">
-      <h3>App Settings</h3>
-      <p>App Version: 2.0.0 (Super App)</p>
-      <p>Status: Production Ready</p>
-      <button class="btn-secondary full-width" onclick="closeModal('settingsModal')">Close</button>
-    </div>
-  </div>
+    function initApp() {
+      document.getElementById('profileUsername').innerText = '@' + state.user.username;
+      document.getElementById('profileBio').innerHTML = formatLinks(state.user.bio);
+      renderPosts();
+    }
 
-  <script src="https://s3.tradingview.com/tv.js"></script>
-  <script src="script.js"></script>
+    // Auto Link Formatter
+    function formatLinks(text) {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      });
+    }
+
+    // Tab Switcher
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (element) element.classList.add('active');
+    }
+
+    // Text Post Handling
+    function addTextPost() {
+      const input = document.getElementById('textPostInput');
+      if (!input.value.trim()) return;
+
+      const newPost = {
+        id: Date.now(),
+        author: state.user.username,
+        text: input.value,
+        likes: 0,
+        liked: false
+      };
+
+      state.posts.unshift(newPost);
+      localStorage.setItem('app_posts', JSON.stringify(state.posts));
+      input.value = '';
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('textPostContainer');
+      container.innerHTML = '';
+      state.posts.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post-card';
+        div.innerHTML = `
+          <strong>@${post.author}</strong>
+          <p style="margin-top: 8px;">${formatLinks(post.text)}</p>
+          <div class="post-actions">
+            <span onclick="toggleLike(${post.id})" style="cursor:pointer;">❤️ ${post.likes}</span>
+            <span>💬 Comment</span>
+            <span>↪️ Share</span>
+          </div>
+        `;
+        
+        // Long Press Gesture Handler (2 Seconds)
+        let timer;
+        div.addEventListener('touchstart', () => { timer = setTimeout(() => triggerLongPress(post.text), 2000); });
+        div.addEventListener('touchend', () => clearTimeout(timer));
+        div.addEventListener('mousedown', () => { timer = setTimeout(() => triggerLongPress(post.text), 2000); });
+        div.addEventListener('mouseup', () => clearTimeout(timer));
+
+        container.appendChild(div);
+      });
+    }
+
+    // Toggle Likes Fix (1 Per User)
+    function toggleLike(id) {
+      const post = state.posts.find(p => p.id === id);
+      if (post) {
+        post.liked = !post.liked;
+        post.likes += post.liked ? 1 : -1;
+        localStorage.setItem('app_posts', JSON.stringify(state.posts));
+        renderPosts();
+      }
+    }
+
+    // Long Press Modal & Actions
+    function triggerLongPress(text) {
+      state.selectedPostText = text;
+      document.getElementById('longPressModal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('longPressModal').style.display = 'none'; }
+
+    function copyPostText() {
+      navigator.clipboard.writeText(state.selectedPostText);
+      alert("Text copied to clipboard!");
+      closeModal();
+    }
+
+    function forwardPost() {
+      alert(`Forwarded by @${state.user.username}:\n"${state.selectedPostText}"`);
+      closeModal();
+    }
+
+    function reportPost() {
+      alert("Post/ID reported successfully.");
+      closeModal();
+    }
+
+    // Profile Edit
+    function openProfileEdit() {
+      document.getElementById('editUsername').value = state.user.username;
+      document.getElementById('editBio').value = state.user.bio;
+      document.getElementById('editProfileModal').style.display = 'flex';
+    }
+
+    function closeProfileModal() { document.getElementById('editProfileModal').style.display = 'none'; }
+
+    function saveProfile() {
+      state.user.username = document.getElementById('editUsername').value;
+      state.user.bio = document.getElementById('editBio').value;
+      localStorage.setItem('user_profile', JSON.stringify(state.user));
+      initApp();
+      closeProfileModal();
+    }
+
+    // Python / Code Execution Logic
+    function runCode() {
+      const code = document.getElementById('ideCode').value;
+      const output = document.getElementById('ideOutput');
+      
+      // Basic Python Print Parser Simulation
+      if (code.includes('print(')) {
+        const match = code.match(/print\((["'])(.*?)\1\)/);
+        if (match) {
+          output.innerText = match[2];
+          return;
+        }
+      }
+      try {
+        output.innerText = eval(code);
+      } catch (err) {
+        output.innerText = err.message;
+      }
+    }
+
+    // Initialize Application
+    initApp();
+  </script>
 </body>
 </html>
