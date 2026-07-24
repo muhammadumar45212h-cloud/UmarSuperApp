@@ -5,137 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super App</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <!-- TradingView Widget -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
 
-    <!-- Notification Toast -->
-    <div id="toastNotification" class="toast-banner"></div>
-
-    <!-- App Header -->
-    <header class="app-header">
-        <div class="header-left">
-            <span class="logo">Super App</span>
+    <!-- Top Header -->
+    <header class="top-bar">
+        <div class="logo">Super App</div>
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" placeholder="Search profiles, videos, mar...">
         </div>
-        <div class="search-bar-large">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Search profiles, videos, channels...">
-        </div>
-        <div class="header-right">
-            <button class="icon-btn" id="notifBtn"><i class="fa-solid fa-bell"></i></button>
-            <button class="icon-btn" id="settingsMenuBtn"><i class="fa-solid fa-gear"></i></button>
+        <div class="top-icons">
+            <i class="fa-regular fa-bell"></i>
+            <i class="fa-solid fa-ellipsis-vertical" onclick="openSettings()"></i>
         </div>
     </header>
 
-    <!-- Main Screens Container -->
+    <!-- Main Content Views Container -->
     <main class="main-content">
-        
-        <!-- 1. Reels Feed -->
-        <section id="reelsTab" class="tab-content active-tab">
-            <div id="reelsFeedContainer" class="reels-container"></div>
-        </section>
 
-        <!-- 2. Text Feed -->
-        <section id="textFeedTab" class="tab-content">
-            <div class="text-feed-container">
-                <div class="create-card">
-                    <textarea id="textPostInput" placeholder="Write something to share with everyone..."></textarea>
-                    <button class="btn-primary" id="publishTextPostBtn"><i class="fa-solid fa-paper-plane"></i> Post Text</button>
-                </div>
-                <div id="textPostsContainer" class="feed-list"></div>
+        <!-- 1. Reels / Video Feed Tab -->
+        <section id="tab-reels" class="tab-page active">
+            <div id="videoFeed" class="reels-container">
+                <!-- Live videos from Firestore will load here -->
             </div>
         </section>
 
-        <!-- 3. Chat & Channels Screen -->
-        <section id="chatTab" class="tab-content">
-            <div class="chat-wrapper">
-                <div class="chat-nav">
-                    <button class="sub-btn active" id="subBtnChats">Direct Chats</button>
-                    <button class="sub-btn" id="subBtnChannels">Channels & Groups</button>
-                </div>
-
-                <!-- Direct Messages Area -->
-                <div id="directChatsView" class="chat-view">
-                    <div id="chatMessagesBox" class="chat-messages"></div>
-                    
-                    <div id="recordingStatus" class="recording-badge" style="display:none;">
-                        <i class="fa-solid fa-microphone blink"></i> Recording Audio... 
-                        <span id="recordingTime">0s</span>
-                    </div>
-
-                    <div class="chat-input-bar">
-                        <button class="icon-btn-accent" id="micRecordBtn"><i class="fa-solid fa-microphone"></i></button>
-                        <input type="text" id="chatMessageInput" placeholder="Type a message...">
-                        <button class="btn-primary" id="sendMessageBtn"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-
-                <!-- Channels / Groups Real Page View -->
-                <div id="channelsView" class="chat-view" style="display:none;">
-                    <!-- Embedded Inline Channel Creation Form (NO POPUPS) -->
-                    <div class="create-card inline-form">
-                        <h3><i class="fa-solid fa-plus-circle"></i> Create New Channel / Group</h3>
-                        <input type="text" id="channelNameInput" placeholder="Channel / Group Title">
-                        <input type="text" id="channelDescInput" placeholder="Short Description">
-                        <button class="btn-primary" id="saveChannelBtn"><i class="fa-solid fa-check"></i> Create Channel</button>
-                    </div>
-
-                    <div class="channels-section">
-                        <h4>Public Channels</h4>
-                        <div id="channelsListContainer" class="feed-list"></div>
-                    </div>
+        <!-- 2. Text Feed Tab -->
+        <section id="tab-textfeed" class="tab-page">
+            <div class="card">
+                <h2>Text Posts Feed</h2>
+                <div id="textPostsContainer">
+                    <p style="color: #94a3b8;">No text posts yet.</p>
                 </div>
             </div>
         </section>
 
-        <!-- 4. Live Forex -->
-        <section id="forexTab" class="tab-content">
-            <div class="forex-container">
-                <div class="forex-header">
-                    <h3>Live Market Charts</h3>
-                    <select id="marketPairSelect" class="pair-dropdown">
-                        <option value="FX:XAUUSD">Gold (XAUUSD)</option>
-                        <option value="BINANCE:BTCUSDT">Bitcoin (BTCUSD)</option>
-                        <option value="FX:EURUSD">Euro (EURUSD)</option>
-                    </select>
-                </div>
-                <iframe id="tradingViewIframe" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="tradingview-frame"></iframe>
-            </div>
-        </section>
-
-        <!-- 5. Weather -->
-        <section id="weatherTab" class="tab-content">
-            <div class="weather-container">
-                <h3>Live Weather</h3>
-                <div class="weather-search-row">
-                    <input type="text" id="weatherCityInput" placeholder="Enter City/Country...">
-                    <button id="searchWeatherBtn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-                </div>
-                <div id="weatherResultDisplay" class="weather-card">
-                    <h2 id="weatherCityName">Search a City</h2>
-                    <h1 id="weatherTempDisplay">--°C</h1>
-                    <p id="weatherDesc">Real-time climate details</p>
+        <!-- 3. Chat Tab -->
+        <section id="tab-chat" class="tab-page">
+            <div class="card">
+                <h2>Live Community Chat</h2>
+                <div id="chatMessages" class="chat-box"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Type a message...">
+                    <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </section>
 
-        <!-- 6. Profile View -->
-        <section id="profileTab" class="tab-content">
-            <div class="profile-container">
-                <div class="profile-card">
-                    <div class="avatar-wrapper">
-                        <img id="userProfilePic" src="https://via.placeholder.com/100" class="avatar-large">
-                    </div>
-                    <h2 id="userDisplayName">User Profile</h2>
-                    <p id="userHandle">@username</p>
-                    <p id="userBioText" class="bio-text">No bio added yet.</p>
-                    <button class="btn-secondary" id="editProfileOpenBtn"><i class="fa-solid fa-pen"></i> Edit Profile</button>
-                </div>
+        <!-- 4. Forex Market Tab -->
+        <section id="tab-forex" class="tab-page">
+            <h2 class="section-title">Live Market Charts</h2>
+            <div class="select-wrapper">
+                <select id="marketPairSelect" onchange="changeMarketChart()">
+                    <option value="FX:XAUUSD">Gold (XAUUSD)</option>
+                    <option value="BINANCE:BTCUSDT">Bitcoin (BTCUSD)</option>
+                    <option value="FX:EURUSD">Euro (EURUSD)</option>
+                </select>
+            </div>
+            <div id="tradingview_widget" class="chart-container"></div>
+        </section>
 
-                <div class="my-content-section">
-                    <h3>Uploaded Media</h3>
-                    <div id="myVideosGrid" class="user-videos-grid"></div>
+        <!-- 5. Weather Tab -->
+        <section id="tab-weather" class="tab-page">
+            <h2 class="section-title">Live Weather</h2>
+            <div class="weather-search">
+                <input type="text" id="cityInput" placeholder="Enter City/Country...">
+                <button class="btn-primary" onclick="getWeather()"><i class="fa-solid fa-magnifying-glass"></i> Search Weather</button>
+            </div>
+            <div class="weather-display">
+                <h1 id="cityName">Search a City</h1>
+                <h2 id="cityTemp">--°C</h2>
+                <p id="cityDesc">Real-time climate details</p>
+            </div>
+        </section>
+
+        <!-- 6. User Profile Tab -->
+        <section id="tab-profile" class="tab-page">
+            <div class="profile-header">
+                <div class="avatar-circle">
+                    <img id="userAvatarImg" src="https://via.placeholder.com/100" alt="Avatar">
                 </div>
+                <h2 id="profileDisplayName">User Profile</h2>
+                <p id="profileUsername">@username</p>
+                <span class="bio-text">No bio added yet.</span>
+                <button class="btn-secondary" onclick="editProfile()"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+            </div>
+            <div class="my-videos-section">
+                <h3>My Videos</h3>
+                <div id="myVideosGrid" class="grid-container"></div>
             </div>
         </section>
 
@@ -143,131 +111,97 @@
 
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
-        <button class="nav-btn active" data-tab="reelsTab"><i class="fa-solid fa-film"></i><span>Reels</span></button>
-        <button class="nav-btn" data-tab="textFeedTab"><i class="fa-solid fa-font"></i><span>Text Feed</span></button>
-        <button class="nav-btn" data-tab="chatTab"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
-        <button class="center-add-btn" id="centerPlusBtn"><i class="fa-solid fa-plus"></i></button>
-        <button class="nav-btn" data-tab="forexTab"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
-        <button class="nav-btn" data-tab="weatherTab"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
-        <button class="nav-btn" data-tab="profileTab"><i class="fa-solid fa-user"></i><span>Profile</span></button>
+        <button class="nav-item active" onclick="switchTab('reels', this)">
+            <i class="fa-solid fa-film"></i>
+            <span>Reels</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('textfeed', this)">
+            <i class="fa-solid fa-font"></i>
+            <span>Text Feed</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('chat', this)">
+            <i class="fa-solid fa-comments"></i>
+            <span>Chat</span>
+        </button>
+        <button class="nav-item plus-btn" onclick="openUploadModal()">
+            <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
+        </button>
+        <button class="nav-item" onclick="switchTab('forex', this)">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Forex</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('weather', this)">
+            <i class="fa-solid fa-cloud-sun"></i>
+            <span>Weather</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('profile', this)">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </button>
     </nav>
 
-    <!-- Modals -->
-
-    <!-- Upload Media Modal -->
-    <div id="uploadModal" class="modal-overlay">
+    <!-- Modal: Upload Reel / Photo -->
+    <div id="uploadModal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h2>Upload Video / Photo</h2>
-            <button id="chooseVideoBtn" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Media File</button>
-            <input type="file" id="galleryVideoInput" accept="video/*,image/*" style="display:none">
+            <h3>Upload Reel / Photo</h3>
+            <div class="file-picker-btn" onclick="document.getElementById('modalFileInput').click()">
+                <i class="fa-solid fa-folder-open"></i> Choose Video or Photo File
+            </div>
+            <input type="file" id="modalFileInput" accept="video/*,image/*" class="hidden" onchange="previewMedia(event)">
             
-            <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
-                <video id="previewVideoTag" class="media-preview" controls></video>
-                <img id="previewImageTag" class="media-preview" style="display:none;">
-                <input type="text" id="videoDescriptionInput" placeholder="Add caption...">
-                
-                <div class="field-group">
-                    <label>Playback Speed:</label>
-                    <select id="videoSpeedSelect">
-                        <option value="1.0">1.0x (Normal)</option>
-                        <option value="1.5">1.5x (Fast)</option>
-                        <option value="2.0">2.0x (Speed)</option>
-                    </select>
-                </div>
+            <div id="previewBox" class="preview-box hidden"></div>
 
-                <div class="toggle-row">
-                    <label><input type="checkbox" id="toggleLikesPost" checked> Allow Likes</label>
-                    <label><input type="checkbox" id="toggleCommentsPost" checked> Allow Comments</label>
-                </div>
-
-                <div id="uploadProgressBar" class="progress-bar-container" style="display:none;">
-                    <div id="uploadProgressFill" class="progress-bar-fill"></div>
-                </div>
-
-                <button id="publishVideoBtn" class="btn-primary" style="margin-top:10px; width:100%;">Publish Now</button>
-            </div>
-            <button id="closeUploadBtn" class="close-btn">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Edit Profile Modal -->
-    <div id="editProfileModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Edit Profile</h2>
-            <img id="editProfilePicPreview" src="https://via.placeholder.com/100" class="avatar-large">
-            <button class="btn-secondary" id="changePhotoBtn"><i class="fa-solid fa-camera"></i> Change Avatar</button>
-            <input type="file" id="editPhotoInput" accept="image/*" style="display:none">
-            <input type="text" id="editNameInput" placeholder="Display Name">
-            <input type="text" id="editUsernameInput" placeholder="@username">
-            <input type="text" id="editBioInput" placeholder="Bio">
-            <button class="btn-primary" id="saveProfileBtn">Save Updates</button>
-            <button class="close-btn" id="closeEditProfileBtn">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Settings & Wallet</h2>
+            <input type="text" id="mediaCaption" class="input-dark" placeholder="Add caption...">
             
-            <div class="wallet-card">
-                <h3><i class="fa-solid fa-wallet"></i> Real Balance</h3>
-                <div id="walletBalanceVal" class="balance-display">Rs. 0.00</div>
-                <div class="wallet-buttons">
-                    <button id="walletDepositBtn" class="btn-primary">Deposit</button>
-                    <button id="openWithdrawPageBtn" class="btn-secondary">Withdraw</button>
+            <div class="select-wrapper margin-top">
+                <select id="playbackSpeed">
+                    <option value="1.0">Playback Speed: 1.0x (Normal)</option>
+                    <option value="1.5">Playback Speed: 1.5x</option>
+                    <option value="2.0">Playback Speed: 2.0x</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="allowLikes" checked> Allow Likes</label>
+                <label><input type="checkbox" id="allowComments" checked> Allow Comments</label>
+            </div>
+
+            <button class="btn-pink" onclick="publishMedia()">Publish Now</button>
+            <button class="btn-link" onclick="closeUploadModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Modal: Settings & Privacy / Wallet -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2>Settings & Privacy</h2>
+            
+            <div class="info-card">
+                <i class="fa-solid fa-id-card"></i> <strong>Account Info</strong>
+                <p id="walletUserEmail">Email: m****r@gmail.com</p>
+                <p>Country: Pakistan</p>
+            </div>
+
+            <div class="info-card">
+                <i class="fa-solid fa-lock"></i> <strong>Privacy Toggles</strong>
+                <label class="block-label"><input type="checkbox"> Private Account</label>
+                <label class="block-label"><input type="checkbox" checked> Allow Followers</label>
+            </div>
+
+            <div class="info-card wallet-card">
+                <i class="fa-solid fa-wallet"></i> <strong>Real Balance Wallet</strong>
+                <h1 id="walletBalance">Rs. 0.00</h1>
+                <div class="wallet-actions">
+                    <button class="btn-pink-sm" onclick="depositMoney()">Deposit</button>
+                    <button class="btn-dark-sm" onclick="withdrawMoney()">Withdraw</button>
                 </div>
             </div>
 
-            <button id="logoutBtn" class="btn-secondary danger-btn" style="margin-top:15px; width:100%;">Logout</button>
-            <button id="closeSettingsBtn" class="close-btn" style="margin-top:10px;">Close</button>
+            <button class="btn-red" onclick="logoutUser()">Logout Account</button>
+            <button class="btn-link" onclick="closeSettingsModal()">Close</button>
         </div>
     </div>
 
-    <!-- Withdrawal Modal -->
-    <div id="withdrawalModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Withdraw Funds</h2>
-            <select id="withdrawMethodSelect">
-                <option value="PK_MOBILE">Easypaisa / JazzCash</option>
-                <option value="TRC20">USDT (TRC20)</option>
-                <option value="P2P">Binance P2P</option>
-            </select>
-            <input type="text" id="withdrawAccountNum" placeholder="Account Number / Wallet Address">
-            <input type="number" id="withdrawAmountVal" placeholder="Amount">
-            <button id="confirmWithdrawBtn" class="btn-primary">Submit Withdrawal</button>
-            <button id="closeWithdrawBtn" class="close-btn">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="modal-overlay">
-        <div class="modal-card">
-            <h2>Welcome to Super App</h2>
-            <p style="color:#aaa; font-size:12px;">Sign in to sync your data online</p>
-            <input type="email" id="authEmailInput" placeholder="Email Address">
-            <input type="password" id="authPasswordInput" placeholder="Password">
-            <div style="display:flex; gap:8px;">
-                <button id="loginSubmitBtn" class="btn-primary" style="flex:1;">Log In</button>
-                <button id="signupSubmitBtn" class="btn-secondary" style="flex:1;">Sign Up</button>
-            </div>
-            <button id="guestContinueBtn" class="close-btn">Dismiss</button>
-        </div>
-    </div>
-
-    <!-- Comments Modal -->
-    <div id="commentsModal" class="modal-overlay">
-        <div class="modal-card">
-            <h3>Comments</h3>
-            <div id="commentsListContainer" style="max-height:220px; overflow-y:auto; margin:10px 0;"></div>
-            <div style="display:flex; gap:6px;">
-                <input type="text" id="commentInput" placeholder="Write comment...">
-                <button id="submitCommentBtn" class="btn-primary">Post</button>
-            </div>
-            <button id="closeCommentsBtn" class="close-btn" style="margin-top:8px;">Close</button>
-        </div>
-    </div>
-
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
