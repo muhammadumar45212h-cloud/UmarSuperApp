@@ -6,13 +6,15 @@
     <title>Super App</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google AdMob Script Placeholder -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-9780067506108310" crossorigin="anonymous"></script>
 </head>
 <body>
 
-    <!-- Notification Toast Banner -->
+    <!-- Top Toast Notification -->
     <div id="toastNotification" class="toast-banner"></div>
 
-    <!-- Top Header Navigation -->
+    <!-- Header -->
     <header class="app-header">
         <div class="header-left">
             <span class="logo">Super App</span>
@@ -34,14 +36,14 @@
             <div id="reelsFeedContainer" class="reels-container"></div>
         </section>
 
-        <!-- 2. Text Feed Tab (New) -->
+        <!-- 2. Text Feed Tab -->
         <section id="textFeedTab" class="tab-content">
             <div class="text-feed-container">
                 <div class="create-text-box">
-                    <textarea id="textPostInput" placeholder="Write something to share..."></textarea>
+                    <textarea id="textPostInput" placeholder="Write something to share globally..."></textarea>
                     <button class="btn-primary" id="publishTextPostBtn">Post Text</button>
                 </div>
-                <hr style="border-color:#334155; margin:15px 0;">
+                <hr style="border-color:#1f2937; margin:15px 0;">
                 <div id="textPostsContainer"></div>
             </div>
         </section>
@@ -63,7 +65,7 @@
                 <div id="chatMessagesBox" class="chat-messages"></div>
                 
                 <div id="voicePreviewBox" class="voice-preview-box" style="display:none;">
-                    <span class="wave-icon">🎤 Recording...</span>
+                    <span class="wave-icon">🎤 Recording Audio...</span>
                     <button class="btn-secondary" id="cancelVoiceBtn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
@@ -100,7 +102,7 @@
         <!-- 5. Weather Tab -->
         <section id="weatherTab" class="tab-content">
             <div class="weather-container">
-                <h3>Live City Weather Search</h3>
+                <h3>Live Weather</h3>
                 <div class="weather-search-row">
                     <input type="text" id="weatherCityInput" placeholder="Enter City/Country...">
                     <button id="searchWeatherBtn" class="btn-primary" style="margin-top:6px; width:100%;"><i class="fa-solid fa-magnifying-glass"></i> Search Weather</button>
@@ -113,19 +115,7 @@
             </div>
         </section>
 
-        <!-- 6. Terminal / JS Compiler Tab -->
-        <section id="terminalTab" class="tab-content">
-            <div class="terminal-container">
-                <h3>JavaScript Code Terminal</h3>
-                <textarea id="terminalCodeInput" placeholder="// Write JS Code here...&#10;console.log('Hello World!');"></textarea>
-                <button class="big-red-btn" id="runCodeBtn">
-                    <i class="fa-solid fa-play"></i> RUN CODE
-                </button>
-                <pre id="compilerOutput" class="terminal-output"></pre>
-            </div>
-        </section>
-
-        <!-- 7. Profile Tab -->
+        <!-- 6. Profile Tab -->
         <section id="profileTab" class="tab-content">
             <div class="profile-container">
                 <div class="profile-card">
@@ -157,7 +147,7 @@
         <button class="nav-btn" data-tab="profileTab"><i class="fa-solid fa-user"></i><span>Profile</span></button>
     </nav>
 
-    <!-- MODALS & PAGES -->
+    <!-- Modals -->
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal-overlay">
@@ -192,14 +182,24 @@
     <!-- Upload Modal -->
     <div id="uploadModal" class="modal-overlay">
         <div class="modal-card">
-            <h2>Upload Video Reel</h2>
-            <button id="chooseVideoBtn" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Video File</button>
-            <input type="file" id="galleryVideoInput" accept="video/*" style="display:none">
+            <h2>Upload Reel / Photo</h2>
+            <button id="chooseVideoBtn" class="btn-secondary"><i class="fa-solid fa-folder"></i> Choose Video or Photo File</button>
+            <input type="file" id="galleryVideoInput" accept="video/*,image/*" style="display:none">
             
             <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
                 <video id="previewVideoTag" style="width:100%; max-height:180px; border-radius:8px;" controls></video>
+                <img id="previewImageTag" style="width:100%; max-height:180px; border-radius:8px; display:none;">
                 <input type="text" id="videoDescriptionInput" placeholder="Add caption..." style="margin-top:8px;">
                 
+                <div style="margin-top:8px;">
+                    <label style="font-size:12px; color:#aaa;">Playback Speed:</label>
+                    <select id="videoSpeedSelect" style="background:#070a12; color:#fff; border:1px solid #1f2937; padding:4px; border-radius:4px; margin-left:5px;">
+                        <option value="1.0">1.0x (Normal)</option>
+                        <option value="1.5">1.5x (Fast)</option>
+                        <option value="2.0">2.0x (Speed)</option>
+                    </select>
+                </div>
+
                 <div class="toggle-row" style="margin-top:10px;">
                     <label><input type="checkbox" id="toggleLikesPost" checked> Allow Likes</label>
                     <label><input type="checkbox" id="toggleCommentsPost" checked> Allow Comments</label>
@@ -216,14 +216,12 @@
         <div class="modal-card">
             <h2>Settings & Privacy</h2>
             
-            <!-- Account Info Box -->
             <div class="wallet-card">
                 <h3><i class="fa-solid fa-id-card"></i> Account Info</h3>
                 <p id="accountEmailMasked" style="font-size:13px; color:#00ffcc;">Email: m****r@gmail.com</p>
                 <p id="accountCountry" style="font-size:12px; color:#aaa;">Country: Pakistan</p>
             </div>
 
-            <!-- Privacy Controls -->
             <div class="wallet-card">
                 <h3><i class="fa-solid fa-lock"></i> Privacy Toggles</h3>
                 <label style="display:block; text-align:left; margin:6px 0;">
@@ -234,7 +232,6 @@
                 </label>
             </div>
 
-            <!-- Real Balance Wallet -->
             <div class="wallet-card">
                 <h3><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h3>
                 <div class="balance-display">
@@ -251,12 +248,17 @@
         </div>
     </div>
 
-    <!-- Dedicated Withdrawal Page / Overlay -->
+    <!-- Withdrawal Modal -->
     <div id="withdrawalModal" class="modal-overlay">
         <div class="modal-card">
             <h2>Withdraw Funds</h2>
-            <input type="text" id="withdrawAccountNum" placeholder="Account Number (EasyPaisa/JazzCash)">
-            <input type="number" id="withdrawAmountVal" placeholder="Amount (Rs.)">
+            <select id="withdrawMethodSelect" style="background:#070a12; border:1px solid #1f2937; padding:10px; border-radius:6px; color:#fff; margin-bottom:8px;">
+                <option value="PK_MOBILE">Pakistan Mobile (EasyPaisa/JazzCash)</option>
+                <option value="TRC20">Crypto (USDT TRC20 Address)</option>
+                <option value="P2P">Binance P2P Transfer</option>
+            </select>
+            <input type="text" id="withdrawAccountNum" placeholder="Account Number or Wallet Address">
+            <input type="number" id="withdrawAmountVal" placeholder="Amount (Rs. or USDT)">
             <button id="confirmWithdrawBtn" class="btn-primary">Submit Withdrawal</button>
             <button id="closeWithdrawBtn" class="close-btn">Cancel</button>
         </div>

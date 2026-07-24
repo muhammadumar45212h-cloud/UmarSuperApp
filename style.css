@@ -56,7 +56,6 @@ body {
     white-space: nowrap;
 }
 
-/* Large Black Search Bar Fix */
 .search-bar-large {
     flex: 1;
     display: flex;
@@ -97,7 +96,6 @@ body {
 
 .tab-content.active-tab { display: block; }
 
-/* Fullscreen High-Speed Reel Scroll */
 .reels-container {
     height: 100%;
     overflow-y: scroll;
@@ -113,7 +111,7 @@ body {
     background: #000;
 }
 
-.video-container video {
+.video-container video, .video-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -238,7 +236,4 @@ body {
 .wallet-buttons { display: flex; gap: 8px; }
 .user-videos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
 .user-video-item { aspect-ratio: 9/16; background: #000; border-radius: 6px; overflow: hidden; }
-.user-video-item video { width: 100%; height: 100%; object-fit: cover; }
-.terminal-container textarea { width: 100%; height: 120px; background: #070a12; color: #00ffcc; border: 1px solid #1f2937; padding: 10px; border-radius: 8px; }
-.terminal-output { background: #000; color: #00ff00; padding: 10px; border-radius: 8px; margin-top: 10px; min-height: 80px; }
-.big-red-btn { width: 100%; padding: 12px; background: #dc2626; color: #fff; border: none; border-radius: 8px; margin-top: 10px; }
+.user-video-item video, .user-video-item img { width: 100%; height: 100%; object-fit: cover; }

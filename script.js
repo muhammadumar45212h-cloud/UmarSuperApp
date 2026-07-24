@@ -16,7 +16,6 @@ import {
     setDoc, 
     getDoc, 
     getDocs, 
-    deleteDoc, 
     onSnapshot, 
     query, 
     where, 
@@ -41,7 +40,8 @@ setPersistence(auth, browserLocalPersistence);
 
 let currentUser = null;
 let activeCommentPostId = null;
-let selectedVideoBase64 = null;
+let selectedMediaBase64 = null;
+let isVideoFile = true;
 let selectedEditPhotoBase64 = null;
 let postsData = [];
 let mediaRecorder = null;
@@ -58,8 +58,7 @@ function showToastBanner(msg) {
 function maskEmail(email) {
     if(!email) return '';
     const parts = email.split('@');
-    const name = parts[0];
-    return name[0] + '****' + name[name.length - 1] + '@' + parts[1];
+    return parts[0][0] + '****' + parts[0][parts[0].length - 1] + '@' + parts[1];
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -131,8 +130,8 @@ function setupEventListeners() {
     });
 
     document.getElementById('chooseVideoBtn').addEventListener('click', () => document.getElementById('galleryVideoInput').click());
-    document.getElementById('galleryVideoInput').addEventListener('change', handleVideoFileSelected);
-    document.getElementById('publishVideoBtn').addEventListener('click', publishVideoPost);
+    document.getElementById('galleryVideoInput').addEventListener('change', handleMediaFileSelected);
+    document.getElementById('publishVideoBtn').addEventListener('click', publishMediaPost);
     document.getElementById('closeUploadBtn').addEventListener('click', () => document.getElementById('uploadModal').style.display = 'none');
 
     document.getElementById('publishTextPostBtn').addEventListener('click', publishTextPost);
@@ -178,7 +177,6 @@ function setupEventListeners() {
     });
 
     document.getElementById('searchWeatherBtn').addEventListener('click', fetchWeatherInfo);
-    document.getElementById('runCodeBtn').addEventListener('click', () => runJSCompiler(document.getElementById('terminalCodeInput').value));
 
     document.getElementById('subBtnChats').addEventListener('click', () => {
         document.getElementById('subBtnChats').classList.add('active');
@@ -198,8 +196,8 @@ function setupEventListeners() {
     document.getElementById('createChannelBtn').addEventListener('click', createChannelPrompt);
 
     document.getElementById('micRecordBtn').addEventListener('click', handleMicrophoneRecord);
-    document.getElementById('voiceCallBtn').addEventListener('click', () => showToastBanner("Calling Voice..."));
-    document.getElementById('videoCallBtn').addEventListener('click', () => showToastBanner("Calling Video..."));
+    document.getElementById('voiceCallBtn').addEventListener('click', () => showToastBanner("Voice calling..."));
+    document.getElementById('videoCallBtn').addEventListener('click', () => showToastBanner("Video calling..."));
 
     document.getElementById('closeCommentsBtn').addEventListener('click', () => document.getElementById('commentsModal').style.display = 'none');
     document.getElementById('submitCommentBtn').addEventListener('click', submitComment);
@@ -272,11 +270,12 @@ async function handleWalletDeposit() {
 
 async function processWithdrawal() {
     if(!checkUserLoggedIn()) return;
+    const method = document.getElementById('withdrawMethodSelect').value;
     const accNum = document.getElementById('withdrawAccountNum').value.trim();
     const amount = parseFloat(document.getElementById('withdrawAmountVal').value);
 
     if(!accNum || isNaN(amount) || amount <= 0) {
-        return showToastBanner("Sahi Account Number aur Amount darj karein.");
+        return showToastBanner("Sahi details darj karein.");
     }
 
     if (amount > (currentUser.walletBalance || 0)) {
@@ -289,7 +288,7 @@ async function processWithdrawal() {
     updateProfileUI();
 
     document.getElementById('withdrawalModal').style.display = 'none';
-    showToastBanner("Withdrawal request submit ho gayi hai!");
+    showToastBanner(`Withdrawal request (${method}) submit ho gayi hai!`);
 }
 
 function listenToReelsFeed() {
@@ -308,18 +307,36 @@ function renderReelsUI() {
     if (!container) return;
 
     if (postsData.length === 0) {
-        container.innerHTML = `<div class="reel-card" style="display:flex; align-items:center; justify-content:center;"><h3>No Reels Published Yet</h3></div>`;
+        // Fallback Promo Card when no user videos exist
+        container.innerHTML = `
+            <div class="reel-card">
+                <div class="video-container">
+                    <img src="https://via.placeholder.com/600x1000/111827/00ffcc?text=Super+App+Sponsored+Ad" alt="Ad">
+                </div>
+                <div class="video-overlay">
+                    <div class="channel-info">
+                        <span class="username">@SponsoredAd</span>
+                    </div>
+                    <div class="video-title">Welcome to Super App! Share your videos now.</div>
+                </div>
+                <div class="action-sidebar">
+                    <button class="action-btn"><i class="fa-solid fa-heart"></i><span>0</span></button>
+                    <button class="action-btn"><i class="fa-solid fa-comment"></i><span>0</span></button>
+                </div>
+            </div>
+        `;
         return;
     }
 
     let html = '';
     postsData.forEach((post) => {
         const isLiked = post.likes && currentUser && post.likes[currentUser.uid];
+        const isVideo = post.isVideo !== false;
 
         html += `
             <div class="reel-card">
                 <div class="video-container">
-                    <video src="${post.videoUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
+                    ${isVideo ? `<video src="${post.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>` : `<img src="${post.mediaUrl}">`}
                 </div>
                 <div class="video-overlay">
                     <div class="channel-info">
@@ -371,7 +388,7 @@ async function publishTextPost() {
     });
 
     document.getElementById('textPostInput').value = '';
-    showToastBanner("Text Post Published!");
+    showToastBanner("Text Post Published Globally!");
 }
 
 function listenToTextPosts() {
@@ -460,28 +477,39 @@ async function loadMyVideosGrid() {
     let html = '';
     snap.forEach((docSnap) => {
         const p = docSnap.data();
-        html += `<div class="user-video-item"><video src="${p.videoUrl}"></video></div>`;
+        html += `<div class="user-video-item">${p.isVideo !== false ? `<video src="${p.mediaUrl}"></video>` : `<img src="${p.mediaUrl}">`}</div>`;
     });
-    box.innerHTML = html || '<p style="color:#aaa; grid-column:span 3;">No uploaded videos.</p>';
+    box.innerHTML = html || '<p style="color:#aaa; grid-column:span 3;">No uploaded media.</p>';
 }
 
-function handleVideoFileSelected(event) {
+function handleMediaFileSelected(event) {
     const file = event.target.files[0];
     if (!file) return;
+
+    isVideoFile = file.type.startsWith('video');
     const reader = new FileReader();
     reader.onload = (e) => {
-        selectedVideoBase64 = e.target.result;
-        document.getElementById('previewVideoTag').src = selectedVideoBase64;
+        selectedMediaBase64 = e.target.result;
+        if(isVideoFile) {
+            document.getElementById('previewVideoTag').src = selectedMediaBase64;
+            document.getElementById('previewVideoTag').style.display = 'block';
+            document.getElementById('previewImageTag').style.display = 'none';
+        } else {
+            document.getElementById('previewImageTag').src = selectedMediaBase64;
+            document.getElementById('previewImageTag').style.display = 'block';
+            document.getElementById('previewVideoTag').style.display = 'none';
+        }
         document.getElementById('videoPreviewContainer').style.display = 'block';
     };
     reader.readAsDataURL(file);
 }
 
-async function publishVideoPost() {
+async function publishMediaPost() {
     if(!checkUserLoggedIn()) return;
-    if (!selectedVideoBase64) return showToastBanner("Video choose karein.");
+    if (!selectedMediaBase64) return showToastBanner("Media file choose karein.");
 
     const description = document.getElementById('videoDescriptionInput').value.trim();
+    const speed = document.getElementById('videoSpeedSelect').value;
     const allowLikes = document.getElementById('toggleLikesPost').checked;
     const allowComments = document.getElementById('toggleCommentsPost').checked;
 
@@ -489,7 +517,9 @@ async function publishVideoPost() {
         userId: currentUser.uid,
         username: currentUser.username,
         userPhoto: currentUser.photoUrl,
-        videoUrl: selectedVideoBase64,
+        mediaUrl: selectedMediaBase64,
+        isVideo: isVideoFile,
+        speed,
         description,
         allowLikes,
         allowComments,
@@ -500,9 +530,9 @@ async function publishVideoPost() {
     };
 
     await addDoc(collection(db, "posts"), newPost);
-    showToastBanner("Video Published!");
+    showToastBanner("Media Post Published!");
     document.getElementById('uploadModal').style.display = 'none';
-    selectedVideoBase64 = null;
+    selectedMediaBase64 = null;
     document.getElementById('videoPreviewContainer').style.display = 'none';
     loadMyVideosGrid();
 }
@@ -551,6 +581,9 @@ async function handleMicrophoneRecord() {
 
     if (!mediaRecorder) {
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                return showToastBanner("Audio recording support nahi hai iss browser par.");
+            }
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
@@ -576,7 +609,7 @@ async function handleMicrophoneRecord() {
             mediaRecorder.start();
             document.getElementById('voicePreviewBox').style.display = 'flex';
         } catch (err) {
-            showToastBanner("Microphone access permission den!");
+            showToastBanner("Microphone permission denied / not available!");
         }
     } else {
         mediaRecorder.stop();
@@ -632,21 +665,4 @@ function fetchWeatherInfo() {
             document.getElementById('weatherDesc').innerText = current.weatherDesc[0].value;
         })
         .catch(() => showToastBanner("City weather nahi mila."));
-}
-
-function runJSCompiler(code) {
-    const outputBox = document.getElementById('compilerOutput');
-    if(!code) {
-        outputBox.innerText = "Code likhein terminal mein!";
-        return;
-    }
-    try {
-        let logs = [];
-        const customConsole = { log: (...args) => logs.push(args.join(' ')) };
-        const runFn = new Function('console', code);
-        runFn(customConsole);
-        outputBox.innerText = logs.join('\n') || "Executed successfully with no output.";
-    } catch (err) {
-        outputBox.innerText = "Error: " + err.message;
-    }
 }
