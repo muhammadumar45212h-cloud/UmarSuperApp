@@ -1,207 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super App</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    <!-- TradingView Widget -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super App</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-9780067506108310~3493198071" crossorigin="anonymous"></script>
 </head>
 <body>
 
-    <!-- Top Header -->
-    <header class="top-bar">
-        <div class="logo">Super App</div>
-        <div class="search-container">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" placeholder="Search profiles, videos, mar...">
-        </div>
-        <div class="top-icons">
-            <i class="fa-regular fa-bell"></i>
-            <i class="fa-solid fa-ellipsis-vertical" onclick="openSettings()"></i>
-        </div>
-    </header>
+<!-- LOGIN BOX -->
+<div id="authBox" class="modal-card" style="margin:100px auto">
+  <h2>Super App Login</h2>
+  <input id="email" class="input-dark" type="email" placeholder="Email">
+  <input id="pass" class="input-dark" type="password" placeholder="Password">
+  <button class="btn-pink" onclick="login()">Login</button>
+  <button class="btn-secondary" onclick="signup()">Sign Up</button>
+  <p id="authMsg" style="color:#ef4444"></p>
+</div>
 
-    <!-- Main Content Views Container -->
-    <main class="main-content">
-
-        <!-- 1. Reels / Video Feed Tab -->
-        <section id="tab-reels" class="tab-page active">
-            <div id="videoFeed" class="reels-container">
-                <!-- Live videos from Firestore will load here -->
-            </div>
-        </section>
-
-        <!-- 2. Text Feed Tab -->
-        <section id="tab-textfeed" class="tab-page">
-            <div class="card">
-                <h2>Text Posts Feed</h2>
-                <div id="textPostsContainer">
-                    <p style="color: #94a3b8;">No text posts yet.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. Chat Tab -->
-        <section id="tab-chat" class="tab-page">
-            <div class="card">
-                <h2>Live Community Chat</h2>
-                <div id="chatMessages" class="chat-box"></div>
-                <div class="chat-input-row">
-                    <input type="text" id="chatInput" placeholder="Type a message...">
-                    <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4. Forex Market Tab -->
-        <section id="tab-forex" class="tab-page">
-            <h2 class="section-title">Live Market Charts</h2>
-            <div class="select-wrapper">
-                <select id="marketPairSelect" onchange="changeMarketChart()">
-                    <option value="FX:XAUUSD">Gold (XAUUSD)</option>
-                    <option value="BINANCE:BTCUSDT">Bitcoin (BTCUSD)</option>
-                    <option value="FX:EURUSD">Euro (EURUSD)</option>
-                </select>
-            </div>
-            <div id="tradingview_widget" class="chart-container"></div>
-        </section>
-
-        <!-- 5. Weather Tab -->
-        <section id="tab-weather" class="tab-page">
-            <h2 class="section-title">Live Weather</h2>
-            <div class="weather-search">
-                <input type="text" id="cityInput" placeholder="Enter City/Country...">
-                <button class="btn-primary" onclick="getWeather()"><i class="fa-solid fa-magnifying-glass"></i> Search Weather</button>
-            </div>
-            <div class="weather-display">
-                <h1 id="cityName">Search a City</h1>
-                <h2 id="cityTemp">--°C</h2>
-                <p id="cityDesc">Real-time climate details</p>
-            </div>
-        </section>
-
-        <!-- 6. User Profile Tab -->
-        <section id="tab-profile" class="tab-page">
-            <div class="profile-header">
-                <div class="avatar-circle">
-                    <img id="userAvatarImg" src="https://via.placeholder.com/100" alt="Avatar">
-                </div>
-                <h2 id="profileDisplayName">User Profile</h2>
-                <p id="profileUsername">@username</p>
-                <span class="bio-text">No bio added yet.</span>
-                <button class="btn-secondary" onclick="editProfile()"><i class="fa-solid fa-pen"></i> Edit Profile</button>
-            </div>
-            <div class="my-videos-section">
-                <h3>My Videos</h3>
-                <div id="myVideosGrid" class="grid-container"></div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('reels', this)">
-            <i class="fa-solid fa-film"></i>
-            <span>Reels</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('textfeed', this)">
-            <i class="fa-solid fa-font"></i>
-            <span>Text Feed</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('chat', this)">
-            <i class="fa-solid fa-comments"></i>
-            <span>Chat</span>
-        </button>
-        <button class="nav-item plus-btn" onclick="openUploadModal()">
-            <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
-        </button>
-        <button class="nav-item" onclick="switchTab('forex', this)">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Forex</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('weather', this)">
-            <i class="fa-solid fa-cloud-sun"></i>
-            <span>Weather</span>
-        </button>
-        <button class="nav-item" onclick="switchTab('profile', this)">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
-        </button>
-    </nav>
-
-    <!-- Modal: Upload Reel / Photo -->
-    <div id="uploadModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h3>Upload Reel / Photo</h3>
-            <div class="file-picker-btn" onclick="document.getElementById('modalFileInput').click()">
-                <i class="fa-solid fa-folder-open"></i> Choose Video or Photo File
-            </div>
-            <input type="file" id="modalFileInput" accept="video/*,image/*" class="hidden" onchange="previewMedia(event)">
-            
-            <div id="previewBox" class="preview-box hidden"></div>
-
-            <input type="text" id="mediaCaption" class="input-dark" placeholder="Add caption...">
-            
-            <div class="select-wrapper margin-top">
-                <select id="playbackSpeed">
-                    <option value="1.0">Playback Speed: 1.0x (Normal)</option>
-                    <option value="1.5">Playback Speed: 1.5x</option>
-                    <option value="2.0">Playback Speed: 2.0x</option>
-                </select>
-            </div>
-
-            <div class="checkbox-group">
-                <label><input type="checkbox" id="allowLikes" checked> Allow Likes</label>
-                <label><input type="checkbox" id="allowComments" checked> Allow Comments</label>
-            </div>
-
-            <button class="btn-pink" onclick="publishMedia()">Publish Now</button>
-            <button class="btn-link" onclick="closeUploadModal()">Cancel</button>
-        </div>
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+<header class="top-bar">
+    <div class="logo">Super App</div>
+    <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" placeholder="Search profiles, videos, channel...">
     </div>
-
-    <!-- Modal: Settings & Privacy / Wallet -->
-    <div id="settingsModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h2>Settings & Privacy</h2>
-            
-            <div class="info-card">
-                <i class="fa-solid fa-id-card"></i> <strong>Account Info</strong>
-                <p id="walletUserEmail">Email: m****r@gmail.com</p>
-                <p>Country: Pakistan</p>
-            </div>
-
-            <div class="info-card">
-                <i class="fa-solid fa-lock"></i> <strong>Privacy Toggles</strong>
-                <label class="block-label"><input type="checkbox"> Private Account</label>
-                <label class="block-label"><input type="checkbox" checked> Allow Followers</label>
-            </div>
-
-            <div class="info-card wallet-card">
-                <i class="fa-solid fa-wallet"></i> <strong>Real Balance Wallet</strong>
-                <h1 id="walletBalance">Rs. 0.00</h1>
-                <div class="wallet-actions">
-                    <button class="btn-pink-sm" onclick="depositMoney()">Deposit</button>
-                    <button class="btn-dark-sm" onclick="withdrawMoney()">Withdraw</button>
-                </div>
-            </div>
-
-            <button class="btn-red" onclick="logoutUser()">Logout Account</button>
-            <button class="btn-link" onclick="closeSettingsModal()">Close</button>
-        </div>
+    <div class="top-icons">
+        <i class="fa-solid fa-video" onclick="goLive()"></i>
+        <i class="fa-regular fa-bell"></i>
+        <i class="fa-solid fa-ellipsis-vertical" onclick="openSettings()"></i>
     </div>
+</header>
 
-    <script src="script.js"></script>
+<main class="main-content">
+    <section id="tab-reels" class="tab-page active"><div id="videoFeed" class="reels-container"></div></section>
+    <section id="tab-textfeed" class="tab-page"><div class="card"><h2>Text Posts</h2><div id="textPostsContainer"></div></div></section>
+    <section id="tab-chat" class="tab-page"><div class="card"><h2>Live Chat</h2><div id="chatMessages" class="chat-box"></div><div class="chat-input-row"><input type="text" id="chatInput" placeholder="Type..."><button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button></div></div></section>
+    <section id="tab-forex" class="tab-page"><h2 class="section-title">Live Market</h2><select id="marketPairSelect" onchange="changeMarketChart()" class="input-dark"><option value="FX:XAUUSD">Gold</option><option value="BINANCE:BTCUSDT">Bitcoin</option></select><div id="tradingview_widget" class="chart-container"></div></section>
+    <section id="tab-weather" class="tab-page"><h2 class="section-title">Weather</h2><div class="weather-search"><input type="text" id="cityInput" class="input-dark" placeholder="Enter City"><button class="btn-primary" onclick="getWeather()">Search</button></div><div class="weather-display"><h1 id="cityName">City</h1><h2 id="cityTemp">--°C</h2><p id="cityDesc">--</p></div></section>
+    <section id="tab-profile" class="tab-page"><div class="profile-header"><img id="userAvatarImg" src="https://via.placeholder.com/100" class="avatar-circle"><h2 id="profileDisplayName">User</h2><p id="profileUsername">@user</p><button class="btn-secondary" onclick="editProfile()">Edit Profile</button></div><div id="myVideosGrid"></div></section>
+</main>
+
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('reels', this)"><i class="fa-solid fa-film"></i><span>Reels</span></button>
+    <button class="nav-item" onclick="switchTab('chat', this)"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
+    <button class="nav-item plus-btn" onclick="openUploadModal()"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></button>
+    <button class="nav-item" onclick="switchTab('forex', this)"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
+    <button class="nav-item" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></button>
+</nav>
+
+<!-- UPLOAD MODAL -->
+<div id="uploadModal" class="modal-overlay hidden"><div class="modal-card">
+<h3>Upload Video</h3>
+<div class="file-picker-btn" onclick="document.getElementById('modalFileInput').click()"><i class="fa-solid fa-folder-open"></i> Choose Video</div>
+<input type="file" id="modalFileInput" accept="video/*" class="hidden" onchange="previewMedia(event)">
+<div id="previewBox" class="preview-box hidden"></div>
+<input type="text" id="mediaCaption" class="input-dark" placeholder="Add caption #tag">
+<select id="privacy" class="input-dark"><option>Public</option><option>Private</option></select>
+<button class="btn-pink" onclick="publishMedia()">Publish</button>
+<button class="btn-link" onclick="closeUploadModal()">Cancel</button>
+</div></div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" class="modal-overlay hidden"><div class="modal-card">
+<h2>Settings</h2>
+<div class="info-card wallet-card"><i class="fa-solid fa-wallet"></i><h1 id="walletBalance">Rs. 0.00</h1></div>
+<button class="btn-red" onclick="logoutUser()">Logout</button>
+<button class="btn-link" onclick="closeSettingsModal()">Close</button>
+</div></div>
+
+</div>
+<script>
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
+  authDomain: "umarsuperapp.firebaseapp.com",
+  projectId: "umarsuperapp",
+  storageBucket: "umarsuperapp.firebasestorage.app",
+  messagingSenderId: "812034119197",
+  appId: "1:812034119197:web:60dc07304f30f29f6058f4"
+};
+firebase.initializeApp(firebaseConfig);
+</script>
+<script src="script.js"></script>
 </body>
 </html>
