@@ -37,7 +37,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Force local persistent login
 setPersistence(auth, browserLocalPersistence);
 
 let currentUser = null;
@@ -45,17 +44,24 @@ let activeCommentPostId = null;
 let selectedVideoBase64 = null;
 let selectedEditPhotoBase64 = null;
 let postsData = [];
-let savedVideosList = [];
+let mediaRecorder = null;
+let audioChunks = [];
 
-function showToast(msg) {
+function showToastBanner(msg) {
     const toast = document.getElementById('toastNotification');
     if(!toast) return;
     toast.innerText = msg;
     toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    setTimeout(() => { toast.style.display = 'none'; }, 3500);
 }
 
-// Global Auth State Observer
+function maskEmail(email) {
+    if(!email) return '';
+    const parts = email.split('@');
+    const name = parts[0];
+    return name[0] + '****' + name[name.length - 1] + '@' + parts[1];
+}
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
@@ -68,8 +74,9 @@ onAuthStateChanged(auth, async (user) => {
                 name: user.email.split('@')[0],
                 username: '@' + user.email.split('@')[0],
                 photoUrl: 'https://via.placeholder.com/150',
-                bio: 'Hey there! Using Umar Super App',
+                bio: 'Hey there! Using Super App',
                 walletBalance: 0,
+                country: 'Pakistan',
                 createdAt: Date.now()
             };
             await setDoc(doc(db, "users", user.uid), defaultUser);
@@ -84,7 +91,7 @@ onAuthStateChanged(auth, async (user) => {
 
 function checkUserLoggedIn() {
     if (!currentUser && !auth.currentUser) {
-        showToast("Pehle Login ya Sign Up karein!");
+        showToastBanner("Pehle Login ya Sign Up karein!");
         document.getElementById('authModal').style.display = 'flex';
         return false;
     }
@@ -94,12 +101,12 @@ function checkUserLoggedIn() {
 document.addEventListener("DOMContentLoaded", () => {
     setupEventListeners();
     listenToReelsFeed();
+    listenToTextPosts();
     listenToGlobalChat();
     listenToChannels();
 });
 
 function setupEventListeners() {
-    // Navigation Tabs Switcher
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetTab = e.currentTarget.getAttribute('data-tab');
@@ -111,32 +118,36 @@ function setupEventListeners() {
         });
     });
 
-    // CENTER (+) BUTTON FOR UPLOAD
     document.getElementById('centerPlusBtn').addEventListener('click', () => {
         if(checkUserLoggedIn()) {
             document.getElementById('uploadModal').style.display = 'flex';
         }
     });
 
-    // Auth Buttons
     document.getElementById('loginSubmitBtn').addEventListener('click', () => handleAuthAction('login'));
     document.getElementById('signupSubmitBtn').addEventListener('click', () => handleAuthAction('signup'));
     document.getElementById('guestContinueBtn').addEventListener('click', () => {
         document.getElementById('authModal').style.display = 'none';
     });
 
-    // Upload Reel Triggers
     document.getElementById('chooseVideoBtn').addEventListener('click', () => document.getElementById('galleryVideoInput').click());
     document.getElementById('galleryVideoInput').addEventListener('change', handleVideoFileSelected);
     document.getElementById('publishVideoBtn').addEventListener('click', publishVideoPost);
     document.getElementById('closeUploadBtn').addEventListener('click', () => document.getElementById('uploadModal').style.display = 'none');
 
-    // Settings Modal
+    document.getElementById('publishTextPostBtn').addEventListener('click', publishTextPost);
+
     document.getElementById('settingsMenuBtn').addEventListener('click', () => document.getElementById('settingsModal').style.display = 'flex');
     document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').style.display = 'none');
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth).then(() => location.reload()));
 
-    // Profile Edit Triggers
+    document.getElementById('openWithdrawPageBtn').addEventListener('click', () => {
+        document.getElementById('settingsModal').style.display = 'none';
+        document.getElementById('withdrawalModal').style.display = 'flex';
+    });
+    document.getElementById('closeWithdrawBtn').addEventListener('click', () => document.getElementById('withdrawalModal').style.display = 'none');
+    document.getElementById('confirmWithdrawBtn').addEventListener('click', processWithdrawal);
+
     document.getElementById('editProfileOpenBtn').addEventListener('click', () => {
         if(!checkUserLoggedIn()) return;
         document.getElementById('editNameInput').value = currentUser.name || '';
@@ -159,25 +170,16 @@ function setupEventListeners() {
     });
     document.getElementById('saveProfileBtn').addEventListener('click', saveProfileChanges);
 
-    // Wallet Handlers
     document.getElementById('walletDepositBtn').addEventListener('click', handleWalletDeposit);
-    document.getElementById('walletWithdrawBtn').addEventListener('click', handleWalletWithdraw);
 
-    // Forex Pair Selection
     document.getElementById('marketPairSelect').addEventListener('change', (e) => {
         const symbol = e.target.value;
         document.getElementById('tradingViewIframe').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
     });
 
-    // Weather Search
     document.getElementById('searchWeatherBtn').addEventListener('click', fetchWeatherInfo);
+    document.getElementById('runCodeBtn').addEventListener('click', () => runJSCompiler(document.getElementById('terminalCodeInput').value));
 
-    // Terminal JS Runner
-    document.getElementById('runCodeBtn').addEventListener('click', () => {
-        runJSCompiler(document.getElementById('terminalCodeInput').value);
-    });
-
-    // Chat Tab Switching
     document.getElementById('subBtnChats').addEventListener('click', () => {
         document.getElementById('subBtnChats').classList.add('active');
         document.getElementById('subBtnChannels').classList.remove('active');
@@ -192,49 +194,43 @@ function setupEventListeners() {
         document.getElementById('channelsTab').style.display = 'block';
     });
 
-    // Send Message
     document.getElementById('sendMessageBtn').addEventListener('click', sendChatMessage);
     document.getElementById('createChannelBtn').addEventListener('click', createChannelPrompt);
 
-    // Voice Message Preview & Call Actions
-    document.getElementById('micRecordBtn').addEventListener('click', toggleVoiceRecord);
-    document.getElementById('cancelVoiceBtn').addEventListener('click', () => document.getElementById('voicePreviewBox').style.display = 'none');
-    document.getElementById('voiceCallBtn').addEventListener('click', () => showToast("Calling Voice..."));
-    document.getElementById('videoCallBtn').addEventListener('click', () => showToast("Calling Video..."));
+    document.getElementById('micRecordBtn').addEventListener('click', handleMicrophoneRecord);
+    document.getElementById('voiceCallBtn').addEventListener('click', () => showToastBanner("Calling Voice..."));
+    document.getElementById('videoCallBtn').addEventListener('click', () => showToastBanner("Calling Video..."));
 
-    // Comments Modal Close
     document.getElementById('closeCommentsBtn').addEventListener('click', () => document.getElementById('commentsModal').style.display = 'none');
     document.getElementById('submitCommentBtn').addEventListener('click', submitComment);
 }
 
-// Auth Actions
 async function handleAuthAction(type) {
     const email = document.getElementById('authEmailInput').value.trim();
     const password = document.getElementById('authPasswordInput').value.trim();
 
-    if (!email || !password) return showToast("Email aur password likhein.");
+    if (!email || !password) return showToastBanner("Email aur password likhein.");
 
     try {
         if (type === 'signup') {
             await createUserWithEmailAndPassword(auth, email, password);
-            showToast("Account Ban Gaya!");
+            showToastBanner("Account Ban Gaya!");
         } else {
             await signInWithEmailAndPassword(auth, email, password);
-            showToast("Login Successful!");
+            showToastBanner("Login Successful!");
         }
         document.getElementById('authModal').style.display = 'none';
     } catch (error) {
-        showToast("Auth Error: " + error.message);
+        showToastBanner("Auth Error: " + error.message);
     }
 }
 
-// Profile Save & Update
 async function saveProfileChanges() {
     const name = document.getElementById('editNameInput').value.trim();
     const username = document.getElementById('editUsernameInput').value.trim();
     const bio = document.getElementById('editBioInput').value.trim();
 
-    if (!name || !username) return showToast("Name aur username zaroori hain.");
+    if (!name || !username) return showToastBanner("Name aur username zaroori hain.");
 
     const updatedData = {
         name,
@@ -249,7 +245,7 @@ async function saveProfileChanges() {
         updateProfileUI();
     }
     document.getElementById('editProfileModal').style.display = 'none';
-    showToast("Profile Updated!");
+    showToastBanner("Profile Updated!");
 }
 
 function updateProfileUI() {
@@ -259,9 +255,9 @@ function updateProfileUI() {
     document.getElementById('userBioText').innerText = currentUser.bio || "No bio added yet.";
     document.getElementById('userProfilePic').src = currentUser.photoUrl || "https://via.placeholder.com/100";
     document.getElementById('walletBalanceVal').innerText = "Rs. " + (currentUser.walletBalance || 0);
+    document.getElementById('accountEmailMasked').innerText = "Email: " + maskEmail(currentUser.email);
 }
 
-// Wallet
 async function handleWalletDeposit() {
     if(!checkUserLoggedIn()) return;
     const amount = prompt("Enter deposit amount (Rs.):");
@@ -271,26 +267,31 @@ async function handleWalletDeposit() {
     await updateDoc(doc(db, "users", currentUser.uid), { walletBalance: newBalance });
     currentUser.walletBalance = newBalance;
     updateProfileUI();
-    showToast("Deposit Successful!");
+    showToastBanner("Deposit Successful!");
 }
 
-async function handleWalletWithdraw() {
+async function processWithdrawal() {
     if(!checkUserLoggedIn()) return;
-    const amount = prompt("Enter withdrawal amount (Rs.):");
-    if (!amount || isNaN(amount)) return;
+    const accNum = document.getElementById('withdrawAccountNum').value.trim();
+    const amount = parseFloat(document.getElementById('withdrawAmountVal').value);
 
-    if (parseFloat(amount) > (currentUser.walletBalance || 0)) {
-        return showToast("Insufficient balance!");
+    if(!accNum || isNaN(amount) || amount <= 0) {
+        return showToastBanner("Sahi Account Number aur Amount darj karein.");
     }
 
-    const newBalance = currentUser.walletBalance - parseFloat(amount);
+    if (amount > (currentUser.walletBalance || 0)) {
+        return showToastBanner("Aapka balance kam hai!");
+    }
+
+    const newBalance = currentUser.walletBalance - amount;
     await updateDoc(doc(db, "users", currentUser.uid), { walletBalance: newBalance });
     currentUser.walletBalance = newBalance;
     updateProfileUI();
-    showToast("Withdrawal Successful!");
+
+    document.getElementById('withdrawalModal').style.display = 'none';
+    showToastBanner("Withdrawal request submit ho gayi hai!");
 }
 
-// Reels Feed Logic
 function listenToReelsFeed() {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -318,7 +319,7 @@ function renderReelsUI() {
         html += `
             <div class="reel-card">
                 <div class="video-container">
-                    <video src="${post.videoUrl}" style="filter: ${post.filter || 'none'}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
+                    <video src="${post.videoUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
                 </div>
                 <div class="video-overlay">
                     <div class="channel-info">
@@ -329,18 +330,16 @@ function renderReelsUI() {
                 </div>
                 <div class="action-sidebar">
                     <img src="${post.userPhoto || 'https://via.placeholder.com/40'}" class="avatar" style="margin-bottom:10px;">
+                    ${post.allowLikes !== false ? `
                     <button class="action-btn" data-action="like" data-id="${post.id}">
-                        <i class="fa-solid fa-heart" style="color:${isLiked ? '#e91e63' : '#fff'}"></i>
+                        <i class="fa-solid fa-heart" style="color:${isLiked ? '#ec4899' : '#fff'}"></i>
                         <span>${post.likesCount || 0}</span>
-                    </button>
+                    </button>` : ''}
+                    ${post.allowComments !== false ? `
                     <button class="action-btn" data-action="comment" data-id="${post.id}">
                         <i class="fa-solid fa-comment"></i>
                         <span>${post.comments ? post.comments.length : 0}</span>
-                    </button>
-                    <button class="action-btn" data-action="save" data-id="${post.id}">
-                        <i class="fa-solid fa-download"></i>
-                        <span>Save</span>
-                    </button>
+                    </button>` : ''}
                 </div>
             </div>
         `;
@@ -354,8 +353,42 @@ function renderReelsUI() {
 
             if (action === 'like') toggleLikePost(postId);
             if (action === 'comment') openCommentsModal(postId);
-            if (action === 'save') downloadVideoOffline(postId);
         });
+    });
+}
+
+async function publishTextPost() {
+    if(!checkUserLoggedIn()) return;
+    const text = document.getElementById('textPostInput').value.trim();
+    if(!text) return showToastBanner("Kuch likhein post karne ke liye.");
+
+    await addDoc(collection(db, "textPosts"), {
+        userId: currentUser.uid,
+        username: currentUser.username,
+        userPhoto: currentUser.photoUrl,
+        text,
+        createdAt: Date.now()
+    });
+
+    document.getElementById('textPostInput').value = '';
+    showToastBanner("Text Post Published!");
+}
+
+function listenToTextPosts() {
+    const q = query(collection(db, "textPosts"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const box = document.getElementById('textPostsContainer');
+        if(!box) return;
+
+        let html = '';
+        snapshot.forEach((docSnap) => {
+            const p = docSnap.data();
+            html += `<div style="background:#111827; padding:12px; border-radius:8px; margin-bottom:10px;">
+                <b style="color:var(--accent-blue);">${p.username}:</b>
+                <p style="margin-top:6px; font-size:14px;">${p.text}</p>
+            </div>`;
+        });
+        box.innerHTML = html || '<p style="color:#aaa;">No text posts yet.</p>';
     });
 }
 
@@ -389,7 +422,7 @@ function renderCommentsList() {
 
     let html = '';
     (post.comments || []).forEach(c => {
-        html += `<div style="background:#0f172a; padding:6px 10px; border-radius:6px; margin-bottom:6px; text-align:left;">
+        html += `<div style="background:#070a12; padding:6px 10px; border-radius:6px; margin-bottom:6px; text-align:left;">
             <b style="color:var(--accent-blue);">${c.username}:</b> ${c.text}
         </div>`;
     });
@@ -427,46 +460,9 @@ async function loadMyVideosGrid() {
     let html = '';
     snap.forEach((docSnap) => {
         const p = docSnap.data();
-        html += `
-            <div class="user-video-item">
-                <video src="${p.videoUrl}"></video>
-                <button class="delete-video-btn" data-deleteid="${docSnap.id}">Delete</button>
-            </div>
-        `;
+        html += `<div class="user-video-item"><video src="${p.videoUrl}"></video></div>`;
     });
     box.innerHTML = html || '<p style="color:#aaa; grid-column:span 3;">No uploaded videos.</p>';
-
-    box.querySelectorAll('.delete-video-btn').forEach(b => {
-        b.addEventListener('click', async (e) => {
-            const deleteId = e.target.getAttribute('data-deleteid');
-            await deleteDoc(doc(db, "posts", deleteId));
-            showToast("Video Deleted!");
-            loadMyVideosGrid();
-        });
-    });
-}
-
-function downloadVideoOffline(postId) {
-    const post = postsData.find(p => p.id === postId);
-    if (!post) return;
-
-    if (savedVideosList.length >= 100) savedVideosList.shift();
-    savedVideosList.push(post);
-    showToast("Video Saved in Settings!");
-    renderSavedVideos();
-}
-
-function renderSavedVideos() {
-    const box = document.getElementById('savedVideosContainer');
-    if (!box) return;
-
-    let html = '';
-    savedVideosList.forEach(p => {
-        html += `<div style="background:#1e293b; padding:8px; border-radius:6px; margin-top:5px; text-align:left;">
-            <span>${p.description || 'Saved Reel'}</span>
-        </div>`;
-    });
-    box.innerHTML = html || '<p style="color:#aaa;">No saved videos.</p>';
 }
 
 function handleVideoFileSelected(event) {
@@ -483,10 +479,11 @@ function handleVideoFileSelected(event) {
 
 async function publishVideoPost() {
     if(!checkUserLoggedIn()) return;
-    if (!selectedVideoBase64) return showToast("Video choose karein.");
+    if (!selectedVideoBase64) return showToastBanner("Video choose karein.");
 
     const description = document.getElementById('videoDescriptionInput').value.trim();
-    const filter = document.getElementById('videoEffectFilter').value;
+    const allowLikes = document.getElementById('toggleLikesPost').checked;
+    const allowComments = document.getElementById('toggleCommentsPost').checked;
 
     const newPost = {
         userId: currentUser.uid,
@@ -494,7 +491,8 @@ async function publishVideoPost() {
         userPhoto: currentUser.photoUrl,
         videoUrl: selectedVideoBase64,
         description,
-        filter,
+        allowLikes,
+        allowComments,
         likes: {},
         likesCount: 0,
         comments: [],
@@ -502,7 +500,7 @@ async function publishVideoPost() {
     };
 
     await addDoc(collection(db, "posts"), newPost);
-    showToast("Video Published!");
+    showToastBanner("Video Published!");
     document.getElementById('uploadModal').style.display = 'none';
     selectedVideoBase64 = null;
     document.getElementById('videoPreviewContainer').style.display = 'none';
@@ -521,8 +519,8 @@ function listenToGlobalChat() {
             const isMe = currentUser && m.userId === currentUser.uid;
             html += `<div style="text-align:${isMe ? 'right' : 'left'}; margin-bottom:8px;">
                 <span style="font-size:10px; color:var(--accent-blue);">${m.username}:</span><br>
-                <div style="display:inline-block; background:${isMe ? 'var(--accent-pink)' : '#1e293b'}; color:#fff; padding:6px 12px; border-radius:12px; font-size:13px; max-width:80%;">
-                    ${m.isVoice ? '🎤 <span style="letter-spacing:2px;">∆|||||||||•••</span> Voice Message' : m.text}
+                <div style="display:inline-block; background:${isMe ? 'var(--accent-pink)' : '#1f2937'}; color:#fff; padding:6px 12px; border-radius:12px; font-size:13px; max-width:80%;">
+                    ${m.isVoice ? `<audio controls src="${m.voiceUrl}"></audio>` : m.text}
                 </div>
             </div>`;
         });
@@ -548,21 +546,42 @@ async function sendChatMessage() {
     input.value = '';
 }
 
-function toggleVoiceRecord() {
+async function handleMicrophoneRecord() {
     if(!checkUserLoggedIn()) return;
-    const preview = document.getElementById('voicePreviewBox');
-    if (preview.style.display === 'flex') {
-        addDoc(collection(db, "messages"), {
-            userId: currentUser.uid,
-            username: currentUser.username,
-            text: 'Voice Note',
-            isVoice: true,
-            createdAt: Date.now()
-        });
-        preview.style.display = 'none';
-        showToast("Voice Message Sent!");
+
+    if (!mediaRecorder) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const voiceBase64 = reader.result;
+                    await addDoc(collection(db, "messages"), {
+                        userId: currentUser.uid,
+                        username: currentUser.username,
+                        voiceUrl: voiceBase64,
+                        isVoice: true,
+                        createdAt: Date.now()
+                    });
+                    showToastBanner("Voice Note Sent!");
+                };
+            };
+
+            mediaRecorder.start();
+            document.getElementById('voicePreviewBox').style.display = 'flex';
+        } catch (err) {
+            showToastBanner("Microphone access permission den!");
+        }
     } else {
-        preview.style.display = 'flex';
+        mediaRecorder.stop();
+        mediaRecorder = null;
+        document.getElementById('voicePreviewBox').style.display = 'none';
     }
 }
 
@@ -575,7 +594,7 @@ function listenToChannels() {
         let html = '';
         snapshot.forEach((docSnap) => {
             const ch = docSnap.data();
-            html += `<div style="background:#1e293b; padding:10px; border-radius:8px; margin-bottom:8px; text-align:left;">
+            html += `<div style="background:#1f2937; padding:10px; border-radius:8px; margin-bottom:8px; text-align:left;">
                 <b style="color:var(--accent-blue);">${ch.name}</b>
                 <p style="font-size:11px; color:#aaa;">${ch.desc || 'Public Channel'}</p>
             </div>`;
@@ -597,12 +616,12 @@ async function createChannelPrompt() {
         createdAt: Date.now()
     });
 
-    showToast("Channel Created!");
+    showToastBanner("Channel Created!");
 }
 
 function fetchWeatherInfo() {
     const city = document.getElementById('weatherCityInput').value.trim();
-    if (!city) return showToast("City name likhein.");
+    if (!city) return showToastBanner("City name likhein.");
 
     fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
         .then(res => res.json())
@@ -612,7 +631,7 @@ function fetchWeatherInfo() {
             document.getElementById('weatherTempDisplay').innerText = `${current.temp_C}°C`;
             document.getElementById('weatherDesc').innerText = current.weatherDesc[0].value;
         })
-        .catch(() => showToast("City weather nahi mila."));
+        .catch(() => showToastBanner("City weather nahi mila."));
 }
 
 function runJSCompiler(code) {

@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umar Super App</title>
+    <title>Super App</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Toast Notification -->
-    <div id="toastNotification" class="toast"></div>
+    <!-- Notification Toast Banner -->
+    <div id="toastNotification" class="toast-banner"></div>
 
     <!-- Top Header Navigation -->
     <header class="app-header">
         <div class="header-left">
-            <span class="logo">Umar Super App</span>
+            <span class="logo">Super App</span>
         </div>
-        <div class="search-bar">
+        <div class="search-bar-large">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Search users, videos, markets...">
+            <input type="text" id="searchInput" placeholder="Search profiles, videos, markets...">
         </div>
         <div class="header-right">
             <button class="icon-btn" id="notifBtn"><i class="fa-solid fa-bell"></i></button>
@@ -34,7 +34,19 @@
             <div id="reelsFeedContainer" class="reels-container"></div>
         </section>
 
-        <!-- 2. Chat & Channels Tab -->
+        <!-- 2. Text Feed Tab (New) -->
+        <section id="textFeedTab" class="tab-content">
+            <div class="text-feed-container">
+                <div class="create-text-box">
+                    <textarea id="textPostInput" placeholder="Write something to share..."></textarea>
+                    <button class="btn-primary" id="publishTextPostBtn">Post Text</button>
+                </div>
+                <hr style="border-color:#334155; margin:15px 0;">
+                <div id="textPostsContainer"></div>
+            </div>
+        </section>
+
+        <!-- 3. Chat & Channels Tab -->
         <section id="chatTab" class="tab-content">
             <div class="chat-header-bar">
                 <div class="sub-nav">
@@ -50,10 +62,8 @@
             <div id="directChats" class="chat-section">
                 <div id="chatMessagesBox" class="chat-messages"></div>
                 
-                <!-- Voice Preview Box -->
                 <div id="voicePreviewBox" class="voice-preview-box" style="display:none;">
-                    <span class="wave-icon">∆|||||||||•••</span>
-                    <span id="voiceTimer">00:00</span>
+                    <span class="wave-icon">🎤 Recording...</span>
                     <button class="btn-secondary" id="cancelVoiceBtn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
 
@@ -72,7 +82,7 @@
             </div>
         </section>
 
-        <!-- 3. Forex Market Live Tab -->
+        <!-- 4. Forex Market Live Tab -->
         <section id="forexTab" class="tab-content">
             <div class="forex-container">
                 <div class="forex-header">
@@ -87,7 +97,7 @@
             </div>
         </section>
 
-        <!-- 4. Weather Tab -->
+        <!-- 5. Weather Tab -->
         <section id="weatherTab" class="tab-content">
             <div class="weather-container">
                 <h3>Live City Weather Search</h3>
@@ -103,11 +113,11 @@
             </div>
         </section>
 
-        <!-- 5. Terminal / JS Compiler Tab -->
+        <!-- 6. Terminal / JS Compiler Tab -->
         <section id="terminalTab" class="tab-content">
             <div class="terminal-container">
                 <h3>JavaScript Code Terminal</h3>
-                <textarea id="terminalCodeInput" placeholder="// Write JS Code here...&#10;console.log('Hello Umar!');"></textarea>
+                <textarea id="terminalCodeInput" placeholder="// Write JS Code here...&#10;console.log('Hello World!');"></textarea>
                 <button class="big-red-btn" id="runCodeBtn">
                     <i class="fa-solid fa-play"></i> RUN CODE
                 </button>
@@ -115,7 +125,7 @@
             </div>
         </section>
 
-        <!-- 6. Profile Tab -->
+        <!-- 7. Profile Tab -->
         <section id="profileTab" class="tab-content">
             <div class="profile-container">
                 <div class="profile-card">
@@ -137,18 +147,17 @@
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
         <button class="nav-btn active" data-tab="reelsTab"><i class="fa-solid fa-film"></i><span>Reels</span></button>
+        <button class="nav-btn" data-tab="textFeedTab"><i class="fa-solid fa-font"></i><span>Text Feed</span></button>
         <button class="nav-btn" data-tab="chatTab"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
         
-        <!-- CENTER (+) BUTTON -->
         <button class="center-add-btn" id="centerPlusBtn"><i class="fa-solid fa-plus"></i></button>
 
         <button class="nav-btn" data-tab="forexTab"><i class="fa-solid fa-chart-line"></i><span>Forex</span></button>
         <button class="nav-btn" data-tab="weatherTab"><i class="fa-solid fa-cloud-sun"></i><span>Weather</span></button>
-        <button class="nav-btn" data-tab="terminalTab"><i class="fa-solid fa-code"></i><span>Terminal</span></button>
         <button class="nav-btn" data-tab="profileTab"><i class="fa-solid fa-user"></i><span>Profile</span></button>
     </nav>
 
-    <!-- Modals -->
+    <!-- MODALS & PAGES -->
 
     <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal-overlay">
@@ -168,7 +177,7 @@
     <!-- Auth Modal -->
     <div id="authModal" class="modal-overlay">
         <div class="modal-card">
-            <h2>Welcome to Umar App</h2>
+            <h2>Welcome to Super App</h2>
             <p style="color:#aaa; font-size:12px;">Login or Sign Up to continue</p>
             <input type="email" id="authEmailInput" placeholder="Email Address">
             <input type="password" id="authPasswordInput" placeholder="Password">
@@ -190,23 +199,42 @@
             <div id="videoPreviewContainer" style="display:none; margin-top:10px;">
                 <video id="previewVideoTag" style="width:100%; max-height:180px; border-radius:8px;" controls></video>
                 <input type="text" id="videoDescriptionInput" placeholder="Add caption..." style="margin-top:8px;">
-                <select id="videoEffectFilter" style="margin-top:8px; width:100%; padding:8px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px;">
-                    <option value="none">Normal Filter</option>
-                    <option value="grayscale(100%)">B&W Filter</option>
-                    <option value="sepia(100%)">Vintage Filter</option>
-                </select>
+                
+                <div class="toggle-row" style="margin-top:10px;">
+                    <label><input type="checkbox" id="toggleLikesPost" checked> Allow Likes</label>
+                    <label><input type="checkbox" id="toggleCommentsPost" checked> Allow Comments</label>
+                </div>
+
                 <button id="publishVideoBtn" class="btn-primary" style="margin-top:10px; width:100%;">Publish Now</button>
             </div>
             <button id="closeUploadBtn" class="close-btn" style="margin-top:8px;">Cancel</button>
         </div>
     </div>
 
-    <!-- Settings & Management Modal (Three Dots) -->
+    <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
         <div class="modal-card">
-            <h2>App Settings & Tools</h2>
+            <h2>Settings & Privacy</h2>
             
-            <!-- Real Balance Wallet inside Settings -->
+            <!-- Account Info Box -->
+            <div class="wallet-card">
+                <h3><i class="fa-solid fa-id-card"></i> Account Info</h3>
+                <p id="accountEmailMasked" style="font-size:13px; color:#00ffcc;">Email: m****r@gmail.com</p>
+                <p id="accountCountry" style="font-size:12px; color:#aaa;">Country: Pakistan</p>
+            </div>
+
+            <!-- Privacy Controls -->
+            <div class="wallet-card">
+                <h3><i class="fa-solid fa-lock"></i> Privacy Toggles</h3>
+                <label style="display:block; text-align:left; margin:6px 0;">
+                    <input type="checkbox" id="privacyPrivateAccount"> Private Account
+                </label>
+                <label style="display:block; text-align:left; margin:6px 0;">
+                    <input type="checkbox" id="privacyAllowFollowers" checked> Allow Followers
+                </label>
+            </div>
+
+            <!-- Real Balance Wallet -->
             <div class="wallet-card">
                 <h3><i class="fa-solid fa-wallet"></i> Real Balance Wallet</h3>
                 <div class="balance-display">
@@ -214,18 +242,23 @@
                 </div>
                 <div class="wallet-buttons">
                     <button id="walletDepositBtn" class="btn-primary">Deposit</button>
-                    <button id="walletWithdrawBtn" class="btn-secondary">Withdraw</button>
+                    <button id="openWithdrawPageBtn" class="btn-secondary">Withdraw</button>
                 </div>
-            </div>
-
-            <!-- Saved Videos / Offline Manager -->
-            <div class="saved-videos-card">
-                <h3><i class="fa-solid fa-download"></i> Saved Videos (Max 100)</h3>
-                <div id="savedVideosContainer"></div>
             </div>
 
             <button id="logoutBtn" class="btn-secondary" style="background:#ef4444; color:#fff; margin-top:10px; width:100%;">Logout Account</button>
             <button id="closeSettingsBtn" class="close-btn" style="margin-top:10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Dedicated Withdrawal Page / Overlay -->
+    <div id="withdrawalModal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>Withdraw Funds</h2>
+            <input type="text" id="withdrawAccountNum" placeholder="Account Number (EasyPaisa/JazzCash)">
+            <input type="number" id="withdrawAmountVal" placeholder="Amount (Rs.)">
+            <button id="confirmWithdrawBtn" class="btn-primary">Submit Withdrawal</button>
+            <button id="closeWithdrawBtn" class="close-btn">Cancel</button>
         </div>
     </div>
 
