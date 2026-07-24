@@ -22,6 +22,12 @@ import {
     orderBy, 
     updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+    getStorage, 
+    ref, 
+    uploadBytesResumable, 
+    getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
@@ -35,14 +41,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 setPersistence(auth, browserLocalPersistence);
 
 let currentUser = null;
 let activeCommentPostId = null;
-let selectedMediaBase64 = null;
+let selectedFile = null;
 let isVideoFile = true;
-let selectedEditPhotoBase64 = null;
+let selectedEditPhotoFile = null;
 let postsData = [];
 let mediaRecorder = null;
 let audioChunks = [];
@@ -53,12 +60,6 @@ function showToastBanner(msg) {
     toast.innerText = msg;
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 3500);
-}
-
-function maskEmail(email) {
-    if(!email) return '';
-    const parts = email.split('@');
-    return parts[0][0] + '****' + parts[0][parts[0].length - 1] + '@' + parts[1];
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -75,7 +76,6 @@ onAuthStateChanged(auth, async (user) => {
                 photoUrl: 'https://via.placeholder.com/150',
                 bio: 'Hey there! Using Super App',
                 walletBalance: 0,
-                country: 'Pakistan',
                 createdAt: Date.now()
             };
             await setDoc(doc(db, "users", user.uid), defaultUser);
@@ -90,7 +90,7 @@ onAuthStateChanged(auth, async (user) => {
 
 function checkUserLoggedIn() {
     if (!currentUser && !auth.currentUser) {
-        showToastBanner("Pehle Login ya Sign Up karein!");
+        showToastBanner("Pehle Sign In/Log In karein.");
         document.getElementById('authModal').style.display = 'flex';
         return false;
     }
@@ -118,16 +118,12 @@ function setupEventListeners() {
     });
 
     document.getElementById('centerPlusBtn').addEventListener('click', () => {
-        if(checkUserLoggedIn()) {
-            document.getElementById('uploadModal').style.display = 'flex';
-        }
+        if(checkUserLoggedIn()) document.getElementById('uploadModal').style.display = 'flex';
     });
 
     document.getElementById('loginSubmitBtn').addEventListener('click', () => handleAuthAction('login'));
     document.getElementById('signupSubmitBtn').addEventListener('click', () => handleAuthAction('signup'));
-    document.getElementById('guestContinueBtn').addEventListener('click', () => {
-        document.getElementById('authModal').style.display = 'none';
-    });
+    document.getElementById('guestContinueBtn').addEventListener('click', () => document.getElementById('authModal').style.display = 'none');
 
     document.getElementById('chooseVideoBtn').addEventListener('click', () => document.getElementById('galleryVideoInput').click());
     document.getElementById('galleryVideoInput').addEventListener('change', handleMediaFileSelected);
@@ -158,14 +154,10 @@ function setupEventListeners() {
     document.getElementById('closeEditProfileBtn').addEventListener('click', () => document.getElementById('editProfileModal').style.display = 'none');
     document.getElementById('changePhotoBtn').addEventListener('click', () => document.getElementById('editPhotoInput').click());
     document.getElementById('editPhotoInput').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            selectedEditPhotoBase64 = evt.target.result;
-            document.getElementById('editProfilePicPreview').src = selectedEditPhotoBase64;
-        };
-        reader.readAsDataURL(file);
+        selectedEditPhotoFile = e.target.files[0];
+        if(selectedEditPhotoFile) {
+            document.getElementById('editProfilePicPreview').src = URL.createObjectURL(selectedEditPhotoFile);
+        }
     });
     document.getElementById('saveProfileBtn').addEventListener('click', saveProfileChanges);
 
@@ -181,23 +173,21 @@ function setupEventListeners() {
     document.getElementById('subBtnChats').addEventListener('click', () => {
         document.getElementById('subBtnChats').classList.add('active');
         document.getElementById('subBtnChannels').classList.remove('active');
-        document.getElementById('directChats').style.display = 'block';
-        document.getElementById('channelsTab').style.display = 'none';
+        document.getElementById('directChatsView').style.display = 'block';
+        document.getElementById('channelsView').style.display = 'none';
     });
 
     document.getElementById('subBtnChannels').addEventListener('click', () => {
         document.getElementById('subBtnChannels').classList.add('active');
         document.getElementById('subBtnChats').classList.remove('active');
-        document.getElementById('directChats').style.display = 'none';
-        document.getElementById('channelsTab').style.display = 'block';
+        document.getElementById('directChatsView').style.display = 'none';
+        document.getElementById('channelsView').style.display = 'block';
     });
 
     document.getElementById('sendMessageBtn').addEventListener('click', sendChatMessage);
-    document.getElementById('createChannelBtn').addEventListener('click', createChannelPrompt);
+    document.getElementById('saveChannelBtn').addEventListener('click', createChannelInPage);
 
     document.getElementById('micRecordBtn').addEventListener('click', handleMicrophoneRecord);
-    document.getElementById('voiceCallBtn').addEventListener('click', () => showToastBanner("Voice calling..."));
-    document.getElementById('videoCallBtn').addEventListener('click', () => showToastBanner("Video calling..."));
 
     document.getElementById('closeCommentsBtn').addEventListener('click', () => document.getElementById('commentsModal').style.display = 'none');
     document.getElementById('submitCommentBtn').addEventListener('click', submitComment);
@@ -207,7 +197,7 @@ async function handleAuthAction(type) {
     const email = document.getElementById('authEmailInput').value.trim();
     const password = document.getElementById('authPasswordInput').value.trim();
 
-    if (!email || !password) return showToastBanner("Email aur password likhein.");
+    if (!email || !password) return showToastBanner("Email aur Password likhein.");
 
     try {
         if (type === 'signup') {
@@ -228,13 +218,21 @@ async function saveProfileChanges() {
     const username = document.getElementById('editUsernameInput').value.trim();
     const bio = document.getElementById('editBioInput').value.trim();
 
-    if (!name || !username) return showToastBanner("Name aur username zaroori hain.");
+    if (!name || !username) return showToastBanner("Name aur Username add karein.");
+
+    let photoUrl = currentUser ? currentUser.photoUrl : 'https://via.placeholder.com/150';
+
+    if (selectedEditPhotoFile) {
+        const fileRef = ref(storage, `avatars/${currentUser.uid}_${Date.now()}`);
+        await uploadBytesResumable(fileRef, selectedEditPhotoFile);
+        photoUrl = await getDownloadURL(fileRef);
+    }
 
     const updatedData = {
         name,
         username: username.startsWith('@') ? username : '@' + username,
         bio,
-        photoUrl: selectedEditPhotoBase64 || (currentUser ? currentUser.photoUrl : 'https://via.placeholder.com/150')
+        photoUrl
     };
 
     if(currentUser) {
@@ -243,7 +241,7 @@ async function saveProfileChanges() {
         updateProfileUI();
     }
     document.getElementById('editProfileModal').style.display = 'none';
-    showToastBanner("Profile Updated!");
+    showToastBanner("Profile Update Ho Gayi!");
 }
 
 function updateProfileUI() {
@@ -253,12 +251,11 @@ function updateProfileUI() {
     document.getElementById('userBioText').innerText = currentUser.bio || "No bio added yet.";
     document.getElementById('userProfilePic').src = currentUser.photoUrl || "https://via.placeholder.com/100";
     document.getElementById('walletBalanceVal').innerText = "Rs. " + (currentUser.walletBalance || 0);
-    document.getElementById('accountEmailMasked').innerText = "Email: " + maskEmail(currentUser.email);
 }
 
 async function handleWalletDeposit() {
     if(!checkUserLoggedIn()) return;
-    const amount = prompt("Enter deposit amount (Rs.):");
+    const amount = prompt("Deposit amount (Rs.):");
     if (!amount || isNaN(amount)) return;
 
     const newBalance = (currentUser.walletBalance || 0) + parseFloat(amount);
@@ -274,13 +271,9 @@ async function processWithdrawal() {
     const accNum = document.getElementById('withdrawAccountNum').value.trim();
     const amount = parseFloat(document.getElementById('withdrawAmountVal').value);
 
-    if(!accNum || isNaN(amount) || amount <= 0) {
-        return showToastBanner("Sahi details darj karein.");
-    }
+    if(!accNum || isNaN(amount) || amount <= 0) return showToastBanner("Sahi details add karein.");
 
-    if (amount > (currentUser.walletBalance || 0)) {
-        return showToastBanner("Aapka balance kam hai!");
-    }
+    if (amount > (currentUser.walletBalance || 0)) return showToastBanner("Balance kam hai!");
 
     const newBalance = currentUser.walletBalance - amount;
     await updateDoc(doc(db, "users", currentUser.uid), { walletBalance: newBalance });
@@ -288,16 +281,87 @@ async function processWithdrawal() {
     updateProfileUI();
 
     document.getElementById('withdrawalModal').style.display = 'none';
-    showToastBanner(`Withdrawal request (${method}) submit ho gayi hai!`);
+    showToastBanner(`Withdrawal Request (${method}) Done!`);
+}
+
+function handleMediaFileSelected(event) {
+    selectedFile = event.target.files[0];
+    if (!selectedFile) return;
+
+    isVideoFile = selectedFile.type.startsWith('video');
+    const objectUrl = URL.createObjectURL(selectedFile);
+
+    if (isVideoFile) {
+        document.getElementById('previewVideoTag').src = objectUrl;
+        document.getElementById('previewVideoTag').style.display = 'block';
+        document.getElementById('previewImageTag').style.display = 'none';
+    } else {
+        document.getElementById('previewImageTag').src = objectUrl;
+        document.getElementById('previewImageTag').style.display = 'block';
+        document.getElementById('previewVideoTag').style.display = 'none';
+    }
+    document.getElementById('videoPreviewContainer').style.display = 'block';
+}
+
+async function publishMediaPost() {
+    if(!checkUserLoggedIn()) return;
+    if (!selectedFile) return showToastBanner("Media File select karein.");
+
+    const description = document.getElementById('videoDescriptionInput').value.trim();
+    const speed = document.getElementById('videoSpeedSelect').value;
+    const allowLikes = document.getElementById('toggleLikesPost').checked;
+    const allowComments = document.getElementById('toggleCommentsPost').checked;
+
+    const progressBar = document.getElementById('uploadProgressBar');
+    const progressFill = document.getElementById('uploadProgressFill');
+    progressBar.style.display = 'block';
+
+    const storageRef = ref(storage, `media/${Date.now()}_${selectedFile.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+    uploadTask.on('state_changed', 
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            progressFill.style.width = progress + '%';
+        }, 
+        (error) => {
+            showToastBanner("Upload Error: " + error.message);
+            progressBar.style.display = 'none';
+        }, 
+        async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+            await addDoc(collection(db, "posts"), {
+                userId: currentUser.uid,
+                username: currentUser.username,
+                userPhoto: currentUser.photoUrl,
+                mediaUrl: downloadURL,
+                isVideo: isVideoFile,
+                speed,
+                description,
+                allowLikes,
+                allowComments,
+                likes: {},
+                likesCount: 0,
+                comments: [],
+                createdAt: Date.now()
+            });
+
+            progressBar.style.display = 'none';
+            document.getElementById('uploadModal').style.display = 'none';
+            document.getElementById('videoPreviewContainer').style.display = 'none';
+            selectedFile = null;
+            showToastBanner("Media Upload Completed Permanently!");
+            loadMyVideosGrid();
+        }
+    );
 }
 
 function listenToReelsFeed() {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
         postsData = [];
-        snapshot.forEach((docSnap) => {
-            postsData.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        snapshot.forEach((docSnap) => postsData.push({ id: docSnap.id, ...docSnap.data() }));
         renderReelsUI();
     });
 }
@@ -307,24 +371,7 @@ function renderReelsUI() {
     if (!container) return;
 
     if (postsData.length === 0) {
-        // Fallback Promo Card when no user videos exist
-        container.innerHTML = `
-            <div class="reel-card">
-                <div class="video-container">
-                    <img src="https://via.placeholder.com/600x1000/111827/00ffcc?text=Super+App+Sponsored+Ad" alt="Ad">
-                </div>
-                <div class="video-overlay">
-                    <div class="channel-info">
-                        <span class="username">@SponsoredAd</span>
-                    </div>
-                    <div class="video-title">Welcome to Super App! Share your videos now.</div>
-                </div>
-                <div class="action-sidebar">
-                    <button class="action-btn"><i class="fa-solid fa-heart"></i><span>0</span></button>
-                    <button class="action-btn"><i class="fa-solid fa-comment"></i><span>0</span></button>
-                </div>
-            </div>
-        `;
+        container.innerHTML = `<div style="padding:40px; text-align:center; color:#aaa;">No video posts available yet. Upload using (+) button.</div>`;
         return;
     }
 
@@ -346,7 +393,6 @@ function renderReelsUI() {
                     <div class="video-title">${post.description || ''}</div>
                 </div>
                 <div class="action-sidebar">
-                    <img src="${post.userPhoto || 'https://via.placeholder.com/40'}" class="avatar" style="margin-bottom:10px;">
                     ${post.allowLikes !== false ? `
                     <button class="action-btn" data-action="like" data-id="${post.id}">
                         <i class="fa-solid fa-heart" style="color:${isLiked ? '#ec4899' : '#fff'}"></i>
@@ -377,7 +423,7 @@ function renderReelsUI() {
 async function publishTextPost() {
     if(!checkUserLoggedIn()) return;
     const text = document.getElementById('textPostInput').value.trim();
-    if(!text) return showToastBanner("Kuch likhein post karne ke liye.");
+    if(!text) return showToastBanner("Post message likhein.");
 
     await addDoc(collection(db, "textPosts"), {
         userId: currentUser.uid,
@@ -388,7 +434,7 @@ async function publishTextPost() {
     });
 
     document.getElementById('textPostInput').value = '';
-    showToastBanner("Text Post Published Globally!");
+    showToastBanner("Text Post Published!");
 }
 
 function listenToTextPosts() {
@@ -400,7 +446,7 @@ function listenToTextPosts() {
         let html = '';
         snapshot.forEach((docSnap) => {
             const p = docSnap.data();
-            html += `<div style="background:#111827; padding:12px; border-radius:8px; margin-bottom:10px;">
+            html += `<div style="background:#111827; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #1f2937;">
                 <b style="color:var(--accent-blue);">${p.username}:</b>
                 <p style="margin-top:6px; font-size:14px;">${p.text}</p>
             </div>`;
@@ -439,7 +485,7 @@ function renderCommentsList() {
 
     let html = '';
     (post.comments || []).forEach(c => {
-        html += `<div style="background:#070a12; padding:6px 10px; border-radius:6px; margin-bottom:6px; text-align:left;">
+        html += `<div style="background:#070a12; padding:8px; border-radius:6px; margin-bottom:6px;">
             <b style="color:var(--accent-blue);">${c.username}:</b> ${c.text}
         </div>`;
     });
@@ -479,62 +525,7 @@ async function loadMyVideosGrid() {
         const p = docSnap.data();
         html += `<div class="user-video-item">${p.isVideo !== false ? `<video src="${p.mediaUrl}"></video>` : `<img src="${p.mediaUrl}">`}</div>`;
     });
-    box.innerHTML = html || '<p style="color:#aaa; grid-column:span 3;">No uploaded media.</p>';
-}
-
-function handleMediaFileSelected(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    isVideoFile = file.type.startsWith('video');
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        selectedMediaBase64 = e.target.result;
-        if(isVideoFile) {
-            document.getElementById('previewVideoTag').src = selectedMediaBase64;
-            document.getElementById('previewVideoTag').style.display = 'block';
-            document.getElementById('previewImageTag').style.display = 'none';
-        } else {
-            document.getElementById('previewImageTag').src = selectedMediaBase64;
-            document.getElementById('previewImageTag').style.display = 'block';
-            document.getElementById('previewVideoTag').style.display = 'none';
-        }
-        document.getElementById('videoPreviewContainer').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-}
-
-async function publishMediaPost() {
-    if(!checkUserLoggedIn()) return;
-    if (!selectedMediaBase64) return showToastBanner("Media file choose karein.");
-
-    const description = document.getElementById('videoDescriptionInput').value.trim();
-    const speed = document.getElementById('videoSpeedSelect').value;
-    const allowLikes = document.getElementById('toggleLikesPost').checked;
-    const allowComments = document.getElementById('toggleCommentsPost').checked;
-
-    const newPost = {
-        userId: currentUser.uid,
-        username: currentUser.username,
-        userPhoto: currentUser.photoUrl,
-        mediaUrl: selectedMediaBase64,
-        isVideo: isVideoFile,
-        speed,
-        description,
-        allowLikes,
-        allowComments,
-        likes: {},
-        likesCount: 0,
-        comments: [],
-        createdAt: Date.now()
-    };
-
-    await addDoc(collection(db, "posts"), newPost);
-    showToastBanner("Media Post Published!");
-    document.getElementById('uploadModal').style.display = 'none';
-    selectedMediaBase64 = null;
-    document.getElementById('videoPreviewContainer').style.display = 'none';
-    loadMyVideosGrid();
+    box.innerHTML = html || '<p style="color:#aaa; grid-column:span 3;">No media uploaded.</p>';
 }
 
 function listenToGlobalChat() {
@@ -547,10 +538,10 @@ function listenToGlobalChat() {
         snapshot.forEach((docSnap) => {
             const m = docSnap.data();
             const isMe = currentUser && m.userId === currentUser.uid;
-            html += `<div style="text-align:${isMe ? 'right' : 'left'}; margin-bottom:8px;">
+            html += `<div style="text-align:${isMe ? 'right' : 'left'}; margin-bottom:10px;">
                 <span style="font-size:10px; color:var(--accent-blue);">${m.username}:</span><br>
-                <div style="display:inline-block; background:${isMe ? 'var(--accent-pink)' : '#1f2937'}; color:#fff; padding:6px 12px; border-radius:12px; font-size:13px; max-width:80%;">
-                    ${m.isVoice ? `<audio controls src="${m.voiceUrl}"></audio>` : m.text}
+                <div style="display:inline-block; background:${isMe ? 'var(--accent-pink)' : '#1f2937'}; color:#fff; padding:8px 12px; border-radius:12px; font-size:13px; max-width:85%;">
+                    ${m.isVoice ? `<audio controls src="${m.voiceUrl}" style="max-width:200px; height:32px;"></audio>` : m.text}
                 </div>
             </div>`;
         });
@@ -581,41 +572,59 @@ async function handleMicrophoneRecord() {
 
     if (!mediaRecorder) {
         try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                return showToastBanner("Audio recording support nahi hai iss browser par.");
-            }
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
 
-            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = async () => {
-                    const voiceBase64 = reader.result;
-                    await addDoc(collection(db, "messages"), {
-                        userId: currentUser.uid,
-                        username: currentUser.username,
-                        voiceUrl: voiceBase64,
-                        isVoice: true,
-                        createdAt: Date.now()
-                    });
-                    showToastBanner("Voice Note Sent!");
-                };
+                const audioRef = ref(storage, `voices/${Date.now()}_voice.mp3`);
+                
+                showToastBanner("Uploading Voice Note...");
+                await uploadBytesResumable(audioRef, audioBlob);
+                const voiceUrl = await getDownloadURL(audioRef);
+
+                await addDoc(collection(db, "messages"), {
+                    userId: currentUser.uid,
+                    username: currentUser.username,
+                    voiceUrl,
+                    isVoice: true,
+                    createdAt: Date.now()
+                });
+
+                showToastBanner("Voice Note Sent!");
             };
 
             mediaRecorder.start();
-            document.getElementById('voicePreviewBox').style.display = 'flex';
+            document.getElementById('recordingStatus').style.display = 'block';
         } catch (err) {
-            showToastBanner("Microphone permission denied / not available!");
+            showToastBanner("Microphone Access Denied!");
         }
     } else {
         mediaRecorder.stop();
         mediaRecorder = null;
-        document.getElementById('voicePreviewBox').style.display = 'none';
+        document.getElementById('recordingStatus').style.display = 'none';
     }
+}
+
+async function createChannelInPage() {
+    if(!checkUserLoggedIn()) return;
+    const name = document.getElementById('channelNameInput').value.trim();
+    const desc = document.getElementById('channelDescInput').value.trim();
+
+    if(!name) return showToastBanner("Channel Title likhein.");
+
+    await addDoc(collection(db, "channels"), {
+        name,
+        desc,
+        createdBy: currentUser.uid,
+        createdAt: Date.now()
+    });
+
+    document.getElementById('channelNameInput').value = '';
+    document.getElementById('channelDescInput').value = '';
+    showToastBanner("Channel Created Successfully!");
 }
 
 function listenToChannels() {
@@ -627,34 +636,18 @@ function listenToChannels() {
         let html = '';
         snapshot.forEach((docSnap) => {
             const ch = docSnap.data();
-            html += `<div style="background:#1f2937; padding:10px; border-radius:8px; margin-bottom:8px; text-align:left;">
-                <b style="color:var(--accent-blue);">${ch.name}</b>
-                <p style="font-size:11px; color:#aaa;">${ch.desc || 'Public Channel'}</p>
+            html += `<div style="background:#111827; padding:12px; border-radius:8px; margin-bottom:8px; border:1px solid #1f2937;">
+                <b style="color:var(--accent-pink);">${ch.name}</b>
+                <p style="font-size:12px; color:#aaa; margin-top:4px;">${ch.desc || 'Public Channel'}</p>
             </div>`;
         });
-        box.innerHTML = html || '<p style="color:#aaa;">No Channels/Groups Created.</p>';
+        box.innerHTML = html || '<p style="color:#aaa;">No Channels Available.</p>';
     });
-}
-
-async function createChannelPrompt() {
-    if(!checkUserLoggedIn()) return;
-    const name = prompt("Enter Channel/Group Name:");
-    if(!name) return;
-    const desc = prompt("Enter Channel Description:");
-
-    await addDoc(collection(db, "channels"), {
-        name,
-        desc: desc || '',
-        createdBy: currentUser.uid,
-        createdAt: Date.now()
-    });
-
-    showToastBanner("Channel Created!");
 }
 
 function fetchWeatherInfo() {
     const city = document.getElementById('weatherCityInput').value.trim();
-    if (!city) return showToastBanner("City name likhein.");
+    if (!city) return showToastBanner("City name add karein.");
 
     fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
         .then(res => res.json())
@@ -664,5 +657,5 @@ function fetchWeatherInfo() {
             document.getElementById('weatherTempDisplay').innerText = `${current.temp_C}°C`;
             document.getElementById('weatherDesc').innerText = current.weatherDesc[0].value;
         })
-        .catch(() => showToastBanner("City weather nahi mila."));
+        .catch(() => showToastBanner("Weather info fetch nahi ho saki."));
 }
