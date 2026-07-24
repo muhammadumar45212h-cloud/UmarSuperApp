@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Umar Super App</title>
+  <title>Super App</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Top Header -->
   <header class="app-header">
     <span class="app-title">Super App</span>
     <div class="search-bar">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search profiles, videos...">
+      <input type="text" id="globalSearchInput" placeholder="Search profiles, videos...">
     </div>
     <div class="header-icons">
       <i class="fa-regular fa-bell"></i>
@@ -22,33 +22,28 @@
     </div>
   </header>
 
-  <!-- Main Content Container -->
   <main class="content-container">
 
-    <!-- 1. REELS VIEW (TikTok Style) -->
+    <!-- REELS VIEW -->
     <section id="view-reels" class="tab-view active">
-      <div class="reels-feed" id="reelsContainer">
-        <!-- Dynamic Reels Rendered Here -->
-      </div>
+      <div class="reels-feed" id="reelsContainer"></div>
     </section>
 
-    <!-- 2. TEXT FEED VIEW -->
+    <!-- TEXT FEED VIEW -->
     <section id="view-textfeed" class="tab-view">
       <div class="create-post-card">
         <textarea id="textPostInput" placeholder="Share what's on your mind..."></textarea>
         <button id="submitTextPostBtn" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Post</button>
       </div>
-      <div class="text-feed-list" id="textFeedContainer">
-        <!-- Dynamic Text Posts Rendered Here -->
-      </div>
+      <div class="text-feed-list" id="textFeedContainer"></div>
     </section>
 
-    <!-- 3. CHAT VIEW WITH CALLING & HISTORY -->
+    <!-- CHAT VIEW -->
     <section id="view-chat" class="tab-view">
       <div class="chat-header">
         <div class="chat-user-info">
           <img src="https://via.placeholder.com/40" id="currentChatAvatar" class="avatar-sm">
-          <span id="currentChatUser">Select a contact</span>
+          <span id="currentChatUser">Select User</span>
         </div>
         <div class="chat-call-actions">
           <button id="startAudioCallBtn"><i class="fa-solid fa-phone"></i></button>
@@ -56,9 +51,7 @@
         </div>
       </div>
       
-      <div class="chat-body" id="chatMessages">
-        <!-- Chat history and active messages -->
-      </div>
+      <div class="chat-body" id="chatMessages"></div>
 
       <div class="chat-input-bar">
         <label for="chatImgInput" class="icon-btn"><i class="fa-solid fa-image"></i></label>
@@ -69,49 +62,63 @@
       </div>
     </section>
 
-    <!-- 4. FOREX & CRYPTO TRADING MARKET (NEW) -->
+    <!-- MARKET VIEW -->
     <section id="view-trading" class="tab-view">
       <div class="market-selector">
         <button class="pair-btn active" data-pair="FX:XAUUSD">XAUUSD (Gold)</button>
         <button class="pair-btn" data-pair="BITSTAMP:BTCUSD">BTCUSD</button>
         <button class="pair-btn" data-pair="FX:EURUSD">EURUSD</button>
       </div>
-      <div class="tradingview-widget-container" id="tradingViewChart">
-        <!-- Live Interactive TradingView Chart Embeds Here -->
-      </div>
+      <div class="tradingview-widget-container" id="tradingViewChart"></div>
     </section>
 
-    <!-- 5. MOBILE IDE RUNNER WITH ERROR COMPILER -->
+    <!-- IDE VIEW -->
     <section id="view-ide" class="tab-view">
       <h3><i class="fa-solid fa-code"></i> Mobile IDE Runner</h3>
-      <textarea id="ideCodeInput" placeholder="// Type JavaScript/HTML code here...&#10;document.write('Hello World');"></textarea>
+      <textarea id="ideCodeInput" placeholder="// Type JavaScript code here..."></textarea>
       <button id="runCodeBtn" class="btn-primary"><i class="fa-solid fa-play"></i> Run Code</button>
       <h4>Live Output:</h4>
       <div id="ideOutput" class="ide-output-box"></div>
     </section>
 
-    <!-- 6. USER PROFILE DASHBOARD -->
+    <!-- PROFILE VIEW -->
     <section id="view-profile" class="tab-view">
       <div class="profile-card">
+        <!-- Weather Card -->
+        <div class="weather-box" id="weatherBox">
+          <i class="fa-solid fa-cloud-sun"></i> <span id="weatherText">Loading Weather...</span>
+        </div>
+
         <div class="profile-avatar-wrapper">
           <img src="https://via.placeholder.com/100" id="profileAvatarImg" class="avatar-lg">
           <label for="avatarUploadInput" class="avatar-edit-btn"><i class="fa-solid fa-camera"></i></label>
           <input type="file" id="avatarUploadInput" accept="image/*" hidden>
         </div>
-        <h2 id="profileUsername">@umar_developer</h2>
-        <p class="profile-bio">Building the Super App Platform 🚀</p>
+        
+        <div class="profile-info-edit">
+          <h2 id="profileUsername">@umar_developer</h2>
+          <button id="editProfileBtn" class="btn-secondary"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+        </div>
+
+        <p class="profile-bio" id="profileBio">Building the Super App Platform 🚀</p>
         
         <div class="profile-stats">
           <div class="stat-item"><strong id="statLikes">0</strong><span>Likes</span></div>
-          <div class="stat-item"><strong id="statSubscribers">0</strong><span>Subscribers</span></div>
+          <div class="stat-item"><strong id="statSubscribers">1200</strong><span>Subscribers</span></div>
           <div class="stat-item"><strong id="statPosts">0</strong><span>Posts</span></div>
+        </div>
+
+        <!-- User Posted Videos Grid -->
+        <div class="profile-videos-grid" id="profileVideosGrid">
+          <h3>My Videos</h3>
+          <div class="grid-container" id="userVideosContainer"></div>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Navigation Bar -->
   <nav class="bottom-nav">
     <button class="nav-item active" data-tab="view-reels"><i class="fa-solid fa-film"></i><span>Reels</span></button>
     <button class="nav-item" data-tab="view-textfeed"><i class="fa-solid fa-font"></i><span>Text Feed</span></button>
@@ -123,72 +130,21 @@
     <button class="nav-item" data-tab="view-profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
   </nav>
 
-  <!-- Settings & Wallet Overlay Modal -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Settings & Account</h2>
-        <i class="fa-solid fa-xmark close-modal" id="closeSettings"></i>
-      </div>
-      <div class="modal-body">
-        <div class="setting-row"><i class="fa-solid fa-id-card"></i> Account & ID Info</div>
-        <div class="setting-row">
-          <i class="fa-solid fa-palette"></i> Theme Color 
-          <input type="color" id="themeColorPicker" value="#0f172a">
-        </div>
-        <div class="setting-row"><i class="fa-solid fa-download"></i> Downloaded Videos</div>
-        
-        <!-- Wallet Section -->
-        <div class="wallet-card">
-          <h3>Real Balance Wallet</h3>
-          <div class="balance-display" id="walletBalance">Rs. 2,500.00</div>
-          <div class="wallet-actions">
-            <button class="btn-deposit">Deposit</button>
-            <button class="btn-withdraw">Withdraw</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Full Comments Modal Sheet -->
+  <!-- Large Comment Drawer -->
   <div class="modal-overlay" id="commentsModal">
-    <div class="modal-content comment-sheet">
+    <div class="modal-content comment-sheet-large">
       <div class="modal-header">
         <h3>Comments</h3>
         <i class="fa-solid fa-xmark close-modal" id="closeComments"></i>
       </div>
-      <div class="comments-list" id="commentsContainer">
-        <!-- Dynamic Comments -->
-      </div>
-      <div class="comment-input-box">
+      <div class="comments-list" id="commentsContainer"></div>
+      <div class="comment-input-box-large">
         <textarea id="newCommentInput" placeholder="Add a comment..."></textarea>
-        <button id="postCommentBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        <button id="postCommentBtn" class="btn-send-large"><i class="fa-solid fa-paper-plane"></i> Send</button>
       </div>
     </div>
   </div>
 
-  <!-- Long Press / Context Menu for Posts/Messages -->
-  <div class="context-menu" id="contextMenu">
-    <button id="ctxCopy"><i class="fa-solid fa-copy"></i> Copy</button>
-    <button id="ctxForward"><i class="fa-solid fa-share"></i> Forward</button>
-    <button id="ctxReport" class="danger"><i class="fa-solid fa-flag"></i> Report</button>
-  </div>
-
-  <!-- Audio/Video Calling UI Modal -->
-  <div class="call-overlay" id="callModal">
-    <div class="call-container">
-      <img src="https://via.placeholder.com/120" class="avatar-lg call-avatar">
-      <h3 id="callUserName">User</h3>
-      <p id="callStatus">Calling...</p>
-      <div class="call-actions">
-        <button class="call-btn btn-mute"><i class="fa-solid fa-microphone-slash"></i></button>
-        <button class="call-btn btn-end" id="endCallBtn"><i class="fa-solid fa-phone-slash"></i></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TradingView Widget External Library -->
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <script src="script.js"></script>
 </body>
