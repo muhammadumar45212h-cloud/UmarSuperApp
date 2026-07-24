@@ -37,7 +37,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Enable Auth Local Storage Persistence
+// Force local persistent login
 setPersistence(auth, browserLocalPersistence);
 
 let currentUser = null;
@@ -63,8 +63,6 @@ onAuthStateChanged(auth, async (user) => {
 
         if (userSnap.exists()) {
             currentUser = { uid: user.uid, email: user.email, ...userSnap.data() };
-            updateProfileUI();
-            loadMyVideosGrid();
         } else {
             const defaultUser = {
                 name: user.email.split('@')[0],
@@ -76,15 +74,16 @@ onAuthStateChanged(auth, async (user) => {
             };
             await setDoc(doc(db, "users", user.uid), defaultUser);
             currentUser = { uid: user.uid, email: user.email, ...defaultUser };
-            updateProfileUI();
         }
+        updateProfileUI();
+        loadMyVideosGrid();
     } else {
         currentUser = null;
     }
 });
 
 function checkUserLoggedIn() {
-    if (!currentUser) {
+    if (!currentUser && !auth.currentUser) {
         showToast("Pehle Login ya Sign Up karein!");
         document.getElementById('authModal').style.display = 'flex';
         return false;
@@ -112,7 +111,7 @@ function setupEventListeners() {
         });
     });
 
-    // Center (+) Button
+    // CENTER (+) BUTTON FOR UPLOAD
     document.getElementById('centerPlusBtn').addEventListener('click', () => {
         if(checkUserLoggedIn()) {
             document.getElementById('uploadModal').style.display = 'flex';
@@ -175,7 +174,6 @@ function setupEventListeners() {
 
     // Terminal JS Runner
     document.getElementById('runCodeBtn').addEventListener('click', () => {
-        if(!checkUserLoggedIn()) return;
         runJSCompiler(document.getElementById('terminalCodeInput').value);
     });
 
@@ -242,12 +240,14 @@ async function saveProfileChanges() {
         name,
         username: username.startsWith('@') ? username : '@' + username,
         bio,
-        photoUrl: selectedEditPhotoBase64 || currentUser.photoUrl || 'https://via.placeholder.com/150'
+        photoUrl: selectedEditPhotoBase64 || (currentUser ? currentUser.photoUrl : 'https://via.placeholder.com/150')
     };
 
-    await updateDoc(doc(db, "users", currentUser.uid), updatedData);
-    currentUser = { ...currentUser, ...updatedData };
-    updateProfileUI();
+    if(currentUser) {
+        await updateDoc(doc(db, "users", currentUser.uid), updatedData);
+        currentUser = { ...currentUser, ...updatedData };
+        updateProfileUI();
+    }
     document.getElementById('editProfileModal').style.display = 'none';
     showToast("Profile Updated!");
 }
@@ -347,7 +347,6 @@ function renderReelsUI() {
     });
     container.innerHTML = html;
 
-    // Attach Reel Actions
     container.querySelectorAll('.action-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const action = e.currentTarget.getAttribute('data-action');
@@ -418,7 +417,6 @@ async function submitComment() {
     renderCommentsList();
 }
 
-// User Videos (Grid TikTok style)
 async function loadMyVideosGrid() {
     if(!currentUser) return;
     const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid));
@@ -471,7 +469,6 @@ function renderSavedVideos() {
     box.innerHTML = html || '<p style="color:#aaa;">No saved videos.</p>';
 }
 
-// Upload Post
 function handleVideoFileSelected(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -507,10 +504,11 @@ async function publishVideoPost() {
     await addDoc(collection(db, "posts"), newPost);
     showToast("Video Published!");
     document.getElementById('uploadModal').style.display = 'none';
+    selectedVideoBase64 = null;
+    document.getElementById('videoPreviewContainer').style.display = 'none';
     loadMyVideosGrid();
 }
 
-// Chat System
 function listenToGlobalChat() {
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
     onSnapshot(q, (snapshot) => {
@@ -554,7 +552,6 @@ function toggleVoiceRecord() {
     if(!checkUserLoggedIn()) return;
     const preview = document.getElementById('voicePreviewBox');
     if (preview.style.display === 'flex') {
-        // Send Voice Message
         addDoc(collection(db, "messages"), {
             userId: currentUser.uid,
             username: currentUser.username,
@@ -569,7 +566,6 @@ function toggleVoiceRecord() {
     }
 }
 
-// Channels
 function listenToChannels() {
     const q = query(collection(db, "channels"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -604,7 +600,6 @@ async function createChannelPrompt() {
     showToast("Channel Created!");
 }
 
-// Utilities
 function fetchWeatherInfo() {
     const city = document.getElementById('weatherCityInput').value.trim();
     if (!city) return showToast("City name likhein.");
@@ -622,12 +617,16 @@ function fetchWeatherInfo() {
 
 function runJSCompiler(code) {
     const outputBox = document.getElementById('compilerOutput');
+    if(!code) {
+        outputBox.innerText = "Code likhein terminal mein!";
+        return;
+    }
     try {
         let logs = [];
         const customConsole = { log: (...args) => logs.push(args.join(' ')) };
         const runFn = new Function('console', code);
         runFn(customConsole);
-        outputBox.innerText = logs.join('\n') || "Executed successfully.";
+        outputBox.innerText = logs.join('\n') || "Executed successfully with no output.";
     } catch (err) {
         outputBox.innerText = "Error: " + err.message;
     }
