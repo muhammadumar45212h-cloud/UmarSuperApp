@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <!-- App Top Header -->
+  <!-- Top Header -->
   <header class="top-bar">
     <div class="brand-title">Super App</div>
     <div class="header-search">
@@ -17,54 +17,38 @@
       <input type="text" id="globalSearch" placeholder="Search profiles, videos...">
     </div>
     <div class="header-actions">
-      <i class="fa-regular fa-bell"></i>
+      <i class="fa-regular fa-bell" onclick="alert('No new notifications')"></i>
       <div class="menu-dropdown-wrapper">
         <i class="fa-solid fa-ellipsis-vertical" id="threeDotMenuBtn"></i>
         <div class="dropdown-menu" id="threeDotMenu">
-          <a href="#" id="menuSettings"><i class="fa-solid fa-gear"></i> Settings</a>
-          <a href="#" id="menuPrivacy"><i class="fa-solid fa-user-shield"></i> Privacy</a>
-          <a href="#" id="menuLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+          <a href="#" onclick="openModal('settingsModal')"><i class="fa-solid fa-gear"></i> Settings</a>
+          <a href="#" onclick="alert('Privacy Mode Active')"><i class="fa-solid fa-user-shield"></i> Privacy</a>
+          <a href="#" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i> Reload App</a>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Views Container -->
+  <!-- Main Content Views -->
   <main class="app-main">
 
-    <!-- REELS VIEW -->
+    <!-- REELS TAB -->
     <section id="view-reels" class="tab-page active">
-      <div class="reels-viewport" id="reelsViewport">
-        <!-- Sample Reel Item -->
-        <div class="reel-item">
-          <video src="https://assets.mixkit.co/videos/preview/mixkit-vertical-animation-of-a-futuristic-city-43187-large.mp4" loop autoplay muted playsinline></video>
-          
-          <!-- Overlay Controls -->
-          <div class="reel-overlay-right">
-            <button class="reel-action-btn like-btn"><i class="fa-solid fa-heart"></i><span>1.2K</span></button>
-            <button class="reel-action-btn comment-btn" onclick="openCommentModal()"><i class="fa-solid fa-comment"></i><span>450</span></button>
-            <button class="reel-action-btn share-btn" onclick="openShareModal()"><i class="fa-solid fa-share-nodes"></i><span>Share</span></button>
-            <button class="subscribe-btn">Subscribe</button>
-          </div>
-
-          <div class="reel-overlay-bottom">
-            <h4 class="reel-author">@umar_developer</h4>
-            <p class="reel-desc">Super App platform update coming live! 🚀</p>
-          </div>
-        </div>
+      <div class="reels-viewport" id="reelsContainer">
+        <!-- Dynamic Reels loaded via JS -->
       </div>
     </section>
 
-    <!-- TEXT FEED VIEW -->
+    <!-- TEXT FEED TAB -->
     <section id="view-textfeed" class="tab-page">
       <div class="post-creator-card">
         <textarea id="textPostInput" placeholder="Share what's on your mind..."></textarea>
-        <button id="postSubmitBtn" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Post</button>
+        <button id="postSubmitBtn" class="btn-primary" onclick="createFeedPost()"><i class="fa-solid fa-paper-plane"></i> Post</button>
       </div>
       <div class="feed-posts-list" id="feedPostsList"></div>
     </section>
 
-    <!-- CHAT VIEW -->
+    <!-- CHAT TAB -->
     <section id="view-chat" class="tab-page">
       <div class="chat-header-bar">
         <div class="user-profile-badge">
@@ -87,45 +71,44 @@
 
       <div class="chat-input-toolbar">
         <label for="chatAttach" class="chat-icon-btn"><i class="fa-solid fa-image"></i></label>
-        <input type="file" id="chatAttach" hidden accept="image/*">
+        <input type="file" id="chatAttach" hidden accept="image/*" onchange="sendChatImage(this)">
         <input type="text" id="chatMessageInput" placeholder="Type a message...">
-        <button id="voiceRecordBtn" class="chat-icon-btn"><i class="fa-solid fa-microphone"></i></button>
-        <button id="sendChatMsgBtn" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        <button id="voiceRecordBtn" class="chat-icon-btn" onclick="toggleVoiceRecording()"><i class="fa-solid fa-microphone" id="micIcon"></i></button>
+        <button id="sendChatMsgBtn" class="chat-send-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </section>
 
-    <!-- MARKET VIEW -->
+    <!-- FULL SCREEN MARKET TAB -->
     <section id="view-market" class="tab-page">
       <div class="market-nav">
-        <button class="market-pair-btn active" data-symbol="FX:XAUUSD">XAUUSD (Gold)</button>
-        <button class="market-pair-btn" data-symbol="BITSTAMP:BTCUSD">BTCUSD</button>
-        <button class="market-pair-btn" data-symbol="FX:EURUSD">EURUSD</button>
+        <button class="market-pair-btn active" onclick="switchMarketSymbol('FX:XAUUSD', this)">XAUUSD (Gold)</button>
+        <button class="market-pair-btn" onclick="switchMarketSymbol('BITSTAMP:BTCUSD', this)">BTCUSD</button>
+        <button class="market-pair-btn" onclick="switchMarketSymbol('FX:EURUSD', this)">EURUSD</button>
       </div>
-      <div class="chart-wrapper" id="tradingViewWidget"></div>
+      <div class="chart-wrapper-fullscreen" id="tradingViewWidget"></div>
     </section>
 
-    <!-- IDE VIEW -->
+    <!-- IDE TAB -->
     <section id="view-ide" class="tab-page">
       <div class="ide-container">
         <h3><i class="fa-solid fa-code"></i> Mobile Code IDE</h3>
         <textarea id="ideCodeInput" placeholder="// Write JavaScript code here...&#10;console.log('Hello Super App!');"></textarea>
-        <button id="runIdeBtn" class="btn-primary"><i class="fa-solid fa-play"></i> Run Code</button>
+        <button id="runIdeBtn" class="btn-primary" onclick="runJavaScriptCode()"><i class="fa-solid fa-play"></i> Run Code</button>
         <h4>Terminal Output:</h4>
         <div class="ide-console" id="ideConsole">Ready...</div>
       </div>
     </section>
 
-    <!-- PROFILE VIEW -->
+    <!-- PROFILE TAB -->
     <section id="view-profile" class="tab-page">
       <div class="profile-layout">
-
-        <!-- Weather Widget -->
+        <!-- Weather Card -->
         <div class="weather-card">
           <div class="weather-search">
             <input type="text" id="weatherCityInput" placeholder="Search city/country...">
-            <button id="searchWeatherBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <button onclick="searchWeather()"><i class="fa-solid fa-magnifying-glass"></i></button>
           </div>
-          <div class="weather-info" id="weatherDisplay">
+          <div class="weather-info">
             <i class="fa-solid fa-cloud-sun weather-icon"></i>
             <div>
               <span class="temp-text" id="weatherTemp">32°C</span>
@@ -134,108 +117,97 @@
           </div>
         </div>
 
-        <!-- Centered Profile Layout -->
+        <!-- Profile Info -->
         <div class="profile-header-center">
           <div class="profile-photo-container">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" id="profileAvatar">
-            <label for="profileImgInput" class="photo-edit-badge"><i class="fa-solid fa-camera"></i></label>
-            <input type="file" id="profileImgInput" hidden accept="image/*">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" id="profileAvatarImg">
           </div>
-          <h2 id="profileUsername">@umar_developer</h2>
-          <p id="profileBioText">Building the Super App Platform 🚀</p>
-          <button id="editProfileModalBtn" class="btn-secondary"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
+          <h2 id="displayUsername">@umar_developer</h2>
+          <p id="displayBio">Building the Super App Platform 🚀</p>
+          <button class="btn-secondary" onclick="openModal('editProfileModal')"><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
         </div>
 
-        <!-- 3-Column Stats Row -->
+        <!-- Dynamic Stats Row -->
         <div class="profile-stats-row">
-          <div class="stat-box">
-            <strong id="statLikes">12.5K</strong>
-            <span>Total Likes</span>
-          </div>
-          <div class="stat-box">
-            <strong id="statSubs">1.2K</strong>
-            <span>Subscribers</span>
-          </div>
-          <div class="stat-box">
-            <strong id="statVideos">18</strong>
-            <span>Total Videos</span>
-          </div>
+          <div class="stat-box"><strong id="statLikes">12.5K</strong><span>Total Likes</span></div>
+          <div class="stat-box"><strong id="statSubs">1.2K</strong><span>Subscribers</span></div>
+          <div class="stat-box"><strong id="statVideos">0</strong><span>Total Videos</span></div>
         </div>
 
         <div class="user-videos-section">
           <h3>Posted Videos</h3>
-          <div class="video-grid" id="userVideoGrid"></div>
+          <div class="video-grid" id="userVideoGrid">
+            <p class="empty-msg" id="emptyVideoMsg">No uploaded videos yet.</p>
+          </div>
         </div>
-
       </div>
     </section>
 
   </main>
 
-  <!-- Bottom Navigation -->
+  <!-- Navigation Bar -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-tab="view-reels"><i class="fa-solid fa-film"></i><span>Reels</span></button>
     <button class="nav-btn" data-tab="view-textfeed"><i class="fa-solid fa-font"></i><span>Text Feed</span></button>
     <button class="nav-btn" data-tab="view-chat"><i class="fa-solid fa-comments"></i><span>Chat</span></button>
-    <button class="nav-plus-btn" id="uploadTriggerBtn"><i class="fa-solid fa-plus"></i></button>
+    <button class="nav-plus-btn" onclick="openModal('uploadModal')"><i class="fa-solid fa-plus"></i></button>
     <button class="nav-btn" data-tab="view-market"><i class="fa-solid fa-chart-line"></i><span>Market</span></button>
     <button class="nav-btn" data-tab="view-ide"><i class="fa-solid fa-code"></i><span>IDE</span></button>
     <button class="nav-btn" data-tab="view-profile"><i class="fa-solid fa-user"></i><span>Profile</span></button>
   </nav>
 
-  <!-- Upload Modal -->
+  <!-- EDIT PROFILE MODAL -->
+  <div class="modal-overlay" id="editProfileModal">
+    <div class="modal-sheet">
+      <h3>Edit Profile</h3>
+      <label>Profile Picture:</label>
+      <input type="file" id="newAvatarInput" accept="image/*">
+      <label>Username:</label>
+      <input type="text" id="newUsernameInput" value="@umar_developer">
+      <label>Bio:</label>
+      <textarea id="newBioInput" rows="2">Building the Super App Platform 🚀</textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+        <button class="btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD VIDEO MODAL -->
   <div class="modal-overlay" id="uploadModal">
     <div class="modal-sheet">
-      <h3>Create New Post</h3>
-      <input type="file" id="videoFileInput" accept="video/*">
-      <textarea id="videoDescInput" placeholder="Add description..."></textarea>
-      
-      <div class="toggle-option">
-        <span>Allow Comments</span>
-        <input type="checkbox" id="commentsToggle" checked>
-      </div>
-
+      <h3>Upload Reel Video</h3>
+      <input type="file" id="reelFileInput" accept="video/*">
+      <textarea id="reelDescInput" placeholder="Add video description..."></textarea>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
-        <button class="btn-primary" id="finalPostVideoBtn">Post Video</button>
+        <button class="btn-primary" onclick="handleVideoPost()">Post Video</button>
       </div>
     </div>
   </div>
 
-  <!-- Share Modal -->
-  <div class="modal-overlay" id="shareModal">
-    <div class="modal-sheet">
-      <h3>Share To Users</h3>
-      <div class="user-share-list">
-        <div class="share-user-item">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100">
-          <span>Hassan Raza</span>
-          <button class="btn-sm" onclick="alert('Shared!')">Send</button>
-        </div>
-        <div class="share-user-item">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100">
-          <span>Sara Khan</span>
-          <button class="btn-sm" onclick="alert('Shared!')">Send</button>
-        </div>
-      </div>
-      <button class="btn-secondary full-width" onclick="closeModal('shareModal')">Close</button>
-    </div>
-  </div>
-
-  <!-- Comments Drawer -->
+  <!-- COMMENTS DRAWER MODAL -->
   <div class="modal-overlay" id="commentModal">
     <div class="modal-sheet drawer-large">
       <div class="drawer-header">
         <h3>Comments</h3>
         <i class="fa-solid fa-xmark" onclick="closeModal('commentModal')"></i>
       </div>
-      <div class="comments-body" id="commentsBody">
-        <p class="comment-item"><strong>@ali:</strong> Bhai zabardast app banayi hai!</p>
-      </div>
+      <div class="comments-body" id="commentsList"></div>
       <div class="comment-input-area">
-        <textarea id="commentTextInput" placeholder="Write a comment..."></textarea>
-        <button id="sendCommentBtn" class="btn-primary">Send</button>
+        <input type="text" id="commentTextInput" placeholder="Write a comment...">
+        <button class="btn-primary" onclick="addComment()"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <h3>App Settings</h3>
+      <p>App Version: 2.0.0 (Super App)</p>
+      <p>Status: Production Ready</p>
+      <button class="btn-secondary full-width" onclick="closeModal('settingsModal')">Close</button>
     </div>
   </div>
 
