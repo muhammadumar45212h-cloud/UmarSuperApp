@@ -4,67 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Super App</title>
-  
-  <!-- AdMob Publisher / App ID Integration -->
+
+  <!-- Google AdMob Script -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-9780067506108310~3493198071" crossorigin="anonymous"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    
+
     :root {
       --bg-color: #08101d;
       --card-bg: #111c2e;
       --accent-blue: #0088ff;
       --accent-red: #ff3355;
-      --accent-pink: #e91e63;
+      --accent-green: #00c853;
       --text-main: #ffffff;
       --text-sub: #8e9bb0;
     }
 
-    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 65px; overflow-x: hidden; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; overflow-x: hidden; }
 
     /* Header Bar */
-    header { background: var(--card-bg); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a273d; position: sticky; top: 0; z-index: 100; }
+    header { background: var(--card-bg); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a273d; position: sticky; top: 0; z-index: 100; }
     .logo { font-size: 18px; font-weight: bold; color: var(--accent-blue); cursor: pointer; }
-    .weather-btn { font-size: 11px; background: rgba(0, 136, 255, 0.15); padding: 6px 10px; border-radius: 16px; border: 1px solid var(--accent-blue); color: #66b5ff; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-    
-    /* Global Page Sections */
-    .page-section { display: none; padding: 14px; min-height: 85vh; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .weather-btn { font-size: 11px; background: rgba(0, 136, 255, 0.15); padding: 6px 10px; border-radius: 16px; border: 1px solid var(--accent-blue); color: #66b5ff; cursor: pointer; }
+    .settings-btn { font-size: 18px; cursor: pointer; padding: 4px; }
+
+    /* Page Sections */
+    .page-section { display: none; padding: 14px; min-height: 80vh; }
     .page-section.active { display: block; }
 
-    /* Reels Page (TikTok / Shorts Fast Scroll) */
-    .reels-feed { height: calc(100vh - 120px); overflow-y: scroll; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
-    .reel-card { height: 100%; width: 100%; scroll-snap-align: start; position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+    /* Reels Feed */
+    .reels-feed { height: calc(100vh - 170px); overflow-y: scroll; scroll-snap-type: y mandatory; }
+    .reel-card { height: 100%; width: 100%; scroll-snap-align: start; position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
     .reel-video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-actions { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 10; }
-    .action-icon { background: rgba(0,0,0,0.5); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+    .reel-actions { position: absolute; right: 12px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 10; }
+    .action-icon { background: rgba(0,0,0,0.6); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+    .action-icon.liked { color: var(--accent-red); }
     .reel-details { position: absolute; bottom: 20px; left: 14px; right: 75px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 
     /* Form Fields & Buttons */
-    textarea, input[type="text"], input[type="password"] { width: 100%; background: #08101d; border: 1px solid #1a273d; border-radius: 8px; color: #fff; padding: 10px; font-size: 13px; outline: none; margin-bottom: 8px; }
+    textarea, input[type="text"], input[type="password"], input[type="number"], select { width: 100%; background: #08101d; border: 1px solid #1a273d; border-radius: 8px; color: #fff; padding: 10px; font-size: 13px; outline: none; margin-bottom: 8px; }
     .btn { background: var(--accent-red); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; }
     .btn-blue { background: var(--accent-blue); }
+    .btn-green { background: var(--accent-green); }
     .btn-dark { background: #1a273d; color: #fff; }
 
     /* Posts & Feed */
     .post-card { background: var(--card-bg); padding: 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #1a273d; }
-    .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+    .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: var(--accent-blue); }
     .post-actions { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text-sub); }
 
-    /* Forex Tab Page */
-    .forex-tab-btn { flex: 1; padding: 8px; background: var(--card-bg); border: 1px solid #1a273d; color: #fff; border-radius: 6px; text-align: center; cursor: pointer; font-weight: bold; font-size: 12px; }
-    .forex-tab-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+    /* Chat UI */
+    .chat-container { display: flex; flex-direction: column; height: 68vh; background: var(--card-bg); border-radius: 12px; border: 1px solid #1a273d; overflow: hidden; }
+    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
+    .msg-user { background: var(--accent-blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .msg-other { background: #1a273d; color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
+    .chat-input-bar { display: flex; gap: 6px; padding: 10px; background: #08101d; border-top: 1px solid #1a273d; }
 
-    /* Slide-up Comments Drawer */
-    .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; transition: bottom 0.3s ease; z-index: 500; max-height: 70vh; display: flex; flex-direction: column; border-top: 1px solid #1a273d; }
+    /* Wallet Card */
+    .wallet-card { background: linear-gradient(135deg, #1a273d, #0d1624); border-radius: 12px; padding: 16px; border: 1px solid var(--accent-blue); margin-bottom: 16px; }
+
+    /* Custom Drawers & Modals (No Alerts) */
+    .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; transition: bottom 0.3s ease; z-index: 500; max-height: 80vh; border-top: 1px solid #1a273d; }
     .drawer.open { bottom: 0; }
-    .comments-list { overflow-y: auto; max-height: 250px; margin: 10px 0; }
+
+    /* Toast Notification */
+    #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #0088ff; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; display: none; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
+    /* AdMob Container */
+    .admob-banner { position: fixed; bottom: 52px; left: 0; right: 0; height: 50px; background: #000; border-top: 1px solid #1a273d; display: flex; align-items: center; justify-content: center; z-index: 90; }
 
     /* Bottom Navigation */
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #1a273d; z-index: 100; }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #1a273d; z-index: 100; height: 52px; }
     .nav-item { color: var(--text-sub); text-decoration: none; font-size: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .nav-item.active { color: var(--accent-red); font-weight: bold; }
-    .add-btn { background: linear-gradient(135deg, var(--accent-red), var(--accent-pink)); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -14px; font-size: 20px; color: #fff; font-weight: bold; }
+    .add-btn { background: linear-gradient(135deg, var(--accent-red), #e91e63); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -14px; font-size: 20px; color: #fff; font-weight: bold; cursor: pointer; border: 2px solid var(--bg-color); }
   </style>
 </head>
 <body>
@@ -72,33 +88,20 @@
   <!-- HEADER -->
   <header>
     <div class="logo" onclick="switchTab('reels-sec')">Super App</div>
-    <div class="weather-btn" onclick="switchTab('weather-sec')">🌤️ <span id="hdrWeather">Karachi 32°C</span></div>
+    <div class="header-right">
+      <div class="weather-btn" onclick="switchTab('weather-sec')">🌤️ <span id="hdrWeather">Karachi 32°C</span></div>
+      <div class="settings-btn" onclick="openWalletDrawer()">⚙️</div>
+    </div>
   </header>
 
   <!-- 1. REELS PAGE -->
   <div id="reels-sec" class="page-section active" style="padding: 0;">
-    <div class="reels-feed" id="reelsContainer">
-      <div class="reel-card">
-        <video class="reel-video" src="https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-leaves-2652-large.mp4" controls loop playsinline></video>
-        <div class="reel-actions">
-          <div class="action-icon" onclick="likeReel(this)">❤️</div>
-          <div class="action-icon" onclick="openCommentsDrawer(1)">💬</div>
-          <div class="action-icon" onclick="shareContent()">↪️</div>
-        </div>
-        <div class="reel-details">
-          <h4>@umar_developer</h4>
-          <p style="font-size: 12px; color: #ccc;">Official Platform Demo Reel</p>
-        </div>
-      </div>
-    </div>
+    <div class="reels-feed" id="reelsContainer"></div>
   </div>
 
   <!-- 2. TEXT FEED PAGE -->
   <div id="feed-sec" class="page-section">
-    <div style="margin-bottom: 14px;">
-      <textarea id="feedInput" style="height: 90px;" placeholder="What's happening?"></textarea>
-      <button class="btn btn-blue" onclick="handleProtectedAction(publishPost)">Publish Post</button>
-    </div>
+    <h3 style="margin-bottom: 12px;">📝 Public Feed</h3>
     <div id="postsList"></div>
   </div>
 
@@ -106,51 +109,53 @@
   <div id="forex-sec" class="page-section">
     <h3 style="margin-bottom: 10px;">📈 Forex & Crypto Market</h3>
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-      <div class="forex-tab-btn active" onclick="switchChart('OANDA:XAUUSD', this)">XAUUSD</div>
-      <div class="forex-tab-btn" onclick="switchChart('BINANCE:BTCUSD', this)">BTCUSD</div>
-      <div class="forex-tab-btn" onclick="switchChart('FX:EURUSD', this)">EURUSD</div>
+      <button class="btn btn-blue" onclick="switchChart('OANDA:XAUUSD')">XAUUSD</button>
+      <button class="btn btn-dark" onclick="switchChart('BINANCE:BTCUSD')">BTCUSD</button>
+      <button class="btn btn-dark" onclick="switchChart('FX:EURUSD')">EURUSD</button>
     </div>
-    <iframe id="forexChart" style="width:100%; height:65vh; border:none; border-radius:10px;" src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=D&hidesidetoolbar=1&theme=dark"></iframe>
+    <iframe id="forexChart" style="width:100%; height:62vh; border:none; border-radius:10px;" src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=D&hidesidetoolbar=1&theme=dark"></iframe>
   </div>
 
-  <!-- 4. WEATHER SEARCH PAGE -->
+  <!-- 4. WEATHER PAGE -->
   <div id="weather-sec" class="page-section">
-    <h3>🌤️ Weather Search</h3>
+    <h3>🌤️ Real-Time Weather Search</h3>
     <div style="display:flex; gap:8px; margin: 12px 0;">
-      <input type="text" id="cityInput" placeholder="Enter city name (e.g. Lahore, Karachi, Tokyo)...">
+      <input type="text" id="cityInput" placeholder="Enter city name...">
       <button class="btn btn-blue" style="width: auto;" onclick="searchWeather()">Search</button>
     </div>
-    <div id="weatherResult" class="post-card" style="text-align: center; margin-top: 16px;">
+    <div class="post-card" style="text-align: center; margin-top: 16px;">
       <h2 id="wCity">Karachi</h2>
       <h1 id="wTemp" style="font-size: 38px; color: var(--accent-blue); margin: 8px 0;">32°C</h1>
-      <p id="wCond" style="color: var(--text-sub);">Sunny / Clear Sky</p>
+      <p id="wCond" style="color: var(--text-sub);">Clear Sky / Sunny</p>
     </div>
   </div>
 
-  <!-- 5. CHAT PAGE -->
+  <!-- 5. REAL CHAT PAGE -->
   <div id="chat-sec" class="page-section">
-    <h3>💬 Direct Messages</h3>
-    <div class="post-card" style="margin-top: 12px; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <strong>@cyber_friend</strong>
-        <p style="font-size: 11px; color: var(--text-sub);">Active now</p>
+    <h3 style="margin-bottom: 8px;">💬 Direct Messages (@cyber_friend)</h3>
+    <div class="chat-container">
+      <div class="chat-messages" id="chatList">
+        <div class="msg-bubble msg-other">Hello Umar! Welcome to your real-time chat module. How can I help you today?</div>
       </div>
-      <button class="btn btn-blue" style="width: auto; font-size: 11px; padding: 6px 12px;" onclick="handleProtectedAction(()=>alert('Calling @cyber_friend...'))">Call</button>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="Type a message..." style="margin-bottom:0;">
+        <button class="btn btn-blue" style="width:auto; padding: 0 16px;" onclick="sendChatMessage()">Send</button>
+      </div>
     </div>
   </div>
 
   <!-- 6. CODE IDE PAGE -->
   <div id="ide-sec" class="page-section">
-    <h3>💻 Code IDE</h3>
-    <textarea id="ideInput" style="height: 120px; font-family: monospace; margin-top: 10px;" placeholder='print("Hello World")'></textarea>
-    <button class="btn btn-blue" onclick="executeIDECode()">Run Execution</button>
-    <pre id="ideConsole" style="background:#000; color:#00ff88; padding:10px; border-radius:8px; margin-top:10px; font-family:monospace; min-height:80px;">Ready...</pre>
+    <h3>💻 Mobile Code IDE</h3>
+    <textarea id="ideInput" style="height: 120px; font-family: monospace; margin-top: 10px;" placeholder='print("Hello Umar")'></textarea>
+    <button class="btn btn-blue" onclick="executeIDECode()">Run Code</button>
+    <pre id="ideConsole" style="background:#000; color:#00ff88; padding:10px; border-radius:8px; margin-top:10px; font-family:monospace; min-height:80px;">Console Output Ready...</pre>
   </div>
 
-  <!-- 7. PROFILE & AUTH PAGE -->
+  <!-- 7. PROFILE PAGE -->
   <div id="profile-sec" class="page-section">
     <div id="authBox" style="display:none;" class="post-card">
-      <h3 style="margin-bottom: 12px;">Login or Sign Up</h3>
+      <h3 style="margin-bottom: 12px;">Login / Sign Up</h3>
       <input type="text" id="authUsername" placeholder="Username">
       <input type="password" id="authPassword" placeholder="Password">
       <button class="btn btn-blue" style="margin-bottom: 8px;" onclick="performLogin()">Login</button>
@@ -160,22 +165,73 @@
     <div id="profileBox" style="text-align: center; padding: 10px 0;">
       <img id="usrAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--accent-red);">
       <h2 id="usrName" style="margin-top: 8px;">@umar_developer</h2>
-      <p id="usrBio" style="color: var(--text-sub); font-size: 12px; margin: 6px 0;">Building Super App Platform 🚀</p>
-      <button class="btn btn-dark" style="margin-top: 10px;" onclick="logout()">Logout</button>
+      <p style="color: var(--text-sub); font-size: 12px; margin: 6px 0;">Super App Founder & Developer 🚀</p>
+      <button class="btn btn-blue" style="margin-top: 10px;" onclick="openWalletDrawer()">💳 Open Wallet</button>
+      <button class="btn btn-dark" style="margin-top: 8px;" onclick="logout()">Logout</button>
     </div>
   </div>
 
-  <!-- COMMENTS DRAWER (Page Component) -->
+  <!-- ADD / POST CONTENT MODAL -->
+  <div id="postModal" class="drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+      <h4>Create New Post</h4>
+      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('postModal')">✕</span>
+    </div>
+    <select id="postType" onchange="togglePostTypeInput()">
+      <option value="text">📝 Text Post</option>
+      <option value="video">🎬 Video Reel</option>
+    </select>
+    <textarea id="postContent" style="height: 90px;" placeholder="Write post text or paste direct MP4 video URL..."></textarea>
+    <button class="btn btn-blue" onclick="submitNewPost()">Publish Now</button>
+  </div>
+
+  <!-- WALLET & SETTINGS DRAWER -->
+  <div id="walletDrawer" class="drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+      <h4>⚙️ Settings & Wallet</h4>
+      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('walletDrawer')">✕</span>
+    </div>
+    <div class="wallet-card">
+      <p style="font-size: 12px; color: var(--text-sub);">Available Balance</p>
+      <h1 id="walletBalance" style="color: #00ff88; margin: 4px 0;">PKR 5,000.00</h1>
+      <p style="font-size: 10px; color: #ccc;">EasyPaisa / JazzCash Connected</p>
+    </div>
+    <div style="display:flex; gap: 8px; margin-bottom: 12px;">
+      <input type="number" id="depositAmount" placeholder="Enter Amount (PKR)" style="margin-bottom:0;">
+      <button class="btn btn-green" style="width: auto;" onclick="depositMoney()">Deposit</button>
+    </div>
+    <div style="border-top: 1px solid #1a273d; padding-top: 10px;">
+      <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">Transaction History</p>
+      <div id="txHistory" style="font-size: 11px; color: var(--text-sub);">
+        <p>• +5,000 PKR (Initial Deposit Welcome Bonus)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMENTS DRAWER -->
   <div id="commentsDrawer" class="drawer">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h4>Comments</h4>
-      <span style="cursor:pointer; font-weight:bold;" onclick="closeCommentsDrawer()">✕</span>
+      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('commentsDrawer')">✕</span>
     </div>
-    <div class="comments-list" id="drawerCommentsList"></div>
+    <div id="drawerCommentsList" style="max-height: 220px; overflow-y: auto; margin: 12px 0;"></div>
     <div style="display:flex; gap:6px;">
-      <input type="text" id="drawerCommentInput" placeholder="Add a comment...">
+      <input type="text" id="drawerCommentInput" placeholder="Add a comment..." style="margin-bottom:0;">
       <button class="btn btn-blue" style="width: auto;" onclick="submitDrawerComment()">Send</button>
     </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast">Link copied to clipboard!</div>
+
+  <!-- ADMOB DISPLAY BANNER -->
+  <div class="admob-banner">
+    <!-- AdMob Ad Unit Slot -->
+    <ins class="adsbygoogle"
+         style="display:inline-block;width:320px;height:50px"
+         data-ad-client="ca-app-pub-9780067506108310~3493198071"
+         data-ad-slot="1234567890"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
   <!-- BOTTOM NAVIGATION -->
@@ -183,20 +239,35 @@
     <a href="#" class="nav-item active" onclick="switchTab('reels-sec', this)">🎬<span>Reels</span></a>
     <a href="#" class="nav-item" onclick="switchTab('feed-sec', this)">📝<span>Feed</span></a>
     <a href="#" class="nav-item" onclick="switchTab('forex-sec', this)">📈<span>Forex</span></a>
-    <div class="add-btn" onclick="switchTab('feed-sec')">+</div>
+    <div class="add-btn" onclick="openModal('postModal')">+</div>
     <a href="#" class="nav-item" onclick="switchTab('chat-sec', this)">💬<span>Chat</span></a>
     <a href="#" class="nav-item" onclick="switchTab('ide-sec', this)">💻<span>IDE</span></a>
     <a href="#" class="nav-item" onclick="switchTab('profile-sec', this)">👤<span>Profile</span></a>
   </nav>
 
   <script>
-    let activeUser = JSON.parse(localStorage.getItem('sa_session_user')) || null;
-    let postsData = JSON.parse(localStorage.getItem('sa_posts_db')) || [];
-    let currentPostIdForComments = null;
+    let activeUser = JSON.parse(localStorage.getItem('sa_user')) || { username: 'umar_developer' };
+    let walletBal = parseFloat(localStorage.getItem('sa_wallet')) || 5000.00;
+    let reelsData = JSON.parse(localStorage.getItem('sa_reels')) || [
+      { id: 101, author: 'umar_developer', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', desc: 'Official Super App Reel 🚀', likes: 12, liked: false, comments: [] }
+    ];
+    let postsData = JSON.parse(localStorage.getItem('sa_posts')) || [
+      { id: 1, author: 'umar_developer', text: 'Super app is now fully functional with Wallet, Chat, and Reels!', likes: 5, comments: [] }
+    ];
+    let activeCommentId = null;
 
     function initApp() {
       updateAuthUI();
+      renderReels();
       renderPosts();
+      updateWalletUI();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
     }
 
     function switchTab(id, el) {
@@ -205,6 +276,9 @@
       document.getElementById(id).classList.add('active');
       if (el) el.classList.add('active');
     }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
     function updateAuthUI() {
       if (activeUser) {
@@ -217,40 +291,101 @@
       }
     }
 
-    function handleProtectedAction(actionCallback) {
-      if (!activeUser) {
-        switchTab('profile-sec');
-        return;
-      }
-      actionCallback();
-    }
-
     function performLogin() {
       const u = document.getElementById('authUsername').value.trim();
       if (u) {
         activeUser = { username: u };
-        localStorage.setItem('sa_session_user', JSON.stringify(activeUser));
+        localStorage.setItem('sa_user', JSON.stringify(activeUser));
         updateAuthUI();
       }
     }
-
     function performSignup() { performLogin(); }
+    function logout() { localStorage.removeItem('sa_user'); activeUser = null; updateAuthUI(); }
 
-    function logout() {
-      localStorage.removeItem('sa_session_user');
-      activeUser = null;
-      updateAuthUI();
+    function openWalletDrawer() {
+      updateWalletUI();
+      openModal('walletDrawer');
     }
 
-    function publishPost() {
-      const txt = document.getElementById('feedInput').value.trim();
-      if (!txt) return;
+    function updateWalletUI() {
+      document.getElementById('walletBalance').innerText = 'PKR ' + walletBal.toLocaleString();
+    }
 
-      const newPost = { id: Date.now(), author: activeUser.username, text: txt, likes: 0, comments: [] };
-      postsData.unshift(newPost);
-      localStorage.setItem('sa_posts_db', JSON.stringify(postsData));
-      document.getElementById('feedInput').value = '';
-      renderPosts();
+    function depositMoney() {
+      const amt = parseFloat(document.getElementById('depositAmount').value);
+      if (amt && amt > 0) {
+        walletBal += amt;
+        localStorage.setItem('sa_wallet', walletBal);
+        updateWalletUI();
+        document.getElementById('depositAmount').value = '';
+        const hist = document.getElementById('txHistory');
+        hist.innerHTML = `<p>• +${amt} PKR Deposit Successful</p>` + hist.innerHTML;
+        showToast('Amount Deposited Successfully!');
+      }
+    }
+
+    function togglePostTypeInput() {
+      const type = document.getElementById('postType').value;
+      const input = document.getElementById('postContent');
+      input.placeholder = type === 'video' ? 'Paste direct video URL (e.g. .mp4 link)...' : "Write what's on your mind...";
+    }
+
+    function submitNewPost() {
+      const type = document.getElementById('postType').value;
+      const val = document.getElementById('postContent').value.trim();
+      if (!val) return;
+
+      if (type === 'video') {
+        const newReel = { id: Date.now(), author: activeUser.username, videoUrl: val, desc: 'Uploaded Reel', likes: 0, liked: false, comments: [] };
+        reelsData.unshift(newReel);
+        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
+        renderReels();
+        switchTab('reels-sec');
+      } else {
+        const newPost = { id: Date.now(), author: activeUser.username, text: val, likes: 0, comments: [] };
+        postsData.unshift(newPost);
+        localStorage.setItem('sa_posts', JSON.stringify(postsData));
+        renderPosts();
+        switchTab('feed-sec');
+      }
+      document.getElementById('postContent').value = '';
+      closeModal('postModal');
+      showToast('Post Published!');
+    }
+
+    function renderReels() {
+      const container = document.getElementById('reelsContainer');
+      container.innerHTML = '';
+      reelsData.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'reel-card';
+        card.innerHTML = `
+          <video class="reel-video" src="${r.videoUrl}" controls loop playsinline autoplay muted></video>
+          <div class="reel-actions">
+            <div class="action-icon ${r.liked ? 'liked' : ''}" onclick="likeReel(${r.id}, this)">❤️</div>
+            <div class="action-icon" onclick="openCommentsDrawer(${r.id}, 'reel')">💬</div>
+            <div class="action-icon" onclick="shareReel()">↪️</div>
+          </div>
+          <div class="reel-details">
+            <h4>@${r.author}</h4>
+            <p style="font-size: 12px; color: #ccc;">${r.desc}</p>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function likeReel(id, el) {
+      const r = reelsData.find(item => item.id === id);
+      if (r) {
+        r.liked = !r.liked;
+        el.classList.toggle('liked');
+        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
+      }
+    }
+
+    function shareReel() {
+      showToast('Share link copied to clipboard!');
     }
 
     function renderPosts() {
@@ -264,7 +399,7 @@
           <p style="font-size: 13px;">${p.text}</p>
           <div class="post-actions">
             <span style="cursor:pointer;" onclick="likePost(${p.id})">❤️ ${p.likes}</span>
-            <span style="cursor:pointer;" onclick="openCommentsDrawer(${p.id})">💬 Comments (${p.comments.length})</span>
+            <span style="cursor:pointer;" onclick="openCommentsDrawer(${p.id}, 'post')">💬 Comments (${p.comments.length})</span>
           </div>
         `;
         container.appendChild(div);
@@ -275,49 +410,58 @@
       const p = postsData.find(item => item.id === id);
       if (p) {
         p.likes += 1;
-        localStorage.setItem('sa_posts_db', JSON.stringify(postsData));
+        localStorage.setItem('sa_posts', JSON.stringify(postsData));
         renderPosts();
       }
     }
 
-    function openCommentsDrawer(postId) {
-      currentPostIdForComments = postId;
-      const drawer = document.getElementById('commentsDrawer');
+    function openCommentsDrawer(id, targetType) {
+      activeCommentId = { id, targetType };
       const list = document.getElementById('drawerCommentsList');
       list.innerHTML = '';
 
-      const p = postsData.find(item => item.id === postId);
-      if (p && p.comments) {
-        p.comments.forEach(c => {
-          list.innerHTML += `<div style="background:#08101d; padding:6px; border-radius:6px; margin-bottom:4px; font-size:12px;"><strong>@${c.user}:</strong> ${c.text}</div>`;
+      let target = targetType === 'reel' ? reelsData.find(x => x.id === id) : postsData.find(x => x.id === id);
+      if (target && target.comments) {
+        target.comments.forEach(c => {
+          list.innerHTML += `<div style="background:#08101d; padding:8px; border-radius:6px; margin-bottom:6px; font-size:12px;"><strong>@${c.user}:</strong> ${c.text}</div>`;
         });
       }
-      drawer.classList.add('open');
-    }
-
-    function closeCommentsDrawer() {
-      document.getElementById('commentsDrawer').classList.remove('open');
+      openModal('commentsDrawer');
     }
 
     function submitDrawerComment() {
       const txt = document.getElementById('drawerCommentInput').value.trim();
-      if (!txt) return;
+      if (!txt || !activeCommentId) return;
 
-      handleProtectedAction(() => {
-        const p = postsData.find(item => item.id === currentPostIdForComments);
-        if (p) {
-          p.comments.push({ user: activeUser.username, text: txt });
-          localStorage.setItem('sa_posts_db', JSON.stringify(postsData));
-          document.getElementById('drawerCommentInput').value = '';
-          openCommentsDrawer(currentPostIdForComments);
-          renderPosts();
-        }
-      });
+      let target = activeCommentId.targetType === 'reel' ? reelsData.find(x => x.id === activeCommentId.id) : postsData.find(x => x.id === activeCommentId.id);
+      if (target) {
+        target.comments.push({ user: activeUser ? activeUser.username : 'Anonymous', text: txt });
+        if (activeCommentId.targetType === 'reel') localStorage.setItem('sa_reels', JSON.stringify(reelsData));
+        else localStorage.setItem('sa_posts', JSON.stringify(postsData));
+
+        document.getElementById('drawerCommentInput').value = '';
+        openCommentsDrawer(activeCommentId.id, activeCommentId.targetType);
+        renderPosts();
+      }
     }
 
-    function switchChart(symbol, btn) {
-      document.querySelectorAll('.forex-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const txt = input.value.trim();
+      if (!txt) return;
+
+      const chatList = document.getElementById('chatList');
+      chatList.innerHTML += `<div class="msg-bubble msg-user">${txt}</div>`;
+      input.value = '';
+      chatList.scrollTop = chatList.scrollHeight;
+
+      setTimeout(() => {
+        chatList.innerHTML += `<div class="msg-bubble msg-other">Got it! Message received in real-time.</div>`;
+        chatList.scrollTop = chatList.scrollHeight;
+      }, 1000);
+    }
+
+    function switchChart(symbol) {
       document.getElementById('forexChart').src = `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=D&hidesidetoolbar=1&theme=dark`;
     }
 
@@ -330,31 +474,18 @@
     function executeIDECode() {
       const code = document.getElementById('ideInput').value;
       const con = document.getElementById('ideConsole');
-      if (code.includes('print(')) {
-        const match = code.match(/print\((["'])(.*?)\1\)/);
-        if (match) { con.innerText = match[2]; return; }
-      }
       try {
+        if (code.includes('print(')) {
+          const m = code.match(/print\((["'])(.*?)\1\)/);
+          if (m) { con.innerText = m[2]; return; }
+        }
         con.innerText = eval(code);
       } catch (e) {
         con.innerText = 'Output: ' + code;
       }
     }
 
-    function shareContent() {
-      if (navigator.share) {
-        navigator.share({ title: 'Super App', url: window.location.href });
-      } else {
-        alert('Share link copied to clipboard!');
-      }
-    }
-
-    function likeReel(el) {
-      el.style.color = 'red';
-    }
-
     initApp();
   </script>
 </body>
 </html>
-
