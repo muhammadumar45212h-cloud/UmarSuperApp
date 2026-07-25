@@ -11,6 +11,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     
+    /* Smooth Scroll Snap Container */
     .reels-scroll-container {
       height: calc(100vh - 120px);
       overflow-y: scroll;
@@ -39,13 +40,11 @@
 </head>
 <body class="pb-16 select-none">
 
-  <!-- TOP TOAST NOTIFICATION -->
   <div id="toastNotification" class="fixed top-2 left-4 right-4 z-[100] bg-slate-800/95 border border-blue-500/50 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center justify-between text-xs font-semibold backdrop-blur-md">
     <span id="toastMessage">Notification Message</span>
     <i class="fas fa-bell text-blue-400"></i>
   </div>
 
-  <!-- TOP NAVBAR -->
   <header class="bg-slate-900/90 border-b border-slate-800/80 px-4 py-3 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md">
     <h1 class="text-xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
     <div class="flex items-center gap-3">
@@ -58,18 +57,17 @@
     </div>
   </header>
 
-  <!-- 1. REELS TAB -->
   <section id="tab-reels" class="tab-content active">
-    <div id="reelsContainer" class="reels-scroll-container w-full"></div>
+    <div id="reelsContainer" class="reels-scroll-container w-full">
+      </div>
   </section>
 
-  <!-- 2. PUBLIC FEED TAB -->
   <section id="tab-feed" class="tab-content p-4 space-y-4">
     <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2"><i class="fas fa-newspaper"></i> Public Feed</h2>
-    <div id="feedPosts" class="space-y-4"></div>
+    <div id="feedPosts" class="space-y-4">
+      </div>
   </section>
 
-  <!-- 3. FOREX & CRYPTO TAB -->
   <section id="tab-forex" class="tab-content p-4">
     <h2 class="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
     <div class="flex gap-2 mb-3">
@@ -82,7 +80,6 @@
     </div>
   </section>
 
-  <!-- 4. CHAT TAB -->
   <section id="tab-chat" class="tab-content p-4">
     <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2"><i class="fas fa-comments"></i> Direct Messages</h2>
     <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 h-80 flex flex-col justify-between">
@@ -98,37 +95,12 @@
     </div>
   </section>
 
-  <!-- 5. IDE & GEMINI AI ASSISTANT TAB -->
-  <section id="tab-ide" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="fas fa-robot"></i> Gemini AI Assistant & IDE</h2>
-    
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4 space-y-2">
-      <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-slate-300">Daily Free AI Limit</span>
-        <span id="aiLimitDisplay" class="text-xs font-bold text-amber-400">6 / 6 Remaining</span>
-      </div>
-      
-      <textarea id="aiPrompt" rows="2" placeholder="Ask AI anything..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none"></textarea>
-      
-      <!-- FIRST-TIME CLICK AI BUTTON -->
-      <button onclick="handleAiClick()" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow-md">Ask Gemini AI</button>
-      
-      <div id="aiOutput" class="text-xs text-slate-300 bg-black/50 p-2.5 rounded-xl mt-2 hidden min-h-[50px] whitespace-pre-wrap"></div>
-    </div>
-
-    <h3 class="text-xs font-bold text-slate-400 mb-2">Mobile Code Runner</h3>
-    <textarea id="ideCode" rows="4" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="Write JS code...">console.log("Hello Umar!");</textarea>
-    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs mt-2 shadow-lg">Run Code</button>
-    <div class="mt-2 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400" id="ideOutput">Output: Hello Umar!</div>
-  </section>
-
-  <!-- 6. OFFLINE VIDEOS PAGE TAB -->
   <section id="tab-offline" class="tab-content p-4">
     <h2 class="text-lg font-bold text-rose-400 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> Saved Offline Videos</h2>
-    <div id="offlineVideosList" class="space-y-4"></div>
+    <div id="offlineVideosList" class="space-y-4">
+      </div>
   </section>
 
-  <!-- 7. PROFILE TAB -->
   <section id="tab-profile" class="tab-content p-4">
     <div class="text-center mb-4">
       <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-full mx-auto flex items-center justify-center text-3xl text-white shadow-lg mb-2">
@@ -157,25 +129,6 @@
     <div id="ownerPostsList" class="space-y-2"></div>
   </section>
 
-  <!-- API KEY INPUT MODAL (SIRF PEHLI BAAR POPUP HOGA) -->
-  <div id="apiKeyModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[99] backdrop-blur-md">
-    <div class="bg-slate-900 w-full max-w-xs p-5 rounded-2xl border border-teal-500/40 text-center shadow-2xl">
-      <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fas fa-key"></i>
-      </div>
-      <h3 class="font-bold text-sm text-white mb-1">Enter Gemini API Key</h3>
-      <p class="text-[11px] text-slate-400 mb-4">Pehli baar AI use karne ke liye key zaroori hai. Yeh ek baar save ho jayegi.</p>
-      
-      <input type="password" id="modalApiKeyInput" placeholder="Paste Key Here (AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none mb-3">
-      
-      <div class="flex gap-2">
-        <button onclick="toggleApiKeyModal()" class="flex-1 bg-slate-800 text-slate-400 text-xs py-2.5 rounded-xl font-bold">Cancel</button>
-        <button onclick="saveApiKeyFromModal()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white text-xs py-2.5 rounded-xl font-bold">Save Key</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CREATE MEDIA MODAL -->
   <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800">
       <div class="flex justify-between items-center mb-3">
@@ -192,7 +145,6 @@
     </div>
   </div>
 
-  <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-4 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
@@ -204,15 +156,14 @@
           <span><i class="fas fa-download text-rose-400 mr-2"></i> Save Video Offline (App Library)</span>
           <i class="fas fa-chevron-right text-slate-500"></i>
         </button>
-        <button onclick="toggleApiKeyModal()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-teal-400 font-bold">
-          <span><i class="fas fa-key mr-2"></i> Change Gemini API Key</span>
-          <i class="fas fa-chevron-right text-slate-500"></i>
-        </button>
+        <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl border border-slate-700">
+          <span>Private Account</span>
+          <input type="checkbox" class="w-4 h-4 accent-blue-500">
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800/80 flex justify-around items-center py-2 z-40 backdrop-blur-md">
     <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
       <i class="fas fa-film text-lg"></i>
@@ -229,9 +180,9 @@
     <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg -mt-3 border-2 border-slate-900">
       <i class="fas fa-plus"></i>
     </button>
-    <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-robot text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">AI/IDE</span>
+    <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-comments text-lg"></i>
+      <span class="text-[9px] font-semibold mt-0.5">Chat</span>
     </button>
     <button onclick="switchTab('offline')" id="nav-offline" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-download text-lg"></i>
@@ -248,6 +199,8 @@
   <script>
     const CURRENT_USER = "@umar_developer";
     let db = null;
+    let observer = null;
+    let activeReelId = null;
 
     function showToast(msg) {
       const toast = document.getElementById('toastNotification');
@@ -256,76 +209,96 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    function toggleApiKeyModal() {
-      const modal = document.getElementById('apiKeyModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    // IndexedDB Setup with Offline Storage
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open("UmarSuperAppDB_v2", 1);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains("posts")) {
+            database.createObjectStore("posts", { keyPath: "id", autoIncrement: true });
+          }
+          if (!database.objectStoreNames.contains("offline_videos")) {
+            database.createObjectStore("offline_videos", { keyPath: "id" });
+          }
+        };
+        req.onsuccess = (e) => { db = e.target.result; resolve(); };
+        req.onerror = (e) => reject(e);
+      });
     }
 
-    // PEHLI BAAR CLICK LOGIC
-    function handleAiClick() {
-      const savedKey = localStorage.getItem('my_gemini_key');
-      if (!savedKey) {
-        toggleApiKeyModal(); // Agar Key nahi hai to Modal Dikhaye
-      } else {
-        askGeminiAI(savedKey); // Agar Key hai to Direct Call kare
-      }
+    async function savePostToDB(postData) {
+      return new Promise((resolve) => {
+        const tx = db.transaction("posts", "readwrite");
+        tx.objectStore("posts").add(postData);
+        tx.oncomplete = () => resolve();
+      });
     }
 
-    function saveApiKeyFromModal() {
-      const keyVal = document.getElementById('modalApiKeyInput').value.trim();
-      if (!keyVal) {
-        showToast("Please enter a valid key!");
-        return;
-      }
-      localStorage.setItem('my_gemini_key', keyVal);
-      showToast("API Key Saved!");
-      toggleApiKeyModal();
-      askGeminiAI(keyVal); // Key Save hone ke bad turant answer generate kare
-    }
-
-    async function askGeminiAI(savedKey) {
-      const prompt = document.getElementById('aiPrompt').value;
-      if (!prompt) { showToast("Enter a question first!"); return; }
-
-      const out = document.getElementById('aiOutput');
-      out.classList.remove('hidden');
-      out.innerText = "Gemini is thinking...";
-
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-
-        const data = await res.json();
-        if(data.error) throw new Error(data.error.message);
-        
-        out.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
-      } catch (e) {
-        out.innerText = "Error: " + e.message;
-        if(e.message.includes("API key")) {
-          localStorage.removeItem('my_gemini_key'); // Invalid Key hone par clear kar do
-        }
-      }
+    async function getAllPostsFromDB() {
+      return new Promise((resolve) => {
+        if (!db) { resolve([]); return; }
+        const tx = db.transaction("posts", "readonly");
+        const req = tx.objectStore("posts").getAll();
+        req.onsuccess = () => resolve(req.result || []);
+      });
     }
 
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
       
-      const tabs = ['reels', 'feed', 'forex', 'ide', 'offline', 'profile'];
+      const tabs = ['reels', 'feed', 'forex', 'chat', 'offline', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if(btn) btn.className = `flex flex-col items-center ${t === tabName ? 'text-rose-500 font-bold' : 'text-slate-400'}`;
       });
 
+      if (tabName !== 'reels') {
+        document.querySelectorAll('video').forEach(v => v.pause());
+      }
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
     }
 
     function toggleCreateModal() { document.getElementById('createModal').classList.toggle('hidden'); }
     function toggleSettingsModal() { document.getElementById('settingsModal').classList.toggle('hidden'); }
+
+    function togglePostInputType() {
+      const type = document.getElementById('postType').value;
+      document.getElementById('mediaInput').setAttribute('accept', type === 'feed' ? 'image/*' : 'video/*');
+    }
+
+    async function publishContent() {
+      const type = document.getElementById('postType').value;
+      const caption = document.getElementById('captionInput').value;
+      const file = document.getElementById('mediaInput').files[0];
+
+      if (!file && type === 'reel') { showToast("Select a video!"); return; }
+
+      let mediaData = "";
+      if (file) {
+        mediaData = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = e => res(e.target.result);
+          r.readAsDataURL(file);
+        });
+      }
+
+      const newPost = {
+        type: type,
+        caption: caption,
+        media: mediaData,
+        author: CURRENT_USER,
+        likes: 0,
+        likedBy: [],
+        timestamp: Date.now()
+      };
+
+      await savePostToDB(newPost);
+      showToast("Published Successfully!");
+      toggleCreateModal();
+      document.getElementById('captionInput').value = "";
+    }
 
     function loadTradingViewChart(symbol) {
       document.getElementById('tradingview_chart').innerHTML = "";
@@ -338,14 +311,9 @@
       });
     }
 
-    function runMobileCode() {
-      try {
-        let result = eval(document.getElementById('ideCode').value);
-        document.getElementById('ideOutput').innerText = "Output: " + result;
-      } catch(e) {
-        document.getElementById('ideOutput').innerText = "Error: " + e.message;
-      }
-    }
+    window.onload = async () => {
+      await initDB();
+    };
   </script>
 </body>
 </html>
