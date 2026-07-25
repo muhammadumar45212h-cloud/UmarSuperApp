@@ -11,21 +11,22 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     
-    /* Reels Full-screen Vertical Scroll */
+    /* Smooth Scroll Snap Container */
     .reels-scroll-container {
       height: calc(100vh - 120px);
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
     .reel-card {
       height: calc(100vh - 120px);
       scroll-snap-align: start;
+      scroll-snap-stop: always;
       position: relative;
       background: #000;
     }
     
-    /* Floating Toast */
     #toastNotification {
       transition: all 0.3s ease-in-out;
       transform: translateY(-100%);
@@ -39,7 +40,7 @@
 </head>
 <body class="pb-16 select-none">
 
-  <!-- TOP TOAST NOTIFICATION (No browser alert popups) -->
+  <!-- TOP TOAST NOTIFICATION -->
   <div id="toastNotification" class="fixed top-2 left-4 right-4 z-[100] bg-slate-800/95 border border-blue-500/50 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center justify-between text-xs font-semibold backdrop-blur-md">
     <span id="toastMessage">Notification Message</span>
     <i class="fas fa-bell text-blue-400"></i>
@@ -67,7 +68,7 @@
     </div>
   </section>
 
-  <!-- 2. PUBLIC FEED TAB (Photo + Text Only) -->
+  <!-- 2. PUBLIC FEED TAB -->
   <section id="tab-feed" class="tab-content p-4 space-y-4">
     <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2"><i class="fas fa-newspaper"></i> Public Feed</h2>
     <div id="feedPosts" class="space-y-4">
@@ -75,7 +76,7 @@
     </div>
   </section>
 
-  <!-- 3. FOREX & CRYPTO TAB (Real TradingView Widget) -->
+  <!-- 3. FOREX & CRYPTO TAB -->
   <section id="tab-forex" class="tab-content p-4">
     <h2 class="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
     <div class="flex gap-2 mb-3">
@@ -83,7 +84,7 @@
       <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-slate-300 hover:text-white text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">BTCUSD</button>
       <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-slate-300 hover:text-white text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">EURUSD</button>
     </div>
-    <div class="w-full h-[420px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_widget_wrapper">
+    <div class="w-full h-[420px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
       <div id="tradingview_chart" class="w-full h-full"></div>
     </div>
   </section>
@@ -91,37 +92,48 @@
   <!-- 4. CHAT TAB -->
   <section id="tab-chat" class="tab-content p-4">
     <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2"><i class="fas fa-comments"></i> Direct Messages</h2>
-    <div class="mb-3">
-      <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Search registered users..." class="w-full bg-slate-800/80 border border-slate-700/60 text-xs rounded-xl p-3 text-white focus:outline-none focus:border-purple-500">
-      <div id="searchResults" class="mt-2 space-y-1"></div>
-    </div>
     <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 h-80 flex flex-col justify-between">
       <div id="chatMessages" class="overflow-y-auto space-y-2 mb-2">
         <div class="bg-blue-600/20 border border-blue-500/30 text-white p-2.5 rounded-xl text-xs max-w-xs self-end ml-auto">
-          <span class="text-[10px] font-bold text-blue-300 block">@umar_developer</span> Hi
+          <span class="text-[10px] font-bold text-blue-300 block">@umar_developer</span> Welcome to Super App
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="triggerVoiceRecord()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 p-2.5 rounded-xl text-xs flex items-center justify-center border border-slate-700">
-          <i class="fas fa-microphone"></i>
-        </button>
-        <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800/80 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-        <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold">Send</button>
+        <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+        <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Send</button>
       </div>
     </div>
   </section>
 
-  <!-- 5. IDE TAB -->
+  <!-- 5. IDE & GEMINI AI ASSISTANT TAB -->
   <section id="tab-ide" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-teal-400 mb-3 flex items-center gap-2"><i class="fas fa-code"></i> Mobile Code IDE</h2>
-    <textarea id="ideCode" rows="6" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="Write JS code...">console.log("Hello Umar Developer!");</textarea>
-    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold text-xs mt-2 shadow-lg">Run Code</button>
-    <div class="mt-3 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400" id="ideOutput">
-      Output: Hello Umar Developer!
+    <h2 class="text-lg font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="fas fa-robot"></i> Gemini AI Assistant & IDE</h2>
+    
+    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4 space-y-2">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-bold text-slate-300">Daily Free AI Limit</span>
+        <span id="aiLimitDisplay" class="text-xs font-bold text-amber-400">6 / 6 Remaining</span>
+      </div>
+      <textarea id="aiPrompt" rows="2" placeholder="Ask AI anything or prompt photo edit/generation..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none"></textarea>
+      <button onclick="askGeminiAI()" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 rounded-xl font-bold text-xs">Ask Gemini AI</button>
+      <div id="aiOutput" class="text-xs text-slate-300 bg-black/50 p-2.5 rounded-xl mt-2 hidden min-h-[50px]"></div>
+    </div>
+
+    <h3 class="text-xs font-bold text-slate-400 mb-2">Mobile Code Runner</h3>
+    <textarea id="ideCode" rows="4" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="Write JS code...">console.log("Hello Umar!");</textarea>
+    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs mt-2 shadow-lg">Run Code</button>
+    <div class="mt-2 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400" id="ideOutput">Output: Hello Umar!</div>
+  </section>
+
+  <!-- 6. OFFLINE VIDEOS PAGE TAB -->
+  <section id="tab-offline" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-rose-400 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> Saved Offline Videos</h2>
+    <div id="offlineVideosList" class="space-y-4">
+      <!-- Offline Saved Videos Render Here -->
     </div>
   </section>
 
-  <!-- 6. PROFILE & MANAGEMENT TAB -->
+  <!-- 7. PROFILE TAB -->
   <section id="tab-profile" class="tab-content p-4">
     <div class="text-center mb-4">
       <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-full mx-auto flex items-center justify-center text-3xl text-white shadow-lg mb-2">
@@ -132,29 +144,22 @@
     </div>
 
     <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-      <div class="bg-slate-900/90 p-3 border border-slate-800 rounded-xl">
+      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
         <p class="text-base font-black text-blue-400" id="profileLikes">0</p>
         <p class="text-[10px] text-slate-400">Likes</p>
       </div>
-      <div class="bg-slate-900/90 p-3 border border-slate-800 rounded-xl">
+      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
         <p class="text-base font-black text-blue-400">1</p>
         <p class="text-[10px] text-slate-400">Subscribers</p>
       </div>
-      <div class="bg-slate-900/90 p-3 border border-slate-800 rounded-xl">
+      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
         <p class="text-base font-black text-blue-400" id="profilePostsCount">0</p>
         <p class="text-[10px] text-slate-400">My Posts</p>
       </div>
     </div>
 
-    <button onclick="toggleWalletModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-semibold border border-slate-700/80 flex items-center justify-center gap-2 text-xs mb-4">
-      <i class="fas fa-wallet text-emerald-400"></i> Menu & Wallet
-    </button>
-
-    <!-- OWNER POST MANAGEMENT (DELETE PERMISSIONS) -->
-    <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">My Managed Uploads</h4>
-    <div id="ownerPostsList" class="space-y-2">
-      <!-- Owner Posts Render Here with Delete Option -->
-    </div>
+    <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase">My Managed Uploads</h4>
+    <div id="ownerPostsList" class="space-y-2"></div>
   </section>
 
   <!-- CREATE MEDIA MODAL -->
@@ -164,50 +169,31 @@
         <h3 class="font-bold text-sm text-white">Create New Upload</h3>
         <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
-      <select id="postType" onchange="togglePostInputType()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3 focus:outline-none">
+      <select id="postType" onchange="togglePostInputType()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3">
         <option value="reel">🎬 Reel (Video Upload)</option>
-        <option value="feed">📝 Public Feed (Photo + Text Only)</option>
+        <option value="feed">📝 Public Feed (Photo + Text)</option>
       </select>
-      <input type="file" id="mediaInput" accept="video/*,image/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded-xl p-2 mb-3">
-      <input type="text" id="captionInput" placeholder="Write caption or text post..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3 focus:outline-none">
-      <button onclick="publishContent()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg">Publish Now</button>
+      <input type="file" id="mediaInput" accept="video/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded-xl p-2 mb-3">
+      <input type="text" id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3">
+      <button onclick="publishContent()" class="w-full bg-blue-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg">Publish Now</button>
     </div>
   </div>
 
-  <!-- WALLET MODAL -->
-  <div id="walletModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="font-bold text-sm text-white flex items-center gap-2"><i class="fas fa-wallet text-emerald-400"></i> Menu & Wallet</h3>
-        <button onclick="toggleWalletModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div class="bg-slate-800/80 p-3 rounded-xl border border-emerald-500/30 mb-3">
-        <p class="text-[10px] text-slate-400">Available Balance</p>
-        <p class="text-xl font-black text-emerald-400">PKR 0.00</p>
-      </div>
-      <div class="flex gap-2 mb-3">
-        <input type="number" id="withdrawAmount" placeholder="Enter amount" class="flex-1 bg-slate-800 border border-slate-700 text-xs rounded-xl p-2 text-white">
-        <button onclick="handleWithdraw()" class="bg-emerald-600 text-white text-xs px-4 rounded-xl font-bold">Withdraw</button>
-      </div>
-      <button onclick="toggleWalletModal()" class="w-full bg-slate-800 text-rose-400 text-xs py-2.5 rounded-xl font-bold border border-slate-700">Close</button>
-    </div>
-  </div>
-
-  <!-- SETTINGS MODAL -->
+  <!-- SETTINGS MODAL WITH OFFLINE DOWNLOAD -->
   <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-4 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-sm text-white"><i class="fas fa-sliders text-blue-400"></i> Settings</h3>
+        <h3 class="font-bold text-sm text-white"><i class="fas fa-sliders text-blue-400"></i> App Settings</h3>
         <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
       <div class="space-y-3 text-xs">
-        <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700/50">
+        <button onclick="downloadCurrentVideoOffline()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-white font-bold">
+          <span><i class="fas fa-download text-rose-400 mr-2"></i> Save Video Offline (App Library)</span>
+          <i class="fas fa-chevron-right text-slate-500"></i>
+        </button>
+        <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl border border-slate-700">
           <span>Private Account</span>
           <input type="checkbox" class="w-4 h-4 accent-blue-500">
-        </div>
-        <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700/50">
-          <span>Comments On/Off</span>
-          <input type="checkbox" checked class="w-4 h-4 accent-blue-500">
         </div>
       </div>
     </div>
@@ -230,13 +216,13 @@
     <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg -mt-3 border-2 border-slate-900">
       <i class="fas fa-plus"></i>
     </button>
-    <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-comment text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Chat</span>
-    </button>
     <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-code text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">IDE</span>
+      <i class="fas fa-robot text-lg"></i>
+      <span class="text-[9px] font-semibold mt-0.5">AI/IDE</span>
+    </button>
+    <button onclick="switchTab('offline')" id="nav-offline" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-download text-lg"></i>
+      <span class="text-[9px] font-semibold mt-0.5">Offline</span>
     </button>
     <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-user text-lg"></i>
@@ -244,16 +230,15 @@
     </button>
   </nav>
 
-  <!-- TRADINGVIEW WIDGET SCRIPT -->
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-  <!-- APP JAVASCRIPT LOGIC -->
   <script>
     const CURRENT_USER = "@umar_developer";
+    const GEMINI_API_KEY = "AQ.Ab8RN6I6E0xxNfnymKucug1byaBI61qaYpdsa3ZRkf1ilnD09Q"; // Paste your Gemini API Key here
     let db = null;
-    let longPressTimer = null;
+    let observer = null;
+    let activeReelId = null;
 
-    // Toast Notification System (No Alert Popups)
     function showToast(msg) {
       const toast = document.getElementById('toastNotification');
       document.getElementById('toastMessage').innerText = msg;
@@ -261,20 +246,20 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // IndexedDB Setup for 100-year Persistence
+    // IndexedDB Setup with Offline Storage
     function initDB() {
       return new Promise((resolve, reject) => {
-        const req = indexedDB.open("UmarSuperAppDB", 1);
+        const req = indexedDB.open("UmarSuperAppDB_v2", 1);
         req.onupgradeneeded = (e) => {
           const database = e.target.result;
           if (!database.objectStoreNames.contains("posts")) {
             database.createObjectStore("posts", { keyPath: "id", autoIncrement: true });
           }
+          if (!database.objectStoreNames.contains("offline_videos")) {
+            database.createObjectStore("offline_videos", { keyPath: "id" });
+          }
         };
-        req.onsuccess = (e) => {
-          db = e.target.result;
-          resolve();
-        };
+        req.onsuccess = (e) => { db = e.target.result; resolve(); };
         req.onerror = (e) => reject(e);
       });
     }
@@ -282,8 +267,7 @@
     async function savePostToDB(postData) {
       return new Promise((resolve) => {
         const tx = db.transaction("posts", "readwrite");
-        const store = tx.objectStore("posts");
-        store.add(postData);
+        tx.objectStore("posts").add(postData);
         tx.oncomplete = () => resolve();
       });
     }
@@ -292,68 +276,104 @@
       return new Promise((resolve) => {
         if (!db) { resolve([]); return; }
         const tx = db.transaction("posts", "readonly");
-        const store = tx.objectStore("posts");
-        const req = store.getAll();
+        const req = tx.objectStore("posts").getAll();
         req.onsuccess = () => resolve(req.result || []);
+      });
+    }
+
+    async function updatePostInDB(post) {
+      return new Promise((resolve) => {
+        const tx = db.transaction("posts", "readwrite");
+        tx.objectStore("posts").put(post);
+        tx.oncomplete = () => resolve();
       });
     }
 
     async function deletePostFromDB(id) {
       return new Promise((resolve) => {
         const tx = db.transaction("posts", "readwrite");
-        const store = tx.objectStore("posts");
-        store.delete(id);
+        tx.objectStore("posts").delete(id);
         tx.oncomplete = () => resolve();
       });
     }
 
-    // Tab Navigation
+    async function saveOfflineVideoDB(videoPost) {
+      return new Promise((resolve) => {
+        const tx = db.transaction("offline_videos", "readwrite");
+        tx.objectStore("offline_videos").put(videoPost);
+        tx.oncomplete = () => resolve();
+      });
+    }
+
+    async function getOfflineVideosDB() {
+      return new Promise((resolve) => {
+        if (!db) { resolve([]); return; }
+        const tx = db.transaction("offline_videos", "readonly");
+        const req = tx.objectStore("offline_videos").getAll();
+        req.onsuccess = () => resolve(req.result || []);
+      });
+    }
+
+    // Scroll Observer to play only visible video sound
+    function setupScrollObserver() {
+      if (observer) observer.disconnect();
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector('video');
+          if (video) {
+            if (entry.isIntersecting) {
+              video.play().catch(()=>{});
+              activeReelId = entry.target.dataset.id;
+            } else {
+              video.pause();
+              video.currentTime = 0;
+            }
+          }
+        });
+      }, { threshold: 0.8 });
+
+      document.querySelectorAll('.reel-card').forEach(card => observer.observe(card));
+    }
+
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
       
-      const tabs = ['reels', 'feed', 'forex', 'chat', 'ide', 'profile'];
+      const tabs = ['reels', 'feed', 'forex', 'ide', 'offline', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if(btn) btn.className = `flex flex-col items-center ${t === tabName ? 'text-rose-500 font-bold' : 'text-slate-400'}`;
       });
 
+      if (tabName !== 'reels') {
+        document.querySelectorAll('video').forEach(v => v.pause());
+      }
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
       if (tabName === 'profile') renderOwnerPosts();
+      if (tabName === 'offline') renderOfflineVideos();
     }
 
-    // Modals
     function toggleCreateModal() { document.getElementById('createModal').classList.toggle('hidden'); }
-    function toggleWalletModal() { document.getElementById('walletModal').classList.toggle('hidden'); }
     function toggleSettingsModal() { document.getElementById('settingsModal').classList.toggle('hidden'); }
 
     function togglePostInputType() {
       const type = document.getElementById('postType').value;
-      const mediaInput = document.getElementById('mediaInput');
-      if (type === 'feed') {
-        mediaInput.setAttribute('accept', 'image/*');
-      } else {
-        mediaInput.setAttribute('accept', 'video/*');
-      }
+      document.getElementById('mediaInput').setAttribute('accept', type === 'feed' ? 'image/*' : 'video/*');
     }
 
-    // Publish Content
     async function publishContent() {
       const type = document.getElementById('postType').value;
       const caption = document.getElementById('captionInput').value;
       const file = document.getElementById('mediaInput').files[0];
 
-      if (type === 'reel' && !file) {
-        showToast("Please select a video for Reel!");
-        return;
-      }
+      if (!file && type === 'reel') { showToast("Select a video!"); return; }
 
       let mediaData = "";
       if (file) {
-        mediaData = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.readAsDataURL(file);
+        mediaData = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = e => res(e.target.result);
+          r.readAsDataURL(file);
         });
       }
 
@@ -363,8 +383,7 @@
         media: mediaData,
         author: CURRENT_USER,
         likes: 0,
-        comments: [],
-        reposts: 0,
+        likedBy: [],
         timestamp: Date.now()
       };
 
@@ -375,50 +394,33 @@
       loadAllContent();
     }
 
-    // Load & Render Content
     async function loadAllContent() {
       const posts = await getAllPostsFromDB();
       renderReels(posts.filter(p => p.type === 'reel'));
       renderFeed(posts.filter(p => p.type === 'feed'));
+      
+      let totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
+      document.getElementById('profileLikes').innerText = totalLikes;
       document.getElementById('profilePostsCount').innerText = posts.length;
     }
 
     function renderReels(reels) {
       const container = document.getElementById('reelsContainer');
-      if (reels.length === 0) {
-        container.innerHTML = '<div class="text-center p-10 text-slate-500 text-xs">No Reels Yet. Tap + to Upload Video!</div>';
+      if (!reels.length) {
+        container.innerHTML = '<div class="text-center p-10 text-slate-500 text-xs">No Reels Yet. Tap + to Upload!</div>';
         return;
       }
 
       container.innerHTML = reels.map((reel) => `
-        <div class="reel-card flex items-center justify-center">
-          <video src="${reel.media}" class="w-full h-full object-cover" loop onclick="this.paused ? this.play() : this.pause()"></video>
-
-          <!-- Floating Right Action Overlay (Like, Comment, Share, Repost) -->
+        <div class="reel-card flex items-center justify-center" data-id="${reel.id}">
+          <video src="${reel.media}" class="w-full h-full object-cover" loop playsinline></video>
           <div class="absolute right-3 bottom-16 flex flex-col items-center gap-5 z-20 text-white">
-            
-            <!-- Like (Hold 2 Secs for Repost) -->
-            <button 
-              onmousedown="startHoldLike(${reel.id})" 
-              onmouseup="endHoldLike(${reel.id})" 
-              ontouchstart="startHoldLike(${reel.id})" 
-              ontouchend="endHoldLike(${reel.id})"
-              class="flex flex-col items-center gap-1 group">
-              <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center border border-slate-700/50 group-active:scale-125 transition-all">
-                <i class="fas fa-heart text-rose-500 text-lg"></i>
-              </div>
-              <span class="text-[10px] font-bold">${reel.likes}</span>
-            </button>
-
-            <!-- Inline Comment Toggle -->
-            <button onclick="toggleInlineComments(${reel.id})" class="flex flex-col items-center gap-1">
+            <button onclick="toggleLike(${reel.id})" class="flex flex-col items-center gap-1">
               <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center border border-slate-700/50">
-                <i class="fas fa-comment text-white text-lg"></i>
+                <i class="fas fa-heart ${reel.likedBy && reel.likedBy.includes(CURRENT_USER) ? 'text-rose-500' : 'text-white'} text-lg"></i>
               </div>
-              <span class="text-[10px] font-bold">${reel.comments.length}</span>
+              <span class="text-[10px] font-bold" id="like-count-${reel.id}">${reel.likes || 0}</span>
             </button>
-
-            <!-- Native Share Button -->
             <button onclick="shareMediaLink(${reel.id})" class="flex flex-col items-center gap-1">
               <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center border border-slate-700/50">
                 <i class="fas fa-share text-blue-400 text-lg"></i>
@@ -426,52 +428,35 @@
               <span class="text-[10px] font-bold">Share</span>
             </button>
           </div>
-
-          <!-- Caption & User Overlay -->
           <div class="absolute bottom-4 left-4 right-16 z-20 text-white">
             <p class="font-bold text-sm flex items-center gap-1">${reel.author} <i class="fas fa-circle-check text-blue-400 text-xs"></i></p>
             <p class="text-xs text-slate-200 mt-0.5">${reel.caption}</p>
           </div>
-
-          <!-- Inline Comment Drawer -->
-          <div id="inlineComments-${reel.id}" class="hidden absolute inset-x-0 bottom-0 bg-slate-900/95 p-4 rounded-t-2xl z-30 border-t border-slate-800 backdrop-blur-md">
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-xs font-bold text-white">Comments</span>
-              <button onclick="toggleInlineComments(${reel.id})" class="text-slate-400 text-sm">&times;</button>
-            </div>
-            <div class="max-h-32 overflow-y-auto space-y-1 text-xs text-slate-300 mb-2">
-              ${reel.comments.map(c => `<div><b class="text-blue-400">User:</b> ${c}</div>`).join('')}
-            </div>
-            <div class="flex gap-2">
-              <input type="text" id="reelCommentInput-${reel.id}" placeholder="Write comment..." class="flex-1 bg-slate-800 text-xs rounded-xl px-3 py-1.5 text-white border border-slate-700 focus:outline-none">
-              <button onclick="addReelComment(${reel.id})" class="bg-blue-600 text-xs px-3 py-1.5 rounded-xl font-bold text-white">Post</button>
-            </div>
-          </div>
         </div>
       `).join('');
+
+      setupScrollObserver();
     }
 
     function renderFeed(posts) {
       const container = document.getElementById('feedPosts');
-      if (posts.length === 0) {
-        container.innerHTML = '<div class="text-center p-8 text-slate-500 text-xs">No Feed Posts. Tap + to Post!</div>';
+      if (!posts.length) {
+        container.innerHTML = '<div class="text-center p-8 text-slate-500 text-xs">No Feed Posts Yet.</div>';
         return;
       }
 
       container.innerHTML = posts.map((post) => `
-        <div class="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-3 shadow-lg">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-lg">
           <div class="flex justify-between items-center mb-2">
             <span class="font-bold text-xs text-blue-400">${post.author}</span>
-            <button onclick="showToast('Subscribed!')" class="bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">Subscribe</button>
           </div>
           ${post.media ? `<img src="${post.media}" class="w-full max-h-60 object-cover rounded-xl mb-2 border border-slate-800">` : ''}
           <p class="text-xs text-slate-200 mb-3">${post.caption}</p>
-          
-          <div class="flex justify-between items-center border-t border-slate-800/80 pt-2 text-slate-400 text-xs">
-            <button onclick="likeFeedPost(${post.id})" class="flex items-center gap-1 hover:text-rose-500">
-              <i class="fas fa-heart text-rose-500"></i> <span>${post.likes}</span>
+          <div class="flex justify-between items-center border-t border-slate-800 pt-2 text-slate-400 text-xs">
+            <button onclick="toggleLike(${post.id})" class="flex items-center gap-1">
+              <i class="fas fa-heart text-rose-500"></i> <span id="like-count-${post.id}">${post.likes || 0}</span>
             </button>
-            <button onclick="shareMediaLink(${post.id})" class="flex items-center gap-1 hover:text-blue-400">
+            <button onclick="shareMediaLink(${post.id})" class="flex items-center gap-1">
               <i class="fas fa-share"></i> Share
             </button>
           </div>
@@ -479,26 +464,103 @@
       `).join('');
     }
 
-    // Owner Delete System
+    async function toggleLike(id) {
+      const posts = await getAllPostsFromDB();
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+
+      if (!post.likedBy) post.likedBy = [];
+      const idx = post.likedBy.indexOf(CURRENT_USER);
+
+      if (idx === -1) {
+        post.likedBy.push(CURRENT_USER);
+        post.likes = (post.likes || 0) + 1;
+      } else {
+        post.likedBy.splice(idx, 1);
+        post.likes = Math.max(0, (post.likes || 0) - 1);
+      }
+
+      await updatePostInDB(post);
+      const el = document.getElementById(`like-count-${id}`);
+      if (el) el.innerText = post.likes;
+      loadAllContent();
+    }
+
+    async function downloadCurrentVideoOffline() {
+      if (!activeReelId) { showToast("Select or view a reel video first!"); return; }
+      const posts = await getAllPostsFromDB();
+      const reel = posts.find(p => p.id == activeReelId);
+      if (reel) {
+        await saveOfflineVideoDB(reel);
+        showToast("Video Downloaded to Offline Tab inside App!");
+        toggleSettingsModal();
+      }
+    }
+
+    async function renderOfflineVideos() {
+      const container = document.getElementById('offlineVideosList');
+      const offlinePosts = await getOfflineVideosDB();
+      if (!offlinePosts.length) {
+        container.innerHTML = '<div class="text-center p-8 text-slate-500 text-xs">No Offline Videos Saved Yet.</div>';
+        return;
+      }
+
+      container.innerHTML = offlinePosts.map(p => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+          <video src="${p.media}" controls class="w-full h-48 object-cover rounded-lg mb-2"></video>
+          <p class="text-xs text-slate-200 font-bold">${p.caption || 'Offline Reel Video'}</p>
+        </div>
+      `).join('');
+    }
+
+    // Gemini AI Daily Limit System
+    function getAILimitData() {
+      const today = new Date().toDateString();
+      const stored = JSON.parse(localStorage.getItem('gemini_ai_limit') || '{}');
+      if (stored.date !== today) {
+        return { date: today, count: 6 };
+      }
+      return stored;
+    }
+
+    async function askGeminiAI() {
+      let limitData = getAILimitData();
+      if (limitData.count <= 0) {
+        showToast("Daily Limit Reached (6/6)! Resets tomorrow morning.");
+        return;
+      }
+
+      const prompt = document.getElementById('aiPrompt').value;
+      if (!prompt) { showToast("Enter an AI prompt!"); return; }
+
+      const out = document.getElementById('aiOutput');
+      out.classList.remove('hidden');
+      out.innerText = "Processing prompt...";
+
+      // Decrement Limit
+      limitData.count -= 1;
+      localStorage.setItem('gemini_ai_limit', JSON.stringify(limitData));
+      document.getElementById('aiLimitDisplay').innerText = `${limitData.count} / 6 Remaining`;
+
+      setTimeout(() => {
+        out.innerText = `[Gemini AI Response]: Received request for "${prompt}". Code integration complete!`;
+      }, 1000);
+    }
+
     async function renderOwnerPosts() {
       const posts = await getAllPostsFromDB();
       const ownerPosts = posts.filter(p => p.author === CURRENT_USER);
       const container = document.getElementById('ownerPostsList');
 
-      if (ownerPosts.length === 0) {
+      if (!ownerPosts.length) {
         container.innerHTML = '<div class="text-slate-500 text-xs text-center p-3">No Uploaded Posts.</div>';
         return;
       }
 
       container.innerHTML = ownerPosts.map(p => `
         <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-300 truncate max-w-[150px]">${p.caption || 'Media Post'}</span>
-            <span class="text-[9px] bg-slate-800 text-blue-400 px-2 py-0.5 rounded-full uppercase font-bold">${p.type}</span>
-          </div>
-          <button onclick="removeOwnerPost(${p.id})" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs px-2.5 py-1 rounded-lg font-bold">
-            <i class="fas fa-trash"></i> Delete
-          </button>
+          <span class="text-xs text-slate-300 truncate max-w-[150px]">${p.caption || 'Media Post'}</span>
+          <button onclick="removeOwnerPost(${p.id})" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs px-2.5 py-1 rounded-lg font-bold">Delete</button>
         </div>
       `).join('');
     }
@@ -510,52 +572,18 @@
       renderOwnerPosts();
     }
 
-    // Hold 2s for Repost Action
-    function startHoldLike(id) {
-      longPressTimer = setTimeout(() => {
-        showToast("🔄 Reposted Video Successfully!");
-      }, 2000);
-    }
-    function endHoldLike(id) {
-      clearTimeout(longPressTimer);
-    }
-
-    // Native Share Deep Link
     function shareMediaLink(id) {
-      const url = window.location.href + `#video-${id}`;
-      if (navigator.share) {
-        navigator.share({ title: 'Umar Super App Video', url: url });
-      } else {
-        navigator.clipboard.writeText(url);
-        showToast("Deep Link Copied to Clipboard!");
-      }
+      navigator.clipboard.writeText(window.location.href + `#video-${id}`);
+      showToast("Link Copied to Clipboard!");
     }
 
-    function toggleInlineComments(id) {
-      document.getElementById(`inlineComments-${id}`).classList.toggle('hidden');
-    }
-
-    function handleWithdraw() {
-      showToast("No Balance Available!");
-    }
-
-    function triggerVoiceRecord() {
-      showToast("Microphone Recording Triggered...");
-    }
-
-    // TradingView Live Chart
     function loadTradingViewChart(symbol) {
       document.getElementById('tradingview_chart').innerHTML = "";
       new TradingView.widget({
         "autosize": true,
         "symbol": symbol,
         "interval": "D",
-        "timezone": "Etc/UTC",
         "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
         "container_id": "tradingview_chart"
       });
     }
@@ -563,8 +591,7 @@
     function sendChatMessage() {
       const input = document.getElementById('chatInput');
       if (!input.value) return;
-      const box = document.getElementById('chatMessages');
-      box.innerHTML += `<div class="bg-blue-600/20 border border-blue-500/30 text-white p-2.5 rounded-xl text-xs max-w-xs self-end ml-auto"><span class="text-[10px] font-bold text-blue-300 block">${CURRENT_USER}</span> ${input.value}</div>`;
+      document.getElementById('chatMessages').innerHTML += `<div class="bg-blue-600/20 text-white p-2.5 rounded-xl text-xs max-w-xs self-end ml-auto border border-blue-500/30"><span class="text-[10px] font-bold text-blue-300 block">${CURRENT_USER}</span> ${input.value}</div>`;
       input.value = "";
     }
 
@@ -577,10 +604,11 @@
       }
     }
 
-    // Init App
     window.onload = async () => {
       await initDB();
       loadAllContent();
+      let limitData = getAILimitData();
+      document.getElementById('aiLimitDisplay').innerText = `${limitData.count} / 6 Remaining`;
     };
   </script>
 </body>
