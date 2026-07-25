@@ -3,583 +3,409 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super App</title>
-
-  <!-- Google AdMob Script -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-9780067506108310~3493198071" crossorigin="anonymous"></script>
-
+  <title>Umar Super App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-
-    :root {
-      --bg-color: #08101d;
-      --card-bg: #111c2e;
-      --accent-blue: #0088ff;
-      --accent-red: #ff3355;
-      --accent-green: #00c853;
-      --text-main: #ffffff;
-      --text-sub: #8e9bb0;
-    }
-
-    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; overflow-x: hidden; }
-
-    .welcome-banner { background: linear-gradient(90deg, #0088ff, #ff3355); color: #fff; text-align: center; font-size: 12px; font-weight: bold; padding: 6px; display: none; }
-
-    header { background: var(--card-bg); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a273d; position: sticky; top: 0; z-index: 100; }
-    .logo { font-size: 18px; font-weight: bold; color: var(--accent-blue); cursor: pointer; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .weather-btn { font-size: 11px; background: rgba(0, 136, 255, 0.15); padding: 6px 10px; border-radius: 16px; border: 1px solid var(--accent-blue); color: #66b5ff; cursor: pointer; }
-    .settings-btn { font-size: 18px; cursor: pointer; padding: 4px; }
-
-    .page-section { display: none; padding: 14px; min-height: 80vh; }
-    .page-section.active { display: block; }
-
-    /* Reels Section */
-    .reels-feed { height: calc(100vh - 170px); overflow-y: scroll; scroll-snap-type: y mandatory; }
-    .reel-card { height: 100%; width: 100%; scroll-snap-align: start; position: relative; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
-    .reel-video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-actions { position: absolute; right: 12px; bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 10; }
-    
-    .action-icon { background: rgba(0,0,0,0.6); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); color: #fff; transition: 0.2s; }
-    .action-icon.liked { color: var(--accent-red); border-color: var(--accent-red); }
-
-    .reel-details { position: absolute; bottom: 20px; left: 14px; right: 75px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-
-    textarea, input[type="text"], input[type="password"], input[type="number"], select { width: 100%; background: #08101d; border: 1px solid #1a273d; border-radius: 8px; color: #fff; padding: 10px; font-size: 13px; outline: none; margin-bottom: 8px; }
-    .btn { background: var(--accent-red); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; text-align: center; }
-    .btn-blue { background: var(--accent-blue); }
-    .btn-green { background: var(--accent-green); }
-    .btn-dark { background: #1a273d; color: #fff; }
-
-    .post-card { background: var(--card-bg); padding: 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #1a273d; position: relative; }
-    .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: var(--accent-blue); }
-    .post-actions { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text-sub); }
-    .like-btn { cursor: pointer; user-select: none; }
-    .like-btn.liked { color: var(--accent-red); font-weight: bold; }
-    .delete-btn { color: #ff4444; font-size: 12px; cursor: pointer; }
-
-    /* Chat UI */
-    .chat-container { display: flex; flex-direction: column; height: 68vh; background: var(--card-bg); border-radius: 12px; border: 1px solid #1a273d; overflow: hidden; }
-    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
-    .msg-user { background: var(--accent-blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .msg-other { background: #1a273d; color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
-
-    .chat-input-bar { display: flex; gap: 6px; padding: 10px; background: #08101d; border-top: 1px solid #1a273d; align-items: center; }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
-    .stat-box { background: #08101d; padding: 12px 6px; border-radius: 8px; border: 1px solid #1a273d; text-align: center; }
-    .stat-val { font-size: 18px; font-weight: bold; color: var(--accent-blue); }
-    .stat-lbl { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
-
-    .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; transition: bottom 0.3s ease; z-index: 500; max-height: 80vh; border-top: 1px solid #1a273d; overflow-y: auto; }
-    .drawer.open { bottom: 0; }
-
-    #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #0088ff; color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; display: none; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-
-    .admob-banner { position: fixed; bottom: 52px; left: 0; right: 0; height: 50px; background: #000; border-top: 1px solid #1a273d; display: flex; align-items: center; justify-content: center; z-index: 90; }
-
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #1a273d; z-index: 100; height: 52px; }
-    .nav-item { color: var(--text-sub); text-decoration: none; font-size: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .nav-item.active { color: var(--accent-red); font-weight: bold; }
-    .add-btn { background: linear-gradient(135deg, var(--accent-red), #e91e63); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -14px; font-size: 20px; color: #fff; font-weight: bold; cursor: pointer; border: 2px solid var(--bg-color); }
+    body { background-color: #0d1117; color: #c9d1d9; font-family: sans-serif; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Reels Player Overlay */
+    .video-container { position: relative; height: calc(100vh - 120px); background: #000; }
+    .play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.8; }
   </style>
 </head>
-<body>
+<body class="pb-16">
 
-  <div id="welcomeBanner" class="welcome-banner">Welcome to Super App! 🚀</div>
-
-  <header>
-    <div class="logo" onclick="switchTab('reels-sec')">Super App</div>
-    <div class="header-right">
-      <div class="weather-btn" onclick="switchTab('weather-sec')">🌤️ <span id="hdrWeather">Karachi 32°C</span></div>
-      <div class="settings-btn" onclick="openModal('settingsDrawer')">⋮</div>
+  <!-- Top Navbar -->
+  <header class="bg-slate-900 border-b border-slate-800 p-3 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-xl font-bold text-blue-400">Super App</h1>
+    <div class="flex items-center gap-3">
+      <div id="weatherWidget" class="bg-slate-800 text-xs px-2.5 py-1 rounded-full text-blue-300 flex items-center gap-1">
+        <i class="fas font-sun text-yellow-400"></i> <span id="weatherText">Karachi 32°C</span>
+      </div>
+      <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white">
+        <i class="fas fa-ellipsis-v text-lg"></i>
+      </button>
     </div>
   </header>
 
-  <!-- REELS -->
-  <div id="reels-sec" class="page-section active" style="padding: 0;">
-    <div class="reels-feed" id="reelsContainer"></div>
-  </div>
+  <!-- APP SECTIONS -->
 
-  <!-- TEXT FEED -->
-  <div id="feed-sec" class="page-section">
-    <h3 style="margin-bottom: 12px;">📝 Public Feed</h3>
-    <div id="postsList"></div>
-  </div>
-
-  <!-- FOREX -->
-  <div id="forex-sec" class="page-section">
-    <h3 style="margin-bottom: 10px;">📈 Forex & Crypto Market</h3>
-    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-      <button class="btn btn-blue" onclick="switchChart('OANDA:XAUUSD')">XAUUSD</button>
-      <button class="btn btn-dark" onclick="switchChart('BINANCE:BTCUSD')">BTCUSD</button>
-      <button class="btn btn-dark" onclick="switchChart('FX:EURUSD')">EURUSD</button>
+  <!-- 1. REELS TAB -->
+  <section id="tab-reels" class="tab-content active">
+    <div id="reelsContainer" class="w-full">
+      <!-- Dynamic Reels Render Here -->
     </div>
-    <iframe id="forexChart" style="width:100%; height:62vh; border:none; border-radius:10px;" src="https://s.tradingview.com/widgetembed/?symbol=OANDA:XAUUSD&interval=D&hidesidetoolbar=1&theme=dark"></iframe>
-  </div>
+  </section>
 
-  <!-- WEATHER -->
-  <div id="weather-sec" class="page-section">
-    <h3>🌤️ Real-Time Weather Search</h3>
-    <div style="display:flex; gap:8px; margin: 12px 0;">
-      <input type="text" id="cityInput" placeholder="Enter city name...">
-      <button class="btn btn-blue" style="width: auto;" onclick="searchWeather()">Search</button>
+  <!-- 2. PUBLIC FEED TAB -->
+  <section id="tab-feed" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-yellow-400 mb-3"><i class="fas fa-edit"></i> Public Feed</h2>
+    <div id="feedPosts" class="space-y-4">
+      <!-- Feed Posts Render Here -->
     </div>
-    <div class="post-card" style="text-align: center; margin-top: 16px;">
-      <h2 id="wCity">Karachi</h2>
-      <h1 id="wTemp" style="font-size: 38px; color: var(--accent-blue); margin: 8px 0;">32°C</h1>
-      <p id="wCond" style="color: var(--text-sub);">Clear Sky / Sunny</p>
+  </section>
+
+  <!-- 3. FOREX & CRYPTO TAB -->
+  <section id="tab-forex" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-green-400 mb-3"><i class="fas fa-chart-line"></i> Forex & Crypto Market</h2>
+    <div class="flex gap-2 mb-3">
+      <button onclick="loadChart('XAUUSD')" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded font-bold">XAUUSD</button>
+      <button onclick="loadChart('BTCUSD')" class="bg-slate-800 text-slate-300 text-xs px-3 py-1.5 rounded font-bold">BTCUSD</button>
+      <button onclick="loadChart('EURUSD')" class="bg-slate-800 text-slate-300 text-xs px-3 py-1.5 rounded font-bold">EURUSD</button>
     </div>
-  </div>
-
-  <!-- REAL CHAT WITH AUDIO RECORDING persistent history -->
-  <div id="chat-sec" class="page-section">
-    <h3 style="margin-bottom: 8px;">💬 Direct Messages</h3>
-    <div class="chat-container">
-      <div class="chat-messages" id="chatList"></div>
-      <div class="chat-input-bar">
-        <button id="recBtn" class="btn btn-dark" style="width:auto; padding:0 12px;" onclick="toggleVoiceRecord()">🎙️ Rec</button>
-        <input type="text" id="chatInput" placeholder="Type a message..." style="margin-bottom:0;">
-        <button class="btn btn-blue" style="width:auto; padding: 0 16px;" onclick="sendChatMessage()">Send</button>
-      </div>
+    <div id="tradingview_chart" class="w-full h-96 bg-slate-900 rounded border border-slate-800 flex items-center justify-center">
+      <p class="text-slate-500 text-sm">TradingView Live Chart Stream...</p>
     </div>
-  </div>
+  </section>
 
-  <!-- IDE -->
-  <div id="ide-sec" class="page-section">
-    <h3>💻 Mobile Code IDE</h3>
-    <textarea id="ideInput" style="height: 120px; font-family: monospace; margin-top: 10px;" placeholder='print("Hello Umar")'></textarea>
-    <button class="btn btn-blue" onclick="executeIDECode()">Run Code</button>
-    <pre id="ideConsole" style="background:#000; color:#00ff88; padding:10px; border-radius:8px; margin-top:10px; font-family:monospace; min-height:80px;">Console Output Ready...</pre>
-  </div>
-
-  <!-- PROFILE PAGE (CLEAN LAYOUT WITH STATS) -->
-  <div id="profile-sec" class="page-section">
-    <div id="authBox" class="post-card">
-      <h3 style="margin-bottom: 12px;" id="authTitle">Sign Up / Login</h3>
-      <div id="stepAuth">
-        <input type="text" id="authUsername" placeholder="Enter Username">
-        <input type="password" id="authPassword" placeholder="Password">
-        <button class="btn btn-blue" onclick="nextSignupStep()">Continue</button>
-      </div>
-
-      <div id="stepAvatar" style="display:none; text-align:center;">
-        <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Choose Profile Picture or Skip</p>
-        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)">
-        <img id="avatarPreview" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" style="width:70px; height:70px; border-radius:50%; border:2px solid var(--accent-blue); margin-bottom:10px;">
-        <button class="btn btn-dark" style="margin-bottom:6px;" onclick="document.getElementById('avatarFileInput').click()">📷 Choose Picture</button>
-        <button class="btn btn-blue" onclick="finishRegistration()">Complete</button>
-        <p style="font-size:11px; color:var(--accent-blue); cursor:pointer; margin-top:8px;" onclick="finishRegistration(true)">Skip Profile Photo</p>
-      </div>
-    </div>
-
-    <div id="profileBox" style="text-align: center; padding: 10px 0; display:none;">
-      <img id="usrAvatar" src="" style="width:85px; height:85px; border-radius:50%; border:2px solid var(--accent-red); object-fit:cover;">
-      <h2 id="usrName" style="margin-top: 8px;"></h2>
-
-      <!-- STATS GRID -->
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-val" id="statLikes">0</div>
-          <div class="stat-lbl">Total Likes</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="statSubs">1</div>
-          <div class="stat-lbl">Subscribers</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" id="statPosts">0</div>
-          <div class="stat-lbl">Total Posts</div>
-        </div>
-      </div>
-      
-      <button class="btn btn-dark" style="margin-top:10px;" onclick="toggleSubscribe()">🔔 Subscribe User</button>
-    </div>
-  </div>
-
-  <!-- SETTINGS & WALLET DRAWER -->
-  <div id="settingsDrawer" class="drawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <h4>⚙️ Menu & Wallet</h4>
-      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('settingsDrawer')">✕</span>
-    </div>
-
-    <div style="background: linear-gradient(135deg, #1a273d, #0d1624); border-radius: 12px; padding: 16px; border: 1px solid var(--accent-blue); margin-bottom: 16px;">
-      <p style="font-size: 12px; color: var(--text-sub);">Available Balance</p>
-      <h1 style="color: #00ff88; margin: 4px 0;">PKR 0.00</h1>
-    </div>
-
-    <div style="display:flex; gap: 8px; margin-bottom: 16px;">
-      <input type="number" id="withdrawAmt" placeholder="Enter Withdrawal Amount" style="margin-bottom:0;">
-      <button class="btn btn-green" style="width: auto;" onclick="attemptWithdrawal()">Withdrawal</button>
-    </div>
-
-    <button class="btn btn-dark" onclick="logout()">Logout</button>
-  </div>
-
-  <!-- UPLOAD MODAL -->
-  <div id="postModal" class="drawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <h4>Create New Post / Reel</h4>
-      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('postModal')">✕</span>
-    </div>
-    <select id="postType" onchange="togglePostTypeInput()">
-      <option value="video">🎬 Reel (Select Video)</option>
-      <option value="text">📝 Text Post</option>
-    </select>
+  <!-- 4. CHAT & USER SEARCH TAB -->
+  <section id="tab-chat" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-purple-400 mb-3"><i class="fas fa-comments"></i> Direct Messages</h2>
     
-    <div id="videoUploadContainer">
-      <input type="file" id="reelVideoInput" accept="video/*">
-      <input type="text" id="reelCaptionInput" placeholder="Add caption..." style="margin-top:6px;">
+    <!-- Registered Users Search Bug Fix -->
+    <div class="mb-4">
+      <input type="text" id="userSearchInput" oninput="filterRegisteredUsers()" placeholder="Search registered users..." class="w-full bg-slate-800 border border-slate-700 text-sm rounded p-2 text-white focus:outline-none focus:border-purple-500">
+      <div id="searchResults" class="mt-2 space-y-1"></div>
     </div>
 
-    <div id="textUploadContainer" style="display:none;">
-      <textarea id="postContentText" style="height: 90px;" placeholder="Write what's on your mind..."></textarea>
+    <!-- Chat Box -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 h-80 flex flex-col justify-between">
+      <div id="chatMessages" class="overflow-y-auto space-y-2 mb-2">
+        <div class="bg-blue-600/30 border border-blue-500/30 text-white p-2 rounded-lg text-sm max-w-xs self-end ml-auto">
+          <span class="text-xs font-bold text-blue-300">@umar_developer:</span> Hi
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="micBtn" onclick="handleMicPermissionAndRecord()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 p-2.5 rounded-lg text-xs flex flex-col items-center">
+          <i class="fas fa-microphone"></i> Rec
+        </button>
+        <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+        <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. MOBILE IDE TAB -->
+  <section id="tab-ide" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-teal-400 mb-3"><i class="fas fa-laptop-code"></i> Mobile Code IDE</h2>
+    <textarea id="ideCode" rows="6" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-sm p-3 rounded-lg focus:outline-none" placeholder="Write HTML/JS code here...">console.log("Hello Umar!");</textarea>
+    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold mt-2">Run Code</button>
+    <div class="mt-3 bg-black p-3 rounded border border-slate-800 font-mono text-xs text-green-400" id="ideOutput">
+      Output: Hi
+    </div>
+  </section>
+
+  <!-- 6. PROFILE & WALLET TAB -->
+  <section id="tab-profile" class="tab-content p-4 text-center">
+    <div class="w-20 h-20 bg-rose-500/20 border-2 border-rose-500 rounded-full mx-auto flex items-center justify-center text-3xl text-rose-400 mb-2">
+      <i class="fas fa-robot"></i>
+    </div>
+    <h3 class="text-xl font-bold text-white">@umar_developer</h3>
+    <p class="text-xs text-slate-400 mb-4">Individual Developer Account</p>
+
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="bg-slate-900 p-2 border border-slate-800 rounded">
+        <p class="text-lg font-bold text-blue-400">0</p>
+        <p class="text-xs text-slate-400">Likes</p>
+      </div>
+      <div class="bg-slate-900 p-2 border border-slate-800 rounded">
+        <p class="text-lg font-bold text-blue-400">1</p>
+        <p class="text-xs text-slate-400">Subscribers</p>
+      </div>
+      <div class="bg-slate-900 p-2 border border-slate-800 rounded">
+        <p class="text-lg font-bold text-blue-400" id="profilePostsCount">0</p>
+        <p class="text-xs text-slate-400">Posts</p>
+      </div>
     </div>
 
-    <button class="btn btn-blue" style="margin-top:10px;" onclick="submitNewPost()">Publish Now</button>
+    <!-- Menu & Wallet Modal Button -->
+    <button onclick="toggleWalletModal()" class="w-full bg-slate-800 text-white py-2 rounded-lg font-semibold border border-slate-700 flex items-center justify-center gap-2">
+      <i class="fas fa-cog text-blue-400"></i> Menu & Wallet
+    </button>
+  </section>
+
+  <!-- CREATE POST / REEL MODAL -->
+  <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-end z-50">
+    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white">Create New Post / Reel</h3>
+        <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <select id="postType" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-3">
+        <option value="reel">🎬 Reel (Select Video)</option>
+        <option value="post">📝 Public Feed Post</option>
+      </select>
+      <input type="file" id="mediaInput" accept="video/*,image/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded p-2 mb-3">
+      <input type="text" id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-3 focus:outline-none">
+      <button onclick="publishMediaPost()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg">Publish Now</button>
+    </div>
   </div>
 
-  <div id="toast">Message</div>
-
-  <!-- ADMOB DISPLAY BANNER -->
-  <div class="admob-banner">
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:320px;height:50px"
-         data-ad-client="ca-app-pub-9780067506108310~3493198071"
-         data-ad-slot="1234567890"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  <!-- WALLET & MENU MODAL -->
+  <div id="walletModal" class="fixed inset-0 bg-black/80 hidden items-end z-50">
+    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white"><i class="fas fa-wallet text-green-400"></i> Menu & Wallet</h3>
+        <button onclick="toggleWalletModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <div class="bg-slate-800 p-3 rounded-lg border border-blue-500/50 mb-3">
+        <p class="text-xs text-slate-400">Available Balance</p>
+        <p class="text-2xl font-bold text-green-400">PKR 0.00</p>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <input type="number" placeholder="Enter Withdrawal Amount" class="flex-1 bg-slate-800 border border-slate-700 text-sm rounded p-2 text-white">
+        <button class="bg-emerald-600 text-white text-xs px-4 rounded font-bold">Withdrawal</button>
+      </div>
+      <button class="w-full bg-slate-800 text-red-400 py-2 rounded-lg font-bold border border-slate-700">Logout</button>
+    </div>
   </div>
 
-  <!-- NAVIGATION -->
-  <nav>
-    <a href="#" class="nav-item active" onclick="switchTab('reels-sec', this)">🎬<span>Reels</span></a>
-    <a href="#" class="nav-item" onclick="switchTab('feed-sec', this)">📝<span>Feed</span></a>
-    <a href="#" class="nav-item" onclick="switchTab('forex-sec', this)">📈<span>Forex</span></a>
-    <div class="add-btn" onclick="openModal('postModal')">+</div>
-    <a href="#" class="nav-item" onclick="switchTab('chat-sec', this)">💬<span>Chat</span></a>
-    <a href="#" class="nav-item" onclick="switchTab('ide-sec', this)">💻<span>IDE</span></a>
-    <a href="#" class="nav-item" onclick="switchTab('profile-sec', this)">👤<span>Profile</span></a>
+  <!-- SETTINGS MODAL (Private, Comments & Profile Info) -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 w-full max-w-sm p-4 rounded-xl border border-slate-800">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-white"><i class="fas fa-sliders-h text-blue-400"></i> Account Settings</h3>
+        <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <div class="space-y-4 text-sm">
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded">
+          <span>Private Account</span>
+          <input type="checkbox" id="privateAccountToggle" class="w-4 h-4 accent-blue-500">
+        </div>
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded">
+          <span>Comments On/Off</span>
+          <input type="checkbox" id="commentsToggle" checked class="w-4 h-4 accent-blue-500">
+        </div>
+        <div class="bg-slate-800 p-2.5 rounded text-xs space-y-1">
+          <p class="font-bold text-blue-400">Account Info</p>
+          <p>User: @umar_developer</p>
+          <p>Role: Platform Owner / Developer</p>
+          <p>Status: Logged In</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex justify-around items-center py-2 z-40">
+    <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
+      <i class="fas fa-film text-lg"></i>
+      <span class="text-[10px]">Reels</span>
+    </button>
+    <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-stream text-lg"></i>
+      <span class="text-[10px]">Feed</span>
+    </button>
+    <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-chart-bar text-lg"></i>
+      <span class="text-[10px]">Forex</span>
+    </button>
+    <button onclick="toggleCreateModal()" class="bg-pink-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-lg -mt-3">
+      <i class="fas fa-plus"></i>
+    </button>
+    <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-comment text-lg"></i>
+      <span class="text-[10px]">Chat</span>
+    </button>
+    <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-code text-lg"></i>
+      <span class="text-[10px]">IDE</span>
+    </button>
+    <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-user text-lg"></i>
+      <span class="text-[10px]">Profile</span>
+    </button>
   </nav>
 
+  <!-- APP JAVASCRIPT LOGIC -->
   <script>
-    let activeUser = JSON.parse(localStorage.getItem('sa_user')) || null;
-    let tempAvatar = "https://api.dicebear.com/7.x/bottts/svg?seed=Umar";
-    
-    let reelsData = JSON.parse(localStorage.getItem('sa_reels')) || [];
-    let postsData = JSON.parse(localStorage.getItem('sa_posts')) || [];
-    let chatHistory = JSON.parse(localStorage.getItem('sa_chats')) || [];
-    let userSubscribers = JSON.parse(localStorage.getItem('sa_subs')) || 1;
+    // Registered Users Mock Data
+    const registeredUsers = [
+      { username: "@umar_developer", name: "Muhammad Umar" },
+      { username: "@ali_trader", name: "Ali Forex Trader" },
+      { username: "@sara_code", name: "Sara Tech" }
+    ];
 
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isRecording = false;
+    let reelsData = [];
+    let feedData = [];
 
-    function initApp() {
-      if (!activeUser) {
-        activeUser = { username: "umar_developer", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Umar" };
-        localStorage.setItem('sa_user', JSON.stringify(activeUser));
-      } else {
-        document.getElementById('welcomeBanner').style.display = 'block';
-      }
-      updateAuthUI();
-      renderReels();
-      renderPosts();
-      renderChats();
+    // Tab Switcher
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      
+      const tabs = ['reels', 'feed', 'forex', 'chat', 'ide', 'profile'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('nav-' + t);
+        if(btn) btn.className = `flex flex-col items-center ${t === tabName ? 'text-rose-500 font-bold' : 'text-slate-400'}`;
+      });
     }
 
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    // Modal Toggles
+    function toggleCreateModal() {
+      const modal = document.getElementById('createModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+    function toggleWalletModal() {
+      const modal = document.getElementById('walletModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+    function toggleSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
     }
 
-    function switchTab(id, el) {
-      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if (el) el.classList.add('active');
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    /* AUTH & STATS */
-    function updateAuthUI() {
-      if (activeUser) {
-        document.getElementById('authBox').style.display = 'none';
-        document.getElementById('profileBox').style.display = 'block';
-        document.getElementById('usrName').innerText = '@' + activeUser.username;
-        document.getElementById('usrAvatar').src = activeUser.avatar || tempAvatar;
-        
-        // Calculate user stats
-        let myReels = reelsData.filter(r => r.author === activeUser.username);
-        let myPosts = postsData.filter(p => p.author === activeUser.username);
-        let totalCount = myReels.length + myPosts.length;
-        
-        let totalLikes = 0;
-        myReels.forEach(r => totalLikes += r.likedBy.length);
-        myPosts.forEach(p => totalLikes += p.likedBy.length);
-
-        document.getElementById('statLikes').innerText = totalLikes;
-        document.getElementById('statSubs').innerText = userSubscribers;
-        document.getElementById('statPosts').innerText = totalCount;
-      } else {
-        document.getElementById('authBox').style.display = 'block';
-        document.getElementById('profileBox').style.display = 'none';
-      }
-    }
-
-    function toggleSubscribe() {
-      userSubscribers++;
-      localStorage.setItem('sa_subs', JSON.stringify(userSubscribers));
-      updateAuthUI();
-      showToast('Subscribed!');
-    }
-
-    function attemptWithdrawal() {
-      showToast('Insufficient Balance (PKR 0.00)');
-    }
-
-    function logout() {
-      localStorage.removeItem('sa_user');
-      activeUser = null;
-      closeModal('settingsDrawer');
-      updateAuthUI();
-    }
-
-    /* UPLOAD WITH BASE64 (NO EXPIRY) */
-    function togglePostTypeInput() {
+    // Video Persistence (Base64 Conversion Fix)
+    function publishMediaPost() {
       const type = document.getElementById('postType').value;
-      document.getElementById('videoUploadContainer').style.display = type === 'video' ? 'block' : 'none';
-      document.getElementById('textUploadContainer').style.display = type === 'text' ? 'block' : 'none';
-    }
+      const caption = document.getElementById('captionInput').value;
+      const fileInput = document.getElementById('mediaInput');
+      const file = fileInput.files[0];
 
-    function submitNewPost() {
-      const type = document.getElementById('postType').value;
-
-      if (type === 'video') {
-        const fileInput = document.getElementById('reelVideoInput');
-        const caption = document.getElementById('reelCaptionInput').value.trim();
-
-        if (!fileInput.files || !fileInput.files[0]) {
-          showToast('Select a video file!');
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const newReel = {
-            id: Date.now(),
-            author: activeUser.username,
-            videoUrl: e.target.result,
-            desc: caption || 'Video Reel',
-            likedBy: [],
-            comments: []
-          };
-          reelsData.unshift(newReel);
-          localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-          renderReels();
-          updateAuthUI();
-          switchTab('reels-sec');
-          closeModal('postModal');
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        const text = document.getElementById('postContentText').value.trim();
-        if (!text) return;
-
-        const newPost = {
-          id: Date.now(),
-          author: activeUser.username,
-          text: text,
-          likedBy: [],
-          comments: []
-        };
-        postsData.unshift(newPost);
-        localStorage.setItem('sa_posts', JSON.stringify(postsData));
-        renderPosts();
-        updateAuthUI();
-        switchTab('feed-sec');
-        closeModal('postModal');
-      }
-    }
-
-    /* DELETE POST & REEL */
-    function deletePost(id, type) {
-      if (type === 'reel') {
-        reelsData = reelsData.filter(r => r.id !== id);
-        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-        renderReels();
-      } else {
-        postsData = postsData.filter(p => p.id !== id);
-        localStorage.setItem('sa_posts', JSON.stringify(postsData));
-        renderPosts();
-      }
-      updateAuthUI();
-      showToast('Deleted');
-    }
-
-    /* REELS */
-    function renderReels() {
-      const container = document.getElementById('reelsContainer');
-      container.innerHTML = '';
-
-      if (reelsData.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding-top:50px; color:var(--text-sub);">No Reels uploaded yet. Tap + to upload!</div>';
+      if (!file) {
+        alert("Please select a video or file first.");
         return;
       }
 
-      reelsData.forEach(r => {
-        const isLiked = r.likedBy.includes(activeUser.username);
-        const card = document.createElement('div');
-        card.className = 'reel-card';
-        card.innerHTML = `
-          <video class="reel-video" src="${r.videoUrl}" controls loop playsinline autoplay></video>
-          <div class="reel-actions">
-            <div class="action-icon ${isLiked ? 'liked' : ''}" onclick="toggleReelLike(${r.id})">♥</div>
-            <span style="font-size:10px; color:#fff; margin-top:-12px;">${r.likedBy.length}</span>
-            <div class="action-icon" onclick="deletePost(${r.id}, 'reel')">🗑️</div>
-          </div>
-          <div class="reel-details">
-            <h4>@${r.author}</h4>
-            <p style="font-size: 12px; color: #ccc;">${r.desc}</p>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function toggleReelLike(id) {
-      const r = reelsData.find(item => item.id === id);
-      if (r) {
-        const idx = r.likedBy.indexOf(activeUser.username);
-        if (idx > -1) r.likedBy.splice(idx, 1);
-        else r.likedBy.push(activeUser.username);
-        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-        renderReels();
-        updateAuthUI();
-      }
-    }
-
-    /* POSTS */
-    function renderPosts() {
-      const container = document.getElementById('postsList');
-      container.innerHTML = '';
-
-      postsData.forEach(p => {
-        const isLiked = p.likedBy.includes(activeUser.username);
-        const div = document.createElement('div');
-        div.className = 'post-card';
-        div.innerHTML = `
-          <div class="post-meta">
-            <span>@${p.author}</span>
-            <span class="delete-btn" onclick="deletePost(${p.id}, 'post')">🗑️ Delete</span>
-          </div>
-          <p style="font-size: 13px;">${p.text}</p>
-          <div class="post-actions">
-            <span class="like-btn ${isLiked ? 'liked' : ''}" onclick="togglePostLike(${p.id})">♥ Like (${p.likedBy.length})</span>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function togglePostLike(id) {
-      const p = postsData.find(item => item.id === id);
-      if (p) {
-        const idx = p.likedBy.indexOf(activeUser.username);
-        if (idx > -1) p.likedBy.splice(idx, 1);
-        else p.likedBy.push(activeUser.username);
-        localStorage.setItem('sa_posts', JSON.stringify(postsData));
-        renderPosts();
-        updateAuthUI();
-      }
-    }
-
-    /* CHAT & VOICE RECORDING */
-    function renderChats() {
-      const list = document.getElementById('chatList');
-      list.innerHTML = '';
-      chatHistory.forEach(c => {
-        if (c.type === 'text') {
-          list.innerHTML += `<div class="msg-bubble msg-user"><strong>@${c.user}:</strong> ${c.text}</div>`;
-        } else if (c.type === 'audio') {
-          list.innerHTML += `<div class="msg-bubble msg-user"><audio controls src="${c.audioUrl}"></audio></div>`;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const persistentMediaUrl = e.target.result; // Persistent Base64 Data URL
+        
+        if(type === 'reel') {
+          reelsData.unshift({ url: persistentMediaUrl, caption: caption, likes: 0 });
+          renderReels();
+          switchTab('reels');
+        } else {
+          feedData.unshift({ media: persistentMediaUrl, caption: caption, comments: [] });
+          renderFeed();
+          switchTab('feed');
         }
-      });
-      list.scrollTop = list.scrollHeight;
+        
+        document.getElementById('profilePostsCount').innerText = reelsData.length + feedData.length;
+        toggleCreateModal();
+      };
+      reader.readAsDataURL(file);
     }
 
+    // Render Persistent Reels with Play/Pause Control
+    function renderReels() {
+      const container = document.getElementById('reelsContainer');
+      if(reelsData.length === 0) {
+        container.innerHTML = '<div class="text-center p-10 text-slate-500">No Reels Yet. Tap + to upload!</div>';
+        return;
+      }
+      container.innerHTML = reelsData.map((item, idx) => `
+        <div class="video-container flex items-center justify-center border-b border-slate-800">
+          <video id="reelVideo-${idx}" src="${item.url}" class="w-full h-full object-cover" loop onclick="togglePlayPause(${idx})"></video>
+          <button id="playBtn-${idx}" onclick="togglePlayPause(${idx})" class="play-overlay text-white text-50 bg-black/50 p-4 rounded-full">
+            <i class="fas fa-play"></i>
+          </button>
+          <div class="absolute bottom-4 left-4 right-4 text-white">
+            <p class="font-bold text-sm">@umar_developer</p>
+            <p class="text-xs text-slate-200">${item.caption}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function togglePlayPause(idx) {
+      const video = document.getElementById(`reelVideo-${idx}`);
+      const btn = document.getElementById(`playBtn-${idx}`);
+      if(video.paused) {
+        video.play();
+        btn.style.display = 'none';
+      } else {
+        video.pause();
+        btn.style.display = 'block';
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+      }
+    }
+
+    // Render Feed & Inline Comments (No Alert Popups)
+    function renderFeed() {
+      const container = document.getElementById('feedPosts');
+      container.innerHTML = feedData.map((post, idx) => `
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+          <p class="font-bold text-xs text-blue-400 mb-2">@umar_developer</p>
+          ${post.media.startsWith('data:video') ? `<video src="${post.media}" controls class="w-full rounded mb-2"></video>` : `<img src="${post.media}" class="w-full rounded mb-2">`}
+          <p class="text-sm text-slate-200 mb-2">${post.caption}</p>
+          
+          <!-- Inline Reply Box -->
+          <div class="mt-2 border-t border-slate-800 pt-2">
+            <div id="commentsList-${idx}" class="text-xs space-y-1 mb-2 text-slate-400">
+              ${post.comments.map(c => `<div><b class="text-slate-200">User:</b> ${c}</div>`).join('')}
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="replyInput-${idx}" placeholder="Write inline reply..." class="flex-1 bg-slate-800 text-xs rounded px-2 py-1 text-white border border-slate-700">
+              <button onclick="addInlineComment(${idx})" class="bg-blue-600 text-xs px-3 py-1 rounded font-bold text-white">Reply</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addInlineComment(postIdx) {
+      const input = document.getElementById(`replyInput-${postIdx}`);
+      if(input.value.trim() !== "") {
+        feedData[postIdx].comments.push(input.value);
+        input.value = "";
+        renderFeed();
+      }
+    }
+
+    // Search Registered Users Fix
+    function filterRegisteredUsers() {
+      const q = document.getElementById('userSearchInput').value.toLowerCase();
+      const resultsDiv = document.getElementById('searchResults');
+      if(!q) { resultsDiv.innerHTML = ''; return; }
+
+      const filtered = registeredUsers.filter(u => u.username.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
+      resultsDiv.innerHTML = filtered.map(u => `
+        <div class="bg-slate-800 p-2 rounded flex justify-between items-center text-xs">
+          <div>
+            <p class="font-bold text-white">${u.name}</p>
+            <p class="text-slate-400">${u.username}</p>
+          </div>
+          <button class="bg-purple-600 text-white px-2 py-1 rounded">Message</button>
+        </div>
+      `).join('');
+    }
+
+    // Dynamic Mic Permission Request
+    async function handleMicPermissionAndRecord() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        alert("Microphone permission granted! Recording started...");
+      } catch (err) {
+        alert("Permission denied or microphone not supported.");
+      }
+    }
+
+    // Chat Message
     function sendChatMessage() {
       const input = document.getElementById('chatInput');
-      const txt = input.value.trim();
-      if (!txt) return;
-
-      chatHistory.push({ type: 'text', user: activeUser.username, text: txt });
-      localStorage.setItem('sa_chats', JSON.stringify(chatHistory));
-      input.value = '';
-      renderChats();
+      if(!input.value) return;
+      const box = document.getElementById('chatMessages');
+      box.innerHTML += `<div class="bg-blue-600/30 border border-blue-500/30 text-white p-2 rounded-lg text-sm max-w-xs self-end ml-auto"><span class="text-xs font-bold text-blue-300">@umar_developer:</span> ${input.value}</div>`;
+      input.value = "";
     }
 
-    async function toggleVoiceRecord() {
-      const btn = document.getElementById('recBtn');
-      if (!isRecording) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: 'audio/mp3' });
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              chatHistory.push({ type: 'audio', user: activeUser.username, audioUrl: e.target.result });
-              localStorage.setItem('sa_chats', JSON.stringify(chatHistory));
-              renderChats();
-            };
-            reader.readAsDataURL(blob);
-          };
-
-          mediaRecorder.start();
-          isRecording = true;
-          btn.innerText = "🛑 Stop";
-          btn.style.background = "var(--accent-red)";
-        } catch (err) {
-          showToast('Mic Access Denied');
-        }
-      } else {
-        mediaRecorder.stop();
-        isRecording = false;
-        btn.innerText = "🎙️ Rec";
-        btn.style.background = "#1a273d";
-      }
-    }
-
-    /* FOREX & IDE */
-    function switchChart(symbol) {
-      document.getElementById('forexChart').src = `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=D&hidesidetoolbar=1&theme=dark`;
-    }
-
-    function searchWeather() {
-      const city = document.getElementById('cityInput').value.trim() || 'Karachi';
-      document.getElementById('wCity').innerText = city;
-      document.getElementById('hdrWeather').innerText = city + ' 32°C';
-    }
-
-    function executeIDECode() {
-      const code = document.getElementById('ideInput').value;
+    // IDE Executor
+    function runMobileCode() {
+      const code = document.getElementById('ideCode').value;
+      const out = document.getElementById('ideOutput');
       try {
-        document.getElementById('ideConsole').innerText = eval(code);
-      } catch (e) {
-        document.getElementById('ideConsole').innerText = 'Output: ' + code;
+        let result = eval(code);
+        out.innerText = "Output: " + result;
+      } catch(e) {
+        out.innerText = "Error: " + e.message;
       }
     }
-
-    initApp();
   </script>
 </body>
 </html>
