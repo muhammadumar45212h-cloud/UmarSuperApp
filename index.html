@@ -23,6 +23,8 @@
 
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; overflow-x: hidden; }
 
+    .welcome-banner { background: linear-gradient(90deg, #0088ff, #ff3355); color: #fff; text-align: center; font-size: 12px; font-weight: bold; padding: 6px; display: none; }
+
     header { background: var(--card-bg); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1a273d; position: sticky; top: 0; z-index: 100; }
     .logo { font-size: 18px; font-weight: bold; color: var(--accent-blue); cursor: pointer; }
     .header-right { display: flex; align-items: center; gap: 10px; }
@@ -49,11 +51,12 @@
     .btn-green { background: var(--accent-green); }
     .btn-dark { background: #1a273d; color: #fff; }
 
-    .post-card { background: var(--card-bg); padding: 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #1a273d; }
+    .post-card { background: var(--card-bg); padding: 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #1a273d; position: relative; }
     .post-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: var(--accent-blue); }
     .post-actions { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text-sub); }
     .like-btn { cursor: pointer; user-select: none; }
     .like-btn.liked { color: var(--accent-red); font-weight: bold; }
+    .delete-btn { color: #ff4444; font-size: 12px; cursor: pointer; }
 
     /* Chat UI */
     .chat-container { display: flex; flex-direction: column; height: 68vh; background: var(--card-bg); border-radius: 12px; border: 1px solid #1a273d; overflow: hidden; }
@@ -61,11 +64,13 @@
     .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
     .msg-user { background: var(--accent-blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
     .msg-other { background: #1a273d; color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
-    .msg-audio { background: #1a273d; color: var(--accent-green); padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; }
 
-    .chat-input-bar { display: flex; gap: 6px; padding: 10px; background: #08101d; border-top: 1px solid #1a273d; }
+    .chat-input-bar { display: flex; gap: 6px; padding: 10px; background: #08101d; border-top: 1px solid #1a273d; align-items: center; }
 
-    .wallet-card { background: linear-gradient(135deg, #1a273d, #0d1624); border-radius: 12px; padding: 16px; border: 1px solid var(--accent-blue); margin-bottom: 16px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+    .stat-box { background: #08101d; padding: 12px 6px; border-radius: 8px; border: 1px solid #1a273d; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: bold; color: var(--accent-blue); }
+    .stat-lbl { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
 
     .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; transition: bottom 0.3s ease; z-index: 500; max-height: 80vh; border-top: 1px solid #1a273d; overflow-y: auto; }
     .drawer.open { bottom: 0; }
@@ -78,17 +83,17 @@
     .nav-item { color: var(--text-sub); text-decoration: none; font-size: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
     .nav-item.active { color: var(--accent-red); font-weight: bold; }
     .add-btn { background: linear-gradient(135deg, var(--accent-red), #e91e63); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -14px; font-size: 20px; color: #fff; font-weight: bold; cursor: pointer; border: 2px solid var(--bg-color); }
-
-    .reply-box { margin-left: 20px; border-left: 2px solid var(--accent-blue); padding-left: 8px; margin-top: 4px; font-size: 11px; color: var(--text-sub); }
   </style>
 </head>
 <body>
+
+  <div id="welcomeBanner" class="welcome-banner">Welcome to Super App! 🚀</div>
 
   <header>
     <div class="logo" onclick="switchTab('reels-sec')">Super App</div>
     <div class="header-right">
       <div class="weather-btn" onclick="switchTab('weather-sec')">🌤️ <span id="hdrWeather">Karachi 32°C</span></div>
-      <div class="settings-btn" onclick="openWalletDrawer()">⚙️</div>
+      <div class="settings-btn" onclick="openModal('settingsDrawer')">⋮</div>
     </div>
   </header>
 
@@ -128,15 +133,13 @@
     </div>
   </div>
 
-  <!-- REAL CHAT PAGE WITH VOICE -->
+  <!-- REAL CHAT WITH AUDIO RECORDING persistent history -->
   <div id="chat-sec" class="page-section">
     <h3 style="margin-bottom: 8px;">💬 Direct Messages</h3>
     <div class="chat-container">
-      <div class="chat-messages" id="chatList">
-        <div class="msg-bubble msg-other">Assalam-o-Alaikum Umar! Voice & text messaging system ready hai.</div>
-      </div>
+      <div class="chat-messages" id="chatList"></div>
       <div class="chat-input-bar">
-        <button class="btn btn-dark" style="width:auto; padding:0 10px;" onclick="sendVoiceMessage()">🎙️</button>
+        <button id="recBtn" class="btn btn-dark" style="width:auto; padding:0 12px;" onclick="toggleVoiceRecord()">🎙️ Rec</button>
         <input type="text" id="chatInput" placeholder="Type a message..." style="margin-bottom:0;">
         <button class="btn btn-blue" style="width:auto; padding: 0 16px;" onclick="sendChatMessage()">Send</button>
       </div>
@@ -151,51 +154,82 @@
     <pre id="ideConsole" style="background:#000; color:#00ff88; padding:10px; border-radius:8px; margin-top:10px; font-family:monospace; min-height:80px;">Console Output Ready...</pre>
   </div>
 
-  <!-- PROFILE PAGE WITH SIGNUP / LOGIN / AVATAR SETUP -->
+  <!-- PROFILE PAGE (CLEAN LAYOUT WITH STATS) -->
   <div id="profile-sec" class="page-section">
     <div id="authBox" class="post-card">
       <h3 style="margin-bottom: 12px;" id="authTitle">Sign Up / Login</h3>
-      
-      <!-- Step 1: Credentials -->
       <div id="stepAuth">
-        <input type="text" id="authUsername" placeholder="Enter Name / Username">
+        <input type="text" id="authUsername" placeholder="Enter Username">
         <input type="password" id="authPassword" placeholder="Password">
-        <button class="btn btn-blue" style="margin-bottom: 8px;" onclick="nextSignupStep()">Continue</button>
+        <button class="btn btn-blue" onclick="nextSignupStep()">Continue</button>
       </div>
 
-      <!-- Step 2: Avatar Selection -->
       <div id="stepAvatar" style="display:none; text-align:center;">
         <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Choose Profile Picture or Skip</p>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarFile(this)">
         <img id="avatarPreview" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" style="width:70px; height:70px; border-radius:50%; border:2px solid var(--accent-blue); margin-bottom:10px;">
-        <button class="btn btn-dark" style="margin-bottom:6px;" onclick="document.getElementById('avatarFileInput').click()">📷 Choose From Gallery</button>
-        <button class="btn btn-blue" onclick="finishRegistration()">Complete Profile</button>
+        <button class="btn btn-dark" style="margin-bottom:6px;" onclick="document.getElementById('avatarFileInput').click()">📷 Choose Picture</button>
+        <button class="btn btn-blue" onclick="finishRegistration()">Complete</button>
         <p style="font-size:11px; color:var(--accent-blue); cursor:pointer; margin-top:8px;" onclick="finishRegistration(true)">Skip Profile Photo</p>
       </div>
     </div>
 
     <div id="profileBox" style="text-align: center; padding: 10px 0; display:none;">
-      <img id="usrAvatar" src="" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--accent-red); object-fit:cover;">
+      <img id="usrAvatar" src="" style="width:85px; height:85px; border-radius:50%; border:2px solid var(--accent-red); object-fit:cover;">
       <h2 id="usrName" style="margin-top: 8px;"></h2>
-      <p style="color: var(--text-sub); font-size: 12px; margin: 6px 0;">Super App Verified User 🚀</p>
-      <button class="btn btn-blue" style="margin-top: 10px;" onclick="openWalletDrawer()">💳 Open Wallet</button>
-      <button class="btn btn-dark" style="margin-top: 8px;" onclick="logout()">Logout</button>
+
+      <!-- STATS GRID -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="statLikes">0</div>
+          <div class="stat-lbl">Total Likes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statSubs">1</div>
+          <div class="stat-lbl">Subscribers</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statPosts">0</div>
+          <div class="stat-lbl">Total Posts</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-dark" style="margin-top:10px;" onclick="toggleSubscribe()">🔔 Subscribe User</button>
     </div>
   </div>
 
-  <!-- UPLOAD MODAL (GALLERY SUPPORT) -->
+  <!-- SETTINGS & WALLET DRAWER -->
+  <div id="settingsDrawer" class="drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+      <h4>⚙️ Menu & Wallet</h4>
+      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('settingsDrawer')">✕</span>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #1a273d, #0d1624); border-radius: 12px; padding: 16px; border: 1px solid var(--accent-blue); margin-bottom: 16px;">
+      <p style="font-size: 12px; color: var(--text-sub);">Available Balance</p>
+      <h1 style="color: #00ff88; margin: 4px 0;">PKR 0.00</h1>
+    </div>
+
+    <div style="display:flex; gap: 8px; margin-bottom: 16px;">
+      <input type="number" id="withdrawAmt" placeholder="Enter Withdrawal Amount" style="margin-bottom:0;">
+      <button class="btn btn-green" style="width: auto;" onclick="attemptWithdrawal()">Withdrawal</button>
+    </div>
+
+    <button class="btn btn-dark" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- UPLOAD MODAL -->
   <div id="postModal" class="drawer">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
       <h4>Create New Post / Reel</h4>
       <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('postModal')">✕</span>
     </div>
     <select id="postType" onchange="togglePostTypeInput()">
-      <option value="video">🎬 Reel (Select from Gallery)</option>
+      <option value="video">🎬 Reel (Select Video)</option>
       <option value="text">📝 Text Post</option>
     </select>
     
     <div id="videoUploadContainer">
-      <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">Select video from phone gallery:</p>
       <input type="file" id="reelVideoInput" accept="video/*">
       <input type="text" id="reelCaptionInput" placeholder="Add caption..." style="margin-top:6px;">
     </div>
@@ -207,43 +241,7 @@
     <button class="btn btn-blue" style="margin-top:10px;" onclick="submitNewPost()">Publish Now</button>
   </div>
 
-  <!-- WALLET DRAWER (REAL 0.00 BALANCE) -->
-  <div id="walletDrawer" class="drawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-      <h4>⚙️ Settings & Wallet</h4>
-      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('walletDrawer')">✕</span>
-    </div>
-    <div class="wallet-card">
-      <p style="font-size: 12px; color: var(--text-sub);">Available Balance</p>
-      <h1 id="walletBalance" style="color: #00ff88; margin: 4px 0;">PKR 0.00</h1>
-      <p style="font-size: 10px; color: #ccc;">JazzCash / EasyPaisa / Bank Account</p>
-    </div>
-    <div style="display:flex; gap: 8px; margin-bottom: 12px;">
-      <input type="number" id="depositAmount" placeholder="Enter Amount (PKR)" style="margin-bottom:0;">
-      <button class="btn btn-green" style="width: auto;" onclick="attemptDeposit()">Deposit</button>
-    </div>
-    <div style="border-top: 1px solid #1a273d; padding-top: 10px;">
-      <p style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">Transaction History</p>
-      <div id="txHistory" style="font-size: 11px; color: var(--text-sub);">
-        <p>• No transactions found.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- COMMENTS DRAWER WITH REPLIES -->
-  <div id="commentsDrawer" class="drawer">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h4>Comments</h4>
-      <span style="cursor:pointer; font-weight:bold;" onclick="closeModal('commentsDrawer')">✕</span>
-    </div>
-    <div id="drawerCommentsList" style="max-height: 250px; overflow-y: auto; margin: 12px 0;"></div>
-    <div style="display:flex; gap:6px;">
-      <input type="text" id="drawerCommentInput" placeholder="Add a comment..." style="margin-bottom:0;">
-      <button class="btn btn-blue" style="width: auto;" onclick="submitDrawerComment()">Send</button>
-    </div>
-  </div>
-
-  <div id="toast">Link copied to clipboard!</div>
+  <div id="toast">Message</div>
 
   <!-- ADMOB DISPLAY BANNER -->
   <div class="admob-banner">
@@ -270,20 +268,25 @@
     let tempAvatar = "https://api.dicebear.com/7.x/bottts/svg?seed=Umar";
     
     let reelsData = JSON.parse(localStorage.getItem('sa_reels')) || [];
-    let postsData = JSON.parse(localStorage.getItem('sa_posts')) || [
-      { id: 1, author: 'umar_developer', text: 'Welcome to Super App! Public feed and video reels active.', likedBy: [], comments: [] }
-    ];
-    let activeCommentObj = null;
+    let postsData = JSON.parse(localStorage.getItem('sa_posts')) || [];
+    let chatHistory = JSON.parse(localStorage.getItem('sa_chats')) || [];
+    let userSubscribers = JSON.parse(localStorage.getItem('sa_subs')) || 1;
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
 
     function initApp() {
       if (!activeUser) {
-        // Auto create Umar account if fresh install
         activeUser = { username: "umar_developer", avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Umar" };
         localStorage.setItem('sa_user', JSON.stringify(activeUser));
+      } else {
+        document.getElementById('welcomeBanner').style.display = 'block';
       }
       updateAuthUI();
       renderReels();
       renderPosts();
+      renderChats();
     }
 
     function showToast(msg) {
@@ -303,70 +306,55 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    /* AUTH FLOW */
+    /* AUTH & STATS */
     function updateAuthUI() {
       if (activeUser) {
         document.getElementById('authBox').style.display = 'none';
         document.getElementById('profileBox').style.display = 'block';
         document.getElementById('usrName').innerText = '@' + activeUser.username;
         document.getElementById('usrAvatar').src = activeUser.avatar || tempAvatar;
+        
+        // Calculate user stats
+        let myReels = reelsData.filter(r => r.author === activeUser.username);
+        let myPosts = postsData.filter(p => p.author === activeUser.username);
+        let totalCount = myReels.length + myPosts.length;
+        
+        let totalLikes = 0;
+        myReels.forEach(r => totalLikes += r.likedBy.length);
+        myPosts.forEach(p => totalLikes += p.likedBy.length);
+
+        document.getElementById('statLikes').innerText = totalLikes;
+        document.getElementById('statSubs').innerText = userSubscribers;
+        document.getElementById('statPosts').innerText = totalCount;
       } else {
         document.getElementById('authBox').style.display = 'block';
         document.getElementById('profileBox').style.display = 'none';
-        document.getElementById('stepAuth').style.display = 'block';
-        document.getElementById('stepAvatar').style.display = 'none';
       }
     }
 
-    function nextSignupStep() {
-      const u = document.getElementById('authUsername').value.trim();
-      if (!u) { showToast('Please enter username'); return; }
-      document.getElementById('stepAuth').style.display = 'none';
-      document.getElementById('stepAvatar').style.display = 'block';
-    }
-
-    function handleAvatarFile(input) {
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          tempAvatar = e.target.result;
-          document.getElementById('avatarPreview').src = tempAvatar;
-        };
-        reader.readAsDataURL(input.files[0]);
-      }
-    }
-
-    function finishRegistration(skip = false) {
-      const u = document.getElementById('authUsername').value.trim() || 'user_' + Math.floor(Math.random()*1000);
-      activeUser = { username: u, avatar: skip ? "https://api.dicebear.com/7.x/bottts/svg?seed=" + u : tempAvatar };
-      localStorage.setItem('sa_user', JSON.stringify(activeUser));
+    function toggleSubscribe() {
+      userSubscribers++;
+      localStorage.setItem('sa_subs', JSON.stringify(userSubscribers));
       updateAuthUI();
-      showToast('Profile Registered!');
+      showToast('Subscribed!');
+    }
+
+    function attemptWithdrawal() {
+      showToast('Insufficient Balance (PKR 0.00)');
     }
 
     function logout() {
       localStorage.removeItem('sa_user');
       activeUser = null;
+      closeModal('settingsDrawer');
       updateAuthUI();
     }
 
-    /* WALLET */
-    function openWalletDrawer() { openModal('walletDrawer'); }
-    function attemptDeposit() {
-      showToast('No Balance Here. Deposit Gateway Offline.');
-      document.getElementById('depositAmount').value = '';
-    }
-
-    /* POST / REEL UPLOAD WITH GALLERY VIDEO */
+    /* UPLOAD WITH BASE64 (NO EXPIRY) */
     function togglePostTypeInput() {
       const type = document.getElementById('postType').value;
-      if (type === 'video') {
-        document.getElementById('videoUploadContainer').style.display = 'block';
-        document.getElementById('textUploadContainer').style.display = 'none';
-      } else {
-        document.getElementById('videoUploadContainer').style.display = 'none';
-        document.getElementById('textUploadContainer').style.display = 'block';
-      }
+      document.getElementById('videoUploadContainer').style.display = type === 'video' ? 'block' : 'none';
+      document.getElementById('textUploadContainer').style.display = type === 'text' ? 'block' : 'none';
     }
 
     function submitNewPost() {
@@ -377,26 +365,28 @@
         const caption = document.getElementById('reelCaptionInput').value.trim();
 
         if (!fileInput.files || !fileInput.files[0]) {
-          showToast('Please select a video from gallery!');
+          showToast('Select a video file!');
           return;
         }
 
-        const videoFile = fileInput.files[0];
-        const videoUrl = URL.createObjectURL(videoFile);
-
-        const newReel = {
-          id: Date.now(),
-          author: activeUser.username,
-          videoUrl: videoUrl,
-          desc: caption || 'Video Reel',
-          likedBy: [],
-          comments: []
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const newReel = {
+            id: Date.now(),
+            author: activeUser.username,
+            videoUrl: e.target.result,
+            desc: caption || 'Video Reel',
+            likedBy: [],
+            comments: []
+          };
+          reelsData.unshift(newReel);
+          localStorage.setItem('sa_reels', JSON.stringify(reelsData));
+          renderReels();
+          updateAuthUI();
+          switchTab('reels-sec');
+          closeModal('postModal');
         };
-
-        reelsData.unshift(newReel);
-        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-        renderReels();
-        switchTab('reels-sec');
+        reader.readAsDataURL(fileInput.files[0]);
       } else {
         const text = document.getElementById('postContentText').value.trim();
         if (!text) return;
@@ -408,24 +398,37 @@
           likedBy: [],
           comments: []
         };
-
         postsData.unshift(newPost);
         localStorage.setItem('sa_posts', JSON.stringify(postsData));
         renderPosts();
+        updateAuthUI();
         switchTab('feed-sec');
+        closeModal('postModal');
       }
-
-      closeModal('postModal');
-      showToast('Published Successfully!');
     }
 
-    /* REELS RENDER & LIKE SYSTEM */
+    /* DELETE POST & REEL */
+    function deletePost(id, type) {
+      if (type === 'reel') {
+        reelsData = reelsData.filter(r => r.id !== id);
+        localStorage.setItem('sa_reels', JSON.stringify(reelsData));
+        renderReels();
+      } else {
+        postsData = postsData.filter(p => p.id !== id);
+        localStorage.setItem('sa_posts', JSON.stringify(postsData));
+        renderPosts();
+      }
+      updateAuthUI();
+      showToast('Deleted');
+    }
+
+    /* REELS */
     function renderReels() {
       const container = document.getElementById('reelsContainer');
       container.innerHTML = '';
 
       if (reelsData.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding-top:50px; color:var(--text-sub);">No Reels uploaded yet. Click + to upload from gallery!</div>';
+        container.innerHTML = '<div style="text-align:center; padding-top:50px; color:var(--text-sub);">No Reels uploaded yet. Tap + to upload!</div>';
         return;
       }
 
@@ -434,12 +437,11 @@
         const card = document.createElement('div');
         card.className = 'reel-card';
         card.innerHTML = `
-          <video class="reel-video" src="${r.videoUrl}" controls loop playsinline autoplay muted></video>
+          <video class="reel-video" src="${r.videoUrl}" controls loop playsinline autoplay></video>
           <div class="reel-actions">
             <div class="action-icon ${isLiked ? 'liked' : ''}" onclick="toggleReelLike(${r.id})">♥</div>
             <span style="font-size:10px; color:#fff; margin-top:-12px;">${r.likedBy.length}</span>
-            <div class="action-icon" onclick="openCommentsDrawer(${r.id}, 'reel')">💬</div>
-            <div class="action-icon" onclick="shareContent()">↪</div>
+            <div class="action-icon" onclick="deletePost(${r.id}, 'reel')">🗑️</div>
           </div>
           <div class="reel-details">
             <h4>@${r.author}</h4>
@@ -454,17 +456,15 @@
       const r = reelsData.find(item => item.id === id);
       if (r) {
         const idx = r.likedBy.indexOf(activeUser.username);
-        if (idx > -1) {
-          r.likedBy.splice(idx, 1);
-        } else {
-          r.likedBy.push(activeUser.username);
-        }
+        if (idx > -1) r.likedBy.splice(idx, 1);
+        else r.likedBy.push(activeUser.username);
         localStorage.setItem('sa_reels', JSON.stringify(reelsData));
         renderReels();
+        updateAuthUI();
       }
     }
 
-    /* POSTS RENDER & LIKE SYSTEM */
+    /* POSTS */
     function renderPosts() {
       const container = document.getElementById('postsList');
       container.innerHTML = '';
@@ -474,12 +474,13 @@
         const div = document.createElement('div');
         div.className = 'post-card';
         div.innerHTML = `
-          <div class="post-meta"><span>@${p.author}</span></div>
+          <div class="post-meta">
+            <span>@${p.author}</span>
+            <span class="delete-btn" onclick="deletePost(${p.id}, 'post')">🗑️ Delete</span>
+          </div>
           <p style="font-size: 13px;">${p.text}</p>
           <div class="post-actions">
             <span class="like-btn ${isLiked ? 'liked' : ''}" onclick="togglePostLike(${p.id})">♥ Like (${p.likedBy.length})</span>
-            <span style="cursor:pointer;" onclick="openCommentsDrawer(${p.id}, 'post')">💬 Comments (${p.comments.length})</span>
-            <span style="cursor:pointer;" onclick="shareContent()">↪ Share</span>
           </div>
         `;
         container.appendChild(div);
@@ -490,107 +491,75 @@
       const p = postsData.find(item => item.id === id);
       if (p) {
         const idx = p.likedBy.indexOf(activeUser.username);
-        if (idx > -1) {
-          p.likedBy.splice(idx, 1);
-        } else {
-          p.likedBy.push(activeUser.username);
-        }
+        if (idx > -1) p.likedBy.splice(idx, 1);
+        else p.likedBy.push(activeUser.username);
         localStorage.setItem('sa_posts', JSON.stringify(postsData));
         renderPosts();
+        updateAuthUI();
       }
     }
 
-    /* SHARE API */
-    function shareContent() {
-      if (navigator.share) {
-        navigator.share({ title: 'Super App', url: window.location.href }).catch(() => {});
-      } else {
-        showToast('App link copied to clipboard!');
-      }
-    }
-
-    /* COMMENTS & REPLIES */
-    function openCommentsDrawer(id, type) {
-      activeCommentObj = { id, type };
-      renderCommentsList();
-      openModal('commentsDrawer');
-    }
-
-    function renderCommentsList() {
-      const list = document.getElementById('drawerCommentsList');
+    /* CHAT & VOICE RECORDING */
+    function renderChats() {
+      const list = document.getElementById('chatList');
       list.innerHTML = '';
-
-      let target = activeCommentObj.type === 'reel' ? reelsData.find(x => x.id === activeCommentObj.id) : postsData.find(x => x.id === activeCommentObj.id);
-      if (target && target.comments) {
-        target.comments.forEach((c, idx) => {
-          let repliesHTML = '';
-          if (c.replies) {
-            c.replies.forEach(rp => {
-              repliesHTML += `<div class="reply-box"><strong>@${rp.user}:</strong> ${rp.text}</div>`;
-            });
-          }
-
-          list.innerHTML += `
-            <div style="background:#08101d; padding:8px; border-radius:6px; margin-bottom:6px; font-size:12px;">
-              <strong>@${c.user}:</strong> ${c.text}
-              <div style="margin-top:4px; font-size:10px; color:var(--accent-blue); cursor:pointer;" onclick="addReplyPrompt(${idx})">↳ Reply</div>
-              ${repliesHTML}
-            </div>`;
-        });
-      }
+      chatHistory.forEach(c => {
+        if (c.type === 'text') {
+          list.innerHTML += `<div class="msg-bubble msg-user"><strong>@${c.user}:</strong> ${c.text}</div>`;
+        } else if (c.type === 'audio') {
+          list.innerHTML += `<div class="msg-bubble msg-user"><audio controls src="${c.audioUrl}"></audio></div>`;
+        }
+      });
+      list.scrollTop = list.scrollHeight;
     }
 
-    function submitDrawerComment() {
-      const txt = document.getElementById('drawerCommentInput').value.trim();
-      if (!txt || !activeCommentObj) return;
-
-      let target = activeCommentObj.type === 'reel' ? reelsData.find(x => x.id === activeCommentObj.id) : postsData.find(x => x.id === activeCommentObj.id);
-      if (target) {
-        target.comments.push({ user: activeUser.username, text: txt, replies: [] });
-        if (activeCommentObj.type === 'reel') localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-        else localStorage.setItem('sa_posts', JSON.stringify(postsData));
-
-        document.getElementById('drawerCommentInput').value = '';
-        renderCommentsList();
-        renderPosts();
-      }
-    }
-
-    function addReplyPrompt(commentIdx) {
-      const replyTxt = prompt("Enter your reply:");
-      if (!replyTxt) return;
-
-      let target = activeCommentObj.type === 'reel' ? reelsData.find(x => x.id === activeCommentObj.id) : postsData.find(x => x.id === activeCommentObj.id);
-      if (target && target.comments[commentIdx]) {
-        if (!target.comments[commentIdx].replies) target.comments[commentIdx].replies = [];
-        target.comments[commentIdx].replies.push({ user: activeUser.username, text: replyTxt });
-
-        if (activeCommentObj.type === 'reel') localStorage.setItem('sa_reels', JSON.stringify(reelsData));
-        else localStorage.setItem('sa_posts', JSON.stringify(postsData));
-
-        renderCommentsList();
-      }
-    }
-
-    /* CHAT & VOICE MOCK */
     function sendChatMessage() {
       const input = document.getElementById('chatInput');
       const txt = input.value.trim();
       if (!txt) return;
 
-      const chatList = document.getElementById('chatList');
-      chatList.innerHTML += `<div class="msg-bubble msg-user">${txt}</div>`;
+      chatHistory.push({ type: 'text', user: activeUser.username, text: txt });
+      localStorage.setItem('sa_chats', JSON.stringify(chatHistory));
       input.value = '';
-      chatList.scrollTop = chatList.scrollHeight;
+      renderChats();
     }
 
-    function sendVoiceMessage() {
-      const chatList = document.getElementById('chatList');
-      chatList.innerHTML += `<div class="msg-bubble msg-user msg-audio">🎙️ Voice Note (0:04)</div>`;
-      chatList.scrollTop = chatList.scrollHeight;
+    async function toggleVoiceRecord() {
+      const btn = document.getElementById('recBtn');
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              chatHistory.push({ type: 'audio', user: activeUser.username, audioUrl: e.target.result });
+              localStorage.setItem('sa_chats', JSON.stringify(chatHistory));
+              renderChats();
+            };
+            reader.readAsDataURL(blob);
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          btn.innerText = "🛑 Stop";
+          btn.style.background = "var(--accent-red)";
+        } catch (err) {
+          showToast('Mic Access Denied');
+        }
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        btn.innerText = "🎙️ Rec";
+        btn.style.background = "#1a273d";
+      }
     }
 
-    /* IDE & WEATHER */
+    /* FOREX & IDE */
     function switchChart(symbol) {
       document.getElementById('forexChart').src = `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=D&hidesidetoolbar=1&theme=dark`;
     }
@@ -598,16 +567,15 @@
     function searchWeather() {
       const city = document.getElementById('cityInput').value.trim() || 'Karachi';
       document.getElementById('wCity').innerText = city;
-      document.getElementById('hdrWeather').innerText = city + ' 30°C';
+      document.getElementById('hdrWeather').innerText = city + ' 32°C';
     }
 
     function executeIDECode() {
       const code = document.getElementById('ideInput').value;
-      const con = document.getElementById('ideConsole');
       try {
-        con.innerText = eval(code);
+        document.getElementById('ideConsole').innerText = eval(code);
       } catch (e) {
-        con.innerText = 'Output: ' + code;
+        document.getElementById('ideConsole').innerText = 'Output: ' + code;
       }
     }
 
