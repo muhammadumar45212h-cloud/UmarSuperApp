@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super App</title>
+  <title>Umar Super App</title>
   
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -34,23 +34,37 @@
       position: relative;
       background: #000;
     }
-    .action-btn {
-      transition: transform 0.2s;
+    .action-btn { transition: transform 0.2s; }
+    .action-btn:active { transform: scale(0.85); }
+
+    /* TOP TOAST NOTIFICATION (Replaces Browser Alert) */
+    #toastNotification {
+      transition: all 0.3s ease-in-out;
+      transform: translateY(-100%);
+      opacity: 0;
     }
-    .action-btn:active {
-      transform: scale(0.85);
+    #toastNotification.show {
+      transform: translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body class="pb-16 select-none">
 
+  <!-- TOP TOAST NOTIFICATION -->
+  <div id="toastNotification" class="fixed top-2 left-4 right-4 z-[100] bg-slate-800/95 border border-rose-500/50 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md">
+    <span id="toastMessage" class="font-medium text-slate-200">Notification Message</span>
+    <i class="fas fa-bell text-rose-400 ml-2"></i>
+  </div>
+
   <!-- TOP NAVBAR -->
   <header class="bg-slate-900/90 border-b border-slate-800/80 px-4 py-3 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md">
     <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    <div class="flex items-center gap-3">
-      <div id="weatherWidget" class="bg-slate-800 border border-slate-700/50 text-xs px-3 py-1 rounded-full text-blue-300 flex items-center gap-1">
+    <div class="flex items-center gap-2">
+      <!-- Interactive Weather Widget -->
+      <button onclick="toggleWeatherModal()" id="weatherWidget" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/50 text-[11px] px-3 py-1 rounded-full text-blue-300 flex items-center gap-1.5 transition">
         <i class="fas fa-sun text-amber-400"></i> <span id="weatherText">Karachi 32°C</span>
-      </div>
+      </button>
       <button onclick="checkAuthAndOpenModal()" class="text-slate-400 hover:text-white p-1">
         <i class="fas fa-plus-circle text-xl text-rose-500"></i>
       </button>
@@ -60,7 +74,7 @@
   <!-- 1. TIKTOK REELS TAB -->
   <section id="tab-reels" class="tab-content active">
     <div id="reelsContainer" class="reels-scroll-container w-full">
-      <!-- Dynamic Video Reels will be injected here -->
+      <div class="flex items-center justify-center h-full text-slate-500 text-xs">No Reels Available. Upload One!</div>
     </div>
   </section>
 
@@ -82,19 +96,17 @@
       <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap border border-slate-700">BTCUSD (Bitcoin)</button>
       <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap border border-slate-700">EURUSD (Euro)</button>
     </div>
-    <div class="w-full h-[450px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
+    <div class="w-full h-[430px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
   </section>
 
-  <!-- 4. CHAT TAB -->
-  <section id="tab-chat" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
-      <i class="fas fa-comments"></i> Community Chat
+  <!-- 4. TERMUX CODE RUNNER TERMINAL TAB -->
+  <section id="tab-ide" class="tab-content p-4">
+    <h2 class="text-lg font-bold text-teal-400 mb-3 flex items-center gap-2">
+      <i class="fas fa-terminal"></i> Termux Mobile Runner
     </h2>
-    <div id="chatMessages" class="h-[350px] overflow-y-auto space-y-2 mb-3 p-3 bg-slate-900/50 rounded-xl border border-slate-800"></div>
-    <div class="flex gap-2">
-      <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-      <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-sm">Send</button>
-    </div>
+    <textarea id="ideCode" rows="6" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="// Write JS/HTML Code here...&#10;console.log('Hello Umar!');"></textarea>
+    <button onclick="runMobileCode()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 rounded-xl text-xs mt-2 shadow-lg">Run Code</button>
+    <div id="ideOutput" class="mt-3 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 min-h-[100px] whitespace-pre-wrap">Output: Termux Terminal Ready...</div>
   </section>
 
   <!-- 5. USER PROFILE TAB -->
@@ -107,7 +119,7 @@
       <p id="profileStatus" class="text-xs text-slate-400">Please Login to Share Content</p>
       
       <div id="authBtnContainer" class="mt-3">
-        <button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs">Login / Sign Up</button>
+        <button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs shadow-lg">Login / Sign Up</button>
       </div>
     </div>
 
@@ -140,6 +152,9 @@
     <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-chart-line text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Forex</span>
     </button>
+    <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-code text-lg"></i><span class="text-[9px] font-semibold mt-0.5">IDE</span>
+    </button>
     <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-user text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Profile</span>
     </button>
@@ -154,7 +169,7 @@
       </div>
       <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-800 border border-slate-700 text-xs p-3 rounded-xl mb-3 text-white focus:outline-none">
       <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 text-xs p-3 rounded-xl mb-4 text-white focus:outline-none">
-      <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl text-xs mb-2">Login</button>
+      <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl text-xs mb-2 shadow-lg">Login</button>
       <p class="text-center text-xs text-slate-400">
         <span id="authToggleText">Don't have an account?</span> 
         <button onclick="switchAuthMode()" id="authToggleBtn" class="text-rose-400 font-bold ml-1">Sign Up</button>
@@ -162,11 +177,23 @@
     </div>
   </div>
 
+  <!-- MODAL: WEATHER SEARCH -->
+  <div id="weatherModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white text-sm">Search City Weather</h3>
+        <button onclick="toggleWeatherModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <input type="text" id="weatherCityInput" placeholder="Enter City (e.g., Lahore, London, Dubai)" class="w-full bg-slate-800 border border-slate-700 text-xs p-3 rounded-xl mb-3 text-white focus:outline-none">
+      <button onclick="searchWeather()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Check Weather</button>
+    </div>
+  </div>
+
   <!-- MODAL: CREATE MEDIA POST -->
   <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-3">
-        <h3 class="font-bold text-white text-sm">Upload to Gallery Feed</h3>
+        <h3 class="font-bold text-white text-sm">Upload Post</h3>
         <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
       <input type="file" id="mediaInput" accept="video/*,image/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded-xl p-2 mb-3 border border-slate-700">
@@ -175,54 +202,38 @@
     </div>
   </div>
 
-  <!-- MODAL: COMMENTS SHEET -->
-  <div id="commentsModal" class="fixed inset-0 bg-black/60 hidden justify-end flex-col z-50">
-    <div class="bg-slate-900 border-t border-slate-800 rounded-t-2xl p-4 h-[60vh] flex flex-col">
-      <div class="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
-        <h4 class="text-xs font-bold text-slate-200">Comments</h4>
-        <button onclick="toggleCommentsModal()" class="text-slate-400">&times;</button>
-      </div>
-      <div id="commentsList" class="flex-1 overflow-y-auto space-y-3 py-2"></div>
-      <div class="flex gap-2 pt-2 border-t border-slate-800">
-        <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
-        <button onclick="postComment()" class="bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Post</button>
-      </div>
-    </div>
-  </div>
-
   <!-- TradingView External Script -->
   <script src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
-    // --- FIREBASE CONFIGURATION ---
-    // (Aapke external setup key placeholders)
-    const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    // --- TOP TOAST NOTIFICATION (NO ALERT) ---
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMessage').innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
+    // --- FIREBASE SAFETY INIT ---
+    let auth, db, storage;
+    try {
+      auth = firebase.auth();
+      db = firebase.firestore();
+      storage = firebase.storage();
+    } catch(e) {
+      console.log("Firebase initialized externally or waiting for config.");
+    }
 
     let currentUser = null;
     let currentAuthIsSignUp = false;
-    let activePostIdForComments = null;
 
-    // --- AUTHENTICATION OBSERVER ---
-    auth.onAuthStateChanged(user => {
-      currentUser = user;
-      updateUIForAuth();
-      loadReels();
-    });
+    if (auth) {
+      auth.onAuthStateChanged(user => {
+        currentUser = user;
+        updateUIForAuth();
+        loadReels();
+      });
+    }
 
     function updateUIForAuth() {
       const profileUsername = document.getElementById('profileUsername');
@@ -230,19 +241,19 @@
       const authBtnContainer = document.getElementById('authBtnContainer');
 
       if (currentUser) {
-        profileUsername.innerText = currentUser.email.split('@')[0];
-        profileStatus.innerText = "Verified App User";
+        profileUsername.innerText = currentUser.email ? currentUser.email.split('@')[0] : "Umar User";
+        profileStatus.innerText = "Logged In User";
         authBtnContainer.innerHTML = `<button onclick="logout()" class="bg-slate-800 border border-slate-700 text-slate-300 font-bold px-4 py-1.5 rounded-full text-xs">Logout</button>`;
       } else {
         profileUsername.innerText = "Guest User";
         profileStatus.innerText = "Please Login to Share Content";
-        authBtnContainer.innerHTML = `<button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs">Login / Sign Up</button>`;
+        authBtnContainer.innerHTML = `<button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs shadow-lg">Login / Sign Up</button>`;
       }
     }
 
     function checkAuthAndOpenModal() {
       if (!currentUser) {
-        alert("Please login first to upload posts or interact!");
+        showToast("Please login first to upload posts or interact!");
         toggleAuthModal();
       } else {
         toggleCreateModal();
@@ -265,25 +276,47 @@
     }
 
     async function handleAuthSubmit() {
-      const email = document.getElementById('authEmail').value;
-      const pass = document.getElementById('authPassword').value;
+      const email = document.getElementById('authEmail').value.trim();
+      const pass = document.getElementById('authPassword').value.trim();
 
-      if (!email || !pass) return alert("Please fill all fields");
+      if (!email || !pass) return showToast("Please enter email and password!");
 
       try {
+        if (!auth) throw new Error("Firebase Auth is loading...");
         if (currentAuthIsSignUp) {
           await auth.createUserWithEmailAndPassword(email, pass);
+          showToast("Account Created Successfully!");
         } else {
           await auth.signInWithEmailAndPassword(email, pass);
+          showToast("Logged In Successfully!");
         }
         toggleAuthModal();
       } catch (err) {
-        alert(err.message);
+        showToast("Error: " + err.message);
       }
     }
 
     function logout() {
-      auth.signOut();
+      if (auth) auth.signOut();
+      showToast("Logged out successfully");
+    }
+
+    // --- WEATHER MODAL SEARCH ---
+    function toggleWeatherModal() {
+      const modal = document.getElementById('weatherModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function searchWeather() {
+      const city = document.getElementById('weatherCityInput').value.trim();
+      if (!city) return showToast("Enter city name!");
+      
+      // Simulated dynamic weather calculation
+      const temp = Math.floor(Math.random() * (42 - 20 + 1)) + 20;
+      document.getElementById('weatherText').innerText = `${city} ${temp}°C`;
+      toggleWeatherModal();
+      showToast(`Weather updated for ${city}`);
     }
 
     // --- TAB SWITCHING ---
@@ -291,7 +324,7 @@
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
 
-      const tabs = ['reels', 'feed', 'forex', 'profile'];
+      const tabs = ['reels', 'feed', 'forex', 'ide', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if (btn) {
@@ -304,7 +337,7 @@
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
     }
 
-    // --- REELS & MEDIA SYSTEM ---
+    // --- REELS SYSTEM ---
     function toggleCreateModal() {
       const modal = document.getElementById('createModal');
       modal.classList.toggle('hidden');
@@ -316,33 +349,38 @@
       const caption = document.getElementById('captionInput').value;
       const file = fileInput.files[0];
 
-      if (!file) return alert("Select a video or image from gallery!");
+      if (!file) return showToast("Select a video/image from gallery!");
 
-      const fileRef = storage.ref(`posts/${Date.now()}_${file.name}`);
-      await fileRef.put(file);
-      const url = await fileRef.getDownloadURL();
+      try {
+        const fileRef = storage.ref(`posts/${Date.now()}_${file.name}`);
+        await fileRef.put(file);
+        const url = await fileRef.getDownloadURL();
 
-      await db.collection('posts').add({
-        url: url,
-        type: file.type.startsWith('video') ? 'video' : 'image',
-        caption: caption,
-        user: currentUser.email.split('@')[0],
-        userId: currentUser.uid,
-        likes: 0,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+        await db.collection('posts').add({
+          url: url,
+          type: file.type.startsWith('video') ? 'video' : 'image',
+          caption: caption,
+          user: currentUser.email ? currentUser.email.split('@')[0] : 'Umar',
+          userId: currentUser.uid,
+          likes: 0,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-      fileInput.value = '';
-      document.getElementById('captionInput').value = '';
-      toggleCreateModal();
-      loadReels();
+        fileInput.value = '';
+        document.getElementById('captionInput').value = '';
+        toggleCreateModal();
+        showToast("Post Published!");
+      } catch (e) {
+        showToast("Upload Error: " + e.message);
+      }
     }
 
     function loadReels() {
+      if (!db) return;
       const container = document.getElementById('reelsContainer');
-      container.innerHTML = '';
 
       db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        if (snapshot.empty) return;
         container.innerHTML = '';
         snapshot.forEach(doc => {
           const data = doc.data();
@@ -353,39 +391,12 @@
             card.className = 'reel-card flex items-center justify-center';
             card.innerHTML = `
               <video src="${data.url}" class="w-full h-full object-cover" loop onclick="this.paused?this.play():this.pause()"></video>
-              
-              <!-- RIGHT SIDE INTERACTION BUTTONS -->
               <div class="absolute right-3 bottom-16 flex flex-col items-center gap-4 text-white z-20">
-                <button onclick="subscribeUser('${data.userId}')" class="relative action-btn">
-                  <div class="w-10 h-10 rounded-full border-2 border-rose-500 overflow-hidden bg-slate-800 flex items-center justify-center font-bold text-xs">
-                    ${data.user.substring(0,2).toUpperCase()}
-                  </div>
-                  <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-rose-500 text-[10px] w-4 h-4 rounded-full flex items-center justify-center">+</span>
-                </button>
-
-                <button onclick="likePost('${id}', ${data.likes || 0})" class="flex flex-col items-center action-btn">
-                  <i class="fas fa-heart text-2xl text-white hover:text-rose-500"></i>
+                <button class="action-btn flex flex-col items-center" onclick="likePost('${id}', ${data.likes || 0})">
+                  <i class="fas fa-heart text-2xl hover:text-rose-500"></i>
                   <span class="text-[10px] mt-1">${data.likes || 0}</span>
                 </button>
-
-                <button onclick="openComments('${id}')" class="flex flex-col items-center action-btn">
-                  <i class="fas fa-comment-dots text-2xl text-white"></i>
-                  <span class="text-[10px] mt-1">Chat</span>
-                </button>
-
-                <button onclick="sharePost('${data.url}')" class="flex flex-col items-center action-btn">
-                  <i class="fas fa-share text-2xl text-white"></i>
-                  <span class="text-[10px] mt-1">Share</span>
-                </button>
-
-                ${currentUser && currentUser.uid === data.userId ? `
-                  <button onclick="deletePost('${id}')" class="flex flex-col items-center text-red-500 action-btn">
-                    <i class="fas fa-trash text-xl"></i>
-                  </button>
-                ` : ''}
               </div>
-
-              <!-- BOTTOM CAPTION -->
               <div class="absolute bottom-4 left-3 right-16 z-20 text-white">
                 <p class="font-bold text-sm">@${data.user}</p>
                 <p class="text-xs text-slate-200 mt-0.5">${data.caption || ''}</p>
@@ -394,74 +405,12 @@
             container.appendChild(card);
           }
         });
-      });
-    }
-
-    async function likePost(id, currentLikes) {
-      if (!currentUser) return alert("Login to like!");
-      await db.collection('posts').doc(id).update({ likes: currentLikes + 1 });
-    }
-
-    async function deletePost(id) {
-      if (confirm("Delete this post?")) {
-        await db.collection('posts').doc(id).delete();
-      }
-    }
-
-    function sharePost(url) {
-      if (navigator.share) {
-        navigator.share({ title: 'Watch Video', url: url });
-      } else {
-        navigator.clipboard.writeText(url);
-        alert("Video link copied!");
-      }
-    }
-
-    // --- COMMENTS SYSTEM ---
-    function toggleCommentsModal() {
-      const modal = document.getElementById('commentsModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-    }
-
-    function openComments(postId) {
-      activePostIdForComments = postId;
-      toggleCommentsModal();
-      loadComments(postId);
-    }
-
-    function loadComments(postId) {
-      const list = document.getElementById('commentsList');
-      db.collection('posts').doc(postId).collection('comments').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
-        list.innerHTML = '';
-        snapshot.forEach(doc => {
-          const c = doc.data();
-          list.innerHTML += `
-            <div class="bg-slate-800 p-2 rounded-xl border border-slate-700 text-xs">
-              <span class="font-bold text-rose-400">@${c.user}:</span>
-              <span class="text-slate-200 ml-1">${c.text}</span>
-            </div>
-          `;
-        });
-      });
-    }
-
-    async function postComment() {
-      if (!currentUser) return alert("Login required!");
-      const input = document.getElementById('commentInput');
-      if (!input.value.trim()) return;
-
-      await db.collection('posts').doc(activePostIdForComments).collection('comments').add({
-        user: currentUser.email.split('@')[0],
-        text: input.value,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      input.value = '';
+      }, err => console.log(err));
     }
 
     // --- LIVE FOREX CHART ---
     function loadTradingViewChart(symbol) {
+      if (typeof TradingView === 'undefined') return;
       document.getElementById('tradingview_chart').innerHTML = '';
       new TradingView.widget({
         "autosize": true,
@@ -471,7 +420,18 @@
         "container_id": "tradingview_chart"
       });
     }
+
+    // --- MOBILE CODE RUNNER TERMINAL ---
+    function runMobileCode() {
+      const code = document.getElementById('ideCode').value;
+      const output = document.getElementById('ideOutput');
+      try {
+        let res = eval(code);
+        output.innerText = "Output:\n" + (res !== undefined ? res : "Code executed successfully.");
+      } catch (e) {
+        output.innerText = "Error: " + e.message;
+      }
+    }
   </script>
 </body>
 </html>
-
