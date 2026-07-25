@@ -3,347 +3,475 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Umar Super App</title>
+  <title>Super App</title>
+  
+  <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
   <style>
-    body { background-color: #090d16; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
+    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    
+
+    /* TikTok Style Video Scroll */
     .reels-scroll-container {
-      height: calc(100vh - 120px);
+      height: calc(100vh - 65px);
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
       scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
     }
     .reel-card {
-      height: calc(100vh - 120px);
+      height: calc(100vh - 65px);
       scroll-snap-align: start;
       scroll-snap-stop: always;
       position: relative;
       background: #000;
     }
-    
-    #toastNotification {
-      transition: all 0.3s ease-in-out;
-      transform: translateY(-100%);
-      opacity: 0;
+    .action-btn {
+      transition: transform 0.2s;
     }
-    #toastNotification.show {
-      transform: translateY(0);
-      opacity: 1;
+    .action-btn:active {
+      transform: scale(0.85);
     }
   </style>
 </head>
 <body class="pb-16 select-none">
 
-  <!-- TOP TOAST NOTIFICATION -->
-  <div id="toastNotification" class="fixed top-2 left-4 right-4 z-[100] bg-slate-800/95 border border-blue-500/50 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center justify-between text-xs font-semibold backdrop-blur-md">
-    <span id="toastMessage">Notification Message</span>
-    <i class="fas fa-bell text-blue-400"></i>
-  </div>
-
   <!-- TOP NAVBAR -->
   <header class="bg-slate-900/90 border-b border-slate-800/80 px-4 py-3 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md">
-    <h1 class="text-xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
+    <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
     <div class="flex items-center gap-3">
-      <div id="weatherWidget" class="bg-slate-800 border border-slate-700/50 text-xs px-3 py-1 rounded-full text-blue-300 flex items-center gap-1.5">
+      <div id="weatherWidget" class="bg-slate-800 border border-slate-700/50 text-xs px-3 py-1 rounded-full text-blue-300 flex items-center gap-1">
         <i class="fas fa-sun text-amber-400"></i> <span id="weatherText">Karachi 32°C</span>
       </div>
-      <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white p-1">
-        <i class="fas fa-ellipsis-v text-lg"></i>
+      <button onclick="checkAuthAndOpenModal()" class="text-slate-400 hover:text-white p-1">
+        <i class="fas fa-plus-circle text-xl text-rose-500"></i>
       </button>
     </div>
   </header>
 
-  <!-- 1. REELS TAB -->
+  <!-- 1. TIKTOK REELS TAB -->
   <section id="tab-reels" class="tab-content active">
-    <div id="reelsContainer" class="reels-scroll-container w-full"></div>
+    <div id="reelsContainer" class="reels-scroll-container w-full">
+      <!-- Dynamic Video Reels will be injected here -->
+    </div>
   </section>
 
   <!-- 2. PUBLIC FEED TAB -->
-  <section id="tab-feed" class="tab-content p-4 space-y-4">
-    <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2"><i class="fas fa-newspaper"></i> Public Feed</h2>
+  <section id="tab-feed" class="tab-content p-4 overflow-y-auto h-[calc(100vh-120px)]">
+    <h2 class="text-lg font-bold text-amber-400 mb-3 flex items-center gap-2">
+      <i class="fas fa-newspaper"></i> Public Feed
+    </h2>
     <div id="feedPosts" class="space-y-4"></div>
   </section>
 
   <!-- 3. FOREX & CRYPTO TAB -->
   <section id="tab-forex" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
-    <div class="flex gap-2 mb-3">
-      <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold shadow">XAUUSD</button>
-      <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-slate-300 hover:text-white text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">BTCUSD</button>
-      <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-slate-300 hover:text-white text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">EURUSD</button>
+    <h2 class="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2">
+      <i class="fas fa-chart-line"></i> Live Forex & Crypto Market
+    </h2>
+    <div class="flex gap-2 mb-3 overflow-x-auto pb-1">
+      <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap border border-slate-700">XAUUSD (Gold)</button>
+      <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap border border-slate-700">BTCUSD (Bitcoin)</button>
+      <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap border border-slate-700">EURUSD (Euro)</button>
     </div>
-    <div class="w-full h-[420px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
-      <div id="tradingview_chart" class="w-full h-full"></div>
-    </div>
+    <div class="w-full h-[450px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
   </section>
 
   <!-- 4. CHAT TAB -->
   <section id="tab-chat" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2"><i class="fas fa-comments"></i> Direct Messages</h2>
-    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 h-80 flex flex-col justify-between">
-      <div id="chatMessages" class="overflow-y-auto space-y-2 mb-2">
-        <div class="bg-blue-600/20 border border-blue-500/30 text-white p-2.5 rounded-xl text-xs max-w-xs self-end ml-auto">
-          <span class="text-[10px] font-bold text-blue-300 block">@umar_developer</span> Welcome to Super App
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-        <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Send</button>
-      </div>
+    <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
+      <i class="fas fa-comments"></i> Community Chat
+    </h2>
+    <div id="chatMessages" class="h-[350px] overflow-y-auto space-y-2 mb-3 p-3 bg-slate-900/50 rounded-xl border border-slate-800"></div>
+    <div class="flex gap-2">
+      <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+      <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-sm">Send</button>
     </div>
   </section>
 
-  <!-- 5. IDE & GEMINI AI ASSISTANT TAB -->
-  <section id="tab-ide" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="fas fa-robot"></i> Gemini AI Assistant & IDE</h2>
-    
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4 space-y-2">
-      <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-slate-300">Daily Free AI Limit</span>
-        <span id="aiLimitDisplay" class="text-xs font-bold text-amber-400">6 / 6 Remaining</span>
+  <!-- 5. USER PROFILE TAB -->
+  <section id="tab-profile" class="tab-content p-4 overflow-y-auto h-[calc(100vh-120px)]">
+    <div class="text-center mb-6">
+      <div id="profileAvatar" class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-full mx-auto flex items-center justify-center text-3xl text-white font-bold mb-2 shadow-lg overflow-hidden">
+        <i class="fas fa-user"></i>
       </div>
+      <h3 id="profileUsername" class="text-lg font-bold text-white">Guest User</h3>
+      <p id="profileStatus" class="text-xs text-slate-400">Please Login to Share Content</p>
       
-      <textarea id="aiPrompt" rows="2" placeholder="Ask AI anything..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none"></textarea>
-      
-      <button onclick="handleAiClick()" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow-md">Ask Gemini AI</button>
-      
-      <div id="aiOutput" class="text-xs text-slate-300 bg-black/50 p-2.5 rounded-xl mt-2 hidden min-h-[50px] whitespace-pre-wrap"></div>
+      <div id="authBtnContainer" class="mt-3">
+        <button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs">Login / Sign Up</button>
+      </div>
     </div>
 
-    <h3 class="text-xs font-bold text-slate-400 mb-2">Mobile Code Runner</h3>
-    <textarea id="ideCode" rows="4" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="Write JS code...">console.log("Hello Umar!");</textarea>
-    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs mt-2 shadow-lg">Run Code</button>
-    <div class="mt-2 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400" id="ideOutput">Output: Hello Umar!</div>
-  </section>
-
-  <!-- 6. OFFLINE VIDEOS PAGE TAB -->
-  <section id="tab-offline" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-rose-400 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> Saved Offline Videos</h2>
-    <div id="offlineVideosList" class="space-y-4"></div>
-  </section>
-
-  <!-- 7. PROFILE TAB -->
-  <section id="tab-profile" class="tab-content p-4">
-    <div class="text-center mb-4">
-      <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-full mx-auto flex items-center justify-center text-3xl text-white shadow-lg mb-2">
-        <i class="fas fa-user-gear"></i>
-      </div>
-      <h3 class="text-lg font-bold text-white">@umar_developer</h3>
-      <p class="text-xs text-slate-400">Platform Owner / Developer</p>
-    </div>
-
-    <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-        <p class="text-base font-black text-blue-400" id="profileLikes">0</p>
-        <p class="text-[10px] text-slate-400">Likes</p>
-      </div>
-      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-        <p class="text-base font-black text-blue-400">1</p>
-        <p class="text-[10px] text-slate-400">Subscribers</p>
-      </div>
-      <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-        <p class="text-base font-black text-blue-400" id="profilePostsCount">0</p>
+    <div class="grid grid-cols-2 gap-3 mb-4 text-center">
+      <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+        <p id="userPostsCount" class="text-base font-black text-rose-400">0</p>
         <p class="text-[10px] text-slate-400">My Posts</p>
       </div>
+      <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+        <p id="userLikesCount" class="text-base font-black text-blue-400">0</p>
+        <p class="text-[10px] text-slate-400">Total Likes</p>
+      </div>
     </div>
 
-    <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase">My Managed Uploads</h4>
-    <div id="ownerPostsList" class="space-y-2"></div>
+    <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase">My Uploads</h4>
+    <div id="myUploadsGrid" class="grid grid-cols-3 gap-2"></div>
   </section>
-
-  <!-- API KEY INPUT MODAL -->
-  <div id="apiKeyModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[99] backdrop-blur-md">
-    <div class="bg-slate-900 w-full max-w-xs p-5 rounded-2xl border border-teal-500/40 text-center shadow-2xl">
-      <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fas fa-key"></i>
-      </div>
-      <h3 class="font-bold text-sm text-white mb-1">Enter Gemini API Key</h3>
-      <p class="text-[11px] text-slate-400 mb-4">Pehli baar AI use karne ke liye key zaroori hai. Yeh ek baar save ho jayegi.</p>
-      
-      <input type="password" id="modalApiKeyInput" placeholder="Paste Key Here (AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none mb-3">
-      
-      <div class="flex gap-2">
-        <button onclick="toggleApiKeyModal()" class="flex-1 bg-slate-800 text-slate-400 text-xs py-2.5 rounded-xl font-bold">Cancel</button>
-        <button onclick="saveApiKeyFromModal()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white text-xs py-2.5 rounded-xl font-bold">Save Key</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CREATE MEDIA MODAL -->
-  <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800">
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="font-bold text-sm text-white">Create New Upload</h3>
-        <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <select id="postType" onchange="togglePostInputType()" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3">
-        <option value="reel">🎬 Reel (Video Upload)</option>
-        <option value="feed">📝 Public Feed (Photo + Text)</option>
-      </select>
-      <input type="file" id="mediaInput" accept="video/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded-xl p-2 mb-3">
-      <input type="text" id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white mb-3">
-      <button onclick="publishContent()" class="w-full bg-blue-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg">Publish Now</button>
-    </div>
-  </div>
-
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-4 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-sm text-white"><i class="fas fa-sliders text-blue-400"></i> App Settings</h3>
-        <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div class="space-y-3 text-xs">
-        <button onclick="downloadCurrentVideoOffline()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-white font-bold">
-          <span><i class="fas fa-download text-rose-400 mr-2"></i> Save Video Offline (App Library)</span>
-          <i class="fas fa-chevron-right text-slate-500"></i>
-        </button>
-        <button onclick="toggleApiKeyModal()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-teal-400 font-bold">
-          <span><i class="fas fa-key mr-2"></i> Change Gemini API Key</span>
-          <i class="fas fa-chevron-right text-slate-500"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800/80 flex justify-around items-center py-2 z-40 backdrop-blur-md">
     <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
-      <i class="fas fa-film text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Reels</span>
+      <i class="fas fa-film text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Reels</span>
     </button>
     <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-newspaper text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Feed</span>
+      <i class="fas fa-newspaper text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Feed</span>
     </button>
-    <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-chart-line text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Forex</span>
-    </button>
-    <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg -mt-3 border-2 border-slate-900">
+    <button onclick="checkAuthAndOpenModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center -mt-3 shadow-lg">
       <i class="fas fa-plus"></i>
     </button>
-    <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-robot text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">AI/IDE</span>
-    </button>
-    <button onclick="switchTab('offline')" id="nav-offline" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-download text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Offline</span>
+    <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-chart-line text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Forex</span>
     </button>
     <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-user text-lg"></i>
-      <span class="text-[9px] font-semibold mt-0.5">Profile</span>
+      <i class="fas fa-user text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Profile</span>
     </button>
   </nav>
 
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <!-- MODAL: LOGIN / SIGNUP -->
+  <div id="authModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="authTitle" class="font-bold text-white text-base">Login to Super App</h3>
+        <button onclick="toggleAuthModal()" class="text-slate-400 text-lg">&times;</button>
+      </div>
+      <input type="email" id="authEmail" placeholder="Email Address" class="w-full bg-slate-800 border border-slate-700 text-xs p-3 rounded-xl mb-3 text-white focus:outline-none">
+      <input type="password" id="authPassword" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 text-xs p-3 rounded-xl mb-4 text-white focus:outline-none">
+      <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl text-xs mb-2">Login</button>
+      <p class="text-center text-xs text-slate-400">
+        <span id="authToggleText">Don't have an account?</span> 
+        <button onclick="switchAuthMode()" id="authToggleBtn" class="text-rose-400 font-bold ml-1">Sign Up</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE MEDIA POST -->
+  <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold text-white text-sm">Upload to Gallery Feed</h3>
+        <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <input type="file" id="mediaInput" accept="video/*,image/*" class="w-full bg-slate-800 text-xs text-slate-300 rounded-xl p-2 mb-3 border border-slate-700">
+      <textarea id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl mb-3 h-20 focus:outline-none"></textarea>
+      <button onclick="publishContent()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Post</button>
+    </div>
+  </div>
+
+  <!-- MODAL: COMMENTS SHEET -->
+  <div id="commentsModal" class="fixed inset-0 bg-black/60 hidden justify-end flex-col z-50">
+    <div class="bg-slate-900 border-t border-slate-800 rounded-t-2xl p-4 h-[60vh] flex flex-col">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800 mb-2">
+        <h4 class="text-xs font-bold text-slate-200">Comments</h4>
+        <button onclick="toggleCommentsModal()" class="text-slate-400">&times;</button>
+      </div>
+      <div id="commentsList" class="flex-1 overflow-y-auto space-y-3 py-2"></div>
+      <div class="flex gap-2 pt-2 border-t border-slate-800">
+        <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none">
+        <button onclick="postComment()" class="bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl">Post</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TradingView External Script -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
-    const CURRENT_USER = "@umar_developer";
-    let db = null;
+    // --- FIREBASE CONFIGURATION ---
+    // (Aapke external setup key placeholders)
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
-    function showToast(msg) {
-      const toast = document.getElementById('toastNotification');
-      document.getElementById('toastMessage').innerText = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
 
-    function toggleApiKeyModal() {
-      const modal = document.getElementById('apiKeyModal');
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    let currentUser = null;
+    let currentAuthIsSignUp = false;
+    let activePostIdForComments = null;
+
+    // --- AUTHENTICATION OBSERVER ---
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+      updateUIForAuth();
+      loadReels();
+    });
+
+    function updateUIForAuth() {
+      const profileUsername = document.getElementById('profileUsername');
+      const profileStatus = document.getElementById('profileStatus');
+      const authBtnContainer = document.getElementById('authBtnContainer');
+
+      if (currentUser) {
+        profileUsername.innerText = currentUser.email.split('@')[0];
+        profileStatus.innerText = "Verified App User";
+        authBtnContainer.innerHTML = `<button onclick="logout()" class="bg-slate-800 border border-slate-700 text-slate-300 font-bold px-4 py-1.5 rounded-full text-xs">Logout</button>`;
+      } else {
+        profileUsername.innerText = "Guest User";
+        profileStatus.innerText = "Please Login to Share Content";
+        authBtnContainer.innerHTML = `<button onclick="toggleAuthModal()" class="bg-rose-600 text-white font-bold px-6 py-1.5 rounded-full text-xs">Login / Sign Up</button>`;
+      }
+    }
+
+    function checkAuthAndOpenModal() {
+      if (!currentUser) {
+        alert("Please login first to upload posts or interact!");
+        toggleAuthModal();
+      } else {
+        toggleCreateModal();
+      }
+    }
+
+    // --- AUTH MODAL CONTROLS ---
+    function toggleAuthModal() {
+      const modal = document.getElementById('authModal');
       modal.classList.toggle('hidden');
       modal.classList.toggle('flex');
     }
 
-    function handleAiClick() {
-      const savedKey = localStorage.getItem('my_gemini_key');
-      if (!savedKey) {
-        toggleApiKeyModal();
-      } else {
-        askGeminiAI(savedKey);
-      }
+    function switchAuthMode() {
+      currentAuthIsSignUp = !currentAuthIsSignUp;
+      document.getElementById('authTitle').innerText = currentAuthIsSignUp ? "Sign Up for Super App" : "Login to Super App";
+      document.getElementById('authSubmitBtn').innerText = currentAuthIsSignUp ? "Sign Up" : "Login";
+      document.getElementById('authToggleText').innerText = currentAuthIsSignUp ? "Already have an account?" : "Don't have an account?";
+      document.getElementById('authToggleBtn').innerText = currentAuthIsSignUp ? "Login" : "Sign Up";
     }
 
-    function saveApiKeyFromModal() {
-      const keyVal = document.getElementById('modalApiKeyInput').value.trim();
-      if (!keyVal) {
-        showToast("Please enter a valid key!");
-        return;
-      }
-      localStorage.setItem('my_gemini_key', keyVal);
-      showToast("API Key Saved!");
-      toggleApiKeyModal();
-      askGeminiAI(keyVal);
-    }
+    async function handleAuthSubmit() {
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
 
-    async function askGeminiAI(savedKey) {
-      const prompt = document.getElementById('aiPrompt').value;
-      if (!prompt) { showToast("Enter a question first!"); return; }
-
-      const out = document.getElementById('aiOutput');
-      out.classList.remove('hidden');
-      out.innerText = "Gemini is thinking...";
+      if (!email || !pass) return alert("Please fill all fields");
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-
-        const data = await res.json();
-        if(data.error) throw new Error(data.error.message);
-        
-        out.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
-      } catch (e) {
-        out.innerText = "Error: " + e.message;
-        if(e.message.includes("API key")) {
-          localStorage.removeItem('my_gemini_key');
+        if (currentAuthIsSignUp) {
+          await auth.createUserWithEmailAndPassword(email, pass);
+        } else {
+          await auth.signInWithEmailAndPassword(email, pass);
         }
+        toggleAuthModal();
+      } catch (err) {
+        alert(err.message);
       }
     }
 
+    function logout() {
+      auth.signOut();
+    }
+
+    // --- TAB SWITCHING ---
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
-      
-      const tabs = ['reels', 'feed', 'forex', 'ide', 'offline', 'profile'];
+
+      const tabs = ['reels', 'feed', 'forex', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
-        if(btn) btn.className = `flex flex-col items-center ${t === tabName ? 'text-rose-500 font-bold' : 'text-slate-400'}`;
+        if (btn) {
+          btn.className = (t === tabName) ? 
+            'flex flex-col items-center text-rose-500' : 
+            'flex flex-col items-center text-slate-400';
+        }
       });
 
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
     }
 
-    function toggleCreateModal() { document.getElementById('createModal').classList.toggle('hidden'); }
-    function toggleSettingsModal() { document.getElementById('settingsModal').classList.toggle('hidden'); }
+    // --- REELS & MEDIA SYSTEM ---
+    function toggleCreateModal() {
+      const modal = document.getElementById('createModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
 
+    async function publishContent() {
+      const fileInput = document.getElementById('mediaInput');
+      const caption = document.getElementById('captionInput').value;
+      const file = fileInput.files[0];
+
+      if (!file) return alert("Select a video or image from gallery!");
+
+      const fileRef = storage.ref(`posts/${Date.now()}_${file.name}`);
+      await fileRef.put(file);
+      const url = await fileRef.getDownloadURL();
+
+      await db.collection('posts').add({
+        url: url,
+        type: file.type.startsWith('video') ? 'video' : 'image',
+        caption: caption,
+        user: currentUser.email.split('@')[0],
+        userId: currentUser.uid,
+        likes: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      fileInput.value = '';
+      document.getElementById('captionInput').value = '';
+      toggleCreateModal();
+      loadReels();
+    }
+
+    function loadReels() {
+      const container = document.getElementById('reelsContainer');
+      container.innerHTML = '';
+
+      db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const id = doc.id;
+
+          if (data.type === 'video') {
+            const card = document.createElement('div');
+            card.className = 'reel-card flex items-center justify-center';
+            card.innerHTML = `
+              <video src="${data.url}" class="w-full h-full object-cover" loop onclick="this.paused?this.play():this.pause()"></video>
+              
+              <!-- RIGHT SIDE INTERACTION BUTTONS -->
+              <div class="absolute right-3 bottom-16 flex flex-col items-center gap-4 text-white z-20">
+                <button onclick="subscribeUser('${data.userId}')" class="relative action-btn">
+                  <div class="w-10 h-10 rounded-full border-2 border-rose-500 overflow-hidden bg-slate-800 flex items-center justify-center font-bold text-xs">
+                    ${data.user.substring(0,2).toUpperCase()}
+                  </div>
+                  <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-rose-500 text-[10px] w-4 h-4 rounded-full flex items-center justify-center">+</span>
+                </button>
+
+                <button onclick="likePost('${id}', ${data.likes || 0})" class="flex flex-col items-center action-btn">
+                  <i class="fas fa-heart text-2xl text-white hover:text-rose-500"></i>
+                  <span class="text-[10px] mt-1">${data.likes || 0}</span>
+                </button>
+
+                <button onclick="openComments('${id}')" class="flex flex-col items-center action-btn">
+                  <i class="fas fa-comment-dots text-2xl text-white"></i>
+                  <span class="text-[10px] mt-1">Chat</span>
+                </button>
+
+                <button onclick="sharePost('${data.url}')" class="flex flex-col items-center action-btn">
+                  <i class="fas fa-share text-2xl text-white"></i>
+                  <span class="text-[10px] mt-1">Share</span>
+                </button>
+
+                ${currentUser && currentUser.uid === data.userId ? `
+                  <button onclick="deletePost('${id}')" class="flex flex-col items-center text-red-500 action-btn">
+                    <i class="fas fa-trash text-xl"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <!-- BOTTOM CAPTION -->
+              <div class="absolute bottom-4 left-3 right-16 z-20 text-white">
+                <p class="font-bold text-sm">@${data.user}</p>
+                <p class="text-xs text-slate-200 mt-0.5">${data.caption || ''}</p>
+              </div>
+            `;
+            container.appendChild(card);
+          }
+        });
+      });
+    }
+
+    async function likePost(id, currentLikes) {
+      if (!currentUser) return alert("Login to like!");
+      await db.collection('posts').doc(id).update({ likes: currentLikes + 1 });
+    }
+
+    async function deletePost(id) {
+      if (confirm("Delete this post?")) {
+        await db.collection('posts').doc(id).delete();
+      }
+    }
+
+    function sharePost(url) {
+      if (navigator.share) {
+        navigator.share({ title: 'Watch Video', url: url });
+      } else {
+        navigator.clipboard.writeText(url);
+        alert("Video link copied!");
+      }
+    }
+
+    // --- COMMENTS SYSTEM ---
+    function toggleCommentsModal() {
+      const modal = document.getElementById('commentsModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function openComments(postId) {
+      activePostIdForComments = postId;
+      toggleCommentsModal();
+      loadComments(postId);
+    }
+
+    function loadComments(postId) {
+      const list = document.getElementById('commentsList');
+      db.collection('posts').doc(postId).collection('comments').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
+        list.innerHTML = '';
+        snapshot.forEach(doc => {
+          const c = doc.data();
+          list.innerHTML += `
+            <div class="bg-slate-800 p-2 rounded-xl border border-slate-700 text-xs">
+              <span class="font-bold text-rose-400">@${c.user}:</span>
+              <span class="text-slate-200 ml-1">${c.text}</span>
+            </div>
+          `;
+        });
+      });
+    }
+
+    async function postComment() {
+      if (!currentUser) return alert("Login required!");
+      const input = document.getElementById('commentInput');
+      if (!input.value.trim()) return;
+
+      await db.collection('posts').doc(activePostIdForComments).collection('comments').add({
+        user: currentUser.email.split('@')[0],
+        text: input.value,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      input.value = '';
+    }
+
+    // --- LIVE FOREX CHART ---
     function loadTradingViewChart(symbol) {
-      document.getElementById('tradingview_chart').innerHTML = "";
+      document.getElementById('tradingview_chart').innerHTML = '';
       new TradingView.widget({
         "autosize": true,
         "symbol": symbol,
-        "interval": "D",
+        "interval": "60",
         "theme": "dark",
         "container_id": "tradingview_chart"
       });
     }
-
-    function runMobileCode() {
-      try {
-        let result = eval(document.getElementById('ideCode').value);
-        document.getElementById('ideOutput').innerText = "Output: " + result;
-      } catch(e) {
-        document.getElementById('ideOutput').innerText = "Error: " + e.message;
-      }
-    }
   </script>
 </body>
 </html>
+
