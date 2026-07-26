@@ -5,70 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Umar Super App</title>
   
-  <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-
   <style>
     body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-
-    /* Reel Container */
-    .reels-scroll-container {
-      height: calc(100vh - 60px);
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-    }
-    .reel-card {
-      height: calc(100vh - 60px);
-      scroll-snap-align: start;
-      position: relative;
-      background: #000;
-    }
-
-    /* Bottom Sheet Animation */
-    .bottom-sheet {
-      transition: transform 0.3s ease-out;
-      transform: translateY(100%);
-    }
-    .bottom-sheet.open {
-      transform: translateY(0);
-    }
+    .reels-scroll-container { height: calc(100vh - 110px); overflow-y: scroll; scroll-snap-type: y mandatory; }
+    .reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
+    .bottom-sheet { transition: transform 0.3s ease-out; transform: translateY(100%); }
+    .bottom-sheet.open { transform: translateY(0); }
   </style>
 </head>
-<body class="pb-16 select-none">
+<body class="pb-20 select-none">
 
   <!-- TOP APP BAR -->
   <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
     <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    <div class="flex items-center gap-2">
-      <span id="weatherText" class="text-xs text-amber-300 font-semibold bg-slate-800 px-2.5 py-1 rounded-full"><i class="fas fa-sun text-amber-400 mr-1"></i> Karachi 32°C</span>
+    
+    <!-- CHAT & CALL HEADER ACTIONS -->
+    <div class="flex items-center gap-3">
+      <button onclick="toggleChatModal()" class="relative text-slate-300 hover:text-rose-400 text-lg">
+        <i class="fas fa-paper-plane"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white">2</span>
+      </button>
     </div>
   </header>
 
   <!-- 1. TIKTOK REELS TAB -->
-  <section id="tab-reels" class="tab-content active pt-12">
+  <section id="tab-reels" class="tab-content active pt-14">
     <div id="reelsContainer" class="reels-scroll-container w-full">
-      <!-- Demo Reel Card -->
       <div class="reel-card flex items-center justify-center">
-        <video src="https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4" class="w-full h-full object-cover" loop autoplay muted></video>
+        <video id="activeReelVideo" src="https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4" class="w-full h-full object-cover" loop autoplay muted playsinline></video>
         
-        <!-- Right Side Overlay Controls -->
+        <!-- Controls -->
         <div class="absolute right-3 bottom-20 flex flex-col items-center gap-5 text-white z-20">
-          <button class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-rose-500"></i><span class="text-[10px] font-bold">1421</span></button>
+          <button onclick="toggleLike(this)" class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-rose-500"></i><span id="likeCount" class="text-[10px] font-bold">1421</span></button>
           
-          <!-- Share Sheet Trigger -->
-          <button onclick="openShareSheet('102938', 'aqibofficial')" class="flex flex-col items-center"><i class="fas fa-share text-2xl hover:text-emerald-400"></i><span class="text-[10px] font-bold">Share</span></button>
+          <button onclick="openShareSheet('102938', 'aqibofficial', true)" class="flex flex-col items-center"><i class="fas fa-share text-2xl hover:text-emerald-400"></i><span class="text-[10px] font-bold">Share</span></button>
           
-          <!-- Analytics Trigger -->
-          <button onclick="openAnalyticsModal('1421', '382', '891')" class="flex flex-col items-center bg-slate-800/80 p-2 rounded-full border border-slate-700/50"><i class="fas fa-chart-bar text-amber-400 text-lg"></i></button>
+          <button onclick="toggleSave(this)" class="flex flex-col items-center"><i class="fas fa-bookmark text-2xl text-slate-400"></i><span class="text-[10px] font-bold">Save</span></button>
         </div>
 
         <div class="absolute bottom-6 left-3 right-16 z-20 text-white">
@@ -82,9 +59,27 @@
 
   <!-- 2. PUBLIC FEED TAB -->
   <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto">
-    <h2 class="text-base font-bold text-slate-200 mb-3"><i class="fas fa-newspaper text-rose-500 mr-2"></i>Public Activity Feed</h2>
-    <div id="feedPosts" class="space-y-4">
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-slate-400">Feed items will load here...</div>
+    <!-- CREATE TEXT POST BOX -->
+    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4">
+      <textarea id="feedTextContent" placeholder="What's on your mind?" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-lg h-16 focus:outline-none mb-2"></textarea>
+      <div class="flex justify-between items-center">
+        <span class="text-[10px] text-slate-500"><i class="fas fa-globe mr-1"></i>Public Post</span>
+        <button onclick="publishTextPost()" class="bg-rose-600 text-white text-xs px-4 py-1.5 rounded-lg font-bold">Post</button>
+      </div>
+    </div>
+
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Posts</h2>
+    <div id="feedPosts" class="space-y-3 pb-24">
+      <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-7 h-7 bg-indigo-600 rounded-full flex items-center justify-center text-xs font-bold text-white">U</div>
+          <div>
+            <p class="text-xs font-bold text-white">Umar Official</p>
+            <p class="text-[9px] text-slate-500">Just now</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-300">Super App production code fully optimized and live on Vercel!</p>
+      </div>
     </div>
   </section>
 
@@ -92,50 +87,47 @@
   <section id="tab-forex" class="tab-content pt-16 p-4">
     <h2 class="text-base font-bold text-emerald-400 mb-3"><i class="fas fa-chart-line mr-2"></i>Forex & Crypto Market Live</h2>
     <div class="flex gap-2 mb-3">
-      <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">XAUUSD</button>
-      <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">BTCUSD</button>
-      <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">EURUSD</button>
+      <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-slate-800 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">XAUUSD</button>
+      <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">BTCUSD</button>
+      <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-blue-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700">EURUSD</button>
     </div>
-    <div class="w-full h-[450px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
+    <div class="w-full h-[400px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
   </section>
 
-  <!-- 4. PROFILE TAB (Isolated completely) -->
-  <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto">
-    <div class="text-center mb-6">
+  <!-- 4. PROFILE TAB -->
+  <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
+    <div class="flex justify-end mb-2">
+      <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fas fa-cog"></i></button>
+    </div>
+    
+    <div class="text-center mb-5">
       <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-indigo-500 rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-2 text-white shadow-xl">
         <i class="fas fa-user"></i>
       </div>
-      <h3 id="profileUsername" class="text-lg font-bold text-white">Umar Official</h3>
+      <h3 class="text-lg font-bold text-white">Umar Official</h3>
       <p class="text-xs text-slate-400 italic">Full Stack & App Developer</p>
     </div>
 
-    <!-- User Stats -->
+    <!-- Stats Grid -->
     <div class="grid grid-cols-4 gap-2 mb-6 text-center">
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <p class="text-sm font-black text-rose-400">12</p>
-        <p class="text-[9px] text-slate-400 uppercase">Posts</p>
-      </div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <p class="text-sm font-black text-purple-400">8</p>
-        <p class="text-[9px] text-slate-400 uppercase">Videos</p>
-      </div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <p class="text-sm font-black text-emerald-400">1.4K</p>
-        <p class="text-[9px] text-slate-400 uppercase">Subs</p>
-      </div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <p class="text-sm font-black text-blue-400">45.2K</p>
-        <p class="text-[9px] text-slate-400 uppercase">Likes</p>
-      </div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-rose-400">12</p><p class="text-[9px] text-slate-400 uppercase">Posts</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-purple-400">8</p><p class="text-[9px] text-slate-400 uppercase">Videos</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-emerald-400">1.4K</p><p class="text-[9px] text-slate-400 uppercase">Subs</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-blue-400">45.2K</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
     </div>
 
     <h4 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">My Gallery Uploads</h4>
-    <div class="grid grid-cols-3 gap-2">
-      <div class="h-28 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center"><i class="fas fa-video text-slate-700 text-xl"></i></div>
-      <div class="h-28 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center"><i class="fas fa-video text-slate-700 text-xl"></i></div>
-      <div class="h-28 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center"><i class="fas fa-video text-slate-700 text-xl"></i></div>
+    <div id="profileGrid" class="grid grid-cols-3 gap-2">
+      <div class="h-28 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center text-slate-600 text-xs">No Uploads</div>
     </div>
   </section>
+
+  <!-- WEATHER BADGE FIXED AT BOTTOM RIGHT -->
+  <div class="fixed bottom-16 right-3 z-30">
+    <div class="bg-slate-800/90 border border-slate-700/80 px-2.5 py-1 rounded-full text-[10px] text-amber-300 font-semibold shadow-lg backdrop-blur-md flex items-center gap-1.5">
+      <i class="fas fa-sun text-amber-400"></i> Karachi 32°C
+    </div>
+  </div>
 
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40 backdrop-blur-md">
@@ -156,84 +148,126 @@
     </button>
   </nav>
 
-  <!-- MODAL: UPLOAD FROM MOBILE GALLERY -->
+  <!-- MODAL: UPLOAD FROM GALLERY -->
   <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-images text-rose-500"></i> Choose from Mobile Gallery</h3>
+        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-file-video text-rose-500"></i> Select Media from Gallery</h3>
         <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
       
-      <!-- Direct Mobile Storage Input -->
-      <label class="block mb-3">
-        <span class="text-xs text-slate-400 mb-1 block">Select Video or Photo</span>
-        <input type="file" id="mediaGalleryInput" accept="video/*,image/*" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl cursor-pointer">
-      </label>
-
+      <input type="file" id="mediaGalleryInput" accept="video/*" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl cursor-pointer mb-3">
       <textarea id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-4 h-20 focus:outline-none"></textarea>
       
-      <button onclick="uploadFromGallery()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Post</button>
+      <button onclick="uploadGalleryVideo()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Video</button>
     </div>
   </div>
 
-  <!-- HALF-SCREEN BOTTOM SHEET FOR SHARE -->
+  <!-- HALF-SCREEN SHARE BOTTOM SHEET -->
   <div id="shareOverlay" onclick="closeShareSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity"></div>
-  <div id="shareSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-5 rounded-t-3xl z-50 max-h-[50vh]">
+  <div id="shareSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-5 rounded-t-3xl z-50 max-h-[60vh]">
     <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-4"></div>
-    <h3 class="text-sm font-bold text-white mb-3 text-center">Share Video</h3>
+    <h3 class="text-sm font-bold text-white mb-3 text-center">Share & Analytics</h3>
     
-    <!-- Generated Video Share Link Input -->
     <div class="flex gap-2 mb-4">
       <input type="text" id="shareUrlInput" readonly class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl">
-      <button onclick="copyShareLink()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-4 rounded-xl">Copy</button>
+      <button onclick="copyShareLink()" class="bg-rose-600 text-white font-bold text-xs px-4 rounded-xl">Copy</button>
     </div>
 
     <!-- Social Friends Grid -->
-    <div class="grid grid-cols-4 gap-3 text-center">
-      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-11 h-11 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center text-lg"><i class="fab fa-whatsapp"></i></div><span class="text-[10px] text-slate-300">WhatsApp</span></button>
-      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-11 h-11 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-lg"><i class="fab fa-facebook"></i></div><span class="text-[10px] text-slate-300">Facebook</span></button>
-      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-11 h-11 bg-sky-600/20 text-sky-400 rounded-full flex items-center justify-center text-lg"><i class="fab fa-telegram"></i></div><span class="text-[10px] text-slate-300">Telegram</span></button>
-      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-11 h-11 bg-slate-800 text-rose-400 rounded-full flex items-center justify-center text-lg"><i class="fas fa-link"></i></div><span class="text-[10px] text-slate-300">Copy Link</span></button>
+    <div class="grid grid-cols-4 gap-3 text-center mb-4">
+      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center"><i class="fab fa-whatsapp"></i></div><span class="text-[9px] text-slate-300">WhatsApp</span></button>
+      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center"><i class="fab fa-facebook"></i></div><span class="text-[9px] text-slate-300">Facebook</span></button>
+      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-sky-600/20 text-sky-400 rounded-full flex items-center justify-center"><i class="fab fa-telegram"></i></div><span class="text-[9px] text-slate-300">Telegram</span></button>
+      <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-slate-800 text-rose-400 rounded-full flex items-center justify-center"><i class="fas fa-link"></i></div><span class="text-[9px] text-slate-300">Copy Link</span></button>
+    </div>
+
+    <!-- OWNER-ONLY ANALYTICS BUTTON -->
+    <div id="ownerAnalyticsBtn" class="hidden">
+      <button onclick="toggleAnalyticsModal()" class="w-full bg-slate-800 border border-amber-500/30 text-amber-400 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2">
+        <i class="fas fa-chart-line"></i> View Video Analytics (Owner Only)
+      </button>
     </div>
   </div>
 
-  <!-- VIDEO ANALYTICS OVERLAY MODAL -->
+  <!-- VIDEO ANALYTICS MODAL -->
   <div id="analyticsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-chart-line text-amber-400"></i> Realtime Video Analytics</h3>
+        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-chart-bar text-amber-400"></i> Video Earnings & Insights</h3>
         <button onclick="toggleAnalyticsModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
 
-      <!-- Total Earnings -->
-      <div class="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/30 p-3.5 rounded-xl mb-4 text-center">
-        <p class="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">Estimated Revenue</p>
+      <div class="bg-emerald-950/40 border border-emerald-500/30 p-3.5 rounded-xl mb-4 text-center">
+        <p class="text-[10px] text-emerald-400 font-bold uppercase">Estimated Video Earnings</p>
         <p class="text-2xl font-black text-emerald-300 mt-0.5">$0.00</p>
       </div>
 
-      <!-- Real Analytics Grid -->
-      <div class="grid grid-cols-3 gap-2 text-center mb-4">
-        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-          <p id="statLikes" class="text-xs font-bold text-rose-400">0</p>
-          <p class="text-[9px] text-slate-400 uppercase">Likes</p>
-        </div>
-        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-          <p id="statComments" class="text-xs font-bold text-sky-400">0</p>
-          <p class="text-[9px] text-slate-400 uppercase">Comments</p>
-        </div>
-        <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
-          <p id="statSaved" class="text-xs font-bold text-emerald-400">0</p>
-          <p class="text-[9px] text-slate-400 uppercase">Saved</p>
-        </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50"><p class="text-xs font-bold text-rose-400">1421</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
+        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50"><p class="text-xs font-bold text-sky-400">382</p><p class="text-[9px] text-slate-400 uppercase">Comments</p></div>
+        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50"><p class="text-xs font-bold text-emerald-400">891</p><p class="text-[9px] text-slate-400 uppercase">Saved</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGES & CALL MODAL -->
+  <div id="chatModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800 h-[480px] flex flex-col">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <h3 class="font-bold text-white text-sm"><i class="fas fa-comments text-rose-500 mr-2"></i>Messages & History</h3>
+        <button onclick="toggleChatModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
 
-      <p class="text-[10px] text-slate-500 text-center">Analytics updated real-time via Vercel analytics engine.</p>
+      <!-- Chat History List -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-3">
+        <div class="flex justify-between items-center bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/40">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold">A</div>
+            <div>
+              <p class="text-xs font-bold text-white">Aqib Official</p>
+              <p class="text-[10px] text-slate-400">Hey, video is live!</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="startCall('Aqib Official', 'Voice')" class="text-emerald-400 hover:text-emerald-300 text-xs p-1.5 bg-slate-800 rounded-lg"><i class="fas fa-phone"></i></button>
+            <button onclick="startCall('Aqib Official', 'Video')" class="text-indigo-400 hover:text-indigo-300 text-xs p-1.5 bg-slate-800 rounded-lg"><i class="fas fa-video"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE SETTINGS MODAL -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-white text-sm"><i class="fas fa-cog text-rose-500 mr-2"></i>Profile Settings</h3>
+        <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="text-slate-400 mb-1 block">Account Information</label>
+          <input type="text" value="Umar Official" class="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded-lg mb-2">
+          <input type="email" value="umar@superapp.com" class="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded-lg">
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg">
+          <span class="text-slate-200">Private Account</span>
+          <input type="checkbox" class="accent-rose-500">
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg">
+          <span class="text-slate-200">Allow Comments</span>
+          <input type="checkbox" checked class="accent-rose-500">
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
-    // --- TAB SWITCHING ---
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
@@ -247,29 +281,66 @@
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
     }
 
-    // --- GALLERY UPLOAD MODAL ---
     function toggleCreateModal() {
       const modal = document.getElementById('createModal');
       modal.classList.toggle('hidden');
       modal.classList.toggle('flex');
     }
 
-    function uploadFromGallery() {
-      const file = document.getElementById('mediaGalleryInput').files[0];
-      if(!file) return alert('Please select a video or photo from gallery first!');
-      
-      alert('Post Uploaded Successfully from Gallery!');
+    function uploadGalleryVideo() {
+      const fileInput = document.getElementById('mediaGalleryInput');
+      const caption = document.getElementById('captionInput').value;
+
+      if (!fileInput.files[0]) return alert('Please select a video file from gallery!');
+
+      const videoUrl = URL.createObjectURL(fileInput.files[0]);
+
+      // Set Active Video
+      const activeVideo = document.getElementById('activeReelVideo');
+      activeVideo.src = videoUrl;
+
+      // Add Video Tile to Profile
+      const profileGrid = document.getElementById('profileGrid');
+      if (profileGrid.innerText.includes("No Uploads")) profileGrid.innerHTML = '';
+
+      const videoThumb = document.createElement('div');
+      videoThumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative";
+      videoThumb.innerHTML = `<video src="${videoUrl}" class="w-full h-full object-cover"></video>`;
+      profileGrid.prepend(videoThumb);
+
+      alert('Video Posted Successfully!');
       toggleCreateModal();
+      switchTab('reels');
     }
 
-    // --- BOTTOM SHEET SHARE ---
-    function openShareSheet(videoId, username) {
+    function publishTextPost() {
+      const text = document.getElementById('feedTextContent').value;
+      if (!text.trim()) return alert('Please write something to post!');
+
+      const feedPosts = document.getElementById('feedPosts');
+      const postCard = document.createElement('div');
+      postCard.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
+      postCard.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-7 h-7 bg-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white">U</div>
+          <div><p class="text-xs font-bold text-white">Umar Official</p><p class="text-[9px] text-slate-500">Just now</p></div>
+        </div>
+        <p class="text-xs text-slate-300">${text}</p>
+      `;
+      feedPosts.prepend(postCard);
+      document.getElementById('feedTextContent').value = '';
+    }
+
+    function openShareSheet(videoId, username, isOwner) {
       const overlay = document.getElementById('shareOverlay');
       const sheet = document.getElementById('shareSheet');
       const urlInput = document.getElementById('shareUrlInput');
+      const ownerBtn = document.getElementById('ownerAnalyticsBtn');
 
-      // Unique App Video Link Format
       urlInput.value = `https://umar-super-app.vercel.app/video?id=${videoId}&user=${username}`;
+
+      if (isOwner) ownerBtn.classList.remove('hidden');
+      else ownerBtn.classList.add('hidden');
 
       overlay.classList.remove('hidden');
       setTimeout(() => {
@@ -281,12 +352,9 @@
     function closeShareSheet() {
       const overlay = document.getElementById('shareOverlay');
       const sheet = document.getElementById('shareSheet');
-
       sheet.classList.remove('open');
       overlay.classList.add('opacity-0');
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-      }, 300);
+      setTimeout(() => overlay.classList.add('hidden'), 300);
     }
 
     function copyShareLink() {
@@ -296,21 +364,51 @@
       closeShareSheet();
     }
 
-    // --- ANALYTICS MODAL ---
-    function openAnalyticsModal(likes, comments, saved) {
-      document.getElementById('statLikes').innerText = likes;
-      document.getElementById('statComments').innerText = comments;
-      document.getElementById('statSaved').innerText = saved;
-      toggleAnalyticsModal();
+    function toggleLike(btn) {
+      const icon = btn.querySelector('i');
+      const counter = document.getElementById('likeCount');
+      let val = parseInt(counter.innerText);
+      if (icon.classList.contains('text-rose-500')) {
+        icon.className = 'fas fa-heart text-2xl text-slate-400';
+        counter.innerText = val - 1;
+      } else {
+        icon.className = 'fas fa-heart text-2xl text-rose-500';
+        counter.innerText = val + 1;
+      }
+    }
+
+    function toggleSave(btn) {
+      const icon = btn.querySelector('i');
+      if (icon.classList.contains('text-emerald-400')) {
+        icon.className = 'fas fa-bookmark text-2xl text-slate-400';
+      } else {
+        icon.className = 'fas fa-bookmark text-2xl text-emerald-400';
+      }
     }
 
     function toggleAnalyticsModal() {
+      closeShareSheet();
       const modal = document.getElementById('analyticsModal');
       modal.classList.toggle('hidden');
       modal.classList.toggle('flex');
     }
 
-    // --- FOREX TRADING VIEW ---
+    function toggleChatModal() {
+      const modal = document.getElementById('chatModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function toggleSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function startCall(user, type) {
+      alert(`Starting ${type} Call with ${user}...`);
+    }
+
     function loadTradingViewChart(symbol) {
       if (typeof TradingView === 'undefined') return;
       document.getElementById('tradingview_chart').innerHTML = '';
