@@ -14,14 +14,14 @@
     .tab-content.active { display: block; }
     
     .reels-scroll-container {
-      height: calc(100vh - 160px);
+      height: calc(100vh - 120px);
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
     .reel-card {
-      height: calc(100vh - 160px);
+      height: calc(100vh - 120px);
       scroll-snap-align: start;
       scroll-snap-stop: always;
       position: relative;
@@ -29,7 +29,7 @@
     }
     
     #toastNotification {
-      transition: all 0.3s ease-in-out;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
       transform: translateY(-150%);
       opacity: 0;
     }
@@ -37,13 +37,19 @@
       transform: translateY(0);
       opacity: 1;
     }
+    .action-btn {
+      transition: transform 0.1s ease;
+    }
+    .action-btn:active {
+      transform: scale(0.85);
+    }
   </style>
 </head>
-<body class="pb-20 select-none">
+<body class="pb-16 select-none">
 
   <!-- TOP TOAST NOTIFICATION -->
   <div id="toastNotification" class="fixed top-2 left-4 right-4 z-[100] bg-slate-800/95 border border-blue-500/50 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center justify-between text-xs font-semibold backdrop-blur-md">
-    <span id="toastMessage">Notification Message</span>
+    <span id="toastMessage">Notification</span>
     <i class="fas fa-bell text-blue-400"></i>
   </div>
 
@@ -84,52 +90,13 @@
     </div>
   </section>
 
-  <!-- 4. CHAT TAB -->
-  <section id="tab-chat" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2"><i class="fas fa-comments"></i> Direct Messages</h2>
-    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 h-80 flex flex-col justify-between">
-      <div id="chatMessages" class="overflow-y-auto space-y-2 mb-2">
-        <div class="bg-blue-600/20 border border-blue-500/30 text-white p-2.5 rounded-xl text-xs max-w-xs self-end ml-auto">
-          <span class="text-[10px] font-bold text-blue-300 block">@umar_developer</span> Welcome to Super App Chat!
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="text" id="chatInput" placeholder="Type a message..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-        <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Send</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. IDE & GEMINI AI ASSISTANT TAB -->
-  <section id="tab-ide" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-teal-400 mb-2 flex items-center gap-2"><i class="fas fa-robot"></i> Gemini AI Assistant & IDE</h2>
-    
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4 space-y-2">
-      <div class="flex justify-between items-center mb-1">
-        <span class="text-xs font-bold text-slate-300">Gemini AI Engine</span>
-        <span class="text-xs font-bold text-teal-400">Online & Fast</span>
-      </div>
-      
-      <textarea id="aiPrompt" rows="2" placeholder="Ask AI anything..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none"></textarea>
-      
-      <button onclick="handleAiClick()" class="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white py-2 rounded-xl font-bold text-xs shadow-md">Ask Gemini AI</button>
-      
-      <div id="aiOutput" class="text-xs text-slate-300 bg-black/50 p-2.5 rounded-xl mt-2 hidden min-h-[50px] whitespace-pre-wrap"></div>
-    </div>
-
-    <h3 class="text-xs font-bold text-slate-400 mb-2">Mobile Code Runner</h3>
-    <textarea id="ideCode" rows="3" class="w-full bg-slate-900 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none" placeholder="Write JS code...">console.log("Super App Fast Performance!");</textarea>
-    <button onclick="runMobileCode()" class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold text-xs mt-2 shadow-lg">Run Code</button>
-    <div class="mt-2 bg-black p-3 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400" id="ideOutput">Output: Ready</div>
-  </section>
-
-  <!-- 6. OFFLINE VIDEOS PAGE TAB -->
+  <!-- 4. OFFLINE VIDEOS PAGE TAB -->
   <section id="tab-offline" class="tab-content p-4">
     <h2 class="text-lg font-bold text-rose-400 mb-3 flex items-center gap-2"><i class="fas fa-download"></i> Saved Offline Videos</h2>
     <div id="offlineVideosList" class="space-y-4"></div>
   </section>
 
-  <!-- 7. PROFILE TAB -->
+  <!-- 5. PROFILE TAB -->
   <section id="tab-profile" class="tab-content p-4">
     <div class="text-center mb-4">
       <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-full mx-auto flex items-center justify-center text-3xl text-white shadow-lg mb-2">
@@ -145,7 +112,7 @@
         <p class="text-[10px] text-slate-400">Likes</p>
       </div>
       <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-        <p class="text-base font-black text-blue-400">1</p>
+        <p class="text-base font-black text-blue-400" id="profileSubs">1</p>
         <p class="text-[10px] text-slate-400">Subscribers</p>
       </div>
       <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
@@ -154,36 +121,9 @@
       </div>
     </div>
 
-    <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase">My Managed Uploads</h4>
+    <h4 class="text-xs font-bold text-slate-300 mb-2 uppercase">My Uploaded Videos & Posts</h4>
     <div id="ownerPostsList" class="space-y-2"></div>
   </section>
-
-  <!-- ADMOB BANNER AD CONTAINER (Sticky Bottom above Navbar) -->
-  <div class="fixed bottom-14 left-0 right-0 bg-slate-900/90 border-t border-slate-800 py-1 flex justify-center items-center z-30">
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:320px;height:50px"
-         data-ad-client="ca-app-pub-9780067506108310~3493198071"
-         data-ad-slot="AUTO_SLOT"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-  </div>
-
-  <!-- API KEY INPUT MODAL -->
-  <div id="apiKeyModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[99] backdrop-blur-md">
-    <div class="bg-slate-900 w-full max-w-xs p-5 rounded-2xl border border-teal-500/40 text-center shadow-2xl">
-      <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fas fa-key"></i>
-      </div>
-      <h3 class="font-bold text-sm text-white mb-1">Enter Gemini API Key</h3>
-      <p class="text-[11px] text-slate-400 mb-4">Pehli baar AI use karne ke liye key zaroori hai.</p>
-      <input type="password" id="modalApiKeyInput" placeholder="Paste Key Here (AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl focus:outline-none mb-3">
-      <div class="flex gap-2">
-        <button onclick="toggleApiKeyModal()" class="flex-1 bg-slate-800 text-slate-400 text-xs py-2.5 rounded-xl font-bold">Cancel</button>
-        <button onclick="saveApiKeyFromModal()" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white text-xs py-2.5 rounded-xl font-bold">Save Key</button>
-      </div>
-    </div>
-  </div>
 
   <!-- CREATE MEDIA MODAL -->
   <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
@@ -202,20 +142,33 @@
     </div>
   </div>
 
+  <!-- COMMENTS MODAL -->
+  <div id="commentModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800 max-h-[60vh] flex flex-col justify-between">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-xs text-white">Comments</h3>
+        <button onclick="toggleCommentModal()" class="text-slate-400 text-lg">&times;</button>
+      </div>
+      <div id="commentList" class="overflow-y-auto space-y-2 my-2 flex-1 text-xs text-slate-300">
+        <p class="text-slate-500 text-center text-[11px]">No comments yet. Be the first!</p>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+        <input type="text" id="commentInput" placeholder="Add a comment..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+        <button onclick="addComment()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold">Post</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SETTINGS MODAL -->
   <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-4 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-sm text-white"><i class="fas fa-sliders text-blue-400"></i> App Settings</h3>
+        <h3 class="font-bold text-sm text-white"><i class="fas fa-sliders text-blue-400"></i> Settings</h3>
         <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
       <div class="space-y-3 text-xs">
         <button onclick="downloadCurrentVideoOffline()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-white font-bold">
-          <span><i class="fas fa-download text-rose-400 mr-2"></i> Save Current Reel Offline</span>
-          <i class="fas fa-chevron-right text-slate-500"></i>
-        </button>
-        <button onclick="toggleApiKeyModal()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-left flex items-center justify-between text-teal-400 font-bold">
-          <span><i class="fas fa-key mr-2"></i> Change Gemini API Key</span>
+          <span><i class="fas fa-download text-rose-400 mr-2"></i> Save Active Video Offline</span>
           <i class="fas fa-chevron-right text-slate-500"></i>
         </button>
       </div>
@@ -239,10 +192,6 @@
     <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg -mt-3 border-2 border-slate-900">
       <i class="fas fa-plus"></i>
     </button>
-    <button onclick="switchTab('ide')" id="nav-ide" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-robot text-lg"></i>
-      <span class="text-[9px] mt-0.5">AI/IDE</span>
-    </button>
     <button onclick="switchTab('offline')" id="nav-offline" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-download text-lg"></i>
       <span class="text-[9px] mt-0.5">Offline</span>
@@ -257,15 +206,15 @@
 
   <script>
     const CURRENT_USER = "@umar_developer";
+    let activeReelId = 1;
     
-    // Sample Initial Data for High Speed & Smooth UI
     let reelsData = [
-      { id: 1, user: "@umar_developer", video: "https://www.w3schools.com/html/mov_bbb.mp4", caption: "Welcome to Umar Super App! Fast performance🚀", likes: 125, liked: false },
-      { id: 2, user: "@tech_guru", video: "https://www.w3schools.com/html/movie.mp4", caption: "Enjoying the smooth video scrolling experience.", likes: 89, liked: false }
+      { id: 1, user: "@aqibofficial", video: "https://www.w3schools.com/html/mov_bbb.mp4", caption: "AQIB VIDEO EDITION", likes: 12, comments: [], subscribed: false, liked: false },
+      { id: 2, user: "@umar_developer", video: "https://www.w3schools.com/html/movie.mp4", caption: "Super App New Release 🚀", likes: 89, comments: [], subscribed: false, liked: false }
     ];
 
     let feedData = [
-      { id: 101, user: "@umar_developer", text: "Super app is now fully optimized with AdMob support and high speed!", likes: 45, liked: false }
+      { id: 101, user: "@umar_developer", text: "Super app optimized with fast speed & clean design!", likes: 45, liked: false }
     ];
 
     let offlineVideos = [];
@@ -277,59 +226,11 @@
       setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
-    function toggleApiKeyModal() {
-      const modal = document.getElementById('apiKeyModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-    }
-
-    function handleAiClick() {
-      const savedKey = localStorage.getItem('my_gemini_key');
-      if (!savedKey) {
-        toggleApiKeyModal();
-      } else {
-        askGeminiAI(savedKey);
-      }
-    }
-
-    function saveApiKeyFromModal() {
-      const keyVal = document.getElementById('modalApiKeyInput').value.trim();
-      if (!keyVal) { showToast("Please enter a valid key!"); return; }
-      localStorage.setItem('my_gemini_key', keyVal);
-      showToast("API Key Saved Successfully!");
-      toggleApiKeyModal();
-      askGeminiAI(keyVal);
-    }
-
-    async function askGeminiAI(savedKey) {
-      const prompt = document.getElementById('aiPrompt').value;
-      if (!prompt) { showToast("Enter a question first!"); return; }
-
-      const out = document.getElementById('aiOutput');
-      out.classList.remove('hidden');
-      out.innerText = "Gemini is thinking...";
-
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-
-        const data = await res.json();
-        if(data.error) throw new Error(data.error.message);
-        out.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
-      } catch (e) {
-        out.innerText = "Error: " + e.message;
-        if(e.message.includes("API key")) localStorage.removeItem('my_gemini_key');
-      }
-    }
-
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
       
-      const tabs = ['reels', 'feed', 'forex', 'ide', 'offline', 'profile'];
+      const tabs = ['reels', 'feed', 'forex', 'offline', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if(btn) btn.className = `flex flex-col items-center ${t === tabName ? 'text-rose-500 font-bold' : 'text-slate-400'}`;
@@ -342,27 +243,81 @@
 
     function toggleCreateModal() { document.getElementById('createModal').classList.toggle('hidden'); }
     function toggleSettingsModal() { document.getElementById('settingsModal').classList.toggle('hidden'); }
+    function toggleCommentModal(id = null) {
+      if(id) activeReelId = id;
+      const modal = document.getElementById('commentModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
 
-    // Render Reels with Working Like Button
+    // Render Reels with Complete Interactions
     function renderReels() {
       const container = document.getElementById('reelsContainer');
       container.innerHTML = reelsData.map(reel => `
         <div class="reel-card flex items-center justify-center relative">
-          <video src="${reel.video}" class="w-full h-full object-cover" loop autoplay muted playsinline></video>
-          <div class="absolute bottom-4 left-4 right-16 z-10 text-white">
-            <h3 class="font-bold text-sm drop-shadow">${reel.user}</h3>
-            <p class="text-xs mt-1 drop-shadow">${reel.caption}</p>
+          <video id="video-${reel.id}" src="${reel.video}" class="w-full h-full object-cover" loop autoplay playsinline></video>
+          
+          <!-- Sound Toggle Button -->
+          <button onclick="toggleAudio(${reel.id})" class="absolute top-4 right-4 z-20 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs backdrop-blur-md">
+            <i id="audio-icon-${reel.id}" class="fas fa-volume-up"></i>
+          </button>
+
+          <!-- User Profile & Caption Info -->
+          <div class="absolute bottom-6 left-4 right-20 z-10 text-white space-y-1">
+            <div class="flex items-center gap-2">
+              <span onclick="openUserProfile('${reel.user}')" class="font-bold text-sm drop-shadow cursor-pointer hover:underline">${reel.user}</span>
+              <button onclick="toggleSubscribe(${reel.id})" class="bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                ${reel.subscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+            </div>
+            <p class="text-xs drop-shadow text-slate-200">${reel.caption}</p>
           </div>
-          <div class="absolute right-3 bottom-16 flex flex-col items-center gap-4 z-10">
-            <button onclick="toggleLike(${reel.id}, 'reel')" class="flex flex-col items-center text-white">
-              <div class="w-11 h-11 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg ${reel.liked ? 'text-rose-500' : 'text-white'}">
+
+          <!-- TikTok Style Right Sidebar Actions -->
+          <div class="absolute right-3 bottom-12 flex flex-col items-center gap-5 z-20">
+            <!-- Like -->
+            <button onclick="toggleLike(${reel.id}, 'reel')" class="action-btn flex flex-col items-center text-white">
+              <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg ${reel.liked ? 'text-rose-500' : 'text-white'}">
                 <i class="fas fa-heart"></i>
               </div>
-              <span class="text-[11px] font-bold mt-1 drop-shadow">${reel.likes}</span>
+              <span id="like-count-${reel.id}" class="text-[10px] font-bold mt-1 drop-shadow">${reel.likes}</span>
+            </button>
+
+            <!-- Comment -->
+            <button onclick="toggleCommentModal(${reel.id})" class="action-btn flex flex-col items-center text-white">
+              <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg">
+                <i class="fas fa-comment-dots"></i>
+              </div>
+              <span class="text-[10px] font-bold mt-1 drop-shadow">${reel.comments.length}</span>
+            </button>
+
+            <!-- Share -->
+            <button onclick="shareVideo('${reel.caption}')" class="action-btn flex flex-col items-center text-white">
+              <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg">
+                <i class="fas fa-share"></i>
+              </div>
+              <span class="text-[10px] font-bold mt-1 drop-shadow">Share</span>
+            </button>
+
+            <!-- Download -->
+            <button onclick="saveOfflineDirect(${reel.id})" class="action-btn flex flex-col items-center text-white">
+              <div class="w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg text-emerald-400">
+                <i class="fas fa-download"></i>
+              </div>
+              <span class="text-[10px] font-bold mt-1 drop-shadow">Save</span>
             </button>
           </div>
         </div>
       `).join('');
+    }
+
+    function toggleAudio(id) {
+      const vid = document.getElementById(`video-${id}`);
+      const icon = document.getElementById(`audio-icon-${id}`);
+      if (vid) {
+        vid.muted = !vid.muted;
+        icon.className = vid.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+      }
     }
 
     function toggleLike(id, type) {
@@ -371,34 +326,93 @@
         if(item) {
           item.liked = !item.liked;
           item.likes += item.liked ? 1 : -1;
-          renderReels();
-        }
-      } else if(type === 'feed') {
-        const item = feedData.find(f => f.id === id);
-        if(item) {
-          item.liked = !item.liked;
-          item.likes += item.liked ? 1 : -1;
-          renderFeed();
+          
+          // Smooth count update without screen flicker
+          const countEl = document.getElementById(`like-count-${id}`);
+          if(countEl) countEl.innerText = item.likes;
+          
+          const iconEl = countEl.previousElementSibling;
+          if(iconEl) {
+            iconEl.className = `w-10 h-10 rounded-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center text-lg ${item.liked ? 'text-rose-500' : 'text-white'}`;
+          }
         }
       }
       updateProfileStats();
-      showToast("Like updated!");
     }
 
-    function renderFeed() {
-      const container = document.getElementById('feedPosts');
-      container.innerHTML = feedData.map(post => `
-        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-blue-400">${post.user}</span>
-            <span class="text-[10px] text-slate-500">Just now</span>
+    function toggleSubscribe(id) {
+      const reel = reelsData.find(r => r.id === id);
+      if(reel) {
+        reel.subscribed = !reel.subscribed;
+        renderReels();
+        showToast(reel.subscribed ? `Subscribed to ${reel.user}` : "Unsubscribed");
+      }
+    }
+
+    function openUserProfile(username) {
+      switchTab('profile');
+      showToast(`Viewing ${username}'s profile`);
+    }
+
+    function shareVideo(caption) {
+      if (navigator.share) {
+        navigator.share({ title: 'Super App Reel', text: caption, url: window.location.href });
+      } else {
+        showToast("Link copied to clipboard!");
+      }
+    }
+
+    function saveOfflineDirect(id) {
+      const video = reelsData.find(r => r.id === id);
+      if(video && !offlineVideos.some(v => v.id === id)) {
+        offlineVideos.push(video);
+        showToast("Saved to Offline Videos!");
+      } else {
+        showToast("Already saved offline!");
+      }
+    }
+
+    function downloadCurrentVideoOffline() {
+      if(reelsData.length > 0) {
+        saveOfflineDirect(reelsData[0].id);
+        toggleSettingsModal();
+      }
+    }
+
+    function deleteMyPost(id, type) {
+      if(type === 'reel') {
+        reelsData = reelsData.filter(r => r.id !== id);
+        renderReels();
+      } else {
+        feedData = feedData.filter(f => f.id !== id);
+        renderFeed();
+      }
+      updateProfileStats();
+      showToast("Post deleted!");
+    }
+
+    function updateProfileStats() {
+      let totalLikes = reelsData.reduce((acc, r) => acc + r.likes, 0) + feedData.reduce((acc, f) => acc + f.likes, 0);
+      let myPosts = [...reelsData.filter(r => r.user === CURRENT_USER), ...feedData.filter(f => f.user === CURRENT_USER)];
+      
+      document.getElementById('profileLikes').innerText = totalLikes;
+      document.getElementById('profilePostsCount').innerText = myPosts.length;
+
+      const ownerList = document.getElementById('ownerPostsList');
+      if(myPosts.length === 0) {
+        ownerList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No uploads yet.</p>`;
+        return;
+      }
+
+      ownerList.innerHTML = myPosts.map(p => `
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 flex justify-between items-center">
+          <div class="truncate max-w-[200px]">
+            <p class="font-bold text-white">${p.caption || p.text}</p>
+            <span class="text-[10px] text-blue-400">${p.likes} Likes</span>
           </div>
-          <p class="text-xs text-slate-200">${post.text}</p>
-          <div class="flex items-center gap-3 pt-1 border-t border-slate-800/60">
-            <button onclick="toggleLike(${post.id}, 'feed')" class="flex items-center gap-1.5 text-xs ${post.liked ? 'text-rose-500' : 'text-slate-400'} font-bold">
-              <i class="fas fa-heart"></i> <span>${post.likes} Likes</span>
-            </button>
-          </div>
+          <button onclick="deleteMyPost(${p.id}, '${p.video ? 'reel' : 'feed'}')" class="text-rose-500 bg-rose-500/10 px-2.5 py-1.5 rounded-lg text-xs font-bold">
+            <i class="fas fa-trash"></i> Delete
+          </button>
         </div>
       `).join('');
     }
@@ -408,18 +422,13 @@
       const caption = document.getElementById('captionInput').value.trim();
       const fileInput = document.getElementById('mediaInput');
 
-      if (!caption && fileInput.files.length === 0) {
-        showToast("Please add caption or media!");
-        return;
-      }
-
       let mediaUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
       if(fileInput.files.length > 0) {
         mediaUrl = URL.createObjectURL(fileInput.files[0]);
       }
 
       if(type === 'reel') {
-        reelsData.unshift({ id: Date.now(), user: CURRENT_USER, video: mediaUrl, caption: caption || "New Reel", likes: 0, liked: false });
+        reelsData.unshift({ id: Date.now(), user: CURRENT_USER, video: mediaUrl, caption: caption || "New Reel", likes: 0, comments: [], subscribed: false, liked: false });
         renderReels();
         switchTab('reels');
       } else {
@@ -434,12 +443,17 @@
       fileInput.value = "";
     }
 
-    function downloadCurrentVideoOffline() {
-      if(reelsData.length > 0) {
-        offlineVideos.push(reelsData[0]);
-        showToast("Video saved to Offline library!");
-        toggleSettingsModal();
-      }
+    function renderFeed() {
+      const container = document.getElementById('feedPosts');
+      container.innerHTML = feedData.map(post => `
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span onclick="openUserProfile('${post.user}')" class="text-xs font-bold text-blue-400 cursor-pointer">${post.user}</span>
+            <span class="text-[10px] text-slate-500">Just now</span>
+          </div>
+          <p class="text-xs text-slate-200">${post.text}</p>
+        </div>
+      `).join('');
     }
 
     function renderOfflineVideos() {
@@ -449,29 +463,15 @@
         return;
       }
       container.innerHTML = offlineVideos.map(v => `
-        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center gap-3">
-          <video src="${v.video}" class="w-16 h-16 rounded-lg object-cover"></video>
-          <div>
-            <h4 class="text-xs font-bold text-white">${v.caption}</h4>
-            <span class="text-[10px] text-slate-400">Saved Offline</span>
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <video src="${v.video}" class="w-12 h-12 rounded-lg object-cover"></video>
+            <div>
+              <h4 class="text-xs font-bold text-white">${v.caption}</h4>
+              <span class="text-[10px] text-slate-400">${v.user}</span>
+            </div>
           </div>
-        </div>
-      `).join('');
-    }
-
-    function updateProfileStats() {
-      let totalLikes = reelsData.reduce((acc, r) => acc + r.likes, 0) + feedData.reduce((acc, f) => acc + f.likes, 0);
-      let myPostsCount = reelsData.filter(r => r.user === CURRENT_USER).length + feedData.filter(f => f.user === CURRENT_USER).length;
-      
-      document.getElementById('profileLikes').innerText = totalLikes;
-      document.getElementById('profilePostsCount').innerText = myPostsCount;
-
-      const ownerList = document.getElementById('ownerPostsList');
-      let allMyPosts = [...reelsData.filter(r => r.user === CURRENT_USER), ...feedData.filter(f => f.user === CURRENT_USER)];
-      ownerList.innerHTML = allMyPosts.map(p => `
-        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs text-slate-300 flex justify-between items-center">
-          <span class="truncate max-w-[200px]">${p.caption || p.text}</span>
-          <span class="text-[10px] text-blue-400 font-bold">${p.likes} ❤️</span>
+          <span class="text-[10px] text-emerald-400 font-bold bg-emerald-400/10 px-2 py-1 rounded-md">Saved</span>
         </div>
       `).join('');
     }
@@ -487,16 +487,6 @@
       });
     }
 
-    function runMobileCode() {
-      try {
-        let result = eval(document.getElementById('ideCode').value);
-        document.getElementById('ideOutput').innerText = "Output: " + (result !== undefined ? result : "Executed Successfully");
-      } catch(e) {
-        document.getElementById('ideOutput').innerText = "Error: " + e.message;
-      }
-    }
-
-    // Initialize App on Load
     window.onload = function() {
       renderReels();
       renderFeed();
