@@ -20,138 +20,88 @@
 </head>
 <body class="pb-20 select-none">
 
-  <!-- LOGIN MODAL -->
-  <div id="loginModal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm p-6 rounded-2xl text-center shadow-2xl">
-      <h2 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent mb-1">Super App Login</h2>
-      <p class="text-xs text-slate-400 mb-5">Sign in to access full features or continue as guest</p>
-      
-      <input type="email" id="loginEmailInput" placeholder="Enter Email" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-3 focus:outline-none">
-      <input type="password" placeholder="Enter Password" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-4 focus:outline-none">
-      
-      <button onclick="handleLogin()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-3 rounded-xl mb-3">Sign In / Register</button>
-      <button onclick="continueAsGuest()" class="text-xs text-slate-400 hover:text-white underline">Continue as Guest (Read Only)</button>
-    </div>
-  </div>
-
-  <!-- TOP APP BAR -->
   <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
     <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
     
     <div class="flex items-center gap-3">
       <button onclick="toggleChatModal()" class="relative text-slate-300 hover:text-rose-400 text-lg">
         <i class="fas fa-paper-plane"></i>
-        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white">1</span>
+        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white" id="unreadBadge">1</span>
       </button>
     </div>
   </header>
 
-  <!-- 1. REELS TAB -->
   <section id="tab-reels" class="tab-content active pt-14">
     <div id="reelsContainer" class="reels-scroll-container w-full" onscroll="handleReelScroll()">
-      <!-- Dynamically populated from JS Permanent Storage -->
-    </div>
+      </div>
   </section>
 
-  <!-- 2. PUBLIC FEED TAB -->
   <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
     <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4">
       <textarea id="feedTextContent" placeholder="What's on your mind?" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-lg h-16 focus:outline-none mb-2"></textarea>
       <div class="flex justify-between items-center">
         <span class="text-[10px] text-slate-500"><i class="fas fa-globe mr-1"></i>Public Post</span>
-        <button onclick="publishTextPost()" class="bg-rose-600 text-white text-xs px-4 py-1.5 rounded-lg font-bold">Post</button>
+        <button onclick="publishTextPost()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-1.5 rounded-lg font-bold">Post</button>
       </div>
     </div>
 
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Feed</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Posts</h2>
     <div id="feedPosts" class="space-y-3"></div>
   </section>
 
-  <!-- 3. FOREX & CRYPTO TAB -->
   <section id="tab-forex" class="tab-content pt-16 p-4 h-screen">
     <div class="flex justify-between items-center mb-2">
-      <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-2"><i class="fas fa-chart-line"></i> Forex & Crypto Live Market</h2>
+      <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
       <div class="flex gap-1.5">
         <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-slate-800 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">XAUUSD</button>
         <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">BTCUSD</button>
         <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">EURUSD</button>
       </div>
     </div>
-    <!-- BADA MARKET CHART CONTAINER -->
     <div class="w-full h-[calc(100vh-170px)] bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-2xl" id="tradingview_chart"></div>
   </section>
 
-  <!-- 4. CODE TERMINAL IDE TAB -->
   <section id="tab-code" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
     <h2 class="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2"><i class="fas fa-code"></i> Real-time Mobile IDE Terminal</h2>
-    <textarea id="codeEditor" class="w-full h-44 bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-3" placeholder="<html><body><h1>Test Code</h1></body></html>"></textarea>
+    <textarea id="codeEditor" class="w-full h-44 bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-3" placeholder="// Live Code Console\nlet a = 15;\nlet b = 25;\nconsole.log('Result:', a + b);"></textarea>
     <button onclick="runTerminalCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl mb-3 w-full shadow-lg">Run Output</button>
     
-    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Live Execution View:</p>
-    <iframe id="terminalOutput" class="w-full h-48 bg-white rounded-xl border border-slate-800"></iframe>
+    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Live Output Console:</p>
+    <div id="terminalConsole" class="w-full h-48 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-emerald-400 p-3 overflow-y-auto whitespace-pre-wrap">Terminal ready...</div>
   </section>
 
-  <!-- 5. PROFILE TAB -->
   <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
     <div class="flex justify-between items-center mb-2">
-      <button onclick="sendDMRequest('Umar Official')" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs px-3 py-1 rounded-lg font-bold"><i class="fas fa-envelope mr-1"></i> Send DM Request</button>
+      <button onclick="toggleEditProfileModal()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs px-3 py-1 rounded-lg font-bold"><i class="fas fa-edit mr-1"></i> Edit Profile</button>
       <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fas fa-cog"></i></button>
     </div>
     
     <div class="text-center mb-5">
-      <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-indigo-500 rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-2 text-white shadow-xl">
-        <i class="fas fa-user"></i>
+      <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-indigo-500 rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-2 text-white shadow-xl overflow-hidden">
+        <img id="profileAvatarImg" src="" class="w-full h-full object-cover hidden" alt="Profile">
+        <i id="profileAvatarIcon" class="fas fa-user"></i>
       </div>
-      <h3 id="profileNameDisplay" class="text-lg font-bold text-white">Umar Official</h3>
-      <p id="profileRoleDisplay" class="text-xs text-slate-400 italic">Full Stack App & Cybersecurity Dev</p>
+      <h3 id="profileNameDisplay" class="text-lg font-bold text-white">Umar Dev</h3>
+      <p id="profileRoleDisplay" class="text-xs text-slate-400 italic">Full Stack & App Developer</p>
     </div>
 
-    <!-- Stats Grid -->
     <div class="grid grid-cols-4 gap-2 mb-6 text-center">
       <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="postCounter" class="text-sm font-black text-rose-400">0</p><p class="text-[9px] text-slate-400 uppercase">Posts</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-purple-400">12</p><p class="text-[9px] text-slate-400 uppercase">Videos</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-emerald-400">2.4K</p><p class="text-[9px] text-slate-400 uppercase">Subs</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-blue-400">89.1K</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="videoCounter" class="text-sm font-black text-purple-400">0</p><p class="text-[9px] text-slate-400 uppercase">Videos</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="subCounter" class="text-sm font-black text-emerald-400">2.4K</p><p class="text-[9px] text-slate-400 uppercase">Subs</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="likeTotalCounter" class="text-sm font-black text-blue-400">0</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
     </div>
 
-    <h4 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">My Uploaded Gallery</h4>
+    <h4 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">My Gallery Uploads</h4>
     <div id="profileGrid" class="grid grid-cols-3 gap-2"></div>
   </section>
 
-  <!-- WEATHER BADGE FIXED AT BOTTOM RIGHT -->
   <div class="fixed bottom-16 right-3 z-30">
-    <button onclick="toggleWeatherModal()" class="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-full text-[10px] text-amber-300 font-semibold shadow-xl backdrop-blur-md flex items-center gap-1.5 hover:bg-slate-700">
-      <i class="fas fa-cloud-sun text-amber-400"></i> <span id="widgetCityTemp">Karachi 32°C</span>
+    <button onclick="toggleWeatherModal()" class="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-full text-[10px] text-amber-300 font-semibold shadow-xl backdrop-blur-md flex items-center gap-1.5">
+      <i class="fas fa-sun text-amber-400"></i> <span id="widgetCityTemp">Karachi 32°C</span>
     </button>
   </div>
 
-  <!-- INTERACTIVE WEATHER MODAL PAGE -->
-  <div id="weatherModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-sun text-amber-400"></i> Weather Forecast Center</h3>
-        <button onclick="toggleWeatherModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="citySearchInput" placeholder="Search City (e.g. Lahore, Karachi)..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none">
-        <button onclick="searchWeather()" class="bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-xl">Search</button>
-      </div>
-
-      <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 text-center">
-        <h4 id="weatherCityName" class="text-base font-bold text-white">Karachi, Pakistan</h4>
-        <p id="weatherTemp" class="text-3xl font-black text-amber-400 my-1">32°C</p>
-        <p id="weatherCondition" class="text-xs text-slate-300 font-medium">Sunny & Clear Sky</p>
-        
-        <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-700/50 text-[10px]">
-          <div class="bg-slate-900 p-2 rounded-lg"><span class="text-slate-400 block">Humidity</span><strong id="weatherHumidity" class="text-sky-300">65%</strong></div>
-          <div class="bg-slate-900 p-2 rounded-lg"><span class="text-slate-400 block">Rain Prediction</span><strong id="weatherRain" class="text-emerald-400">0% Chance</strong></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40 backdrop-blur-md">
     <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
       <i class="fas fa-film text-base"></i><span class="text-[9px] font-semibold mt-0.5">Reels</span>
@@ -173,7 +123,6 @@
     </button>
   </nav>
 
-  <!-- MODAL: UPLOAD FROM GALLERY -->
   <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
@@ -184,58 +133,84 @@
       <input type="file" id="mediaGalleryInput" accept="video/*" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl cursor-pointer mb-3">
       <textarea id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-4 h-20 focus:outline-none"></textarea>
       
-      <button onclick="uploadGalleryVideo()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Video Permanently</button>
+      <button onclick="uploadGalleryVideo()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Video</button>
     </div>
   </div>
 
-  <!-- COMMENTS BOTTOM SHEET WITH DELETION PERMISSIONS -->
   <div id="commentOverlay" onclick="closeCommentSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity"></div>
   <div id="commentSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 rounded-t-3xl z-50 h-[50vh] flex flex-col">
     <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-2"></div>
-    <h3 class="text-xs font-bold text-slate-300 mb-3 text-center">Isolated Comments</h3>
+    <h3 class="text-xs font-bold text-slate-300 mb-3 text-center">Comments</h3>
     
     <div id="commentsList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
 
     <div class="flex gap-2 mt-3 pt-2 border-t border-slate-800">
-      <input type="text" id="newCommentInput" placeholder="Add comment or emoji 👍..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none">
+      <input type="text" id="newCommentInput" placeholder="Add comment..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none">
       <button onclick="postComment()" class="bg-rose-600 text-white font-bold text-xs px-4 rounded-xl">Send</button>
     </div>
   </div>
 
-  <!-- PLAY VIDEO MODAL FOR PROFILE GRID CLICK -->
-  <div id="videoModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-50 p-4">
-    <div class="relative w-full max-w-sm h-[80vh] bg-black rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
-      <button onclick="closeVideoModal()" class="absolute top-3 right-3 text-white bg-slate-800/80 w-8 h-8 rounded-full z-50">&times;</button>
-      <video id="modalVideoPlayer" class="w-full h-full object-cover" controls autoplay></video>
+  <div id="editProfileModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-white text-sm">Edit Profile Details</h3>
+        <button onclick="toggleEditProfileModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <input type="text" id="editNameInput" placeholder="Display Name" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-3 focus:outline-none">
+      <input type="text" id="editBioInput" placeholder="Bio Description" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-3 focus:outline-none">
+      <input type="text" id="editAvatarUrlInput" placeholder="Avatar Image URL (Optional)" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-4 focus:outline-none">
+      <button onclick="saveProfile()" class="w-full bg-rose-600 text-white font-bold text-xs py-2.5 rounded-xl">Save Changes</button>
     </div>
   </div>
 
-  <!-- MESSAGES MODAL -->
   <div id="chatModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800 h-[480px] flex flex-col">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
         <h3 class="font-bold text-white text-sm"><i class="fas fa-comments text-rose-500 mr-2"></i>Direct Chat Box</h3>
         <button onclick="toggleChatModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
-      <div id="chatContainerList" class="flex-1 overflow-y-auto py-3 space-y-3"></div>
+      <div id="chatContainerList" class="flex-1 overflow-y-auto py-3 space-y-3">
+        <div class="flex justify-between items-center bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/40">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold">A</div>
+            <div>
+              <p class="text-xs font-bold text-white">Aqib Official</p>
+              <p class="text-[10px] text-slate-400">Welcome to Super App!</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- PROFILE SETTINGS MODAL -->
+  <div id="weatherModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-sun text-amber-400"></i> Weather Forecast Center</h3>
+        <button onclick="toggleWeatherModal()" class="text-slate-400 text-xl">&times;</button>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="citySearchInput" placeholder="Search City..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none">
+        <button onclick="searchWeather()" class="bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-xl">Search</button>
+      </div>
+      <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 text-center">
+        <h4 id="weatherCityName" class="text-base font-bold text-white">Karachi, Pakistan</h4>
+        <p id="weatherTemp" class="text-3xl font-black text-amber-400 my-1">32°C</p>
+        <p id="weatherCondition" class="text-xs text-slate-300 font-medium">Clear & Sunny</p>
+      </div>
+    </div>
+  </div>
+
   <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
         <h3 class="font-bold text-white text-sm"><i class="fas fa-cog text-rose-500 mr-2"></i>Account Information</h3>
         <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
-
-      <div class="space-y-4 text-xs">
+      <div class="space-y-3 text-xs">
         <div>
-          <label class="text-slate-400 mb-1 block">Username</label>
-          <input type="text" id="settingUsername" value="Umar Official" class="w-full bg-slate-800 border border-slate-700 text-white p-2 rounded-lg mb-2">
-          
-          <label class="text-slate-400 mb-1 block">Masked Password Email</label>
-          <input type="text" id="settingMaskedEmail" value="um***@gmail.com" readonly class="w-full bg-slate-900 border border-slate-800 text-slate-400 p-2 rounded-lg cursor-not-allowed">
+          <label class="text-slate-400 mb-1 block">Account Email</label>
+          <input type="text" id="settingMaskedEmail" value="um***@gmail.com" readonly class="w-full bg-slate-950 border border-slate-800 text-slate-400 p-2 rounded-lg">
         </div>
       </div>
     </div>
@@ -243,85 +218,98 @@
 
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
-    // --- PERMANENT DATABASE STATE ---
-    let currentUser = localStorage.getItem('umar_app_user') || 'Guest';
+    // Global App State
+    let currentUser = localStorage.getItem('umar_user_name') || 'Umar Dev';
+    let currentBio = localStorage.getItem('umar_user_bio') || 'Full Stack & App Developer';
+    let currentAvatar = localStorage.getItem('umar_user_avatar') || '';
     let currentActiveVideoId = null;
 
-    let defaultVideos = [
+    let defaultReels = [
       {
         id: 'vid-1',
         url: 'https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4',
         user: 'aqibofficial',
-        caption: 'AQIB VIDEO EDITION',
-        likes: 1421,
+        caption: 'AQIB VIDEO EDITION 🔥',
+        likes: 14,
+        liked: false,
+        subscribed: false,
+        saved: false,
         comments: [
-          { id: 'c1', user: 'aqibofficial', text: 'Awesome video brother! 🔥' }
+          { id: 'c1', user: 'aqibofficial', text: 'Welcome to Super App!' }
         ]
       }
     ];
 
-    let storedVideos = JSON.parse(localStorage.getItem('umar_app_videos')) || defaultVideos;
+    let storedVideos = JSON.parse(localStorage.getItem('umar_app_videos')) || defaultReels;
     let storedPosts = JSON.parse(localStorage.getItem('umar_app_posts')) || [
-      { user: 'Umar Official', time: 'Just now', text: 'Super App multi-user database active on Vercel!' }
+      { id: 'p1', user: 'Umar Dev', time: 'Just now', text: 'Umar Super App is 100% Live!' }
     ];
 
     window.onload = function() {
+      renderProfileInfo();
       renderReels();
       renderPosts();
       renderProfileGrid();
-      checkAuth();
     };
 
-    function checkAuth() {
-      if (!localStorage.getItem('umar_app_user')) {
-        document.getElementById('loginModal').classList.remove('hidden');
+    function renderProfileInfo() {
+      document.getElementById('profileNameDisplay').innerText = currentUser;
+      document.getElementById('profileRoleDisplay').innerText = currentBio;
+      
+      const avatarImg = document.getElementById('profileAvatarImg');
+      const avatarIcon = document.getElementById('profileAvatarIcon');
+
+      if (currentAvatar) {
+        avatarImg.src = currentAvatar;
+        avatarImg.classList.remove('hidden');
+        avatarIcon.classList.add('hidden');
       } else {
-        document.getElementById('loginModal').classList.add('hidden');
-        document.getElementById('profileNameDisplay').innerText = currentUser;
+        avatarImg.classList.add('hidden');
+        avatarIcon.classList.remove('hidden');
       }
     }
 
-    function handleLogin() {
-      const email = document.getElementById('loginEmailInput').value;
-      if (!email) return alert('Please enter email!');
-      
-      currentUser = email.split('@')[0];
-      localStorage.setItem('umar_app_user', currentUser);
-      localStorage.setItem('umar_app_email', email);
-      
-      // Email Masking Logic
-      const masked = email.substring(0, 2) + '***@' + email.split('@')[1];
-      document.getElementById('settingMaskedEmail').value = masked;
-
-      document.getElementById('loginModal').classList.add('hidden');
-      document.getElementById('profileNameDisplay').innerText = currentUser;
-    }
-
-    function continueAsGuest() {
-      currentUser = 'Guest User';
-      document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    // --- REELS & AUTO SCROLL AUDIO CONTROL ---
     function renderReels() {
       const container = document.getElementById('reelsContainer');
       container.innerHTML = '';
 
+      let totalLikes = 0;
+
       storedVideos.forEach((vid, index) => {
-        const reelCard = document.createElement('div');
-        reelCard.className = "reel-card flex items-center justify-center";
-        reelCard.id = `reel-card-${vid.id}`;
-        reelCard.innerHTML = `
+        totalLikes += vid.likes;
+        const card = document.createElement('div');
+        card.className = "reel-card flex items-center justify-center";
+        card.id = `reel-card-${vid.id}`;
+        card.innerHTML = `
           <video id="video-element-${vid.id}" src="${vid.url}" class="w-full h-full object-cover" loop muted playsinline></video>
           
-          <button onclick="toggleAudio('video-element-${vid.id}', this)" class="absolute top-4 right-4 bg-black/50 text-white p-2.5 rounded-full z-30 border border-white/20">
-            <i class="fas fa-volume-mute text-xs"></i>
-          </button>
-
           <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 text-white z-20">
-            <button onclick="toggleLike('${vid.id}', this)" class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-slate-400"></i><span class="text-[10px] font-bold">${vid.likes}</span></button>
-            <button onclick="openCommentSheet('${vid.id}')" class="flex flex-col items-center"><i class="fas fa-comment text-2xl text-slate-200"></i><span class="text-[10px] font-bold">${vid.comments.length}</span></button>
-            <button onclick="alert('Share link copied!')" class="flex flex-col items-center"><i class="fas fa-share text-2xl text-slate-200"></i><span class="text-[10px] font-bold">Share</span></button>
+            <button onclick="toggleSubscribe('${vid.id}', this)" class="flex flex-col items-center">
+              <div class="w-9 h-9 rounded-full bg-slate-800 border-2 ${vid.subscribed ? 'border-emerald-500' : 'border-rose-500'} flex items-center justify-center font-bold text-xs">
+                ${vid.user[0].toUpperCase()}
+              </div>
+              <span class="text-[9px] font-bold mt-0.5 ${vid.subscribed ? 'text-emerald-400' : 'text-rose-400'}">${vid.subscribed ? 'Subbed' : '+Sub'}</span>
+            </button>
+
+            <button onclick="toggleLike('${vid.id}')" class="flex flex-col items-center">
+              <i class="fas fa-heart text-2xl ${vid.liked ? 'text-rose-500' : 'text-slate-300'}"></i>
+              <span class="text-[10px] font-bold mt-0.5">${vid.likes}</span>
+            </button>
+
+            <button onclick="openCommentSheet('${vid.id}')" class="flex flex-col items-center">
+              <i class="fas fa-comment text-2xl text-slate-300"></i>
+              <span class="text-[10px] font-bold mt-0.5">${vid.comments.length}</span>
+            </button>
+
+            <button onclick="handleNativeShare('${vid.id}', '${vid.user}')" class="flex flex-col items-center">
+              <i class="fas fa-share text-2xl text-slate-300"></i>
+              <span class="text-[10px] font-bold mt-0.5">Share</span>
+            </button>
+
+            <button onclick="toggleSave('${vid.id}')" class="flex flex-col items-center">
+              <i class="fas fa-bookmark text-2xl ${vid.saved ? 'text-emerald-400' : 'text-slate-300'}"></i>
+              <span class="text-[10px] font-bold mt-0.5">${vid.saved ? 'Saved' : 'Save'}</span>
+            </button>
           </div>
 
           <div class="absolute bottom-6 left-3 right-16 z-20 text-white">
@@ -329,8 +317,11 @@
             <p class="text-xs text-slate-200 mt-1">${vid.caption}</p>
           </div>
         `;
-        container.appendChild(reelCard);
+        container.appendChild(card);
       });
+
+      document.getElementById('likeTotalCounter').innerText = totalLikes;
+      document.getElementById('videoCounter').innerText = storedVideos.length;
     }
 
     function handleReelScroll() {
@@ -341,59 +332,97 @@
         const rect = card.getBoundingClientRect();
         const video = card.querySelector('video');
         
-        // If card is centered in view
         if (rect.top >= -100 && rect.top <= 100) {
           if (video.paused) {
-            video.play();
+            video.play().catch(() => {});
+            video.muted = false;
           }
         } else {
           video.pause();
-          video.muted = true; // Auto sound band on scroll
+          video.muted = true;
         }
       });
     }
 
-    function toggleAudio(videoId, btn) {
-      const vid = document.getElementById(videoId);
-      vid.muted = !vid.muted;
-      btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute text-xs"></i>' : '<i class="fas fa-volume-up text-xs text-emerald-400"></i>';
+    function toggleLike(vidId) {
+      const vid = storedVideos.find(v => v.id === vidId);
+      if (vid.liked) {
+        vid.likes--;
+        vid.liked = false;
+      } else {
+        vid.likes++;
+        vid.liked = true;
+      }
+      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
+      renderReels();
     }
 
-    // --- PERMANENT UPLOAD FROM GALLERY ---
+    function toggleSubscribe(vidId, btn) {
+      const vid = storedVideos.find(v => v.id === vidId);
+      vid.subscribed = !vid.subscribed;
+      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
+      renderReels();
+    }
+
+    function toggleSave(vidId) {
+      const vid = storedVideos.find(v => v.id === vidId);
+      vid.saved = !vid.saved;
+      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
+      renderReels();
+    }
+
+    function handleNativeShare(vidId, user) {
+      const shareUrl = `https://umar-super-app.vercel.app/reel?id=${vidId}&user=${user}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Umar Super App Video',
+          url: shareUrl
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert('Link Copied to Clipboard!');
+      }
+    }
+
+    // --- UPLOAD VIDEO FROM GALLERY ---
     function uploadGalleryVideo() {
       const fileInput = document.getElementById('mediaGalleryInput');
-      const caption = document.getElementById('captionInput').value || 'New Super Reel';
+      const caption = document.getElementById('captionInput').value || 'New Video';
 
-      if (!fileInput.files[0]) return alert('Please select a video file!');
+      if (!fileInput.files[0]) return alert('Select video file!');
 
-      const videoUrl = URL.createObjectURL(fileInput.files[0]);
-      const newVid = {
-        id: 'vid-' + Date.now(),
-        url: videoUrl,
-        user: currentUser,
-        caption: caption,
-        likes: 0,
-        comments: []
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const newVid = {
+          id: 'vid-' + Date.now(),
+          url: e.target.result,
+          user: currentUser,
+          caption: caption,
+          likes: 0,
+          liked: false,
+          subscribed: false,
+          saved: false,
+          comments: []
+        };
+
+        storedVideos.unshift(newVid);
+        localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
+
+        renderReels();
+        renderProfileGrid();
+        toggleCreateModal();
+        switchTab('reels');
       };
-
-      storedVideos.unshift(newVid);
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-
-      renderReels();
-      renderProfileGrid();
-      toggleCreateModal();
-      switchTab('reels');
-      alert('Video Published Permanently!');
+      reader.readAsDataURL(fileInput.files[0]);
     }
 
-    // --- COMMENTS SYSTEM WITH ISOLATION & DELETE PERMISSION ---
+    // --- COMMENTS SYSTEM ---
     function openCommentSheet(vidId) {
       currentActiveVideoId = vidId;
-      const overlay = document.getElementById('commentOverlay');
-      const sheet = document.getElementById('commentSheet');
-      
       renderComments();
 
+      const overlay = document.getElementById('commentOverlay');
+      const sheet = document.getElementById('commentSheet');
       overlay.classList.remove('hidden');
       setTimeout(() => {
         overlay.classList.remove('opacity-0');
@@ -412,10 +441,9 @@
         const item = document.createElement('div');
         item.className = 'flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl text-xs';
         
-        let deleteBtnHtml = '';
-        // Only Comment Author or Video Owner can delete
+        let deleteBtn = '';
         if (c.user === currentUser || vid.user === currentUser) {
-          deleteBtnHtml = `<button onclick="deleteComment('${c.id}')" class="text-rose-400 hover:text-rose-300 text-[10px] ml-2"><i class="fas fa-trash"></i></button>`;
+          deleteBtn = `<button onclick="deleteComment('${c.id}')" class="text-rose-400 hover:text-rose-300 text-[10px] ml-2"><i class="fas fa-trash"></i></button>`;
         }
 
         item.innerHTML = `
@@ -423,7 +451,7 @@
             <p class="font-bold text-rose-400 text-[10px]">@${c.user}</p>
             <p class="text-slate-200 mt-0.5">${c.text}</p>
           </div>
-          ${deleteBtnHtml}
+          ${deleteBtn}
         `;
         list.appendChild(item);
       });
@@ -446,10 +474,9 @@
       input.value = '';
     }
 
-    function deleteComment(commentId) {
+    function deleteComment(cId) {
       const vid = storedVideos.find(v => v.id === currentActiveVideoId);
-      vid.comments = vid.comments.filter(c => c.id !== commentId);
-      
+      vid.comments = vid.comments.filter(c => c.id !== cId);
       localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
       renderComments();
       renderReels();
@@ -463,58 +490,116 @@
       setTimeout(() => overlay.classList.add('hidden'), 300);
     }
 
-    // --- PROFILE GRID VIDEO CLICK TO PLAY ---
+    // --- PROFILE EDIT ---
+    function toggleEditProfileModal() {
+      document.getElementById('editNameInput').value = currentUser;
+      document.getElementById('editBioInput').value = currentBio;
+      document.getElementById('editAvatarUrlInput').value = currentAvatar;
+
+      const modal = document.getElementById('editProfileModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function saveProfile() {
+      currentUser = document.getElementById('editNameInput').value.trim() || 'Umar Dev';
+      currentBio = document.getElementById('editBioInput').value.trim() || 'Developer';
+      currentAvatar = document.getElementById('editAvatarUrlInput').value.trim();
+
+      localStorage.setItem('umar_user_name', currentUser);
+      localStorage.setItem('umar_user_bio', currentBio);
+      localStorage.setItem('umar_user_avatar', currentAvatar);
+
+      renderProfileInfo();
+      toggleEditProfileModal();
+    }
+
+    // --- COMMUNITY FEED ---
+    function publishTextPost() {
+      const text = document.getElementById('feedTextContent').value.trim();
+      if (!text) return;
+
+      storedPosts.unshift({
+        id: 'p-' + Date.now(),
+        user: currentUser,
+        time: 'Just now',
+        text: text
+      });
+
+      localStorage.setItem('umar_app_posts', JSON.stringify(storedPosts));
+      renderPosts();
+      document.getElementById('feedTextContent').value = '';
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('feedPosts');
+      container.innerHTML = '';
+
+      storedPosts.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
+        card.innerHTML = `
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 bg-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white">${p.user[0]}</div>
+            <div><p class="text-xs font-bold text-white">${p.user}</p><p class="text-[9px] text-slate-500">${p.time}</p></div>
+          </div>
+          <p class="text-xs text-slate-300">${p.text}</p>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('postCounter').innerText = storedPosts.length;
+    }
+
     function renderProfileGrid() {
       const grid = document.getElementById('profileGrid');
       grid.innerHTML = '';
 
       storedVideos.forEach(vid => {
         const thumb = document.createElement('div');
-        thumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative cursor-pointer";
-        thumb.innerHTML = `<video src="${vid.url}" class="w-full h-full object-cover"></video><div class="absolute inset-0 bg-black/20 flex items-center justify-center"><i class="fas fa-play text-white text-xs"></i></div>`;
-        thumb.onclick = () => playVideoModal(vid.url);
+        thumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative";
+        thumb.innerHTML = `<video src="${vid.url}" class="w-full h-full object-cover"></video>`;
         grid.appendChild(thumb);
       });
-
-      document.getElementById('postCounter').innerText = storedVideos.length;
     }
 
-    function playVideoModal(url) {
-      const modal = document.getElementById('videoModal');
-      const player = document.getElementById('modalVideoPlayer');
-      player.src = url;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+    // --- REAL COMPILER IDE ---
+    function runTerminalCode() {
+      const code = document.getElementById('codeEditor').value;
+      const consoleDiv = document.getElementById('terminalConsole');
+      consoleDiv.innerText = '';
+
+      try {
+        let logs = [];
+        const originalConsole = console.log;
+        console.log = function(...args) {
+          logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+          originalConsole.apply(console, args);
+        };
+
+        eval(code);
+        console.log = originalConsole;
+
+        consoleDiv.innerText = logs.join('\n') || 'Executed successfully with no logs.';
+      } catch (err) {
+        consoleDiv.innerText = 'Execution Error: ' + err.message;
+      }
     }
 
-    function closeVideoModal() {
-      const modal = document.getElementById('videoModal');
-      const player = document.getElementById('modalVideoPlayer');
-      player.pause();
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+    // --- TRADINGVIEW ---
+    function loadTradingViewChart(symbol) {
+      if (typeof TradingView === 'undefined') return;
+      document.getElementById('tradingview_chart').innerHTML = '';
+      new TradingView.widget({
+        "autosize": true,
+        "symbol": symbol,
+        "interval": "60",
+        "theme": "dark",
+        "container_id": "tradingview_chart"
+      });
     }
 
-    // --- INTERACTIVE WEATHER SYSTEM ---
-    function toggleWeatherModal() {
-      const modal = document.getElementById('weatherModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-    }
-
-    function searchWeather() {
-      const city = document.getElementById('citySearchInput').value || 'Karachi';
-      document.getElementById('weatherCityName').innerText = city + ', Pakistan';
-      document.getElementById('widgetCityTemp').innerText = city + ' 34°C';
-      
-      // Dynamic Mock Forecast
-      document.getElementById('weatherTemp').innerText = '34°C';
-      document.getElementById('weatherCondition').innerText = 'Partly Cloudy & Warm';
-      document.getElementById('weatherHumidity').innerText = '58%';
-      document.getElementById('weatherRain').innerText = '15% Chance';
-    }
-
-    // --- OTHER NAVIGATION & UTILS ---
+    // --- TAB CONTROLS ---
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
@@ -526,53 +611,6 @@
       });
 
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
-    }
-
-    function publishTextPost() {
-      const text = document.getElementById('feedTextContent').value;
-      if (!text.trim()) return alert('Please write something!');
-
-      storedPosts.unshift({ user: currentUser, time: 'Just now', text: text });
-      localStorage.setItem('umar_app_posts', JSON.stringify(storedPosts));
-      renderPosts();
-      document.getElementById('feedTextContent').value = '';
-    }
-
-    function renderPosts() {
-      const feedPosts = document.getElementById('feedPosts');
-      feedPosts.innerHTML = '';
-      storedPosts.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
-        card.innerHTML = `
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-7 h-7 bg-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white">${p.user[0]}</div>
-            <div><p class="text-xs font-bold text-white">${p.user}</p><p class="text-[9px] text-slate-500">${p.time}</p></div>
-          </div>
-          <p class="text-xs text-slate-300">${p.text}</p>
-        `;
-        feedPosts.appendChild(card);
-      });
-    }
-
-    function runTerminalCode() {
-      const code = document.getElementById('codeEditor').value;
-      const iframe = document.getElementById('terminalOutput');
-      iframe.contentWindow.document.open();
-      iframe.contentWindow.document.write(code);
-      iframe.contentWindow.document.close();
-    }
-
-    function loadTradingViewChart(symbol) {
-      if (typeof TradingView === 'undefined') return;
-      document.getElementById('tradingview_chart').innerHTML = '';
-      new TradingView.widget({
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "60",
-        "theme": "dark",
-        "container_id": "tradingview_chart"
-      });
     }
 
     function toggleCreateModal() {
@@ -593,15 +631,16 @@
       modal.classList.toggle('flex');
     }
 
-    function sendDMRequest(user) {
-      alert(`DM Request sent to ${user}!`);
+    function toggleWeatherModal() {
+      const modal = document.getElementById('weatherModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
     }
 
-    function toggleLike(vidId, btn) {
-      const vid = storedVideos.find(v => v.id === vidId);
-      vid.likes++;
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderReels();
+    function searchWeather() {
+      const city = document.getElementById('citySearchInput').value || 'Karachi';
+      document.getElementById('weatherCityName').innerText = city + ', Pakistan';
+      document.getElementById('widgetCityTemp').innerText = city + ' 32°C';
     }
   </script>
 </body>
