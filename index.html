@@ -6,148 +6,204 @@
   <title>Umar Super App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google AdSense Script -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0000000000000000" crossorigin="anonymous"></script>
   <style>
-    body { background-color: #090d16; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .reels-scroll-container { height: calc(100vh - 120px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
-    .reel-card { height: calc(100vh - 120px); scroll-snap-align: start; scroll-snap-stop: always; position: relative; background: #000; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #090d16; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+    
+    .app-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
+    
+    /* Tabs take available space between header and navbar */
+    .tab-content { display: none; flex: 1; width: 100%; overflow-y: auto; background-color: #090d16; }
+    .tab-content.active { display: flex; flex-direction: column; }
+    
+    .reels-scroll-container { flex: 1; width: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+    .reel-card { width: 100%; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+    
     .action-btn { transition: transform 0.1s ease; }
     .action-btn:active { transform: scale(0.85); }
+    
+    #toast { transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(-20px); opacity: 0; pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
   </style>
 </head>
-<body class="pb-16 select-none">
+<body class="select-none">
 
-  <!-- AUTH MODAL (OPTIONAL / TRIGGERED ON INTERACTION) -->
-  <div id="authModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[200] backdrop-blur-md">
-    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-center space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Login to Continue</h2>
-        <button onclick="toggleAuthModal()" class="text-slate-400 text-xl">&times;</button>
+  <div class="app-container">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-5 py-2.5 rounded-full text-xs font-semibold shadow-2xl z-[300] flex items-center gap-2">
+      <i id="toastIcon" class="fas fa-info-circle text-blue-400"></i>
+      <span id="toastMessage">Notification</span>
+    </div>
+
+    <!-- UPLOAD / POST MODAL -->
+    <div id="uploadModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[200] backdrop-blur-md">
+      <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fas fa-plus-circle text-rose-500"></i> Post New Video</h2>
+          <button onclick="toggleUploadModal()" class="text-slate-400 text-xl">&times;</button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] text-slate-400 font-bold uppercase">Video URL</label>
+            <input type="text" id="postVideoUrl" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 font-bold uppercase">Caption</label>
+            <input type="text" id="postCaption" placeholder="Write a caption..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+          </div>
+        </div>
+        <button onclick="handlePostSubmit()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold py-3 rounded-xl text-xs shadow-lg">Upload Video</button>
       </div>
-      <p class="text-xs text-slate-400">Join to like, upload, and save videos!</p>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-[200] backdrop-blur-md">
+      <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-center space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Login / Register</h2>
+          <button onclick="toggleAuthModal()" class="text-slate-400 text-xl">&times;</button>
+        </div>
+        <div class="space-y-3 text-left">
+          <div>
+            <label class="text-[10px] text-slate-400 font-bold uppercase">Name</label>
+            <input type="text" id="authName" placeholder="Enter Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 font-bold uppercase">Username</label>
+            <input type="text" id="authUsername" placeholder="@username" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+          </div>
+        </div>
+        <button onclick="handleAuthSubmit()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl text-xs shadow-lg">Login / Register</button>
+      </div>
+    </div>
+
+    <!-- TOP NAVBAR -->
+    <header class="h-12 bg-slate-900 border-b border-slate-800 px-4 flex justify-between items-center z-40 shrink-0">
+      <h1 class="text-lg font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-800 border border-slate-700/50 text-[11px] px-2.5 py-1 rounded-full text-blue-300 flex items-center gap-1.5">
+          <i class="fas fa-sun text-amber-400"></i> <span>Karachi 32°C</span>
+        </div>
+        <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fas fa-ellipsis-v text-lg"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 w-full overflow-hidden relative flex flex-col">
       
-      <div class="space-y-3 text-left">
-        <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Name</label>
-          <input type="text" id="authName" placeholder="Enter Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-        </div>
-        <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Username</label>
-          <input type="text" id="authUsername" placeholder="@username" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-        </div>
-      </div>
+      <!-- 1. REELS TAB -->
+      <section id="tab-reels" class="tab-content active">
+        <div id="reelsContainer" class="reels-scroll-container"></div>
+      </section>
 
-      <button onclick="handleAuthSubmit()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl text-xs shadow-lg">Login / Register</button>
+      <!-- 2. PUBLIC FEED TAB -->
+      <section id="tab-feed" class="tab-content p-4 space-y-4">
+        <h2 class="text-base font-bold text-amber-400 flex items-center gap-2"><i class="fas fa-newspaper"></i> Public Feed</h2>
+        <div id="feedPosts" class="space-y-4">
+          <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-slate-300">
+            <p class="font-bold text-white mb-1">Welcome to Umar Super App Community!</p>
+            <p>Explore live videos and check forex market trends freely.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. FOREX TAB -->
+      <section id="tab-forex" class="tab-content p-3 flex flex-col space-y-2">
+        <div class="flex justify-between items-center shrink-0">
+          <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-1.5"><i class="fas fa-chart-line"></i> Forex & Crypto</h2>
+          <div class="flex gap-1.5">
+            <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-blue-600 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold">XAUUSD</button>
+            <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-slate-300 text-[10px] px-2.5 py-1 rounded-lg font-bold border border-slate-700">BTCUSD</button>
+            <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-slate-300 text-[10px] px-2.5 py-1 rounded-lg font-bold border border-slate-700">EURUSD</button>
+          </div>
+        </div>
+        <div class="flex-1 w-full bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+          <div id="tradingview_chart" class="w-full h-full"></div>
+        </div>
+      </section>
+
+      <!-- 4. OFFLINE TAB -->
+      <section id="tab-offline" class="tab-content">
+        <div id="offlineContainer" class="reels-scroll-container"></div>
+      </section>
+
+      <!-- 5. PROFILE TAB -->
+      <section id="tab-profile" class="tab-content p-4">
+        <div id="profileViewContainer" class="w-full max-w-md mx-auto"></div>
+      </section>
+
+    </main>
+
+    <!-- THREE-DOT SETTINGS & WALLET MODAL -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+      <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="font-bold text-sm text-white flex items-center gap-2"><i class="fas fa-cog text-slate-400"></i> Settings & Wallet</h3>
+          <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
+        </div>
+
+        <!-- WALLET SECTION -->
+        <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider"><i class="fas fa-wallet text-amber-400 mr-1"></i> User Wallet</span>
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">Active</span>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400">Available Balance</p>
+            <p class="text-xl font-black text-white">Rs. 0.00</p>
+          </div>
+          <button onclick="handleWithdrawal()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2 rounded-lg text-xs shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+            <i class="fas fa-hand-holding-usd"></i> Withdraw Funds
+          </button>
+        </div>
+
+        <div id="settingsAuthBtn"></div>
+        <button onclick="localStorage.clear(); location.reload();" class="w-full bg-rose-600/20 border border-rose-500/30 text-rose-400 font-bold py-2.5 rounded-xl text-xs">Reset App Data</button>
+      </div>
     </div>
-  </div>
 
-  <!-- TOP NAVBAR -->
-  <header class="bg-slate-900/90 border-b border-slate-800/80 px-4 py-3 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md">
-    <h1 class="text-xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    <div class="flex items-center gap-3">
-      <div class="bg-slate-800 border border-slate-700/50 text-xs px-3 py-1 rounded-full text-blue-300 flex items-center gap-1.5">
-        <i class="fas fa-sun text-amber-400"></i> <span>Karachi 32°C</span>
+    <!-- SHARE MODAL -->
+    <div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
+      <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800 space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-xs text-white">Share Video</h3>
+          <button onclick="toggleShareModal()" class="text-slate-400 text-lg">&times;</button>
+        </div>
+        <button onclick="copyAppUrl()" class="w-full bg-slate-800 border border-slate-700 py-3 rounded-xl text-xs font-bold text-slate-200"><i class="fas fa-link mr-2"></i> Copy Link</button>
       </div>
-      <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white p-1">
-        <i class="fas fa-ellipsis-v text-lg"></i>
+    </div>
+
+    <!-- BOTTOM NAVBAR WITH BIG (+) POST BUTTON -->
+    <nav class="h-14 bg-slate-900 border-t border-slate-800 flex justify-around items-center px-2 z-40 shrink-0">
+      <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500 font-bold">
+        <i class="fas fa-film text-base"></i>
+        <span class="text-[9px] mt-0.5">Reels</span>
       </button>
-    </div>
-  </header>
+      <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
+        <i class="fas fa-newspaper text-base"></i>
+        <span class="text-[9px] mt-0.5">Feed</span>
+      </button>
+      
+      <!-- CENTER (+) BIG POST BUTTON -->
+      <button onclick="toggleUploadModal()" class="flex items-center justify-center -translate-y-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white w-11 h-11 rounded-full shadow-lg border-2 border-slate-900 active:scale-90 transition-transform">
+        <i class="fas fa-plus text-lg"></i>
+      </button>
 
-  <!-- 1. REELS TAB -->
-  <section id="tab-reels" class="tab-content active">
-    <div id="reelsContainer" class="reels-scroll-container w-full"></div>
-  </section>
+      <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
+        <i class="fas fa-chart-line text-base"></i>
+        <span class="text-[9px] mt-0.5">Forex</span>
+      </button>
+      <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
+        <i class="fas fa-user text-base"></i>
+        <span class="text-[9px] mt-0.5">Profile</span>
+      </button>
+    </nav>
 
-  <!-- 2. PUBLIC FEED TAB -->
-  <section id="tab-feed" class="tab-content p-4 space-y-4">
-    <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2"><i class="fas fa-newspaper"></i> Public Feed</h2>
-    <div id="feedPosts" class="space-y-4">
-      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-slate-300">
-        <p class="font-bold text-white mb-1">Welcome to Umar Super App Community!</p>
-        <p>Explore live videos, check forex market trends without any login restriction.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. FOREX TAB -->
-  <section id="tab-forex" class="tab-content p-4">
-    <h2 class="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
-    <div class="flex gap-2 mb-3">
-      <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-blue-600 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold">XAUUSD</button>
-      <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-slate-300 text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">BTCUSD</button>
-      <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-slate-300 text-xs px-3.5 py-1.5 rounded-lg font-bold border border-slate-700">EURUSD</button>
-    </div>
-    <div class="w-full h-[380px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
-      <div id="tradingview_chart" class="w-full h-full"></div>
-    </div>
-  </section>
-
-  <!-- 4. OFFLINE SCROLL TAB -->
-  <section id="tab-offline" class="tab-content">
-    <div id="offlineContainer" class="reels-scroll-container w-full"></div>
-  </section>
-
-  <!-- 5. PROFILE TAB -->
-  <section id="tab-profile" class="tab-content p-4">
-    <div id="profileViewContainer"></div>
-  </section>
-
-  <!-- SHARE MODAL -->
-  <div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-end z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full p-4 rounded-t-2xl border-t border-slate-800 space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-xs text-white">Share Video</h3>
-        <button onclick="toggleShareModal()" class="text-slate-400 text-lg">&times;</button>
-      </div>
-      <button onclick="copyAppUrl()" class="w-full bg-slate-800 border border-slate-700 py-3 rounded-xl text-xs font-bold text-slate-200"><i class="fas fa-link mr-2"></i> Copy App Link</button>
-    </div>
   </div>
-
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 w-full max-w-sm p-4 rounded-2xl border border-slate-800 space-y-3">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="font-bold text-sm text-white">Settings</h3>
-        <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div id="settingsAuthBtn"></div>
-      <button onclick="localStorage.clear(); location.reload();" class="w-full bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs">Reset App Data</button>
-    </div>
-  </div>
-
-  <!-- ADSENSE BANNER -->
-  <div class="fixed bottom-12 left-0 right-0 bg-slate-900 text-center z-30 border-t border-slate-800 py-1">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-0000000000000000" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  </div>
-
-  <!-- BOTTOM NAVBAR -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800/80 flex justify-around items-center py-2 z-40 backdrop-blur-md">
-    <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500 font-bold">
-      <i class="fas fa-film text-lg"></i>
-      <span class="text-[9px] mt-0.5">Reels</span>
-    </button>
-    <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-newspaper text-lg"></i>
-      <span class="text-[9px] mt-0.5">Feed</span>
-    </button>
-    <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-chart-line text-lg"></i>
-      <span class="text-[9px] mt-0.5">Forex</span>
-    </button>
-    <button onclick="switchTab('offline')" id="nav-offline" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-download text-lg"></i>
-      <span class="text-[9px] mt-0.5">Offline</span>
-    </button>
-    <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-user text-lg"></i>
-      <span class="text-[9px] mt-0.5">Profile</span>
-    </button>
-  </nav>
 
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <script>
@@ -159,6 +215,25 @@
     ];
 
     let offlineData = [];
+    let videoObserver = null;
+
+    function showToast(message, iconClass = "fas fa-info-circle text-blue-400") {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.innerText = message;
+      toastIcon.className = iconClass;
+      
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function handleWithdrawal() {
+      showToast("Balance Not Available", "fas fa-exclamation-triangle text-amber-400");
+    }
 
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -172,38 +247,41 @@
 
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
       if (tabName === 'profile') renderProfileTab();
-      if (tabName === 'offline') renderOfflineScroll();
+      
+      if (tabName !== 'reels') {
+        document.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
+      }
     }
 
     function renderReels() {
       const container = document.getElementById('reelsContainer');
       container.innerHTML = reelsData.map(reel => `
-        <div class="reel-card flex items-center justify-center relative">
-          <video src="${reel.video}" class="w-full h-full object-cover" loop autoplay playsinline muted></video>
+        <div class="reel-card">
+          <video src="${reel.video}" class="w-full h-full object-cover reel-video" loop playsinline></video>
           
-          <div class="absolute bottom-6 left-4 right-20 z-10 text-white space-y-1">
+          <div class="absolute bottom-6 left-4 right-20 z-10 text-white space-y-1 drop-shadow-md">
             <span class="font-bold text-sm text-blue-400">${reel.user}</span>
-            <p class="text-xs text-slate-200">${reel.caption}</p>
+            <p class="text-xs text-slate-100">${reel.caption}</p>
             <p class="text-[10px] text-emerald-400 font-semibold"><i class="fas fa-eye"></i> ${reel.views} Views</p>
           </div>
 
-          <div class="absolute right-3 bottom-12 flex flex-col items-center gap-5 z-20">
+          <div class="absolute right-3 bottom-10 flex flex-col items-center gap-5 z-20">
             <button onclick="toggleLike(${reel.id})" class="action-btn flex flex-col items-center text-white">
-              <div class="w-10 h-10 rounded-full bg-slate-900/60 flex items-center justify-center text-lg ${reel.liked ? 'text-rose-500' : 'text-white'}">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-lg ${reel.liked ? 'text-rose-500' : 'text-white'}">
                 <i class="fas fa-heart"></i>
               </div>
               <span class="text-[10px] font-bold mt-1">${reel.likes}</span>
             </button>
 
             <button onclick="toggleShareModal()" class="action-btn flex flex-col items-center text-white">
-              <div class="w-10 h-10 rounded-full bg-slate-900/60 flex items-center justify-center text-lg">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-lg">
                 <i class="fas fa-share"></i>
               </div>
               <span class="text-[10px] font-bold mt-1">Share</span>
             </button>
 
             <button onclick="saveOffline(${reel.id})" class="action-btn flex flex-col items-center text-white">
-              <div class="w-10 h-10 rounded-full bg-slate-900/60 flex items-center justify-center text-lg text-emerald-400">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-lg text-emerald-400">
                 <i class="fas fa-download"></i>
               </div>
               <span class="text-[10px] font-bold mt-1">Save</span>
@@ -211,6 +289,30 @@
           </div>
         </div>
       `).join('');
+
+      setupVideoObserver();
+    }
+
+    function setupVideoObserver() {
+      if(videoObserver) videoObserver.disconnect();
+
+      videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          if (entry.isIntersecting) {
+            video.muted = false;
+            video.play().catch(() => {
+              video.muted = true;
+              video.play();
+            });
+          } else {
+            video.pause();
+            video.currentTime = 0;
+          }
+        });
+      }, { threshold: 0.6 });
+
+      document.querySelectorAll('.reel-video').forEach(vid => videoObserver.observe(vid));
     }
 
     function toggleLike(id) {
@@ -228,25 +330,10 @@
       const reel = reelsData.find(r => r.id === id);
       if(reel && !offlineData.some(o => o.id === id)) {
         offlineData.push(reel);
-        alert("Video Saved Offline!");
+        showToast("Video Saved Offline!", "fas fa-download text-emerald-400");
+      } else {
+        showToast("Already Saved!", "fas fa-info-circle text-blue-400");
       }
-    }
-
-    function renderOfflineScroll() {
-      const container = document.getElementById('offlineContainer');
-      if(offlineData.length === 0) {
-        container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-500 text-xs py-10">No saved offline videos yet. Click save on any video!</div>`;
-        return;
-      }
-      container.innerHTML = offlineData.map(reel => `
-        <div class="reel-card flex items-center justify-center relative">
-          <video src="${reel.video}" class="w-full h-full object-cover" loop autoplay playsinline muted></video>
-          <div class="absolute bottom-6 left-4 z-10 text-white">
-            <h4 class="font-bold text-sm">${reel.caption}</h4>
-            <p class="text-xs text-slate-300">${reel.user}</p>
-          </div>
-        </div>
-      `).join('');
     }
 
     function renderProfileTab() {
@@ -258,7 +345,7 @@
               <i class="fas fa-user-lock"></i>
             </div>
             <h3 class="text-base font-bold text-white">Profile Locked</h3>
-            <p class="text-xs text-slate-400 max-w-xs mx-auto">Please login or create an account to manage your profile and view uploaded videos.</p>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto">Please login or create an account to manage your profile.</p>
             <button onclick="toggleAuthModal()" class="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl text-xs">Login Now</button>
           </div>
         `;
@@ -275,15 +362,48 @@
         </div>
         <div class="grid grid-cols-2 gap-2 mb-4 text-center">
           <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-            <p class="text-base font-black text-blue-400">1.2K</p>
+            <p class="text-base font-black text-blue-400">0</p>
             <p class="text-[10px] text-slate-400">Likes</p>
           </div>
           <div class="bg-slate-900 p-3 border border-slate-800 rounded-xl">
-            <p class="text-base font-black text-blue-400">2</p>
+            <p class="text-base font-black text-blue-400">${reelsData.length}</p>
             <p class="text-[10px] text-slate-400">Videos</p>
           </div>
         </div>
       `;
+    }
+
+    function toggleUploadModal() {
+      if(!userData) { toggleAuthModal(); return; }
+      const modal = document.getElementById('uploadModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    function handlePostSubmit() {
+      const video = document.getElementById('postVideoUrl').value;
+      const caption = document.getElementById('postCaption').value;
+
+      if(!video) {
+        showToast("Please enter a valid video URL", "fas fa-exclamation-circle text-rose-400");
+        return;
+      }
+
+      const newReel = {
+        id: Date.now(),
+        user: userData.handle,
+        video: video,
+        caption: caption || "New Video",
+        likes: 0,
+        views: "1 View",
+        liked: false
+      };
+
+      reelsData.unshift(newReel);
+      renderReels();
+      toggleUploadModal();
+      switchTab('reels');
+      showToast("Video Posted Successfully!", "fas fa-check-circle text-emerald-400");
     }
 
     function toggleAuthModal() {
@@ -299,6 +419,7 @@
       userData = { name, handle };
       localStorage.setItem('superapp_user', JSON.stringify(userData));
       toggleAuthModal();
+      showToast("Login Successful!", "fas fa-user-check text-emerald-400");
       switchTab('profile');
     }
 
@@ -310,6 +431,7 @@
     function toggleSettingsModal() {
       const modal = document.getElementById('settingsModal');
       modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
       const authBtn = document.getElementById('settingsAuthBtn');
       if(userData) {
         authBtn.innerHTML = `<button onclick="localStorage.removeItem('superapp_user'); location.reload();" class="w-full bg-slate-800 border border-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs">Logout (${userData.handle})</button>`;
@@ -320,7 +442,7 @@
 
     function copyAppUrl() {
       navigator.clipboard.writeText(window.location.href);
-      alert("App Link Copied!");
+      showToast("App Link Copied!", "fas fa-link text-blue-400");
       toggleShareModal();
     }
 
