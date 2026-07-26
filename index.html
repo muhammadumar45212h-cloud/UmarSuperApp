@@ -175,7 +175,7 @@
     </div>
   </div>
 
-  <!-- EDIT PROFILE MODAL (WITH GALLERY PICKER) -->
+  <!-- EDIT PROFILE MODAL -->
   <div id="editProfileModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
       <div class="flex justify-between items-center mb-4">
@@ -323,10 +323,10 @@
               <span class="text-[9px] font-bold mt-0.5 ${vid.subscribed ? 'text-emerald-400' : 'text-rose-400'}">${vid.subscribed ? 'Subbed' : '+Sub'}</span>
             </button>
 
-            <!-- LIKE BUTTON -->
+            <!-- LIKE BUTTON (SMOOTH INSTANT UPDATE) -->
             <button onclick="toggleLike('${vid.id}')" class="flex flex-col items-center">
-              <i class="fas fa-heart text-2xl ${vid.liked ? 'text-rose-500' : 'text-slate-300'}"></i>
-              <span class="text-[10px] font-bold mt-0.5">${vid.likes}</span>
+              <i id="like-icon-${vid.id}" class="fas fa-heart text-2xl ${vid.liked ? 'text-rose-500' : 'text-slate-300'} transition-transform active:scale-125"></i>
+              <span id="like-count-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.likes}</span>
             </button>
 
             <!-- COMMENT BUTTON -->
@@ -335,7 +335,7 @@
               <span class="text-[10px] font-bold mt-0.5">${vid.comments.length}</span>
             </button>
 
-            <!-- SHARE BUTTON (NO ALERT) -->
+            <!-- SHARE BUTTON -->
             <button onclick="handleNativeShare('${vid.id}', '${vid.user}')" class="flex flex-col items-center">
               <i class="fas fa-share text-2xl text-slate-300"></i>
               <span class="text-[10px] font-bold mt-0.5">Share</span>
@@ -343,8 +343,8 @@
 
             <!-- SAVE BUTTON -->
             <button onclick="toggleSave('${vid.id}')" class="flex flex-col items-center">
-              <i class="fas fa-bookmark text-2xl ${vid.saved ? 'text-emerald-400' : 'text-slate-300'}"></i>
-              <span class="text-[10px] font-bold mt-0.5">${vid.saved ? 'Saved' : 'Save'}</span>
+              <i id="save-icon-${vid.id}" class="fas fa-bookmark text-2xl ${vid.saved ? 'text-emerald-400' : 'text-slate-300'}"></i>
+              <span id="save-text-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.saved ? 'Saved' : 'Save'}</span>
             </button>
           </div>
 
@@ -356,12 +356,13 @@
         container.appendChild(card);
       });
 
-      document.getElementById('likeTotalCounter').innerText = totalLikes;
+      updateOverallLikesCount();
       document.getElementById('videoCounter').innerText = storedVideos.length;
     }
 
     function togglePlayPause(vidId) {
       const video = document.getElementById(`video-element-${vidId}`);
+      if (!video) return;
       if (video.paused) {
         video.play();
       } else {
@@ -376,6 +377,7 @@
       cards.forEach(card => {
         const rect = card.getBoundingClientRect();
         const video = card.querySelector('video');
+        if (!video) return;
         
         if (rect.top >= -100 && rect.top <= 100) {
           if (video.paused) {
@@ -387,21 +389,51 @@
       });
     }
 
+    // --- SMOOTH LIKE TOGGLE (NO PAGE FLICKER / NO JHATKA) ---
     function toggleLike(vidId) {
       const vid = storedVideos.find(v => v.id === vidId);
+      if (!vid) return;
+
+      vid.liked = !vid.liked;
       if (vid.liked) {
-        vid.likes--;
-        vid.liked = false;
-      } else {
         vid.likes++;
-        vid.liked = true;
+      } else {
+        vid.likes--;
       }
+
+      // LocalStorage Sync
       localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderReels();
+
+      // Direct Smooth DOM Update
+      const icon = document.getElementById(`like-icon-${vidId}`);
+      const count = document.getElementById(`like-count-${vidId}`);
+
+      if (icon) {
+        if (vid.liked) {
+          icon.classList.remove('text-slate-300');
+          icon.classList.add('text-rose-500');
+        } else {
+          icon.classList.remove('text-rose-500');
+          icon.classList.add('text-slate-300');
+        }
+      }
+
+      if (count) {
+        count.innerText = vid.likes;
+      }
+
+      updateOverallLikesCount();
+    }
+
+    function updateOverallLikesCount() {
+      let total = storedVideos.reduce((sum, v) => sum + v.likes, 0);
+      const totalDisplay = document.getElementById('likeTotalCounter');
+      if (totalDisplay) totalDisplay.innerText = total;
     }
 
     function toggleSubscribe(vidId) {
       const vid = storedVideos.find(v => v.id === vidId);
+      if (!vid) return;
       vid.subscribed = !vid.subscribed;
       localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
       renderReels();
@@ -409,40 +441,56 @@
 
     function toggleSave(vidId) {
       const vid = storedVideos.find(v => v.id === vidId);
+      if (!vid) return;
       vid.saved = !vid.saved;
       localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderReels();
+
+      const icon = document.getElementById(`save-icon-${vidId}`);
+      const text = document.getElementById(`save-text-${vidId}`);
+
+      if (icon) {
+        if (vid.saved) {
+          icon.classList.remove('text-slate-300');
+          icon.classList.add('text-emerald-400');
+        } else {
+          icon.classList.remove('text-emerald-400');
+          icon.classList.add('text-slate-300');
+        }
+      }
+      if (text) text.innerText = vid.saved ? 'Saved' : 'Save';
+
       renderProfileGrids();
     }
 
     function handleNativeShare(vidId, user) {
       const shareUrl = `https://umar-super-app.vercel.app/reel?id=${vidId}&user=${user}`;
       if (navigator.share) {
-        navigator.share({
-          title: 'Umar Super App Video',
-          url: shareUrl
-        }).catch(() => {});
+        navigator.share({ title: 'Umar Super App Video', url: shareUrl }).catch(() => {});
       } else {
         navigator.clipboard.writeText(shareUrl).catch(() => {});
       }
     }
 
-    // --- WITHDRAWAL BUTTON FUNCTION ---
     function handleWithdrawal() {
       alert("No balance here");
     }
 
-    // --- UPLOAD VIDEO FROM GALLERY ---
+    // --- MULTIPLE VIDEO UPLOAD FIX ---
     function uploadGalleryVideo() {
       const fileInput = document.getElementById('mediaGalleryInput');
-      const caption = document.getElementById('captionInput').value || 'New Video';
+      const captionInput = document.getElementById('captionInput');
+      const caption = captionInput.value.trim() || 'New Video';
 
-      if (!fileInput.files[0]) return alert('Select video file!');
+      if (!fileInput.files || !fileInput.files[0]) {
+        return alert('Please select a video file from gallery!');
+      }
 
+      const file = fileInput.files[0];
       const reader = new FileReader();
+
       reader.onload = function(e) {
         const newVid = {
-          id: 'vid-' + Date.now(),
+          id: 'vid-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
           url: e.target.result,
           user: currentUser,
           caption: caption,
@@ -453,15 +501,22 @@
           comments: []
         };
 
+        // MULTIPLE VIDEOS APPEND
         storedVideos.unshift(newVid);
         localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
 
+        // Reset input fields
+        fileInput.value = '';
+        captionInput.value = '';
+
+        // Re-render UI
         renderReels();
         renderProfileGrids();
         toggleCreateModal();
         switchTab('reels');
       };
-      reader.readAsDataURL(fileInput.files[0]);
+
+      reader.readAsDataURL(file);
     }
 
     // --- COMMENTS SYSTEM ---
@@ -538,7 +593,7 @@
       setTimeout(() => overlay.classList.add('hidden'), 300);
     }
 
-    // --- PROFILE EDIT (GALLERY AVATAR) ---
+    // --- PROFILE EDIT ---
     function toggleEditProfileModal() {
       document.getElementById('editNameInput').value = currentUser;
       document.getElementById('editBioInput').value = currentBio;
