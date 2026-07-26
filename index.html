@@ -16,6 +16,7 @@
     .reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
     .bottom-sheet { transition: transform 0.3s ease-out; transform: translateY(100%); }
     .bottom-sheet.open { transform: translateY(0); }
+    canvas { background: #111827; border-radius: 12px; }
   </style>
 </head>
 <body class="pb-20 select-none">
@@ -51,7 +52,48 @@
     <div id="feedPosts" class="space-y-3"></div>
   </section>
 
-  <!-- 3. FOREX & CRYPTO TAB -->
+  <!-- 3. GAMES HUB TAB -->
+  <section id="tab-games" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
+    <h2 class="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2"><i class="fas fa-gamepad"></i> Umar Gaming Zone</h2>
+    
+    <!-- Game Switcher Buttons -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <button onclick="selectGame('car')" id="btn-game-car" class="bg-slate-800 border border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
+        <i class="fas fa-car-side text-base"></i> Police Chase
+      </button>
+      <button onclick="selectGame('jungle')" id="btn-game-jungle" class="bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
+        <i class="fas fa-tree text-base"></i> Jungle Fight AI
+      </button>
+      <button onclick="selectGame('snake')" id="btn-game-snake" class="bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
+        <i class="fas fa-staff-snake text-base"></i> Snake Game
+      </button>
+    </div>
+
+    <!-- GAME CANVAS CONTAINER -->
+    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex flex-col items-center shadow-xl">
+      <div class="flex justify-between w-full mb-2 items-center px-1">
+        <span id="gameTitleDisplay" class="text-xs font-bold text-amber-400">🏎️ Car vs Police Chase</span>
+        <span id="gameScoreDisplay" class="text-xs font-bold text-white">Score: 0</span>
+      </div>
+      
+      <canvas id="gameCanvas" width="300" height="320" class="w-full border border-slate-700 shadow-inner"></canvas>
+
+      <!-- TOUCH CONTROLS -->
+      <div class="grid grid-cols-3 gap-2 w-full mt-3">
+        <div></div>
+        <button onclick="handleGameControl('up')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-up"></i></button>
+        <div></div>
+        <button onclick="handleGameControl('left')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-left"></i></button>
+        <button onclick="handleGameControl('action')" id="gameActionBtn" class="bg-rose-600 active:bg-rose-700 text-white p-3 rounded-xl font-bold text-xs">ACTION</button>
+        <button onclick="handleGameControl('right')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-right"></i></button>
+        <div></div>
+        <button onclick="handleGameControl('down')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-down"></i></button>
+        <div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. FOREX & CRYPTO TAB -->
   <section id="tab-forex" class="tab-content pt-16 p-4 h-screen">
     <div class="flex justify-between items-center mb-2">
       <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
@@ -64,7 +106,7 @@
     <div class="w-full h-[calc(100vh-170px)] bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-2xl" id="tradingview_chart"></div>
   </section>
 
-  <!-- 4. CODE TERMINAL IDE TAB -->
+  <!-- 5. CODE TERMINAL IDE TAB -->
   <section id="tab-code" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
     <h2 class="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2"><i class="fas fa-code"></i> Real-time Mobile IDE Terminal</h2>
     <textarea id="codeEditor" class="w-full h-44 bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-3" placeholder="// Live Code Console\nlet a = 15;\nlet b = 25;\nconsole.log('Result:', a + b);"></textarea>
@@ -74,7 +116,7 @@
     <div id="terminalConsole" class="w-full h-48 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-emerald-400 p-3 overflow-y-auto whitespace-pre-wrap">Terminal ready...</div>
   </section>
 
-  <!-- 5. PROFILE TAB -->
+  <!-- 6. PROFILE TAB -->
   <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
     <div class="flex justify-between items-center mb-2">
       <button onclick="toggleEditProfileModal()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs px-3 py-1 rounded-lg font-bold"><i class="fas fa-edit mr-1"></i> Edit Profile</button>
@@ -131,6 +173,9 @@
     </button>
     <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
       <i class="fas fa-newspaper text-base"></i><span class="text-[9px] font-semibold mt-0.5">Feed</span>
+    </button>
+    <button onclick="switchTab('games')" id="nav-games" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-gamepad text-base"></i><span class="text-[9px] font-semibold mt-0.5">Games</span>
     </button>
     <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-9 h-9 rounded-full flex items-center justify-center -mt-2 shadow-lg">
       <i class="fas fa-plus text-xs"></i>
@@ -281,6 +326,7 @@
       renderReels();
       renderPosts();
       renderProfileGrids();
+      initGameEngine();
     };
 
     function renderProfileInfo() {
@@ -304,10 +350,7 @@
       const container = document.getElementById('reelsContainer');
       container.innerHTML = '';
 
-      let totalLikes = 0;
-
       storedVideos.forEach((vid) => {
-        totalLikes += vid.likes;
         const card = document.createElement('div');
         card.className = "reel-card flex items-center justify-center";
         card.id = `reel-card-${vid.id}`;
@@ -315,7 +358,6 @@
           <video id="video-element-${vid.id}" src="${vid.url}" class="w-full h-full object-cover cursor-pointer" loop playsinline onclick="togglePlayPause('${vid.id}')"></video>
           
           <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 text-white z-20">
-            <!-- SUBSCRIBE BUTTON -->
             <button onclick="toggleSubscribe('${vid.id}')" class="flex flex-col items-center">
               <div class="w-9 h-9 rounded-full bg-slate-800 border-2 ${vid.subscribed ? 'border-emerald-500' : 'border-rose-500'} flex items-center justify-center font-bold text-xs">
                 ${vid.user[0].toUpperCase()}
@@ -323,25 +365,21 @@
               <span class="text-[9px] font-bold mt-0.5 ${vid.subscribed ? 'text-emerald-400' : 'text-rose-400'}">${vid.subscribed ? 'Subbed' : '+Sub'}</span>
             </button>
 
-            <!-- LIKE BUTTON (SMOOTH INSTANT UPDATE) -->
             <button onclick="toggleLike('${vid.id}')" class="flex flex-col items-center">
               <i id="like-icon-${vid.id}" class="fas fa-heart text-2xl ${vid.liked ? 'text-rose-500' : 'text-slate-300'} transition-transform active:scale-125"></i>
               <span id="like-count-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.likes}</span>
             </button>
 
-            <!-- COMMENT BUTTON -->
             <button onclick="openCommentSheet('${vid.id}')" class="flex flex-col items-center">
               <i class="fas fa-comment text-2xl text-slate-300"></i>
               <span class="text-[10px] font-bold mt-0.5">${vid.comments.length}</span>
             </button>
 
-            <!-- SHARE BUTTON -->
             <button onclick="handleNativeShare('${vid.id}', '${vid.user}')" class="flex flex-col items-center">
               <i class="fas fa-share text-2xl text-slate-300"></i>
               <span class="text-[10px] font-bold mt-0.5">Share</span>
             </button>
 
-            <!-- SAVE BUTTON -->
             <button onclick="toggleSave('${vid.id}')" class="flex flex-col items-center">
               <i id="save-icon-${vid.id}" class="fas fa-bookmark text-2xl ${vid.saved ? 'text-emerald-400' : 'text-slate-300'}"></i>
               <span id="save-text-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.saved ? 'Saved' : 'Save'}</span>
@@ -389,7 +427,6 @@
       });
     }
 
-    // --- SMOOTH LIKE TOGGLE (NO PAGE FLICKER / NO JHATKA) ---
     function toggleLike(vidId) {
       const vid = storedVideos.find(v => v.id === vidId);
       if (!vid) return;
@@ -401,10 +438,8 @@
         vid.likes--;
       }
 
-      // LocalStorage Sync
       localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
 
-      // Direct Smooth DOM Update
       const icon = document.getElementById(`like-icon-${vidId}`);
       const count = document.getElementById(`like-count-${vidId}`);
 
@@ -475,7 +510,6 @@
       alert("No balance here");
     }
 
-    // --- MULTIPLE VIDEO UPLOAD FIX ---
     function uploadGalleryVideo() {
       const fileInput = document.getElementById('mediaGalleryInput');
       const captionInput = document.getElementById('captionInput');
@@ -501,15 +535,12 @@
           comments: []
         };
 
-        // MULTIPLE VIDEOS APPEND
         storedVideos.unshift(newVid);
         localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
 
-        // Reset input fields
         fileInput.value = '';
         captionInput.value = '';
 
-        // Re-render UI
         renderReels();
         renderProfileGrids();
         toggleCreateModal();
@@ -686,7 +717,6 @@
     }
 
     function renderProfileGrids() {
-      // My Uploads Grid
       const grid = document.getElementById('profileUploadsGrid');
       grid.innerHTML = '';
       storedVideos.forEach(vid => {
@@ -696,7 +726,6 @@
         grid.appendChild(thumb);
       });
 
-      // Saved Posts Grid
       const savedGrid = document.getElementById('profileSavedGrid');
       savedGrid.innerHTML = '';
       const savedVids = storedVideos.filter(v => v.saved);
@@ -709,6 +738,165 @@
           thumb.innerHTML = `<video src="${vid.url}" class="w-full h-full object-cover"></video>`;
           savedGrid.appendChild(thumb);
         });
+      }
+    }
+
+    // ===============================================
+    // MULTI-GAME ENGINE (CAR CHASE, JUNGLE FIGHT, SNAKE)
+    // ===============================================
+    let activeGameMode = 'car';
+    let gameLoopInterval = null;
+    let canvas, ctx;
+    let gameScore = 0;
+
+    // Game Objects
+    let carState = { playerX: 130, policeY: 260, obstacles: [] };
+    let jungleState = { playerX: 50, playerY: 200, botX: 230, botY: 200, hp: 100, botHp: 100, isPunching: false };
+    let snakeState = { snake: [{x: 10, y: 10}], food: {x: 5, y: 5}, dx: 1, dy: 0 };
+
+    function selectGame(mode) {
+      activeGameMode = mode;
+      ['car', 'jungle', 'snake'].forEach(m => {
+        const btn = document.getElementById(`btn-game-${m}`);
+        if(m === mode) {
+          btn.className = "bg-slate-800 border border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1";
+        } else {
+          btn.className = "bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1";
+        }
+      });
+
+      const title = document.getElementById('gameTitleDisplay');
+      const actBtn = document.getElementById('gameActionBtn');
+
+      if(mode === 'car') {
+        title.innerText = "🏎️ Car vs Police Chase";
+        actBtn.innerText = "NITRO";
+      } else if(mode === 'jungle') {
+        title.innerText = "🦁 Jungle Fight AI Bot (Attitude Arena)";
+        actBtn.innerText = "ATTACK";
+      } else if(mode === 'snake') {
+        title.innerText = "🐍 Classic Snake Game";
+        actBtn.innerText = "BOOST";
+      }
+
+      resetGameData();
+    }
+
+    function initGameEngine() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+      resetGameData();
+      if(gameLoopInterval) clearInterval(gameLoopInterval);
+      gameLoopInterval = setInterval(updateGameLoop, 100);
+    }
+
+    function resetGameData() {
+      gameScore = 0;
+      carState = { playerX: 130, policeY: 260, obstacles: [{x: 130, y: -50}] };
+      jungleState = { playerX: 50, playerY: 220, botX: 220, botY: 220, hp: 100, botHp: 100, isPunching: false };
+      snakeState = { snake: [{x: 5, y: 5}], food: {x: 12, y: 12}, dx: 1, dy: 0 };
+    }
+
+    function updateGameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('gameScoreDisplay').innerText = "Score: " + gameScore;
+
+      if(activeGameMode === 'car') {
+        // Road Background
+        ctx.fillStyle = "#1e293b"; ctx.fillRect(60, 0, 180, 320);
+        ctx.strokeStyle = "#f59e0b"; ctx.setLineDash([15, 15]);
+        ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, 320); ctx.stroke(); ctx.setLineDash([]);
+
+        // Player Car
+        ctx.fillStyle = "#3b82f6"; ctx.fillRect(carState.playerX, 180, 30, 50);
+        // Police Car
+        ctx.fillStyle = "#ef4444"; ctx.fillRect(carState.playerX + (Math.random()*4-2), carState.policeY, 30, 50);
+        
+        // Obstacles (Traffic)
+        carState.obstacles.forEach(o => {
+          ctx.fillStyle = "#10b981"; ctx.fillRect(o.x, o.y, 30, 50);
+          o.y += 8;
+          if(o.y > 320) { o.y = -60; o.x = 70 + Math.floor(Math.random()*3)*50; gameScore += 10; }
+          // Collision Check
+          if(Math.abs(o.x - carState.playerX) < 25 && Math.abs(o.y - 180) < 40) {
+            resetGameData();
+          }
+        });
+
+      } else if(activeGameMode === 'jungle') {
+        // Jungle Background & Trees
+        ctx.fillStyle = "#064e3b"; ctx.fillRect(0, 0, 300, 320);
+        ctx.fillStyle = "#047857"; ctx.fillRect(20, 40, 40, 100); ctx.fillRect(240, 30, 40, 120);
+        
+        // Ground
+        ctx.fillStyle = "#78350f"; ctx.fillRect(0, 260, 300, 60);
+
+        // Player (Attitude Fighter)
+        ctx.fillStyle = "#f43f5e"; ctx.fillRect(jungleState.playerX, jungleState.playerY, 25, 40);
+        if(jungleState.isPunching) {
+          ctx.fillStyle = "#fbbf24"; ctx.fillRect(jungleState.playerX + 25, jungleState.playerY + 10, 15, 8);
+        }
+
+        // AI Bot (Enemy)
+        ctx.fillStyle = "#8b5cf6"; ctx.fillRect(jungleState.botX, jungleState.botY, 25, 40);
+        // AI Bot Simple Movement towards Player
+        if(jungleState.botX > jungleState.playerX + 35) jungleState.botX -= 2;
+        if(jungleState.botX < jungleState.playerX + 35) {
+          // Bot Attack Player
+          jungleState.hp -= 1;
+        }
+
+        // Health Bars
+        ctx.fillStyle = "#ef4444"; ctx.fillRect(10, 10, jungleState.hp, 8);
+        ctx.fillStyle = "#8b5cf6"; ctx.fillRect(190, 10, jungleState.botHp, 8);
+
+        if(jungleState.hp <= 0) resetGameData();
+        if(jungleState.botHp <= 0) { gameScore += 100; jungleState.botHp = 100; jungleState.botX = 260; }
+
+      } else if(activeGameMode === 'snake') {
+        // Grid Snake
+        let head = { x: snakeState.snake[0].x + snakeState.dx, y: snakeState.snake[0].y + snakeState.dy };
+        
+        if(head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) { resetGameData(); return; }
+        snakeState.snake.unshift(head);
+
+        if(head.x === snakeState.food.x && head.y === snakeState.food.y) {
+          gameScore += 20;
+          snakeState.food = { x: Math.floor(Math.random()*18), y: Math.floor(Math.random()*18) };
+        } else {
+          snakeState.snake.pop();
+        }
+
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(snakeState.food.x*15, snakeState.food.y*15, 13, 13);
+
+        ctx.fillStyle = "#10b981";
+        snakeState.snake.forEach(s => ctx.fillRect(s.x*15, s.y*15, 13, 13));
+      }
+    }
+
+    function handleGameControl(dir) {
+      if(activeGameMode === 'car') {
+        if(dir === 'left' && carState.playerX > 70) carState.playerX -= 50;
+        if(dir === 'right' && carState.playerX < 170) carState.playerX += 50;
+        if(dir === 'action') gameScore += 5;
+
+      } else if(activeGameMode === 'jungle') {
+        if(dir === 'left' && jungleState.playerX > 10) jungleState.playerX -= 12;
+        if(dir === 'right' && jungleState.playerX < 240) jungleState.playerX += 12;
+        if(dir === 'action') {
+          jungleState.isPunching = true;
+          if(Math.abs(jungleState.playerX - jungleState.botX) < 45) {
+            jungleState.botHp -= 20;
+          }
+          setTimeout(() => jungleState.isPunching = false, 150);
+        }
+
+      } else if(activeGameMode === 'snake') {
+        if(dir === 'up' && snakeState.dy === 0) { snakeState.dx = 0; snakeState.dy = -1; }
+        if(dir === 'down' && snakeState.dy === 0) { snakeState.dx = 0; snakeState.dy = 1; }
+        if(dir === 'left' && snakeState.dx === 0) { snakeState.dx = -1; snakeState.dy = 0; }
+        if(dir === 'right' && snakeState.dx === 0) { snakeState.dx = 1; snakeState.dy = 0; }
       }
     }
 
@@ -753,7 +941,7 @@
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
 
-      const tabs = ['reels', 'feed', 'code', 'forex', 'profile'];
+      const tabs = ['reels', 'feed', 'games', 'code', 'forex', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if (btn) btn.className = (t === tabName) ? 'flex flex-col items-center text-rose-500' : 'flex flex-col items-center text-slate-400';
