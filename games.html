@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Super Mini Games & Apps</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="h-screen flex flex-col justify-between select-none">
+
+  <!-- TOP BAR WITH BACK TO SUPER APP BUTTON -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+    <button onclick="goBackToApp()" class="bg-slate-800 border border-slate-700 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 active:scale-95">
+      <i class="fas fa-arrow-left"></i> Back to Super App
+    </button>
+    <h1 class="text-sm font-black bg-gradient-to-r from-amber-400 to-rose-400 bg-clip-text text-transparent">Mini Apps & Games</h1>
+  </header>
+
+  <!-- MAIN GAMES GRID -->
+  <main id="gamesMenu" class="flex-1 p-4 overflow-y-auto">
+    <p class="text-[11px] text-slate-400 font-bold uppercase mb-3 tracking-wider">Play Inside Super App</p>
+    
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Game 1: Snake -->
+      <div onclick="launchGame('snake', 'Snake Classic')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 cursor-pointer text-center active:scale-95 transition">
+        <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2 border border-emerald-500/30">🐍</div>
+        <p class="text-xs font-bold text-white">Snake Classic</p>
+        <p class="text-[9px] text-slate-400 mt-0.5">Arcade Game</p>
+      </div>
+
+      <!-- Game 2: Car Racing -->
+      <div onclick="launchGame('car', 'Car Racing 2D')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 cursor-pointer text-center active:scale-95 transition">
+        <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2 border border-rose-500/30">🏎️</div>
+        <p class="text-xs font-bold text-white">Car Dodge</p>
+        <p class="text-[9px] text-slate-400 mt-0.5">Speed Racing</p>
+      </div>
+
+      <!-- Game 3: Ludo Quick -->
+      <div onclick="launchGame('ludo', 'Ludo Mini')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 cursor-pointer text-center active:scale-95 transition">
+        <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2 border border-amber-500/30">🎲</div>
+        <p class="text-xs font-bold text-white">Ludo Quick</p>
+        <p class="text-[9px] text-slate-400 mt-0.5">Board Game</p>
+      </div>
+
+      <!-- Game 4: Tic-Tac-Toe -->
+      <div onclick="launchGame('tictactoe', 'Tic Tac Toe')" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 cursor-pointer text-center active:scale-95 transition">
+        <div class="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2 border border-indigo-500/30">❌⭕</div>
+        <p class="text-xs font-bold text-white">Tic-Tac-Toe</p>
+        <p class="text-[9px] text-slate-400 mt-0.5">Brain Puzzle</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- FULL SCREEN GAME PLAYER -->
+  <div id="gamePlayerScreen" class="fixed inset-0 bg-slate-950 hidden z-50 flex-col">
+    <div class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+      <button onclick="closeGame()" class="bg-slate-800 border border-slate-700 text-amber-400 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-2 active:scale-95">
+        <i class="fas fa-arrow-left"></i> Games Menu
+      </button>
+      <span id="activeGameTitle" class="text-xs font-bold text-slate-200">Playing Game</span>
+    </div>
+    
+    <div id="iframeContainer" class="flex-1 w-full h-full relative"></div>
+  </div>
+
+  <script>
+    function goBackToApp() {
+      window.location.href = 'index.html';
+    }
+
+    function launchGame(gameType, title) {
+      const screen = document.getElementById('gamePlayerScreen');
+      const container = document.getElementById('iframeContainer');
+      const titleElem = document.getElementById('activeGameTitle');
+
+      titleElem.innerText = title;
+      screen.classList.remove('hidden');
+      screen.classList.add('flex');
+
+      let gameUrl = '';
+      if (gameType === 'snake') {
+        gameUrl = 'https://mplays.github.io/snake/';
+      } else if (gameType === 'car') {
+        gameUrl = 'https://html5.gamedistribution.com/rvvAS300/a31e1fb33c4149e3a6c11d21287e0a29/';
+      } else if (gameType === 'ludo') {
+        gameUrl = 'https://html5.gamedistribution.com/6c201e74f3264eb78385dd8edcd28a8a/';
+      } else if (gameType === 'tictactoe') {
+        gameUrl = 'https://playtictactoe.org/';
+      }
+
+      container.innerHTML = `<iframe src="${gameUrl}" class="w-full h-full border-0"></iframe>`;
+    }
+
+    function closeGame() {
+      const screen = document.getElementById('gamePlayerScreen');
+      const container = document.getElementById('iframeContainer');
+      container.innerHTML = ''; // Memory clear karne ke liye
+      screen.classList.add('hidden');
+      screen.classList.remove('flex');
+    }
+  </script>
+</body>
+</html>
