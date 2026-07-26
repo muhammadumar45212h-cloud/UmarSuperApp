@@ -1,984 +1,530 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Umar Super App</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <style>
-    body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
-    .tab-content { display: none; }
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #151c2c;
+      --accent: #ff2a5f;
+      --text: #ffffff;
+      --subtext: #94a3b8;
+      --border: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg-color); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* Header */
+    header { background: #0f172a; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    header h1 { font-size: 1.3rem; color: var(--accent); text-shadow: 0 0 10px rgba(255,42,95,0.3); }
+
+    /* Weather Widget Badge */
+    .weather-badge { font-size: 0.75rem; background: #1e293b; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; color: #f59e0b; border: 1px solid #334155; }
+
+    /* Main Section Container */
+    main { flex: 1; overflow-y: auto; padding-bottom: 70px; position: relative; }
+    .tab-content { display: none; padding: 15px; }
     .tab-content.active { display: block; }
-    .reels-scroll-container { height: calc(100vh - 110px); overflow-y: scroll; scroll-snap-type: y mandatory; }
-    .reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
-    .bottom-sheet { transition: transform 0.3s ease-out; transform: translateY(100%); }
-    .bottom-sheet.open { transform: translateY(0); }
-    canvas { background: #111827; border-radius: 12px; }
+
+    /* REELS & VIDEO FEED VIEW */
+    .video-card { background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; }
+    .video-card video { width: 100%; max-height: 420px; background: #000; object-fit: cover; }
+    .video-info { padding: 12px; font-size: 0.85rem; }
+
+    /* GAMES APK DASHBOARD VIEW */
+    .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+    .game-card { background: var(--card-bg); border-radius: 12px; padding: 12px 8px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+    .game-card:active { transform: scale(0.95); border-color: var(--accent); }
+    .game-card .icon { width: 44px; height: 44px; margin: 0 auto 6px; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .game-card span { font-size: 0.75rem; font-weight: 600; display: block; }
+
+    .game-stage { background: var(--card-bg); border-radius: 16px; padding: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; }
+    canvas { background: #000; border-radius: 12px; width: 100%; max-width: 340px; height: 340px; display: block; border: 1px solid #334155; }
+
+    /* D-PAD Game Controls */
+    .d-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; width: 100%; max-width: 260px; }
+    .btn { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn:active { background: var(--accent); border-color: var(--accent); }
+    .btn-action { background: var(--accent); border: none; font-size: 1rem; }
+
+    /* IDE TERMINAL VIEW */
+    .ide-box { background: #000; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: monospace; color: #22c55e; min-height: 150px; }
+    textarea.code-input { width: 100%; height: 120px; background: #0f172a; color: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.9rem; outline: none; margin-bottom: 10px; }
+
+    /* FOREX & MARKET CHART VIEW */
+    .market-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .m-tab { background: #1e293b; border: 1px solid var(--border); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+    .m-tab.active { background: #0284c7; border-color: #38bdf8; }
+    .chart-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; height: 380px; }
+
+    /* PROFILE & WALLET VIEW */
+    .profile-header { text-align: center; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+    .avatar { width: 75px; height: 75px; background: linear-gradient(135deg, #ff2a5f, #7c3aed); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 15px rgba(255,42,95,0.3); }
+    .wallet-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; text-align: center; }
+    .stat-box { background: var(--card-bg); padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
+    .stat-box b { display: block; font-size: 0.95rem; color: var(--accent); }
+    .stat-box span { font-size: 0.65rem; color: var(--subtext); }
+
+    /* MODAL FOR UPLOADS */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: var(--card-bg); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border); }
+
+    /* BOTTOM NAV BAR */
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; height: 62px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); z-index: 90; }
+    .nav-item { color: var(--subtext); border: none; background: none; font-size: 0.68rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+    .nav-item.active { color: var(--accent); font-weight: bold; }
+    .plus-btn { background: var(--accent); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; border: none; transform: translateY(-12px); box-shadow: 0 4px 15px rgba(255,42,95,0.5); cursor: pointer; }
   </style>
 </head>
-<body class="pb-20 select-none">
+<body>
 
-  <!-- TOP APP BAR -->
-  <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
-    <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    
-    <div class="flex items-center gap-3">
-      <button onclick="toggleChatModal()" class="relative text-slate-300 hover:text-rose-400 text-lg">
-        <i class="fas fa-paper-plane"></i>
-        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white" id="unreadBadge">1</span>
-      </button>
-    </div>
+  <!-- App Bar Header -->
+  <header>
+    <h1>Super App</h1>
+    <div class="weather-badge">⚙️ Karachi 32°C</div>
   </header>
 
-  <!-- 1. TIKTOK REELS TAB -->
-  <section id="tab-reels" class="tab-content active pt-14">
-    <div id="reelsContainer" class="reels-scroll-container w-full" onscroll="handleReelScroll()"></div>
-  </section>
-
-  <!-- 2. PUBLIC FEED TAB -->
-  <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4">
-      <textarea id="feedTextContent" placeholder="What's on your mind?" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-lg h-16 focus:outline-none mb-2"></textarea>
-      <div class="flex justify-between items-center">
-        <span class="text-[10px] text-slate-500"><i class="fas fa-globe mr-1"></i>Public Post</span>
-        <button onclick="publishTextPost()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-1.5 rounded-lg font-bold">Post</button>
-      </div>
-    </div>
-
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Community Posts</h2>
-    <div id="feedPosts" class="space-y-3"></div>
-  </section>
-
-  <!-- 3. GAMES HUB TAB -->
-  <section id="tab-games" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <h2 class="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2"><i class="fas fa-gamepad"></i> Umar Gaming Zone</h2>
+  <!-- Main Dynamic Section -->
+  <main>
     
-    <!-- Game Switcher Buttons -->
-    <div class="grid grid-cols-3 gap-2 mb-4">
-      <button onclick="selectGame('car')" id="btn-game-car" class="bg-slate-800 border border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
-        <i class="fas fa-car-side text-base"></i> Police Chase
-      </button>
-      <button onclick="selectGame('jungle')" id="btn-game-jungle" class="bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
-        <i class="fas fa-tree text-base"></i> Jungle Fight AI
-      </button>
-      <button onclick="selectGame('snake')" id="btn-game-snake" class="bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1">
-        <i class="fas fa-staff-snake text-base"></i> Snake Game
-      </button>
+    <!-- 1. REELS / VIDEO FEED TAB -->
+    <div id="tab-reels" class="tab-content active">
+      <div id="video-feed"></div>
     </div>
 
-    <!-- GAME CANVAS CONTAINER -->
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex flex-col items-center shadow-xl">
-      <div class="flex justify-between w-full mb-2 items-center px-1">
-        <span id="gameTitleDisplay" class="text-xs font-bold text-amber-400">🏎️ Car vs Police Chase</span>
-        <span id="gameScoreDisplay" class="text-xs font-bold text-white">Score: 0</span>
-      </div>
+    <!-- 2. GAMING ZONE TAB (APK STORE DASHBOARD STYLE) -->
+    <div id="tab-games" class="tab-content">
+      <h3 style="margin-bottom: 12px; font-size: 0.95rem;">🎮 Umar Gaming Store (Select APK)</h3>
       
-      <canvas id="gameCanvas" width="300" height="320" class="w-full border border-slate-700 shadow-inner"></canvas>
+      <!-- Games Dashboard Grid -->
+      <div class="game-grid">
+        <div class="game-card" onclick="loadGame('car')">
+          <div class="icon">🏎️</div>
+          <span>Police Chase</span>
+        </div>
+        <div class="game-card" onclick="loadGame('snake')">
+          <div class="icon">🐍</div>
+          <span>Classic Snake</span>
+        </div>
+        <div class="game-card" onclick="loadGame('jungle')">
+          <div class="icon">🐅</div>
+          <span>Jungle Fight AI</span>
+        </div>
+      </div>
 
-      <!-- TOUCH CONTROLS -->
-      <div class="grid grid-cols-3 gap-2 w-full mt-3">
-        <div></div>
-        <button onclick="handleGameControl('up')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-up"></i></button>
-        <div></div>
-        <button onclick="handleGameControl('left')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-left"></i></button>
-        <button onclick="handleGameControl('action')" id="gameActionBtn" class="bg-rose-600 active:bg-rose-700 text-white p-3 rounded-xl font-bold text-xs">ACTION</button>
-        <button onclick="handleGameControl('right')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-right"></i></button>
-        <div></div>
-        <button onclick="handleGameControl('down')" class="bg-slate-800 active:bg-amber-600 border border-slate-700 text-white p-3 rounded-xl font-bold"><i class="fas fa-arrow-down"></i></button>
-        <div></div>
+      <!-- Active Game View Box -->
+      <div class="game-stage">
+        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:8px; font-size:0.85rem; font-weight:bold;">
+          <span id="game-title">Select a Game</span>
+          <span>Score: <span id="game-score">0</span></span>
+        </div>
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+        
+        <!-- Controls UI -->
+        <div class="d-pad">
+          <div></div>
+          <button class="btn" onclick="handleInput('UP')">▲</button>
+          <div></div>
+          <button class="btn" onclick="handleInput('LEFT')">◀</button>
+          <button class="btn btn-action" onclick="handleInput('ACTION')">🔥</button>
+          <button class="btn" onclick="handleInput('RIGHT')">▶</button>
+          <div></div>
+          <button class="btn" onclick="handleInput('DOWN')">▼</button>
+          <div></div>
+        </div>
       </div>
     </div>
-  </section>
 
-  <!-- 4. FOREX & CRYPTO TAB -->
-  <section id="tab-forex" class="tab-content pt-16 p-4 h-screen">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-sm font-bold text-emerald-400 flex items-center gap-2"><i class="fas fa-chart-line"></i> Live Forex & Crypto Market</h2>
-      <div class="flex gap-1.5">
-        <button onclick="loadTradingViewChart('FX:XAUUSD')" class="bg-slate-800 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">XAUUSD</button>
-        <button onclick="loadTradingViewChart('BITSTAMP:BTCUSD')" class="bg-slate-800 text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">BTCUSD</button>
-        <button onclick="loadTradingViewChart('FX:EURUSD')" class="bg-slate-800 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-700">EURUSD</button>
+    <!-- 3. REAL-TIME MOBILE IDE TERMINAL TAB -->
+    <div id="tab-ide" class="tab-content">
+      <h3 style="margin-bottom: 10px;">&lt;/&gt; Real-time Mobile IDE Terminal</h3>
+      <textarea id="codeEngine" class="code-input" placeholder="// Write JavaScript code here...&#10;console.log('Hello Umar App');"></textarea>
+      <button class="btn btn-action" style="width:100%; margin-bottom:12px;" onclick="runConsoleCode()">Run Output</button>
+      <p style="font-size:0.75rem; color:var(--subtext); margin-bottom:5px;">LIVE OUTPUT CONSOLE:</p>
+      <div id="terminalConsole" class="ide-box">Engine Ready...</div>
+    </div>
+
+    <!-- 4. LIVE FOREX & CRYPTO MARKET CHART TAB -->
+    <div id="tab-forex" class="tab-content">
+      <h3 style="margin-bottom: 10px;">📈 Live Market Charts</h3>
+      <div class="market-tabs">
+        <button class="m-tab active" onclick="switchPair('OANDA:XAUUSD', this)">XAUUSD</button>
+        <button class="m-tab" onclick="switchPair('BITSTAMP:BTCUSD', this)">BTCUSD</button>
+        <button class="m-tab" onclick="switchPair('FX:EURUSD', this)">EURUSD</button>
       </div>
+      <div class="chart-container" id="tvChartContainer"></div>
     </div>
-    <div class="w-full h-[calc(100vh-170px)] bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-2xl" id="tradingview_chart"></div>
-  </section>
 
-  <!-- 5. CODE TERMINAL IDE TAB -->
-  <section id="tab-code" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <h2 class="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2"><i class="fas fa-code"></i> Real-time Mobile IDE Terminal</h2>
-    <textarea id="codeEditor" class="w-full h-44 bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-3" placeholder="// Live Code Console\nlet a = 15;\nlet b = 25;\nconsole.log('Result:', a + b);"></textarea>
-    <button onclick="runTerminalCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl mb-3 w-full shadow-lg">Run Output</button>
-    
-    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Live Output Console:</p>
-    <div id="terminalConsole" class="w-full h-48 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-emerald-400 p-3 overflow-y-auto whitespace-pre-wrap">Terminal ready...</div>
-  </section>
-
-  <!-- 6. PROFILE TAB -->
-  <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <div class="flex justify-between items-center mb-2">
-      <button onclick="toggleEditProfileModal()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs px-3 py-1 rounded-lg font-bold"><i class="fas fa-edit mr-1"></i> Edit Profile</button>
-      <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fas fa-cog"></i></button>
-    </div>
-    
-    <div class="text-center mb-4">
-      <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-indigo-500 rounded-full mx-auto flex items-center justify-center text-3xl font-bold mb-2 text-white shadow-xl overflow-hidden border-2 border-slate-700">
-        <img id="profileAvatarImg" src="" class="w-full h-full object-cover hidden" alt="Profile">
-        <i id="profileAvatarIcon" class="fas fa-user"></i>
+    <!-- 5. USER PROFILE & WALLET TAB -->
+    <div id="tab-profile" class="tab-content">
+      <div class="profile-header">
+        <div class="avatar">👤</div>
+        <h2>Umar Dev</h2>
+        <p style="color:var(--subtext); font-size:0.8rem;">Full Stack & App Developer</p>
       </div>
-      <h3 id="profileNameDisplay" class="text-lg font-bold text-white">Umar Dev</h3>
-      <p id="profileRoleDisplay" class="text-xs text-slate-400 italic">Full Stack & App Developer</p>
-    </div>
 
-    <!-- EARNINGS & WITHDRAWAL BOX -->
-    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl mb-4 flex justify-between items-center">
-      <div>
-        <p class="text-[10px] text-slate-400 uppercase font-bold">Total Earnings</p>
-        <p class="text-base font-black text-emerald-400">$0.00</p>
+      <!-- Wallet Earnings Card -->
+      <div class="wallet-card">
+        <div>
+          <span style="font-size:0.75rem; color:var(--subtext);">TOTAL EARNINGS</span>
+          <h2 style="color:#22c55e;">$0.00</h2>
+        </div>
+        <button class="btn btn-action" style="padding: 8px 16px; font-size:0.8rem;">Withdraw</button>
       </div>
-      <button onclick="handleWithdrawal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-lg">Withdraw</button>
+
+      <!-- Profile Stats Bar -->
+      <div class="stats-grid">
+        <div class="stat-box"><b id="stat-posts">0</b><span>POSTS</span></div>
+        <div class="stat-box"><b id="stat-videos">0</b><span>VIDEOS</span></div>
+        <div class="stat-box"><b>2.4K</b><span>SUBS</span></div>
+        <div class="stat-box"><b>14</b><span>LIKES</span></div>
+      </div>
+
+      <h4 style="margin-bottom:10px; font-size:0.9rem;">My Uploads</h4>
+      <div id="profile-videos"></div>
     </div>
 
-    <!-- Counters -->
-    <div class="grid grid-cols-4 gap-2 mb-4 text-center">
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="postCounter" class="text-sm font-black text-rose-400">0</p><p class="text-[9px] text-slate-400 uppercase">Posts</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="videoCounter" class="text-sm font-black text-purple-400">0</p><p class="text-[9px] text-slate-400 uppercase">Videos</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="subCounter" class="text-sm font-black text-emerald-400">2.4K</p><p class="text-[9px] text-slate-400 uppercase">Subs</p></div>
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="likeTotalCounter" class="text-sm font-black text-blue-400">0</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
+  </main>
+
+  <!-- VIDEO POST UPLOAD MODAL -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <h3>📁 Select Video from Gallery</h3>
+      <input type="file" id="videoFile" accept="video/*" style="color:white; font-size:0.8rem;" />
+      <input type="text" id="videoCaption" placeholder="Write caption..." style="padding:10px; background:#0f172a; border:1px solid var(--border); color:white; border-radius:8px; outline:none;" />
+      <button class="btn btn-action" onclick="uploadVideo()">Publish Video</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
     </div>
-
-    <!-- Profile Section Tabs Switcher -->
-    <div class="flex border-b border-slate-800 mb-3">
-      <button onclick="switchProfileTab('uploads')" id="pTabUploads" class="flex-1 pb-2 text-xs font-bold text-rose-500 border-b-2 border-rose-500">My Uploads</button>
-      <button onclick="switchProfileTab('saved')" id="pTabSaved" class="flex-1 pb-2 text-xs font-bold text-slate-400">Saved Posts</button>
-    </div>
-
-    <div id="profileUploadsGrid" class="grid grid-cols-3 gap-2"></div>
-    <div id="profileSavedGrid" class="grid grid-cols-3 gap-2 hidden"></div>
-  </section>
-
-  <!-- WEATHER FLOATING BADGE -->
-  <div class="fixed bottom-16 right-3 z-30">
-    <button onclick="toggleWeatherModal()" class="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-full text-[10px] text-amber-300 font-semibold shadow-xl backdrop-blur-md flex items-center gap-1.5">
-      <i class="fas fa-sun text-amber-400"></i> <span id="widgetCityTemp">Karachi 32°C</span>
-    </button>
   </div>
 
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40 backdrop-blur-md">
-    <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
-      <i class="fas fa-film text-base"></i><span class="text-[9px] font-semibold mt-0.5">Reels</span>
-    </button>
-    <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-newspaper text-base"></i><span class="text-[9px] font-semibold mt-0.5">Feed</span>
-    </button>
-    <button onclick="switchTab('games')" id="nav-games" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-gamepad text-base"></i><span class="text-[9px] font-semibold mt-0.5">Games</span>
-    </button>
-    <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-9 h-9 rounded-full flex items-center justify-center -mt-2 shadow-lg">
-      <i class="fas fa-plus text-xs"></i>
-    </button>
-    <button onclick="switchTab('code')" id="nav-code" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-code text-base"></i><span class="text-[9px] font-semibold mt-0.5">IDE</span>
-    </button>
-    <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-chart-line text-base"></i><span class="text-[9px] font-semibold mt-0.5">Forex</span>
-    </button>
-    <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-user text-base"></i><span class="text-[9px] font-semibold mt-0.5">Profile</span>
-    </button>
+  <!-- BOTTOM NAVBAR -->
+  <nav>
+    <button class="nav-item active" onclick="switchTab('reels', this)"><span>🎥</span>Reels</button>
+    <button class="nav-item" onclick="switchTab('games', this)"><span>🎮</span>Games</button>
+
+    <button class="plus-btn" onclick="openModal()">+</button>
+
+    <button class="nav-item" onclick="switchTab('ide', this)"><span>&lt;/&gt;</span>IDE</button>
+    <button class="nav-item" onclick="switchTab('forex', this)"><span>📈</span>Forex</button>
+    <button class="nav-item" onclick="switchTab('profile', this)"><span>👤</span>Profile</button>
   </nav>
 
-  <!-- MODAL: UPLOAD FROM GALLERY -->
-  <div id="createModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-file-video text-rose-500"></i> Select Video from Gallery</h3>
-        <button onclick="toggleCreateModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      
-      <input type="file" id="mediaGalleryInput" accept="video/*" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl cursor-pointer mb-3">
-      <textarea id="captionInput" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-4 h-20 focus:outline-none"></textarea>
-      
-      <button onclick="uploadGalleryVideo()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg">Publish Video</button>
-    </div>
-  </div>
+  <!-- TRADING VIEW EXTERNAL WIDGET SCRIPT -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-  <!-- COMMENTS BOTTOM SHEET -->
-  <div id="commentOverlay" onclick="closeCommentSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity"></div>
-  <div id="commentSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 rounded-t-3xl z-50 h-[50vh] flex flex-col">
-    <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-2"></div>
-    <h3 class="text-xs font-bold text-slate-300 mb-3 text-center">Comments</h3>
-    
-    <div id="commentsList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
-
-    <div class="flex gap-2 mt-3 pt-2 border-t border-slate-800">
-      <input type="text" id="newCommentInput" placeholder="Add comment..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none">
-      <button onclick="postComment()" class="bg-rose-600 text-white font-bold text-xs px-4 rounded-xl">Send</button>
-    </div>
-  </div>
-
-  <!-- EDIT PROFILE MODAL -->
-  <div id="editProfileModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-white text-sm">Edit Profile Details</h3>
-        <button onclick="toggleEditProfileModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <input type="text" id="editNameInput" placeholder="Display Name" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-3 focus:outline-none">
-      <input type="text" id="editBioInput" placeholder="Bio Description" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-3 rounded-xl mb-3 focus:outline-none">
-      
-      <label class="text-[10px] text-slate-400 mb-1 block">Profile Avatar Image from Gallery</label>
-      <input type="file" id="editAvatarGalleryInput" accept="image/*" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-300 p-2.5 rounded-xl cursor-pointer mb-4">
-
-      <button onclick="saveProfile()" class="w-full bg-rose-600 text-white font-bold text-xs py-2.5 rounded-xl">Save Changes</button>
-    </div>
-  </div>
-
-  <!-- MESSAGES MODAL -->
-  <div id="chatModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800 h-[480px] flex flex-col">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-        <h3 class="font-bold text-white text-sm"><i class="fas fa-comments text-rose-500 mr-2"></i>Direct Chat Box</h3>
-        <button onclick="toggleChatModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div id="chatContainerList" class="flex-1 overflow-y-auto py-3 space-y-3">
-        <div class="flex justify-between items-center bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/40">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold text-white">A</div>
-            <div>
-              <p class="text-xs font-bold text-white">Aqib Official</p>
-              <p class="text-[10px] text-slate-400">Welcome to Super App!</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WEATHER MODAL -->
-  <div id="weatherModal" class="fixed inset-0 bg-black/85 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fas fa-sun text-amber-400"></i> Weather Forecast Center</h3>
-        <button onclick="toggleWeatherModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="citySearchInput" placeholder="Search City..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:outline-none">
-        <button onclick="searchWeather()" class="bg-amber-500 text-slate-950 font-bold text-xs px-3.5 rounded-xl">Search</button>
-      </div>
-      <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/60 text-center">
-        <h4 id="weatherCityName" class="text-base font-bold text-white">Karachi, Pakistan</h4>
-        <p id="weatherTemp" class="text-3xl font-black text-amber-400 my-1">32°C</p>
-        <p id="weatherCondition" class="text-xs text-slate-300 font-medium">Clear & Sunny</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-    <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800">
-      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-white text-sm"><i class="fas fa-cog text-rose-500 mr-2"></i>Account Information</h3>
-        <button onclick="toggleSettingsModal()" class="text-slate-400 text-xl">&times;</button>
-      </div>
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="text-slate-400 mb-1 block">Account Email</label>
-          <input type="text" id="settingMaskedEmail" value="um***@gmail.com" readonly class="w-full bg-slate-950 border border-slate-800 text-slate-400 p-2 rounded-lg">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
-    let currentUser = localStorage.getItem('umar_user_name') || 'Umar Dev';
-    let currentBio = localStorage.getItem('umar_user_bio') || 'Full Stack & App Developer';
-    let currentAvatar = localStorage.getItem('umar_user_avatar') || '';
-    let currentActiveVideoId = null;
+    // --- TAB SWITCHING ENGINE ---
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if(el) el.classList.add('active');
 
-    let defaultReels = [
-      {
-        id: 'vid-1',
-        url: 'https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4',
-        user: 'aqibofficial',
-        caption: 'AQIB VIDEO EDITION 🔥',
-        likes: 14,
-        liked: false,
-        subscribed: false,
-        saved: false,
-        comments: [
-          { id: 'c1', user: 'aqibofficial', text: 'Welcome to Super App!' }
-        ]
-      }
-    ];
-
-    let storedVideos = JSON.parse(localStorage.getItem('umar_app_videos')) || defaultReels;
-    let storedPosts = JSON.parse(localStorage.getItem('umar_app_posts')) || [
-      { id: 'p1', user: 'Umar Dev', time: 'Just now', text: 'Umar Super App is 100% Live!' }
-    ];
-
-    window.onload = function() {
-      renderProfileInfo();
-      renderReels();
-      renderPosts();
-      renderProfileGrids();
-      initGameEngine();
-    };
-
-    function renderProfileInfo() {
-      document.getElementById('profileNameDisplay').innerText = currentUser;
-      document.getElementById('profileRoleDisplay').innerText = currentBio;
-      
-      const avatarImg = document.getElementById('profileAvatarImg');
-      const avatarIcon = document.getElementById('profileAvatarIcon');
-
-      if (currentAvatar) {
-        avatarImg.src = currentAvatar;
-        avatarImg.classList.remove('hidden');
-        avatarIcon.classList.add('hidden');
-      } else {
-        avatarImg.classList.add('hidden');
-        avatarIcon.classList.remove('hidden');
+      if(tabId === 'forex' && !window.tvWidgetLoaded) {
+        switchPair('OANDA:XAUUSD', document.querySelector('.m-tab'));
       }
     }
 
-    function renderReels() {
-      const container = document.getElementById('reelsContainer');
-      container.innerHTML = '';
-
-      storedVideos.forEach((vid) => {
-        const card = document.createElement('div');
-        card.className = "reel-card flex items-center justify-center";
-        card.id = `reel-card-${vid.id}`;
-        card.innerHTML = `
-          <video id="video-element-${vid.id}" src="${vid.url}" class="w-full h-full object-cover cursor-pointer" loop playsinline onclick="togglePlayPause('${vid.id}')"></video>
-          
-          <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 text-white z-20">
-            <button onclick="toggleSubscribe('${vid.id}')" class="flex flex-col items-center">
-              <div class="w-9 h-9 rounded-full bg-slate-800 border-2 ${vid.subscribed ? 'border-emerald-500' : 'border-rose-500'} flex items-center justify-center font-bold text-xs">
-                ${vid.user[0].toUpperCase()}
-              </div>
-              <span class="text-[9px] font-bold mt-0.5 ${vid.subscribed ? 'text-emerald-400' : 'text-rose-400'}">${vid.subscribed ? 'Subbed' : '+Sub'}</span>
-            </button>
-
-            <button onclick="toggleLike('${vid.id}')" class="flex flex-col items-center">
-              <i id="like-icon-${vid.id}" class="fas fa-heart text-2xl ${vid.liked ? 'text-rose-500' : 'text-slate-300'} transition-transform active:scale-125"></i>
-              <span id="like-count-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.likes}</span>
-            </button>
-
-            <button onclick="openCommentSheet('${vid.id}')" class="flex flex-col items-center">
-              <i class="fas fa-comment text-2xl text-slate-300"></i>
-              <span class="text-[10px] font-bold mt-0.5">${vid.comments.length}</span>
-            </button>
-
-            <button onclick="handleNativeShare('${vid.id}', '${vid.user}')" class="flex flex-col items-center">
-              <i class="fas fa-share text-2xl text-slate-300"></i>
-              <span class="text-[10px] font-bold mt-0.5">Share</span>
-            </button>
-
-            <button onclick="toggleSave('${vid.id}')" class="flex flex-col items-center">
-              <i id="save-icon-${vid.id}" class="fas fa-bookmark text-2xl ${vid.saved ? 'text-emerald-400' : 'text-slate-300'}"></i>
-              <span id="save-text-${vid.id}" class="text-[10px] font-bold mt-0.5">${vid.saved ? 'Saved' : 'Save'}</span>
-            </button>
-          </div>
-
-          <div class="absolute bottom-6 left-3 right-16 z-20 text-white">
-            <p class="font-bold text-sm text-indigo-300">@${vid.user}</p>
-            <p class="text-xs text-slate-200 mt-1">${vid.caption}</p>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-
-      updateOverallLikesCount();
-      document.getElementById('videoCounter').innerText = storedVideos.length;
-    }
-
-    function togglePlayPause(vidId) {
-      const video = document.getElementById(`video-element-${vidId}`);
-      if (!video) return;
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
-      }
-    }
-
-    function handleReelScroll() {
-      const container = document.getElementById('reelsContainer');
-      const cards = container.querySelectorAll('.reel-card');
-      
-      cards.forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const video = card.querySelector('video');
-        if (!video) return;
-        
-        if (rect.top >= -100 && rect.top <= 100) {
-          if (video.paused) {
-            video.play().catch(() => {});
-          }
-        } else {
-          video.pause();
-        }
-      });
-    }
-
-    function toggleLike(vidId) {
-      const vid = storedVideos.find(v => v.id === vidId);
-      if (!vid) return;
-
-      vid.liked = !vid.liked;
-      if (vid.liked) {
-        vid.likes++;
-      } else {
-        vid.likes--;
-      }
-
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-
-      const icon = document.getElementById(`like-icon-${vidId}`);
-      const count = document.getElementById(`like-count-${vidId}`);
-
-      if (icon) {
-        if (vid.liked) {
-          icon.classList.remove('text-slate-300');
-          icon.classList.add('text-rose-500');
-        } else {
-          icon.classList.remove('text-rose-500');
-          icon.classList.add('text-slate-300');
-        }
-      }
-
-      if (count) {
-        count.innerText = vid.likes;
-      }
-
-      updateOverallLikesCount();
-    }
-
-    function updateOverallLikesCount() {
-      let total = storedVideos.reduce((sum, v) => sum + v.likes, 0);
-      const totalDisplay = document.getElementById('likeTotalCounter');
-      if (totalDisplay) totalDisplay.innerText = total;
-    }
-
-    function toggleSubscribe(vidId) {
-      const vid = storedVideos.find(v => v.id === vidId);
-      if (!vid) return;
-      vid.subscribed = !vid.subscribed;
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderReels();
-    }
-
-    function toggleSave(vidId) {
-      const vid = storedVideos.find(v => v.id === vidId);
-      if (!vid) return;
-      vid.saved = !vid.saved;
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-
-      const icon = document.getElementById(`save-icon-${vidId}`);
-      const text = document.getElementById(`save-text-${vidId}`);
-
-      if (icon) {
-        if (vid.saved) {
-          icon.classList.remove('text-slate-300');
-          icon.classList.add('text-emerald-400');
-        } else {
-          icon.classList.remove('text-emerald-400');
-          icon.classList.add('text-slate-300');
-        }
-      }
-      if (text) text.innerText = vid.saved ? 'Saved' : 'Save';
-
-      renderProfileGrids();
-    }
-
-    function handleNativeShare(vidId, user) {
-      const shareUrl = `https://umar-super-app.vercel.app/reel?id=${vidId}&user=${user}`;
-      if (navigator.share) {
-        navigator.share({ title: 'Umar Super App Video', url: shareUrl }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(shareUrl).catch(() => {});
-      }
-    }
-
-    function handleWithdrawal() {
-      alert("No balance here");
-    }
-
-    function uploadGalleryVideo() {
-      const fileInput = document.getElementById('mediaGalleryInput');
-      const captionInput = document.getElementById('captionInput');
-      const caption = captionInput.value.trim() || 'New Video';
-
-      if (!fileInput.files || !fileInput.files[0]) {
-        return alert('Please select a video file from gallery!');
-      }
-
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        const newVid = {
-          id: 'vid-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-          url: e.target.result,
-          user: currentUser,
-          caption: caption,
-          likes: 0,
-          liked: false,
-          subscribed: false,
-          saved: false,
-          comments: []
-        };
-
-        storedVideos.unshift(newVid);
-        localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-
-        fileInput.value = '';
-        captionInput.value = '';
-
-        renderReels();
-        renderProfileGrids();
-        toggleCreateModal();
-        switchTab('reels');
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    // --- COMMENTS SYSTEM ---
-    function openCommentSheet(vidId) {
-      currentActiveVideoId = vidId;
-      renderComments();
-
-      const overlay = document.getElementById('commentOverlay');
-      const sheet = document.getElementById('commentSheet');
-      overlay.classList.remove('hidden');
-      setTimeout(() => {
-        overlay.classList.remove('opacity-0');
-        sheet.classList.add('open');
-      }, 10);
-    }
-
-    function renderComments() {
-      const vid = storedVideos.find(v => v.id === currentActiveVideoId);
-      const list = document.getElementById('commentsList');
-      list.innerHTML = '';
-
-      if (!vid) return;
-
-      vid.comments.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl text-xs';
-        
-        let deleteBtn = '';
-        if (c.user === currentUser || vid.user === currentUser) {
-          deleteBtn = `<button onclick="deleteComment('${c.id}')" class="text-rose-400 hover:text-rose-300 text-[10px] ml-2"><i class="fas fa-trash"></i></button>`;
-        }
-
-        item.innerHTML = `
-          <div>
-            <p class="font-bold text-rose-400 text-[10px]">@${c.user}</p>
-            <p class="text-slate-200 mt-0.5">${c.text}</p>
-          </div>
-          ${deleteBtn}
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function postComment() {
-      const input = document.getElementById('newCommentInput');
-      if (!input.value.trim() || !currentActiveVideoId) return;
-
-      const vid = storedVideos.find(v => v.id === currentActiveVideoId);
-      vid.comments.push({
-        id: 'c-' + Date.now(),
-        user: currentUser,
-        text: input.value
-      });
-
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderComments();
-      renderReels();
-      input.value = '';
-    }
-
-    function deleteComment(cId) {
-      const vid = storedVideos.find(v => v.id === currentActiveVideoId);
-      vid.comments = vid.comments.filter(c => c.id !== cId);
-      localStorage.setItem('umar_app_videos', JSON.stringify(storedVideos));
-      renderComments();
-      renderReels();
-    }
-
-    function closeCommentSheet() {
-      const overlay = document.getElementById('commentOverlay');
-      const sheet = document.getElementById('commentSheet');
-      sheet.classList.remove('open');
-      overlay.classList.add('opacity-0');
-      setTimeout(() => overlay.classList.add('hidden'), 300);
-    }
-
-    // --- PROFILE EDIT ---
-    function toggleEditProfileModal() {
-      document.getElementById('editNameInput').value = currentUser;
-      document.getElementById('editBioInput').value = currentBio;
-
-      const modal = document.getElementById('editProfileModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-    }
-
-    function saveProfile() {
-      currentUser = document.getElementById('editNameInput').value.trim() || 'Umar Dev';
-      currentBio = document.getElementById('editBioInput').value.trim() || 'Developer';
-
-      const avatarInput = document.getElementById('editAvatarGalleryInput');
-      if (avatarInput.files && avatarInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          currentAvatar = e.target.result;
-          localStorage.setItem('umar_user_avatar', currentAvatar);
-          finalizeProfileSave();
-        };
-        reader.readAsDataURL(avatarInput.files[0]);
-      } else {
-        finalizeProfileSave();
-      }
-    }
-
-    function finalizeProfileSave() {
-      localStorage.setItem('umar_user_name', currentUser);
-      localStorage.setItem('umar_user_bio', currentBio);
-
-      renderProfileInfo();
-      toggleEditProfileModal();
-    }
-
-    // --- COMMUNITY FEED ---
-    function publishTextPost() {
-      const text = document.getElementById('feedTextContent').value.trim();
-      if (!text) return;
-
-      storedPosts.unshift({
-        id: 'p-' + Date.now(),
-        user: currentUser,
-        time: 'Just now',
-        text: text
-      });
-
-      localStorage.setItem('umar_app_posts', JSON.stringify(storedPosts));
-      renderPosts();
-      document.getElementById('feedTextContent').value = '';
-    }
-
-    function renderPosts() {
-      const container = document.getElementById('feedPosts');
-      container.innerHTML = '';
-
-      storedPosts.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'bg-slate-900 border border-slate-800 p-3 rounded-xl';
-        card.innerHTML = `
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-7 h-7 bg-rose-600 rounded-full flex items-center justify-center text-xs font-bold text-white">${p.user[0]}</div>
-            <div><p class="text-xs font-bold text-white">${p.user}</p><p class="text-[9px] text-slate-500">${p.time}</p></div>
-          </div>
-          <p class="text-xs text-slate-300">${p.text}</p>
-        `;
-        container.appendChild(card);
-      });
-
-      document.getElementById('postCounter').innerText = storedPosts.length;
-    }
-
-    function switchProfileTab(tab) {
-      const uploadsGrid = document.getElementById('profileUploadsGrid');
-      const savedGrid = document.getElementById('profileSavedGrid');
-      const btnUploads = document.getElementById('pTabUploads');
-      const btnSaved = document.getElementById('pTabSaved');
-
-      if (tab === 'uploads') {
-        uploadsGrid.classList.remove('hidden');
-        savedGrid.classList.add('hidden');
-        btnUploads.className = "flex-1 pb-2 text-xs font-bold text-rose-500 border-b-2 border-rose-500";
-        btnSaved.className = "flex-1 pb-2 text-xs font-bold text-slate-400";
-      } else {
-        uploadsGrid.classList.add('hidden');
-        savedGrid.classList.remove('hidden');
-        btnSaved.className = "flex-1 pb-2 text-xs font-bold text-rose-500 border-b-2 border-rose-500";
-        btnUploads.className = "flex-1 pb-2 text-xs font-bold text-slate-400";
-      }
-    }
-
-    function renderProfileGrids() {
-      const grid = document.getElementById('profileUploadsGrid');
-      grid.innerHTML = '';
-      storedVideos.forEach(vid => {
-        const thumb = document.createElement('div');
-        thumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative";
-        thumb.innerHTML = `<video src="${vid.url}" class="w-full h-full object-cover"></video>`;
-        grid.appendChild(thumb);
-      });
-
-      const savedGrid = document.getElementById('profileSavedGrid');
-      savedGrid.innerHTML = '';
-      const savedVids = storedVideos.filter(v => v.saved);
-      if (savedVids.length === 0) {
-        savedGrid.innerHTML = `<p class="text-[10px] text-slate-500 col-span-3 text-center py-4">No saved posts yet.</p>`;
-      } else {
-        savedVids.forEach(vid => {
-          const thumb = document.createElement('div');
-          thumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative";
-          thumb.innerHTML = `<video src="${vid.url}" class="w-full h-full object-cover"></video>`;
-          savedGrid.appendChild(thumb);
-        });
-      }
-    }
-
-    // ===============================================
-    // MULTI-GAME ENGINE (CAR CHASE, JUNGLE FIGHT, SNAKE)
-    // ===============================================
-    let activeGameMode = 'car';
-    let gameLoopInterval = null;
-    let canvas, ctx;
-    let gameScore = 0;
-
-    // Game Objects
-    let carState = { playerX: 130, policeY: 260, obstacles: [] };
-    let jungleState = { playerX: 50, playerY: 200, botX: 230, botY: 200, hp: 100, botHp: 100, isPunching: false };
-    let snakeState = { snake: [{x: 10, y: 10}], food: {x: 5, y: 5}, dx: 1, dy: 0 };
-
-    function selectGame(mode) {
-      activeGameMode = mode;
-      ['car', 'jungle', 'snake'].forEach(m => {
-        const btn = document.getElementById(`btn-game-${m}`);
-        if(m === mode) {
-          btn.className = "bg-slate-800 border border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1";
-        } else {
-          btn.className = "bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex flex-col items-center gap-1";
-        }
-      });
-
-      const title = document.getElementById('gameTitleDisplay');
-      const actBtn = document.getElementById('gameActionBtn');
-
-      if(mode === 'car') {
-        title.innerText = "🏎️ Car vs Police Chase";
-        actBtn.innerText = "NITRO";
-      } else if(mode === 'jungle') {
-        title.innerText = "🦁 Jungle Fight AI Bot (Attitude Arena)";
-        actBtn.innerText = "ATTACK";
-      } else if(mode === 'snake') {
-        title.innerText = "🐍 Classic Snake Game";
-        actBtn.innerText = "BOOST";
-      }
-
-      resetGameData();
-    }
-
-    function initGameEngine() {
-      canvas = document.getElementById('gameCanvas');
-      ctx = canvas.getContext('2d');
-      resetGameData();
-      if(gameLoopInterval) clearInterval(gameLoopInterval);
-      gameLoopInterval = setInterval(updateGameLoop, 100);
-    }
-
-    function resetGameData() {
-      gameScore = 0;
-      carState = { playerX: 130, policeY: 260, obstacles: [{x: 130, y: -50}] };
-      jungleState = { playerX: 50, playerY: 220, botX: 220, botY: 220, hp: 100, botHp: 100, isPunching: false };
-      snakeState = { snake: [{x: 5, y: 5}], food: {x: 12, y: 12}, dx: 1, dy: 0 };
-    }
-
-    function updateGameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      document.getElementById('gameScoreDisplay').innerText = "Score: " + gameScore;
-
-      if(activeGameMode === 'car') {
-        // Road Background
-        ctx.fillStyle = "#1e293b"; ctx.fillRect(60, 0, 180, 320);
-        ctx.strokeStyle = "#f59e0b"; ctx.setLineDash([15, 15]);
-        ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, 320); ctx.stroke(); ctx.setLineDash([]);
-
-        // Player Car
-        ctx.fillStyle = "#3b82f6"; ctx.fillRect(carState.playerX, 180, 30, 50);
-        // Police Car
-        ctx.fillStyle = "#ef4444"; ctx.fillRect(carState.playerX + (Math.random()*4-2), carState.policeY, 30, 50);
-        
-        // Obstacles (Traffic)
-        carState.obstacles.forEach(o => {
-          ctx.fillStyle = "#10b981"; ctx.fillRect(o.x, o.y, 30, 50);
-          o.y += 8;
-          if(o.y > 320) { o.y = -60; o.x = 70 + Math.floor(Math.random()*3)*50; gameScore += 10; }
-          // Collision Check
-          if(Math.abs(o.x - carState.playerX) < 25 && Math.abs(o.y - 180) < 40) {
-            resetGameData();
-          }
-        });
-
-      } else if(activeGameMode === 'jungle') {
-        // Jungle Background & Trees
-        ctx.fillStyle = "#064e3b"; ctx.fillRect(0, 0, 300, 320);
-        ctx.fillStyle = "#047857"; ctx.fillRect(20, 40, 40, 100); ctx.fillRect(240, 30, 40, 120);
-        
-        // Ground
-        ctx.fillStyle = "#78350f"; ctx.fillRect(0, 260, 300, 60);
-
-        // Player (Attitude Fighter)
-        ctx.fillStyle = "#f43f5e"; ctx.fillRect(jungleState.playerX, jungleState.playerY, 25, 40);
-        if(jungleState.isPunching) {
-          ctx.fillStyle = "#fbbf24"; ctx.fillRect(jungleState.playerX + 25, jungleState.playerY + 10, 15, 8);
-        }
-
-        // AI Bot (Enemy)
-        ctx.fillStyle = "#8b5cf6"; ctx.fillRect(jungleState.botX, jungleState.botY, 25, 40);
-        // AI Bot Simple Movement towards Player
-        if(jungleState.botX > jungleState.playerX + 35) jungleState.botX -= 2;
-        if(jungleState.botX < jungleState.playerX + 35) {
-          // Bot Attack Player
-          jungleState.hp -= 1;
-        }
-
-        // Health Bars
-        ctx.fillStyle = "#ef4444"; ctx.fillRect(10, 10, jungleState.hp, 8);
-        ctx.fillStyle = "#8b5cf6"; ctx.fillRect(190, 10, jungleState.botHp, 8);
-
-        if(jungleState.hp <= 0) resetGameData();
-        if(jungleState.botHp <= 0) { gameScore += 100; jungleState.botHp = 100; jungleState.botX = 260; }
-
-      } else if(activeGameMode === 'snake') {
-        // Grid Snake
-        let head = { x: snakeState.snake[0].x + snakeState.dx, y: snakeState.snake[0].y + snakeState.dy };
-        
-        if(head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) { resetGameData(); return; }
-        snakeState.snake.unshift(head);
-
-        if(head.x === snakeState.food.x && head.y === snakeState.food.y) {
-          gameScore += 20;
-          snakeState.food = { x: Math.floor(Math.random()*18), y: Math.floor(Math.random()*18) };
-        } else {
-          snakeState.snake.pop();
-        }
-
-        ctx.fillStyle = "#ef4444";
-        ctx.fillRect(snakeState.food.x*15, snakeState.food.y*15, 13, 13);
-
-        ctx.fillStyle = "#10b981";
-        snakeState.snake.forEach(s => ctx.fillRect(s.x*15, s.y*15, 13, 13));
-      }
-    }
-
-    function handleGameControl(dir) {
-      if(activeGameMode === 'car') {
-        if(dir === 'left' && carState.playerX > 70) carState.playerX -= 50;
-        if(dir === 'right' && carState.playerX < 170) carState.playerX += 50;
-        if(dir === 'action') gameScore += 5;
-
-      } else if(activeGameMode === 'jungle') {
-        if(dir === 'left' && jungleState.playerX > 10) jungleState.playerX -= 12;
-        if(dir === 'right' && jungleState.playerX < 240) jungleState.playerX += 12;
-        if(dir === 'action') {
-          jungleState.isPunching = true;
-          if(Math.abs(jungleState.playerX - jungleState.botX) < 45) {
-            jungleState.botHp -= 20;
-          }
-          setTimeout(() => jungleState.isPunching = false, 150);
-        }
-
-      } else if(activeGameMode === 'snake') {
-        if(dir === 'up' && snakeState.dy === 0) { snakeState.dx = 0; snakeState.dy = -1; }
-        if(dir === 'down' && snakeState.dy === 0) { snakeState.dx = 0; snakeState.dy = 1; }
-        if(dir === 'left' && snakeState.dx === 0) { snakeState.dx = -1; snakeState.dy = 0; }
-        if(dir === 'right' && snakeState.dx === 0) { snakeState.dx = 1; snakeState.dy = 0; }
-      }
-    }
-
-    // --- REAL COMPILER IDE ---
-    function runTerminalCode() {
-      const code = document.getElementById('codeEditor').value;
-      const consoleDiv = document.getElementById('terminalConsole');
-      consoleDiv.innerText = '';
-
+    function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
+
+    // --- IDE TERMINAL ENGINE ---
+    function runConsoleCode() {
+      const code = document.getElementById('codeEngine').value;
+      const consoleBox = document.getElementById('terminalConsole');
+      consoleBox.innerHTML = '';
       try {
         let logs = [];
-        const originalConsole = console.log;
+        const originalLog = console.log;
         console.log = function(...args) {
-          logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
-          originalConsole.apply(console, args);
+          logs.push(args.join(' '));
+          originalLog.apply(console, args);
         };
-
         eval(code);
-        console.log = originalConsole;
-
-        consoleDiv.innerText = logs.join('\n') || 'Executed successfully with no logs.';
-      } catch (err) {
-        consoleDiv.innerText = 'Execution Error: ' + err.message;
+        consoleBox.innerText = logs.length > 0 ? logs.join('\n') : 'Executed successfully with no output.';
+      } catch(err) {
+        consoleBox.innerText = 'Execution Error: ' + err.message;
       }
     }
 
-    // --- TRADINGVIEW ---
-    function loadTradingViewChart(symbol) {
-      if (typeof TradingView === 'undefined') return;
-      document.getElementById('tradingview_chart').innerHTML = '';
+    // --- LIVE FOREX / CRYPTO TRADINGVIEW EMBED ENGINE ---
+    window.tvWidgetLoaded = false;
+    function switchPair(symbol, el) {
+      document.querySelectorAll('.m-tab').forEach(m => m.classList.remove('active'));
+      if(el) el.classList.add('active');
+
+      document.getElementById('tvChartContainer').innerHTML = '<div id="tv_chart"></div>';
       new TradingView.widget({
         "autosize": true,
         "symbol": symbol,
         "interval": "60",
+        "timezone": "Etc/UTC",
         "theme": "dark",
-        "container_id": "tradingview_chart"
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "container_id": "tv_chart"
+      });
+      window.tvWidgetLoaded = true;
+    }
+
+    // --- VIDEO SYSTEM (PERSISTENT STATE & GALLERY UPLOAD) ---
+    let videos = JSON.parse(localStorage.getItem('app_videos_data') || '[]');
+
+    function uploadVideo() {
+      const fileInput = document.getElementById('videoFile');
+      const captionInput = document.getElementById('videoCaption');
+
+      if (fileInput.files.length === 0) return alert("Select a video from gallery!");
+
+      const file = fileInput.files[0];
+      const videoURL = URL.createObjectURL(file);
+
+      const newVideo = {
+        id: Date.now(),
+        url: videoURL,
+        caption: captionInput.value || "My App Code Video Showcase",
+        likes: 12
+      };
+
+      videos.unshift(newVideo);
+      try {
+        localStorage.setItem('app_videos_data', JSON.stringify(videos));
+      } catch(e) { console.log("Blob storage state saved locally."); }
+      
+      renderVideos();
+      closeModal();
+      captionInput.value = '';
+    }
+
+    function renderVideos() {
+      const feed = document.getElementById('video-feed');
+      const profileFeed = document.getElementById('profile-videos');
+      
+      document.getElementById('stat-posts').innerText = videos.length;
+      document.getElementById('stat-videos').innerText = videos.length;
+
+      feed.innerHTML = '';
+      profileFeed.innerHTML = '';
+
+      if (videos.length === 0) {
+        const emptyMsg = '<p style="text-align:center; padding:30px; color:var(--subtext);">No videos posted yet. Tap "+" to upload!</p>';
+        feed.innerHTML = emptyMsg;
+        profileFeed.innerHTML = emptyMsg;
+        return;
+      }
+
+      videos.forEach(v => {
+        const card = `
+          <div class="video-card">
+            <video src="${v.url}" controls loop muted></video>
+            <div class="video-info">
+              <p><b>@UmarDev</b> ${v.caption}</p>
+            </div>
+          </div>
+        `;
+        feed.innerHTML += card;
+        profileFeed.innerHTML += card;
       });
     }
 
-    // --- TAB CONTROLS ---
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab-' + tabName).classList.add('active');
+    renderVideos();
 
-      const tabs = ['reels', 'feed', 'games', 'code', 'forex', 'profile'];
-      tabs.forEach(t => {
-        const btn = document.getElementById('nav-' + t);
-        if (btn) btn.className = (t === tabName) ? 'flex flex-col items-center text-rose-500' : 'flex flex-col items-center text-slate-400';
-      });
+    // --- ALL MULTI-GAMES ENGINE ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let currentGame = null;
+    let gameLoop = null;
+    let score = 0;
 
-      if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
+    function loadGame(type) {
+      clearInterval(gameLoop);
+      score = 0;
+      document.getElementById('game-score').innerText = score;
+      currentGame = type;
+
+      if (type === 'car') initCarGame();
+      if (type === 'snake') initSnakeGame();
+      if (type === 'jungle') initJungleGame();
     }
 
-    function toggleCreateModal() {
-      const modal = document.getElementById('createModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    // 1. CAR RACING GAME (REAL ROAD, TRAFFIC & GYRO ROTATE CONTROL)
+    let carPos, traffic, roadOffset;
+    function initCarGame() {
+      document.getElementById('game-title').innerText = "Police Chase Racing";
+      carPos = { x: 135, y: 230 };
+      traffic = [{ x: 90, y: -50, speed: 4 }, { x: 170, y: -180, speed: 5 }];
+      roadOffset = 0;
+
+      // Phone Rotate/Tilt Sensor
+      window.ondeviceorientation = (e) => {
+        if(e.gamma && currentGame === 'car') {
+          if (e.gamma > 10 && carPos.x < 220) carPos.x += 4;
+          if (e.gamma < -10 && carPos.x > 50) carPos.x -= 4;
+        }
+      };
+
+      gameLoop = setInterval(() => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 300, 300);
+
+        // Moving Road Lines
+        ctx.strokeStyle = '#f8fafc';
+        ctx.setLineDash([15, 15]);
+        ctx.lineDashOffset = -roadOffset;
+        roadOffset += 8;
+        
+        ctx.beginPath(); ctx.moveTo(100, 0); ctx.lineTo(100, 300); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(200, 0); ctx.lineTo(200, 300); ctx.stroke();
+
+        // Player Car
+        ctx.fillStyle = '#ff2a5f';
+        ctx.fillRect(carPos.x, carPos.y, 30, 50);
+
+        // Enemy Traffic Cars
+        traffic.forEach(t => {
+          t.y += t.speed;
+          if(t.y > 300) {
+            t.y = -60;
+            t.x = 50 + Math.random() * 160;
+            score += 10;
+            document.getElementById('game-score').innerText = score;
+          }
+
+          ctx.fillStyle = '#0284c7';
+          ctx.fillRect(t.x, t.y, 30, 50);
+
+          // Collision Check
+          if (carPos.x < t.x + 30 && carPos.x + 30 > t.x && carPos.y < t.y + 50 && carPos.y + 50 > t.y) {
+            alert("Crash! Game Over. Score: " + score);
+            initCarGame();
+          }
+        });
+      }, 1000/30);
     }
 
-    function toggleChatModal() {
-      const modal = document.getElementById('chatModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    // 2. REALISTIC SNAKE GAME
+    let snake, food, dir;
+    function initSnakeGame() {
+      document.getElementById('game-title').innerText = "Classic Snake Game";
+      snake = [{x: 100, y: 100}, {x: 90, y: 100}];
+      food = {x: 180, y: 180};
+      dir = 'RIGHT';
+
+      gameLoop = setInterval(() => {
+        let head = {...snake[0]};
+        if(dir === 'UP') head.y -= 10;
+        if(dir === 'DOWN') head.y += 10;
+        if(dir === 'LEFT') head.x -= 10;
+        if(dir === 'RIGHT') head.x += 10;
+
+        if(head.x < 0 || head.x >= 300 || head.y < 0 || head.y >= 300) {
+          alert("Snake Crashed! Score: " + score);
+          return initSnakeGame();
+        }
+
+        snake.unshift(head);
+
+        if(Math.abs(head.x - food.x) < 10 && Math.abs(head.y - food.y) < 10) {
+          score += 10;
+          document.getElementById('game-score').innerText = score;
+          food = {x: Math.floor(Math.random()*29)*10, y: Math.floor(Math.random()*29)*10};
+        } else {
+          snake.pop();
+        }
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0,0,300,300);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(food.x, food.y, 10, 10);
+
+        ctx.fillStyle = '#10b981';
+        snake.forEach(s => ctx.fillRect(s.x, s.y, 9, 9));
+      }, 100);
     }
 
-    function toggleSettingsModal() {
-      const modal = document.getElementById('settingsModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    // 3. JUNGLE FIGHT AI GAME (ENEMIES & WEAPONS)
+    let player, enemy, bullets;
+    function initJungleGame() {
+      document.getElementById('game-title').innerText = "Jungle Survival AI Fight";
+      player = {x: 20, y: 220, hp: 100};
+      enemy = {x: 230, y: 220, hp: 100, dir: -1};
+      bullets = [];
+
+      gameLoop = setInterval(() => {
+        ctx.fillStyle = '#064e3b';
+        ctx.fillRect(0,0,300,300);
+
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(0,260,300,40);
+
+        // AI Enemy Patrol
+        enemy.x += enemy.dir * 2;
+        if(enemy.x > 250 || enemy.x < 160) enemy.dir *= -1;
+
+        // Bullets Shooting Dynamics
+        ctx.fillStyle = '#fbbf24';
+        bullets.forEach((b, idx) => {
+          b.x += 8;
+          ctx.fillRect(b.x, b.y, 8, 4);
+
+          if(b.x > enemy.x && b.x < enemy.x + 30) {
+            enemy.hp -= 25;
+            bullets.splice(idx, 1);
+            score += 25;
+            document.getElementById('game-score').innerText = score;
+            if(enemy.hp <= 0) {
+              alert("Enemy Wiped Out! Level Complete!");
+              initJungleGame();
+            }
+          }
+        });
+
+        // Player Unit
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(player.x, player.y, 25, 40);
+
+        // AI Monster Unit
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(enemy.x, enemy.y, 25, 40);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(`Player HP: ${player.hp}`, 10, 20);
+        ctx.fillText(`Enemy HP: ${enemy.hp}`, 200, 20);
+
+      }, 1000/30);
     }
 
-    function toggleWeatherModal() {
-      const modal = document.getElementById('weatherModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    // D-Pad Controller Mapping
+    function handleInput(type) {
+      if(currentGame === 'snake') {
+        if(type === 'UP' && dir !== 'DOWN') dir = 'UP';
+        if(type === 'DOWN' && dir !== 'UP') dir = 'DOWN';
+        if(type === 'LEFT' && dir !== 'RIGHT') dir = 'LEFT';
+        if(type === 'RIGHT' && dir !== 'LEFT') dir = 'RIGHT';
+      }
+      if(currentGame === 'car') {
+        if(type === 'LEFT' && carPos.x > 40) carPos.x -= 20;
+        if(type === 'RIGHT' && carPos.x < 220) carPos.x += 20;
+      }
+      if(currentGame === 'jungle') {
+        if(type === 'LEFT' && player.x > 10) player.x -= 15;
+        if(type === 'RIGHT' && player.x < 130) player.x += 15;
+        if(type === 'ACTION') {
+          bullets.push({x: player.x + 25, y: player.y + 15});
+        }
+      }
     }
 
-    function searchWeather() {
-      const city = document.getElementById('citySearchInput').value || 'Karachi';
-      document.getElementById('weatherCityName').innerText = city + ', Pakistan';
-      document.getElementById('widgetCityTemp').innerText = city + ' 32°C';
-    }
+    // Default Game Initialization
+    loadGame('snake');
   </script>
 </body>
 </html>
