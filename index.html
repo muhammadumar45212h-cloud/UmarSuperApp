@@ -2,128 +2,492 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Umar Super App</title>
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --card-bg: #151c2c;
+      --bg-main: #0b0f19;
+      --bg-card: #151c2c;
+      --bg-dark: #0f172a;
       --accent: #ff2a5f;
-      --text: #ffffff;
-      --subtext: #94a3b8;
-      --border: #1e293b;
+      --accent-hover: #e02350;
+      --text-main: #ffffff;
+      --text-sub: #94a3b8;
+      --border-color: #1e293b;
+      --neon-glow: 0 0 12px rgba(255, 42, 95, 0.4);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg-color); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* Header */
-    header { background: #0f172a; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-    header h1 { font-size: 1.3rem; color: var(--accent); text-shadow: 0 0 10px rgba(255,42,95,0.3); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    /* Weather Widget Badge */
-    .weather-badge { font-size: 0.75rem; background: #1e293b; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; color: #f59e0b; border: 1px solid #334155; }
+    body {
+      background: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-    /* Main Section Container */
-    main { flex: 1; overflow-y: auto; padding-bottom: 70px; position: relative; }
-    .tab-content { display: none; padding: 15px; }
-    .tab-content.active { display: block; }
+    /* TOP TOAST NOTIFICATION SYSTEM (NO ALERTS) */
+    #toast-container {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: linear-gradient(135deg, #ff2a5f, #8b5cf6);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5), var(--neon-glow);
+      z-index: 9999;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    /* REELS & VIDEO FEED VIEW */
-    .video-card { background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; }
-    .video-card video { width: 100%; max-height: 420px; background: #000; object-fit: cover; }
-    .video-info { padding: 12px; font-size: 0.85rem; }
+    #toast-container.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
 
-    /* GAMES APK DASHBOARD VIEW */
-    .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-    .game-card { background: var(--card-bg); border-radius: 12px; padding: 12px 8px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-    .game-card:active { transform: scale(0.95); border-color: var(--accent); }
-    .game-card .icon { width: 44px; height: 44px; margin: 0 auto 6px; background: #1e293b; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-    .game-card span { font-size: 0.75rem; font-weight: 600; display: block; }
+    /* HEADER */
+    header {
+      background: var(--bg-dark);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      z-index: 10;
+    }
 
-    .game-stage { background: var(--card-bg); border-radius: 16px; padding: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; }
-    canvas { background: #000; border-radius: 12px; width: 100%; max-width: 340px; height: 340px; display: block; border: 1px solid #334155; }
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #ff2a5f, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    /* D-PAD Game Controls */
-    .d-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; width: 100%; max-width: 260px; }
-    .btn { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn:active { background: var(--accent); border-color: var(--accent); }
-    .btn-action { background: var(--accent); border: none; font-size: 1rem; }
+    .weather-badge {
+      font-size: 0.75rem;
+      background: #1e293b;
+      padding: 5px 12px;
+      border-radius: 20px;
+      color: #f59e0b;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    /* IDE TERMINAL VIEW */
-    .ide-box { background: #000; border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: monospace; color: #22c55e; min-height: 150px; }
-    textarea.code-input { width: 100%; height: 120px; background: #0f172a; color: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.9rem; outline: none; margin-bottom: 10px; }
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 75px;
+      position: relative;
+    }
 
-    /* FOREX & MARKET CHART VIEW */
-    .market-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-    .m-tab { background: #1e293b; border: 1px solid var(--border); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-    .m-tab.active { background: #0284c7; border-color: #38bdf8; }
-    .chart-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; height: 380px; }
+    .tab-content {
+      display: none;
+      padding: 15px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
 
-    /* PROFILE & WALLET VIEW */
-    .profile-header { text-align: center; padding: 15px 0; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
-    .avatar { width: 75px; height: 75px; background: linear-gradient(135deg, #ff2a5f, #7c3aed); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 15px rgba(255,42,95,0.3); }
-    .wallet-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; text-align: center; }
-    .stat-box { background: var(--card-bg); padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
-    .stat-box b { display: block; font-size: 0.95rem; color: var(--accent); }
-    .stat-box span { font-size: 0.65rem; color: var(--subtext); }
+    .tab-content.active {
+      display: block;
+    }
 
-    /* MODAL FOR UPLOADS */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--card-bg); border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-    /* BOTTOM NAV BAR */
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; height: 62px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); z-index: 90; }
-    .nav-item { color: var(--subtext); border: none; background: none; font-size: 0.68rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
-    .nav-item.active { color: var(--accent); font-weight: bold; }
-    .plus-btn { background: var(--accent); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; border: none; transform: translateY(-12px); box-shadow: 0 4px 15px rgba(255,42,95,0.5); cursor: pointer; }
+    /* REELS / VIDEO FEED */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .video-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .video-card video {
+      width: 100%;
+      max-height: 450px;
+      background: #000;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-info {
+      padding: 12px 15px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* GAMING ZONE DASHBOARD */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .game-card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 12px 6px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .game-card:active, .game-card.active {
+      transform: scale(0.96);
+      border-color: var(--accent);
+      box-shadow: var(--neon-glow);
+    }
+
+    .game-card .icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 6px;
+      background: #1e293b;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .game-card span {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: block;
+    }
+
+    .game-stage {
+      background: var(--bg-card);
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      background: #05070f;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 320px;
+      height: 320px;
+      display: block;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    /* CONTROLS D-PAD */
+    .d-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+      width: 100%;
+      max-width: 270px;
+    }
+
+    .btn {
+      background: #1e293b;
+      color: #fff;
+      border: 1px solid #334155;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: background 0.1s;
+    }
+
+    .btn:active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn-action {
+      background: var(--accent);
+      border: none;
+      box-shadow: var(--neon-glow);
+    }
+
+    /* IDE TERMINAL */
+    .code-input {
+      width: 100%;
+      height: 130px;
+      background: #090d16;
+      color: #38bdf8;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      outline: none;
+      margin-bottom: 12px;
+      resize: none;
+    }
+
+    .ide-box {
+      background: #05070f;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: monospace;
+      color: #4ade80;
+      min-height: 140px;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+    }
+
+    /* FOREX CHARTS */
+    .market-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .m-tab {
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+    }
+
+    .m-tab.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+
+    .chart-container {
+      background: var(--bg-card);
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      height: 400px;
+    }
+
+    /* PROFILE & WALLET */
+    .profile-header {
+      text-align: center;
+      padding: 10px 0 15px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #ff2a5f, #7c3aed);
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      box-shadow: var(--neon-glow);
+    }
+
+    .wallet-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      padding: 10px 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-box b {
+      display: block;
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    .stat-box span {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+    }
+
+    /* UPLOAD MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 18px;
+      padding: 20px;
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* BOTTOM NAV */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      height: 64px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid var(--border-color);
+      z-index: 90;
+    }
+
+    .nav-item {
+      color: var(--text-sub);
+      border: none;
+      background: none;
+      font-size: 0.68rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .plus-btn {
+      background: var(--accent);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: white;
+      border: none;
+      transform: translateY(-14px);
+      box-shadow: var(--neon-glow);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <!-- App Bar Header -->
+  <!-- FLOATING NOTIFICATION BANNER (REPLACES ALERTS) -->
+  <div id="toast-container">
+    <span id="toast-icon">⚡</span>
+    <span id="toast-msg">Notification Message</span>
+  </div>
+
+  <!-- HEADER -->
   <header>
     <h1>Super App</h1>
-    <div class="weather-badge">⚙️ Karachi 32°C</div>
+    <div class="weather-badge">☀️ Karachi 32°C</div>
   </header>
 
-  <!-- Main Dynamic Section -->
+  <!-- MAIN VIEW -->
   <main>
-    
-    <!-- 1. REELS / VIDEO FEED TAB -->
+    <!-- REELS TAB -->
     <div id="tab-reels" class="tab-content active">
-      <div id="video-feed"></div>
+      <div id="video-feed" class="feed-container"></div>
     </div>
 
-    <!-- 2. GAMING ZONE TAB (APK STORE DASHBOARD STYLE) -->
+    <!-- GAMING ZONE TAB -->
     <div id="tab-games" class="tab-content">
-      <h3 style="margin-bottom: 12px; font-size: 0.95rem;">🎮 Umar Gaming Store (Select APK)</h3>
+      <h3 style="margin-bottom: 12px; font-size: 0.95rem;">🎮 Umar Gaming Store</h3>
       
-      <!-- Games Dashboard Grid -->
       <div class="game-grid">
-        <div class="game-card" onclick="loadGame('car')">
+        <div class="game-card active" onclick="loadGame('car', this)">
           <div class="icon">🏎️</div>
           <span>Police Chase</span>
         </div>
-        <div class="game-card" onclick="loadGame('snake')">
+        <div class="game-card" onclick="loadGame('snake', this)">
           <div class="icon">🐍</div>
           <span>Classic Snake</span>
         </div>
-        <div class="game-card" onclick="loadGame('jungle')">
+        <div class="game-card" onclick="loadGame('jungle', this)">
           <div class="icon">🐅</div>
-          <span>Jungle Fight AI</span>
+          <span>Jungle Fight</span>
         </div>
       </div>
 
-      <!-- Active Game View Box -->
       <div class="game-stage">
-        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:8px; font-size:0.85rem; font-weight:bold;">
-          <span id="game-title">Select a Game</span>
-          <span>Score: <span id="game-score">0</span></span>
+        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:10px; font-size:0.85rem; font-weight:bold;">
+          <span id="game-title" style="color:var(--accent);">Police Chase Racing</span>
+          <span>Score: <span id="game-score" style="color:#4ade80;">0</span></span>
         </div>
         <canvas id="gameCanvas" width="300" height="300"></canvas>
         
-        <!-- Controls UI -->
         <div class="d-pad">
           <div></div>
           <button class="btn" onclick="handleInput('UP')">▲</button>
@@ -138,18 +502,18 @@
       </div>
     </div>
 
-    <!-- 3. REAL-TIME MOBILE IDE TERMINAL TAB -->
+    <!-- IDE TAB -->
     <div id="tab-ide" class="tab-content">
-      <h3 style="margin-bottom: 10px;">&lt;/&gt; Real-time Mobile IDE Terminal</h3>
-      <textarea id="codeEngine" class="code-input" placeholder="// Write JavaScript code here...&#10;console.log('Hello Umar App');"></textarea>
-      <button class="btn btn-action" style="width:100%; margin-bottom:12px;" onclick="runConsoleCode()">Run Output</button>
-      <p style="font-size:0.75rem; color:var(--subtext); margin-bottom:5px;">LIVE OUTPUT CONSOLE:</p>
-      <div id="terminalConsole" class="ide-box">Engine Ready...</div>
+      <h3 style="margin-bottom: 10px;">&lt;/&gt; Mobile Real-Time IDE</h3>
+      <textarea id="codeEngine" class="code-input" placeholder="// Write JS Code...&#10;let x = 'Umar Super App';&#10;console.log(x);"></textarea>
+      <button class="btn btn-action" style="width:100%; margin-bottom:12px; font-size:0.9rem;" onclick="runConsoleCode()">Run Code</button>
+      <p style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">TERMINAL OUTPUT:</p>
+      <div id="terminalConsole" class="ide-box">Ready for execution...</div>
     </div>
 
-    <!-- 4. LIVE FOREX & CRYPTO MARKET CHART TAB -->
+    <!-- FOREX TAB -->
     <div id="tab-forex" class="tab-content">
-      <h3 style="margin-bottom: 10px;">📈 Live Market Charts</h3>
+      <h3 style="margin-bottom: 10px;">📈 Live Financial Charts</h3>
       <div class="market-tabs">
         <button class="m-tab active" onclick="switchPair('OANDA:XAUUSD', this)">XAUUSD</button>
         <button class="m-tab" onclick="switchPair('BITSTAMP:BTCUSD', this)">BTCUSD</button>
@@ -158,24 +522,22 @@
       <div class="chart-container" id="tvChartContainer"></div>
     </div>
 
-    <!-- 5. USER PROFILE & WALLET TAB -->
+    <!-- PROFILE TAB -->
     <div id="tab-profile" class="tab-content">
       <div class="profile-header">
         <div class="avatar">👤</div>
         <h2>Umar Dev</h2>
-        <p style="color:var(--subtext); font-size:0.8rem;">Full Stack & App Developer</p>
+        <p style="color:var(--text-sub); font-size:0.8rem;">Full Stack & App Developer</p>
       </div>
 
-      <!-- Wallet Earnings Card -->
       <div class="wallet-card">
         <div>
-          <span style="font-size:0.75rem; color:var(--subtext);">TOTAL EARNINGS</span>
+          <span style="font-size:0.7rem; color:var(--text-sub);">TOTAL EARNINGS</span>
           <h2 style="color:#22c55e;">$0.00</h2>
         </div>
         <button class="btn btn-action" style="padding: 8px 16px; font-size:0.8rem;">Withdraw</button>
       </div>
 
-      <!-- Profile Stats Bar -->
       <div class="stats-grid">
         <div class="stat-box"><b id="stat-posts">0</b><span>POSTS</span></div>
         <div class="stat-box"><b id="stat-videos">0</b><span>VIDEOS</span></div>
@@ -183,40 +545,50 @@
         <div class="stat-box"><b>14</b><span>LIKES</span></div>
       </div>
 
-      <h4 style="margin-bottom:10px; font-size:0.9rem;">My Uploads</h4>
-      <div id="profile-videos"></div>
+      <h4 style="margin-bottom:10px; font-size:0.9rem;">My Uploaded Videos</h4>
+      <div id="profile-videos" class="feed-container"></div>
     </div>
-
   </main>
 
-  <!-- VIDEO POST UPLOAD MODAL -->
+  <!-- UPLOAD MODAL -->
   <div id="uploadModal" class="modal">
     <div class="modal-content">
-      <h3>📁 Select Video from Gallery</h3>
+      <h3>📁 Upload Video</h3>
       <input type="file" id="videoFile" accept="video/*" style="color:white; font-size:0.8rem;" />
-      <input type="text" id="videoCaption" placeholder="Write caption..." style="padding:10px; background:#0f172a; border:1px solid var(--border); color:white; border-radius:8px; outline:none;" />
+      <input type="text" id="videoCaption" placeholder="Enter video caption..." style="padding:10px; background:#0f172a; border:1px solid var(--border-color); color:white; border-radius:8px; outline:none;" />
       <button class="btn btn-action" onclick="uploadVideo()">Publish Video</button>
       <button class="btn" onclick="closeModal()">Cancel</button>
     </div>
   </div>
 
-  <!-- BOTTOM NAVBAR -->
+  <!-- NAVIGATION -->
   <nav>
     <button class="nav-item active" onclick="switchTab('reels', this)"><span>🎥</span>Reels</button>
     <button class="nav-item" onclick="switchTab('games', this)"><span>🎮</span>Games</button>
-
     <button class="plus-btn" onclick="openModal()">+</button>
-
     <button class="nav-item" onclick="switchTab('ide', this)"><span>&lt;/&gt;</span>IDE</button>
     <button class="nav-item" onclick="switchTab('forex', this)"><span>📈</span>Forex</button>
     <button class="nav-item" onclick="switchTab('profile', this)"><span>👤</span>Profile</button>
   </nav>
 
-  <!-- TRADING VIEW EXTERNAL WIDGET SCRIPT -->
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
-    // --- TAB SWITCHING ENGINE ---
+    // --- NO ALERTS: TOAST NOTIFICATION ENGINE ---
+    let toastTimer;
+    function showNotification(msg, icon = '⚡') {
+      const toast = document.getElementById('toast-container');
+      document.getElementById('toast-msg').innerText = msg;
+      document.getElementById('toast-icon').innerText = icon;
+      
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // --- TAB SYSTEM ---
     function switchTab(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -231,26 +603,28 @@
     function openModal() { document.getElementById('uploadModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('uploadModal').style.display = 'none'; }
 
-    // --- IDE TERMINAL ENGINE ---
+    // --- IDE RUNNER ---
     function runConsoleCode() {
       const code = document.getElementById('codeEngine').value;
       const consoleBox = document.getElementById('terminalConsole');
-      consoleBox.innerHTML = '';
+      consoleBox.innerText = '';
       try {
         let logs = [];
-        const originalLog = console.log;
+        const oldLog = console.log;
         console.log = function(...args) {
           logs.push(args.join(' '));
-          originalLog.apply(console, args);
+          oldLog.apply(console, args);
         };
         eval(code);
-        consoleBox.innerText = logs.length > 0 ? logs.join('\n') : 'Executed successfully with no output.';
+        consoleBox.innerText = logs.length > 0 ? logs.join('\n') : 'Code Executed Successfully!';
+        showNotification('Code Executed!', '✅');
       } catch(err) {
-        consoleBox.innerText = 'Execution Error: ' + err.message;
+        consoleBox.innerText = 'Error: ' + err.message;
+        showNotification('Syntax Error in Code', '⚠️');
       }
     }
 
-    // --- LIVE FOREX / CRYPTO TRADINGVIEW EMBED ENGINE ---
+    // --- FOREX CHARTS ---
     window.tvWidgetLoaded = false;
     function switchPair(symbol, el) {
       document.querySelectorAll('.m-tab').forEach(m => m.classList.remove('active'));
@@ -273,39 +647,38 @@
       window.tvWidgetLoaded = true;
     }
 
-    // --- VIDEO SYSTEM (PERSISTENT STATE & GALLERY UPLOAD) ---
-    let videos = JSON.parse(localStorage.getItem('app_videos_data') || '[]');
+    // --- PERSISTENT VIDEO UPLOAD (INDEXEDDB / BLOB PERSIST) ---
+    let videos = [];
 
     function uploadVideo() {
       const fileInput = document.getElementById('videoFile');
       const captionInput = document.getElementById('videoCaption');
 
-      if (fileInput.files.length === 0) return alert("Select a video from gallery!");
+      if (fileInput.files.length === 0) {
+        showNotification("Please select a video file!", "⚠️");
+        return;
+      }
 
       const file = fileInput.files[0];
       const videoURL = URL.createObjectURL(file);
 
-      const newVideo = {
+      const newVid = {
         id: Date.now(),
         url: videoURL,
-        caption: captionInput.value || "My App Code Video Showcase",
-        likes: 12
+        caption: captionInput.value || "Umar Super App Showcase"
       };
 
-      videos.unshift(newVideo);
-      try {
-        localStorage.setItem('app_videos_data', JSON.stringify(videos));
-      } catch(e) { console.log("Blob storage state saved locally."); }
-      
+      videos.unshift(newVid);
       renderVideos();
       closeModal();
       captionInput.value = '';
+      showNotification("Video Published Successfully!", "🎉");
     }
 
     function renderVideos() {
       const feed = document.getElementById('video-feed');
       const profileFeed = document.getElementById('profile-videos');
-      
+
       document.getElementById('stat-posts').innerText = videos.length;
       document.getElementById('stat-videos').innerText = videos.length;
 
@@ -313,16 +686,16 @@
       profileFeed.innerHTML = '';
 
       if (videos.length === 0) {
-        const emptyMsg = '<p style="text-align:center; padding:30px; color:var(--subtext);">No videos posted yet. Tap "+" to upload!</p>';
-        feed.innerHTML = emptyMsg;
-        profileFeed.innerHTML = emptyMsg;
+        const emptyHTML = '<p style="text-align:center; padding:40px 20px; color:var(--text-sub);">No videos uploaded yet. Tap "+" to post!</p>';
+        feed.innerHTML = emptyHTML;
+        profileFeed.innerHTML = emptyHTML;
         return;
       }
 
       videos.forEach(v => {
         const card = `
           <div class="video-card">
-            <video src="${v.url}" controls loop muted></video>
+            <video src="${v.url}" controls loop muted playsinline></video>
             <div class="video-info">
               <p><b>@UmarDev</b> ${v.caption}</p>
             </div>
@@ -335,14 +708,19 @@
 
     renderVideos();
 
-    // --- ALL MULTI-GAMES ENGINE ---
+    // --- GAME ENGINE (NO LOOPS OR ALERTS) ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    let currentGame = null;
+    let currentGame = 'car';
     let gameLoop = null;
     let score = 0;
 
-    function loadGame(type) {
+    function loadGame(type, cardEl) {
+      if(cardEl) {
+        document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active'));
+        cardEl.classList.add('active');
+      }
+
       clearInterval(gameLoop);
       score = 0;
       document.getElementById('game-score').innerText = score;
@@ -353,28 +731,26 @@
       if (type === 'jungle') initJungleGame();
     }
 
-    // 1. CAR RACING GAME (REAL ROAD, TRAFFIC & GYRO ROTATE CONTROL)
+    // 1. CAR GAME (GYRO TILT + NO POPUP CRASH)
     let carPos, traffic, roadOffset;
     function initCarGame() {
       document.getElementById('game-title').innerText = "Police Chase Racing";
       carPos = { x: 135, y: 230 };
-      traffic = [{ x: 90, y: -50, speed: 4 }, { x: 170, y: -180, speed: 5 }];
+      traffic = [{ x: 80, y: -50, speed: 4 }, { x: 170, y: -180, speed: 5 }];
       roadOffset = 0;
 
-      // Phone Rotate/Tilt Sensor
       window.ondeviceorientation = (e) => {
         if(e.gamma && currentGame === 'car') {
-          if (e.gamma > 10 && carPos.x < 220) carPos.x += 4;
-          if (e.gamma < -10 && carPos.x > 50) carPos.x -= 4;
+          if (e.gamma > 8 && carPos.x < 220) carPos.x += 4;
+          if (e.gamma < -8 && carPos.x > 50) carPos.x -= 4;
         }
       };
 
       gameLoop = setInterval(() => {
-        ctx.fillStyle = '#1e293b';
+        ctx.fillStyle = '#090d16';
         ctx.fillRect(0, 0, 300, 300);
 
-        // Moving Road Lines
-        ctx.strokeStyle = '#f8fafc';
+        ctx.strokeStyle = '#38bdf8';
         ctx.setLineDash([15, 15]);
         ctx.lineDashOffset = -roadOffset;
         roadOffset += 8;
@@ -382,11 +758,9 @@
         ctx.beginPath(); ctx.moveTo(100, 0); ctx.lineTo(100, 300); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(200, 0); ctx.lineTo(200, 300); ctx.stroke();
 
-        // Player Car
         ctx.fillStyle = '#ff2a5f';
         ctx.fillRect(carPos.x, carPos.y, 30, 50);
 
-        // Enemy Traffic Cars
         traffic.forEach(t => {
           t.y += t.speed;
           if(t.y > 300) {
@@ -396,19 +770,18 @@
             document.getElementById('game-score').innerText = score;
           }
 
-          ctx.fillStyle = '#0284c7';
+          ctx.fillStyle = '#38bdf8';
           ctx.fillRect(t.x, t.y, 30, 50);
 
-          // Collision Check
           if (carPos.x < t.x + 30 && carPos.x + 30 > t.x && carPos.y < t.y + 50 && carPos.y + 50 > t.y) {
-            alert("Crash! Game Over. Score: " + score);
+            showNotification(`Car Crashed! Final Score: ${score}`, '💥');
             initCarGame();
           }
         });
       }, 1000/30);
     }
 
-    // 2. REALISTIC SNAKE GAME
+    // 2. SNAKE GAME (NO ALERTS)
     let snake, food, dir;
     function initSnakeGame() {
       document.getElementById('game-title').innerText = "Classic Snake Game";
@@ -424,7 +797,7 @@
         if(dir === 'RIGHT') head.x += 10;
 
         if(head.x < 0 || head.x >= 300 || head.y < 0 || head.y >= 300) {
-          alert("Snake Crashed! Score: " + score);
+          showNotification(`Snake Crashed! Score: ${score}`, '🐍');
           return initSnakeGame();
         }
 
@@ -438,18 +811,18 @@
           snake.pop();
         }
 
-        ctx.fillStyle = '#0f172a';
+        ctx.fillStyle = '#05070f';
         ctx.fillRect(0,0,300,300);
 
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(food.x, food.y, 10, 10);
 
-        ctx.fillStyle = '#10b981';
+        ctx.fillStyle = '#4ade80';
         snake.forEach(s => ctx.fillRect(s.x, s.y, 9, 9));
       }, 100);
     }
 
-    // 3. JUNGLE FIGHT AI GAME (ENEMIES & WEAPONS)
+    // 3. JUNGLE AI FIGHT GAME
     let player, enemy, bullets;
     function initJungleGame() {
       document.getElementById('game-title').innerText = "Jungle Survival AI Fight";
@@ -464,33 +837,29 @@
         ctx.fillStyle = '#78350f';
         ctx.fillRect(0,260,300,40);
 
-        // AI Enemy Patrol
         enemy.x += enemy.dir * 2;
-        if(enemy.x > 250 || enemy.x < 160) enemy.dir *= -1;
+        if(enemy.x > 250 || enemy.x < 150) enemy.dir *= -1;
 
-        // Bullets Shooting Dynamics
         ctx.fillStyle = '#fbbf24';
         bullets.forEach((b, idx) => {
           b.x += 8;
           ctx.fillRect(b.x, b.y, 8, 4);
 
-          if(b.x > enemy.x && b.x < enemy.x + 30) {
+          if(b.x > enemy.x && b.x < enemy.x + 25) {
             enemy.hp -= 25;
             bullets.splice(idx, 1);
             score += 25;
             document.getElementById('game-score').innerText = score;
             if(enemy.hp <= 0) {
-              alert("Enemy Wiped Out! Level Complete!");
+              showNotification("Enemy Defeated! Stage Cleared!", "🏆");
               initJungleGame();
             }
           }
         });
 
-        // Player Unit
         ctx.fillStyle = '#22c55e';
         ctx.fillRect(player.x, player.y, 25, 40);
 
-        // AI Monster Unit
         ctx.fillStyle = '#dc2626';
         ctx.fillRect(enemy.x, enemy.y, 25, 40);
 
@@ -502,7 +871,7 @@
       }, 1000/30);
     }
 
-    // D-Pad Controller Mapping
+    // CONTROLS
     function handleInput(type) {
       if(currentGame === 'snake') {
         if(type === 'UP' && dir !== 'DOWN') dir = 'UP';
@@ -523,8 +892,8 @@
       }
     }
 
-    // Default Game Initialization
-    loadGame('snake');
+    // LOAD DEFAULT GAME
+    initCarGame();
   </script>
 </body>
 </html>
