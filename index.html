@@ -24,11 +24,10 @@
   <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
     <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
     
-    <!-- CHAT & CALL HEADER ACTIONS -->
     <div class="flex items-center gap-3">
       <button onclick="toggleChatModal()" class="relative text-slate-300 hover:text-rose-400 text-lg">
         <i class="fas fa-paper-plane"></i>
-        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white">2</span>
+        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white">1</span>
       </button>
     </div>
   </header>
@@ -36,14 +35,24 @@
   <!-- 1. TIKTOK REELS TAB -->
   <section id="tab-reels" class="tab-content active pt-14">
     <div id="reelsContainer" class="reels-scroll-container w-full">
-      <div class="reel-card flex items-center justify-center">
-        <video id="activeReelVideo" src="https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4" class="w-full h-full object-cover" loop autoplay muted playsinline></video>
+      <!-- Default Reel -->
+      <div class="reel-card flex items-center justify-center" id="reel-1">
+        <video id="video-1" src="https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4" class="w-full h-full object-cover" loop autoplay muted playsinline></video>
         
-        <!-- Controls -->
-        <div class="absolute right-3 bottom-20 flex flex-col items-center gap-5 text-white z-20">
-          <button onclick="toggleLike(this)" class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-rose-500"></i><span id="likeCount" class="text-[10px] font-bold">1421</span></button>
+        <!-- Sound Toggle Button -->
+        <button onclick="toggleAudio('video-1', this)" class="absolute top-4 right-4 bg-black/50 text-white p-2.5 rounded-full z-30 border border-white/20">
+          <i class="fas fa-volume-mute text-xs"></i>
+        </button>
+
+        <!-- Right Side Overlay Controls -->
+        <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 text-white z-20">
+          <button onclick="toggleLike(this)" class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-rose-500"></i><span class="likeCount text-[10px] font-bold">1421</span></button>
           
-          <button onclick="openShareSheet('102938', 'aqibofficial', true)" class="flex flex-col items-center"><i class="fas fa-share text-2xl hover:text-emerald-400"></i><span class="text-[10px] font-bold">Share</span></button>
+          <!-- Comment Trigger Button -->
+          <button onclick="openCommentSheet('reel-1')" class="flex flex-col items-center"><i class="fas fa-comment text-2xl text-slate-200"></i><span class="text-[10px] font-bold">382</span></button>
+
+          <!-- Share Trigger Button -->
+          <button onclick="openShareSheet('102938', 'aqibofficial', true)" class="flex flex-col items-center"><i class="fas fa-share text-2xl text-slate-200"></i><span class="text-[10px] font-bold">Share</span></button>
           
           <button onclick="toggleSave(this)" class="flex flex-col items-center"><i class="fas fa-bookmark text-2xl text-slate-400"></i><span class="text-[10px] font-bold">Save</span></button>
         </div>
@@ -59,7 +68,6 @@
 
   <!-- 2. PUBLIC FEED TAB -->
   <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto">
-    <!-- CREATE TEXT POST BOX -->
     <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4">
       <textarea id="feedTextContent" placeholder="What's on your mind?" class="w-full bg-slate-800 border border-slate-700 text-xs text-white p-2.5 rounded-lg h-16 focus:outline-none mb-2"></textarea>
       <div class="flex justify-between items-center">
@@ -73,12 +81,9 @@
       <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl">
         <div class="flex items-center gap-2 mb-2">
           <div class="w-7 h-7 bg-indigo-600 rounded-full flex items-center justify-center text-xs font-bold text-white">U</div>
-          <div>
-            <p class="text-xs font-bold text-white">Umar Official</p>
-            <p class="text-[9px] text-slate-500">Just now</p>
-          </div>
+          <div><p class="text-xs font-bold text-white">Umar Official</p><p class="text-[9px] text-slate-500">Just now</p></div>
         </div>
-        <p class="text-xs text-slate-300">Super App production code fully optimized and live on Vercel!</p>
+        <p class="text-xs text-slate-300">Super App code fully updated with Terminal IDE & Sound Toggle!</p>
       </div>
     </div>
   </section>
@@ -94,9 +99,20 @@
     <div class="w-full h-[400px] bg-slate-900 rounded-xl overflow-hidden border border-slate-800" id="tradingview_chart"></div>
   </section>
 
-  <!-- 4. PROFILE TAB -->
+  <!-- 4. CODE TERMINAL IDE TAB -->
+  <section id="tab-code" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
+    <h2 class="text-sm font-bold text-indigo-400 mb-2 flex items-center gap-2"><i class="fas fa-code"></i> Live Terminal IDE</h2>
+    <textarea id="codeEditor" class="w-full h-40 bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-3" placeholder="Write HTML/CSS/JS here..."></textarea>
+    <button onclick="runTerminalCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl mb-3 w-full">Run Code Output</button>
+    
+    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Execution Terminal:</p>
+    <iframe id="terminalOutput" class="w-full h-40 bg-slate-900 border border-slate-800 rounded-xl"></iframe>
+  </section>
+
+  <!-- 5. PROFILE TAB -->
   <section id="tab-profile" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <div class="flex justify-end mb-2">
+    <div class="flex justify-between items-center mb-2">
+      <button onclick="sendDMRequest('Umar Official')" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 text-xs px-3 py-1 rounded-lg font-bold"><i class="fas fa-envelope mr-1"></i> Send DM Request</button>
       <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fas fa-cog"></i></button>
     </div>
     
@@ -110,16 +126,14 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-4 gap-2 mb-6 text-center">
-      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-rose-400">12</p><p class="text-[9px] text-slate-400 uppercase">Posts</p></div>
+      <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p id="postCounter" class="text-sm font-black text-rose-400">1</p><p class="text-[9px] text-slate-400 uppercase">Posts</p></div>
       <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-purple-400">8</p><p class="text-[9px] text-slate-400 uppercase">Videos</p></div>
       <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-emerald-400">1.4K</p><p class="text-[9px] text-slate-400 uppercase">Subs</p></div>
       <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><p class="text-sm font-black text-blue-400">45.2K</p><p class="text-[9px] text-slate-400 uppercase">Likes</p></div>
     </div>
 
     <h4 class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">My Gallery Uploads</h4>
-    <div id="profileGrid" class="grid grid-cols-3 gap-2">
-      <div class="h-28 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center text-slate-600 text-xs">No Uploads</div>
-    </div>
+    <div id="profileGrid" class="grid grid-cols-3 gap-2"></div>
   </section>
 
   <!-- WEATHER BADGE FIXED AT BOTTOM RIGHT -->
@@ -132,19 +146,22 @@
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40 backdrop-blur-md">
     <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center text-rose-500">
-      <i class="fas fa-film text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Reels</span>
+      <i class="fas fa-film text-base"></i><span class="text-[9px] font-semibold mt-0.5">Reels</span>
     </button>
     <button onclick="switchTab('feed')" id="nav-feed" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-newspaper text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Feed</span>
+      <i class="fas fa-newspaper text-base"></i><span class="text-[9px] font-semibold mt-0.5">Feed</span>
     </button>
-    <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-10 h-10 rounded-full flex items-center justify-center -mt-3 shadow-lg">
-      <i class="fas fa-plus"></i>
+    <button onclick="toggleCreateModal()" class="bg-gradient-to-tr from-pink-600 to-rose-500 text-white w-9 h-9 rounded-full flex items-center justify-center -mt-2 shadow-lg">
+      <i class="fas fa-plus text-xs"></i>
+    </button>
+    <button onclick="switchTab('code')" id="nav-code" class="flex flex-col items-center text-slate-400">
+      <i class="fas fa-code text-base"></i><span class="text-[9px] font-semibold mt-0.5">IDE</span>
     </button>
     <button onclick="switchTab('forex')" id="nav-forex" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-chart-line text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Forex</span>
+      <i class="fas fa-chart-line text-base"></i><span class="text-[9px] font-semibold mt-0.5">Forex</span>
     </button>
     <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400">
-      <i class="fas fa-user text-lg"></i><span class="text-[9px] font-semibold mt-0.5">Profile</span>
+      <i class="fas fa-user text-base"></i><span class="text-[9px] font-semibold mt-0.5">Profile</span>
     </button>
   </nav>
 
@@ -163,6 +180,29 @@
     </div>
   </div>
 
+  <!-- COMMENTS BOTTOM SHEET -->
+  <div id="commentOverlay" onclick="closeCommentSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity"></div>
+  <div id="commentSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 rounded-t-3xl z-50 h-[50vh] flex flex-col">
+    <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-2"></div>
+    <h3 class="text-xs font-bold text-slate-300 mb-3 text-center">Comments</h3>
+    
+    <div id="commentsList" class="flex-1 overflow-y-auto space-y-3 pr-1">
+      <div class="flex gap-2">
+        <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-[10px] font-bold">A</div>
+        <div class="bg-slate-800 p-2 rounded-xl flex-1 text-xs">
+          <p class="font-bold text-indigo-300 text-[10px]">@aqibofficial</p>
+          <p class="text-slate-200 mt-0.5">Awesome video brother! 🔥</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Comment Box -->
+    <div class="flex gap-2 mt-3 pt-2 border-t border-slate-800">
+      <input type="text" id="newCommentInput" placeholder="Add comment or emoji 👍..." class="flex-1 bg-slate-800 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none">
+      <button onclick="postComment()" class="bg-rose-600 text-white font-bold text-xs px-4 rounded-xl">Send</button>
+    </div>
+  </div>
+
   <!-- HALF-SCREEN SHARE BOTTOM SHEET -->
   <div id="shareOverlay" onclick="closeShareSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity"></div>
   <div id="shareSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-5 rounded-t-3xl z-50 max-h-[60vh]">
@@ -174,7 +214,6 @@
       <button onclick="copyShareLink()" class="bg-rose-600 text-white font-bold text-xs px-4 rounded-xl">Copy</button>
     </div>
 
-    <!-- Social Friends Grid -->
     <div class="grid grid-cols-4 gap-3 text-center mb-4">
       <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-emerald-600/20 text-emerald-400 rounded-full flex items-center justify-center"><i class="fab fa-whatsapp"></i></div><span class="text-[9px] text-slate-300">WhatsApp</span></button>
       <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center"><i class="fab fa-facebook"></i></div><span class="text-[9px] text-slate-300">Facebook</span></button>
@@ -182,7 +221,6 @@
       <button onclick="copyShareLink()" class="flex flex-col items-center gap-1"><div class="w-10 h-10 bg-slate-800 text-rose-400 rounded-full flex items-center justify-center"><i class="fas fa-link"></i></div><span class="text-[9px] text-slate-300">Copy Link</span></button>
     </div>
 
-    <!-- OWNER-ONLY ANALYTICS BUTTON -->
     <div id="ownerAnalyticsBtn" class="hidden">
       <button onclick="toggleAnalyticsModal()" class="w-full bg-slate-800 border border-amber-500/30 text-amber-400 font-bold text-xs py-2.5 rounded-xl flex items-center justify-center gap-2">
         <i class="fas fa-chart-line"></i> View Video Analytics (Owner Only)
@@ -215,18 +253,17 @@
   <div id="chatModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
     <div class="bg-slate-900 w-full max-w-sm p-5 rounded-2xl border border-slate-800 h-[480px] flex flex-col">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-        <h3 class="font-bold text-white text-sm"><i class="fas fa-comments text-rose-500 mr-2"></i>Messages & History</h3>
+        <h3 class="font-bold text-white text-sm"><i class="fas fa-comments text-rose-500 mr-2"></i>Messages & Requests</h3>
         <button onclick="toggleChatModal()" class="text-slate-400 text-xl">&times;</button>
       </div>
 
-      <!-- Chat History List -->
-      <div class="flex-1 overflow-y-auto py-3 space-y-3">
+      <div id="chatContainerList" class="flex-1 overflow-y-auto py-3 space-y-3">
         <div class="flex justify-between items-center bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/40">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-xs font-bold">A</div>
             <div>
               <p class="text-xs font-bold text-white">Aqib Official</p>
-              <p class="text-[10px] text-slate-400">Hey, video is live!</p>
+              <p class="text-[10px] text-slate-400">DM Request Accepted</p>
             </div>
           </div>
           <div class="flex gap-2">
@@ -268,11 +305,13 @@
 
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
+    let videoCounter = 1;
+
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabName).classList.add('active');
 
-      const tabs = ['reels', 'feed', 'forex', 'profile'];
+      const tabs = ['reels', 'feed', 'code', 'forex', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById('nav-' + t);
         if (btn) btn.className = (t === tabName) ? 'flex flex-col items-center text-rose-500' : 'flex flex-col items-center text-slate-400';
@@ -281,36 +320,128 @@
       if (tabName === 'forex') loadTradingViewChart('FX:XAUUSD');
     }
 
-    function toggleCreateModal() {
-      const modal = document.getElementById('createModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
+    function toggleAudio(videoId, btn) {
+      const vid = document.getElementById(videoId);
+      vid.muted = !vid.muted;
+      btn.innerHTML = vid.muted ? '<i class="fas fa-volume-mute text-xs"></i>' : '<i class="fas fa-volume-up text-xs text-emerald-400"></i>';
     }
 
     function uploadGalleryVideo() {
       const fileInput = document.getElementById('mediaGalleryInput');
-      const caption = document.getElementById('captionInput').value;
+      const caption = document.getElementById('captionInput').value || 'New Reel Upload';
 
       if (!fileInput.files[0]) return alert('Please select a video file from gallery!');
 
       const videoUrl = URL.createObjectURL(fileInput.files[0]);
+      videoCounter++;
+      const newId = 'video-' + videoCounter;
+      const reelId = 'reel-' + videoCounter;
 
-      // Set Active Video
-      const activeVideo = document.getElementById('activeReelVideo');
-      activeVideo.src = videoUrl;
+      // Append New Video Card to Reels Container without deleting previous videos
+      const container = document.getElementById('reelsContainer');
+      const newCard = document.createElement('div');
+      newCard.className = "reel-card flex items-center justify-center";
+      newCard.id = reelId;
+      newCard.innerHTML = `
+        <video id="${newId}" src="${videoUrl}" class="w-full h-full object-cover" loop autoplay muted playsinline></video>
+        
+        <button onclick="toggleAudio('${newId}', this)" class="absolute top-4 right-4 bg-black/50 text-white p-2.5 rounded-full z-30 border border-white/20">
+          <i class="fas fa-volume-mute text-xs"></i>
+        </button>
 
-      // Add Video Tile to Profile
+        <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 text-white z-20">
+          <button onclick="toggleLike(this)" class="flex flex-col items-center"><i class="fas fa-heart text-2xl text-slate-400"></i><span class="likeCount text-[10px] font-bold">0</span></button>
+          <button onclick="openCommentSheet('${reelId}')" class="flex flex-col items-center"><i class="fas fa-comment text-2xl text-slate-200"></i><span class="text-[10px] font-bold">0</span></button>
+          <button onclick="openShareSheet('${videoCounter}', 'Umar Official', true)" class="flex flex-col items-center"><i class="fas fa-share text-2xl text-slate-200"></i><span class="text-[10px] font-bold">Share</span></button>
+          <button onclick="toggleSave(this)" class="flex flex-col items-center"><i class="fas fa-bookmark text-2xl text-slate-400"></i><span class="text-[10px] font-bold">Save</span></button>
+        </div>
+
+        <div class="absolute bottom-6 left-3 right-16 z-20 text-white">
+          <p class="font-bold text-sm text-indigo-300">@Umar Official</p>
+          <p class="text-xs text-slate-200 mt-1">${caption}</p>
+          <span class="text-[10px] text-emerald-400 font-semibold mt-1 inline-block"><i class="fas fa-eye mr-1"></i> 1 View</span>
+        </div>
+      `;
+
+      container.prepend(newCard);
+
+      // Add Video Thumbnail to Profile Grid
       const profileGrid = document.getElementById('profileGrid');
-      if (profileGrid.innerText.includes("No Uploads")) profileGrid.innerHTML = '';
-
       const videoThumb = document.createElement('div');
       videoThumb.className = "h-28 bg-slate-800 rounded-lg overflow-hidden border border-slate-700 relative";
       videoThumb.innerHTML = `<video src="${videoUrl}" class="w-full h-full object-cover"></video>`;
       profileGrid.prepend(videoThumb);
 
-      alert('Video Posted Successfully!');
+      document.getElementById('postCounter').innerText = parseInt(document.getElementById('postCounter').innerText) + 1;
+
+      alert('Video Uploaded Successfully!');
       toggleCreateModal();
       switchTab('reels');
+    }
+
+    function openCommentSheet(reelId) {
+      const overlay = document.getElementById('commentOverlay');
+      const sheet = document.getElementById('commentSheet');
+      overlay.classList.remove('hidden');
+      setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        sheet.classList.add('open');
+      }, 10);
+    }
+
+    function closeCommentSheet() {
+      const overlay = document.getElementById('commentOverlay');
+      const sheet = document.getElementById('commentSheet');
+      sheet.classList.remove('open');
+      overlay.classList.add('opacity-0');
+      setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+
+    function postComment() {
+      const input = document.getElementById('newCommentInput');
+      if (!input.value.trim()) return;
+
+      const list = document.getElementById('commentsList');
+      const item = document.createElement('div');
+      item.className = 'flex gap-2';
+      item.innerHTML = `
+        <div class="w-6 h-6 bg-rose-600 rounded-full flex items-center justify-center text-[10px] font-bold">U</div>
+        <div class="bg-slate-800 p-2 rounded-xl flex-1 text-xs">
+          <p class="font-bold text-rose-400 text-[10px]">@Umar Official</p>
+          <p class="text-slate-200 mt-0.5">${input.value}</p>
+        </div>
+      `;
+      list.appendChild(item);
+      input.value = '';
+    }
+
+    function sendDMRequest(user) {
+      const list = document.getElementById('chatContainerList');
+      const card = document.createElement('div');
+      card.className = "flex justify-between items-center bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/40";
+      card.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-rose-600 rounded-full flex items-center justify-center text-xs font-bold">U</div>
+          <div><p class="text-xs font-bold text-white">${user}</p><p class="text-[10px] text-amber-400">DM Request Sent...</p></div>
+        </div>
+      `;
+      list.prepend(card);
+      alert(`DM Message Request sent to ${user}!`);
+      toggleChatModal();
+    }
+
+    function runTerminalCode() {
+      const code = document.getElementById('codeEditor').value;
+      const iframe = document.getElementById('terminalOutput');
+      iframe.contentWindow.document.open();
+      iframe.contentWindow.document.write(code);
+      iframe.contentWindow.document.close();
+    }
+
+    function toggleCreateModal() {
+      const modal = document.getElementById('createModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
     }
 
     function publishTextPost() {
@@ -366,7 +497,7 @@
 
     function toggleLike(btn) {
       const icon = btn.querySelector('i');
-      const counter = document.getElementById('likeCount');
+      const counter = btn.querySelector('.likeCount');
       let val = parseInt(counter.innerText);
       if (icon.classList.contains('text-rose-500')) {
         icon.className = 'fas fa-heart text-2xl text-slate-400';
