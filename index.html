@@ -3,646 +3,637 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Umar Super App v2</title>
-  <!-- TradingView Widget Script -->
+  <title>Super App</title>
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     :root {
-      --bg-color: #000000; /* True Black for full screen video */
-      --card-bg: #121212;
+      --bg-color: #0b0c10;
+      --card-bg: #1f2833;
       --accent-red: #ff2a5f;
-      --accent-blue: #007bff;
-      --accent-green: #00e676;
+      --accent-blue: #45a29e;
+      --accent-green: #66fcf1;
       --text-main: #ffffff;
-      --text-sub: #a0a0a0;
+      --text-sub: #c5c6c7;
       --nav-height: 55px;
+      --app-zoom: 1;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-    button { cursor: pointer; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      zoom: var(--app-zoom);
+    }
+    button { cursor: pointer; border: none; outline: none; }
 
-    /* Global Toast Notification Banner (NO ALERTS) */
+    /* Universal Toast Notification */
     #toast-notification {
       position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-      background: #1e1e1e; color: #fff; border: 1px solid var(--accent-blue);
-      padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-      z-index: 10000; display: none; font-size: 13px; font-weight: 500;
-      text-align: center; min-width: 250px; max-width: 90%; animation: fadeIn 0.3s ease-in-out;
+      background: #1f2833; color: var(--accent-green); border: 1px solid var(--accent-blue);
+      padding: 10px 18px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      z-index: 10000; display: none; font-size: 13px; font-weight: 600; text-align: center;
+      max-width: 90%; animation: fadeIn 0.3s ease-in-out;
     }
     @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-    /* Main App Content Area */
-    main { flex: 1; overflow: hidden; position: relative; }
-    .view-screen { display: none; height: 100%; width: 100%; position: absolute; top: 0; left: 0; overflow: hidden; }
+    /* Header Bar */
+    header {
+      height: 45px; background: #0b0c10; border-bottom: 1px solid #1f2833;
+      display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+      z-index: 800;
+    }
+    .brand-title { font-size: 16px; font-weight: bold; color: var(--accent-red); }
+    .header-actions button { background: none; color: var(--text-main); font-size: 18px; margin-left: 12px; }
+
+    /* Main View Area */
+    main { flex: 1; position: relative; overflow: hidden; }
+    .view-screen { display: none; height: 100%; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; }
     .view-screen.active { display: block; }
 
-    /* 1. Full-Screen Vertical Video Feed (TikTok Style) */
+    /* Feed View */
     #feed-view { background: #000; overflow-y: scroll; scroll-snap-type: y mandatory; }
     .video-post {
-      height: 100vh; width: 100%; scroll-snap-align: start; position: relative;
-      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      height: calc(100vh - 100px); width: 100%; scroll-snap-align: start; position: relative;
+      display: flex; align-items: center; justify-content: center; background: #000;
     }
-    .video-post video {
-      min-width: 100%; min-height: 100%; width: auto; height: auto;
-      object-fit: cover; z-index: 1;
-    }
-    .video-overlay {
-      position: absolute; bottom: calc(var(--nav-height) + 15px); left: 15px;
-      z-index: 10; max-width: 70%; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    }
-    .video-overlay h4 { color: var(--accent-red); margin-bottom: 5px; }
-    .video-overlay p { font-size: 14px; color: #fff; line-height: 1.4; }
+    .video-post video { width: 100%; height: 100%; object-fit: cover; }
+    .filter-sepia { filter: sepia(0.8); }
+    .filter-grayscale { filter: grayscale(1); }
+    .filter-vintage { filter: contrast(1.2) brightness(0.9) hue-rotate(-20deg); }
 
-    /* Video Side Actions (Like, Comment, Share) */
+    .video-overlay {
+      position: absolute; bottom: 20px; left: 15px; z-index: 10; max-width: 75%;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .video-overlay h4 { color: var(--accent-green); margin-bottom: 4px; font-size: 14px; }
+    .video-overlay p { font-size: 13px; color: #fff; line-height: 1.3; }
+
     .video-actions {
-      position: absolute; right: 10px; bottom: calc(var(--nav-height) + 40px);
-      z-index: 10; display: flex; flex-direction: column; gap: 20px; align-items: center;
+      position: absolute; right: 12px; bottom: 30px; z-index: 10;
+      display: flex; flex-direction: column; gap: 18px; align-items: center;
     }
-    .action-btn {
-      background: none; border: none; color: #fff; text-align: center; font-size: 11px;
-    }
-    .action-btn i { font-size: 28px; display: block; margin-bottom: 4px; }
+    .action-btn { background: none; color: #fff; text-align: center; font-size: 10px; }
+    .action-btn i { font-size: 26px; display: block; margin-bottom: 3px; }
     .action-btn i.active { color: var(--accent-red); }
 
-    /* Sliding Panels (Comments, Share, Builder parts) */
+    /* Floating Post Button */
+    #global-plus-btn {
+      position: fixed; bottom: calc(var(--nav-height) + 10px); left: 50%;
+      transform: translateX(-50%); width: 52px; height: 52px;
+      background: var(--accent-blue); border-radius: 50%; color: white;
+      font-size: 24px; border: 3px solid var(--bg-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Sliding Panels */
     .sliding-panel {
-      position: fixed; bottom: -100%; left: 0; width: 100%; height: 60vh;
-      background: #181818; border-top-left-radius: 15px; border-top-right-radius: 15px;
-      z-index: 2000; transition: bottom 0.3s ease-out; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-      display: flex; flex-direction: column; border-top: 1px solid #333;
+      position: fixed; bottom: -100%; left: 0; width: 100%; height: 65vh;
+      background: #1f2833; border-top-left-radius: 16px; border-top-right-radius: 16px;
+      z-index: 2000; transition: bottom 0.3s ease-out; display: flex; flex-direction: column;
+      border-top: 1px solid #45a29e; padding: 15px;
     }
     .sliding-panel.open { bottom: 0; }
-    .panel-header { padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #333; color: var(--accent-red); position: relative;}
-    .close-panel-btn { position: absolute; right: 15px; top: 13px; background: none; border: none; color: #fff; font-size: 20px;}
+    .panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #333; font-weight: bold; color: var(--accent-green); }
 
-    /* Comments Section inside Panel */
-    #comment-list { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-    .comment-item { display: flex; gap: 10px; font-size: 13px; align-items: flex-start; }
-    .comment-item .avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--accent-red); }
-    .comment-item-right { flex: 1; }
-    .comment-author { font-weight: bold; color: var(--accent-red); margin-bottom: 2px; }
-    .comment-item-actions { display: flex; gap: 10px; font-size: 11px; color: var(--text-sub); margin-top: 4px; }
-    .comment-input-bar { padding: 10px; background: #202020; display: flex; gap: 10px; border-top: 1px solid #333; }
-
-    /* Share Panel Section */
-    #share-panel .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; }
-    .share-option { text-align: center; background: none; border: none; color: #fff; font-size: 12px; }
-    .share-option i { font-size: 28px; display: block; margin-bottom: 5px; color: var(--accent-blue); }
-
-    /* Universal Plus Post Button */
-    #global-plus-btn {
-      position: fixed; bottom: calc(var(--nav-height) + 15px); left: 50%;
-      transform: translateX(-50%); width: 60px; height: 60px;
-      background: var(--accent-blue); border-radius: 50%; color: white;
-      font-size: 30px; border: 4px solid var(--bg-color);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1000;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    /* Builder Studio */
+    #build-view { padding: 15px; }
+    .build-area {
+      height: 180px; width: 100%; background: #000; border-radius: 10px;
+      border: 2px dashed var(--accent-blue); display: flex; align-items: center;
+      justify-content: center; font-size: 48px; margin-bottom: 15px; position: relative;
     }
 
-    /* 2. Landscape Road Racing Game (Full Screen) */
-    #games-view { position: relative; background: #222; }
-    #raceCanvas { background: #1e1e1e; display: block; width: 100%; height: 100%; }
-    #games-view h3 { position: absolute; top: 10px; left: 10px; font-size: 14px; color: #fff; z-index: 5; text-shadow: 0 1px 2px #000; }
-    #car-controls-overlay {
-      position: absolute; bottom: 15px; width: 100%; display: flex;
-      justify-content: space-between; padding: 0 20px; z-index: 5;
+    /* Mini Apps Grid */
+    #apps-view { padding: 15px; }
+    .apps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 10px; }
+    .app-card {
+      background: var(--card-bg); border-radius: 10px; padding: 12px 5px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      border: 1px solid #333; text-align: center; font-size: 11px;
     }
-    .game-ctrl-btn {
-      width: 70px; height: 70px; background: rgba(50,50,50,0.7);
-      border: 2px solid #fff; border-radius: 50%; color: #fff;
-      font-size: 24px; display: flex; align-items: center; justify-content: center;
-    }
-    .game-ctrl-btn:active { background: var(--accent-blue); }
+    .app-card i { font-size: 22px; color: var(--accent-green); }
 
-    /* 3. Workbench Build Studio (Sequence Assembly) */
-    #build-view { overflow-y: auto; padding: 15px; }
-    #build-status {
-      height: 180px; width: 100%; background: #080808; border-radius: 12px;
-      border: 2px dashed #333; position: relative; display: flex;
-      align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 15px;
-    }
-    .part-dot { position: absolute; font-size: 1.5rem; display: none; }
-    
-    #parts-notification {
-      position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
-      font-size: 12px; font-weight: bold; white-space: nowrap;
-      padding: 5px 10px; border-radius: 15px; background: rgba(0,0,0,0.8);
-    }
-    
-    /* 4. Mini Apps Dashboard (Launcher Icons) */
-    #apps-view { overflow-y: auto; padding: 15px; }
-    .app-dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
-    .app-icon-card {
-      background: var(--card-bg); border-radius: 12px; padding: 10px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 5px; cursor: pointer; text-align: center; border: 1px solid #222;
-    }
-    .app-icon-card .icon { font-size: 24px; color: var(--accent-blue); }
-    .app-icon-card span { font-size: 10px; color: var(--text-sub); }
+    /* Profile View */
+    #profile-view { padding: 15px; }
+    .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+    .avatar-large { width: 65px; height: 65px; border-radius: 50%; background: var(--accent-blue); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; }
+    .stats-row { display: flex; justify-content: space-around; background: #121212; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+    .stat-box h3 { font-size: 16px; color: var(--accent-green); }
+    .stat-box p { font-size: 10px; color: var(--text-sub); }
 
-    /* Standard Sub-App styling (Back button, inputs) */
-    .sub-app-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+    /* Inputs & Buttons */
     input, select, textarea {
-      width: 100%; background: #1a1a1a; border: 1px solid #333;
-      color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 14px;
+      width: 100%; background: #0b0c10; border: 1px solid #333;
+      color: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 13px;
     }
-    .btn {
-      background: var(--accent-red); color: white; border: none;
-      width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px;
-    }
+    .btn { background: var(--accent-red); color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 13px; }
     .btn-green { background: var(--accent-green); color: #000; }
 
-    /* Developer Hub (Text Feed) */
-    #dev-view { overflow-y: auto; padding: 15px; }
-    .dev-post-card { background: var(--card-bg); padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #222; }
-    .dev-post-header { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-sub); margin-bottom: 8px;}
-    .dev-post-author { color: var(--accent-blue); font-weight: bold;}
+    /* Games View */
+    #games-view { position: relative; background: #111; height: 100%; }
+    #raceCanvas { width: 100%; height: calc(100% - 60px); display: block; background: #222; }
+    .game-controls { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: space-around; padding: 0 20px; }
+    .ctrl-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); color: #fff; font-size: 20px; border: 1px solid var(--accent-blue); }
 
-    /* Forex Fullscreen View */
-    #forex-view { padding: 0; }
-    #tradingview-widget { width: 100%; height: 100%; }
-
-    /* Standard Bottom Navigation Bar */
-    nav { height: var(--nav-height); background: var(--card-bg); display: flex; border-top: 1px solid #222; z-index: 900; }
-    .nav-btn {
-      flex: 1; background: none; border: none; color: var(--text-sub);
-      font-size: 10px; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 4px;
-    }
+    /* Navigation Bar */
+    nav { height: var(--nav-height); background: var(--card-bg); display: flex; border-top: 1px solid #333; z-index: 800; }
+    .nav-btn { flex: 1; background: none; color: var(--text-sub); font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
     .nav-btn.active { color: var(--accent-red); font-weight: bold; }
     .nav-btn i { font-size: 18px; }
 
-    /* Icons Font (FontAwesome simulation) */
-    @font-face { font-family: 'UmarIcons'; src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2') format('woff2'); }
-    .fa, .fas { font-family: 'UmarIcons'; font-weight: 900; -webkit-font-smoothing: antialiased; display: inline-block; font-style: normal; font-variant: normal; text-rendering: auto; line-height: 1; }
-    .fa-heart::before { content: "\f004"; }
-    .fa-comment::before { content: "\f075"; }
-    .fa-share::before { content: "\f064"; }
-    .fa-paper-plane::before { content: "\f1d8"; }
-    .fa-clipboard::before { content: "\f328"; }
-    .fa-user-plus::before { content: "\f234"; }
-    .fa-plus::before { content: "\f067"; }
-    .fa-code::before { content: "\f121"; }
-    .fa-cloud::before { content: "\f0c2"; }
-    .fa-language::before { content: "\f1ab"; }
-    .fa-wallet::before { content: "\f555"; }
-    .fa-times::before { content: "\f00d"; }
-    .fa-check-circle::before { content: "\f058"; }
-    .fa-exclamation-triangle::before { content: "\f071"; }
-    
+    /* Icons via Unicode Simulation */
+    .icon-feed::before { content: "🎬"; }
+    .icon-build::before { content: "🛠️"; }
+    .icon-game::before { content: "🏎️"; }
+    .icon-forex::before { content: "📈"; }
+    .icon-apps::before { content: "📱"; }
   </style>
 </head>
 <body>
 
-  <!-- Non-Intrusive Notification Toast -->
-  <div id="toast-notification">Notification Message</div>
+  <!-- Toast Notification Banner -->
+  <div id="toast-notification">Notification</div>
 
-  <!-- Universal Plus Button for Post From Gallery -->
-  <button id="global-plus-btn" onclick="triggerGalleryUpload()">
-    <i class="fas fa-plus"></i>
-  </button>
-  <!-- Hidden File Input for Video Upload from Device Gallery -->
-  <input type="file" id="gallery-video-input" accept="video/*" style="display:none;" onchange="handleGalleryVideo(this)">
+  <!-- Header -->
+  <header>
+    <div class="brand-title">Super App</div>
+    <div class="header-actions">
+      <button onclick="switchTab('profile-view')">👤</button>
+      <button onclick="openPanel('settings-panel')">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Floating Plus Button -->
+  <button id="global-plus-btn" onclick="openPanel('upload-panel')">+</button>
 
   <main>
-    <!-- 1. Full-Screen Vertical Video Feed (Bilkul TikTok Jaisi) -->
+    <!-- 1. Feed View -->
     <section id="feed-view" class="view-screen active">
-      <!-- Dynamic Video Posts -->
-      <div class="video-post" data-post-id="1">
-        <video loop playsinline onclick="toggleVideoPlay(this)" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+      <div class="video-post" id="post-1">
+        <video loop playsinline onclick="togglePlay(this)" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
         <div class="video-overlay">
-          <h4>@SuperAppSupport</h4>
-          <p>Welcome to Umar Super App v2! Swipe up for more vertical full-screen videos from community.</p>
+          <h4>@muhammadumar</h4>
+          <p>Welcome to Super App Feed! Swipe up for more content.</p>
         </div>
         <div class="video-actions">
-          <button class="action-btn" onclick="likeVideo(1, this)">
-            <i class="fas fa-heart"></i>
-            <span>5.2K</span>
+          <button class="action-btn" onclick="toggleLike(this)">
+            <i id="like-icon-1">❤️</i>
+            <span id="like-count-1">0</span>
           </button>
-          <button class="action-btn" onclick="openCommentsPanel(1)">
-            <i class="fas fa-comment"></i>
-            <span>128</span>
+          <button class="action-btn" onclick="openPanel('comments-panel')">
+            <i>💬</i>
+            <span>12</span>
           </button>
-          <button class="action-btn" onclick="openSharePanel(1)">
-            <i class="fas fa-share"></i>
+          <button class="action-btn" onclick="notify('Link copied to clipboard!')">
+            <i>🔗</i>
             <span>Share</span>
-          </button>
-          <button class="action-btn" style="background:var(--accent-red); padding:5px; border-radius:50%;">
-            <i class="fas fa-user-plus"></i>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- 2. landscape Racing Game (Full Screen) -->
-    <section id="games-view" class="view-screen">
-      <h3>🏎️ Landscape Road Chase</h3>
-      <canvas id="raceCanvas"></canvas>
-      <div id="car-controls-overlay">
-        <button class="game-ctrl-btn" onclick="steerCar(-30)">◀</button>
-        <button class="game-ctrl-btn" style="background:var(--accent-green);" onclick="accelerateCar()">▲</button>
-        <button class="game-ctrl-btn" onclick="steerCar(30)">▶</button>
-      </div>
-    </section>
-
-    <!-- 3. Workbench Studio (Complex Side Panel Assembly) -->
+    <!-- 2. Workbench Studio -->
     <section id="build-view" class="view-screen">
-      <div class="sub-app-header">
-        <h3>🔨 Assemble Studio</h3>
-        <button class="btn" style="width: auto; padding: 5px 15px;" onclick="openPanel('parts-panel')">Select Parts</button>
+      <div style="padding-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+        <h3>Crafting Studio</h3>
+        <button class="btn" style="width:auto; padding: 5px 10px;" onclick="openPanel('parts-panel')">Parts Panel</button>
       </div>
-      
-      <div id="build-status">
-        🏎️
-        <div id="parts-notification"></div>
-        <div class="part-dot" style="top:20px; left:20px; color:var(--accent-red); display:block;">C</div>
-        <div class="part-dot" style="bottom:20px; right:20px; color:var(--accent-blue); display:block;">E</div>
+      <div class="build-area" id="craft-box">🚗</div>
+      <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;" id="build-status-text">
+        Status: Assembly Incomplete. Select Chassis, Engine, and Wheels.
       </div>
-      
-      <div style="background:var(--card-bg); padding:10px; border-radius:8px; font-size:12px;">
-        <strong>Workbench Instructions:</strong> Open parts panel, select in sequence: Chassis -> Engine -> Wheels -> Boosters.
-      </div>
-      <button class="btn btn-green" style="margin-top:15px;" onclick="postBuiltCarToFeed()">Publish Built Craft 🚀</button>
+      <button class="btn btn-green" onclick="publishCraft()">Publish Built Craft 🚀</button>
     </section>
 
-    <!-- 4. Forex Chart -->
+    <!-- 3. Racing Game -->
+    <section id="games-view" class="view-screen">
+      <canvas id="raceCanvas"></canvas>
+      <div class="game-controls">
+        <button class="ctrl-btn" onclick="moveCar(-20)">◀</button>
+        <button class="ctrl-btn" onclick="moveCar(20)">▶</button>
+      </div>
+    </section>
+
+    <!-- 4. Forex View -->
     <section id="forex-view" class="view-screen">
-      <div id="tradingview-widget"></div>
+      <div id="tradingview-widget" style="height:100%; width:100%;"></div>
     </section>
 
-    <!-- 5. Mini Apps Launcher -->
-    <section id="miniapps-view" class="view-screen">
-      <h3>📱 Apps Launcher</h3>
-      <div class="app-dashboard-grid">
-        <div class="app-icon-card" onclick="openSubApp('weather-app')">
-          <i class="fas fa-cloud icon"></i>
+    <!-- 5. Apps Launcher -->
+    <section id="apps-view" class="view-screen">
+      <h3>Mini Apps Launcher</h3>
+      <div class="apps-grid">
+        <div class="app-card" onclick="openSubApp('weather-app')">
+          <i>🌤️</i>
           <span>Weather</span>
         </div>
         <div class="app-card" onclick="openSubApp('translator-app')">
-          <i class="fas fa-language icon"></i>
+          <i>🌐</i>
           <span>Translator</span>
         </div>
         <div class="app-card" onclick="openSubApp('wallet-app')">
-          <i class="fas fa-wallet icon"></i>
+          <i>💳</i>
           <span>Wallet</span>
         </div>
         <div class="app-card" onclick="openSubApp('code-app')">
-          <i class="fas fa-code icon"></i>
+          <i>💻</i>
           <span>Editor</span>
         </div>
-        <div class="app-card" onclick="openSubApp('dev-view')">
-          <i class="fas fa-clipboard icon"></i>
-          <span>Dev Hub</span>
-        </div>
       </div>
     </section>
 
-    <!-- Sub Apps (Nested Views) -->
-    <section id="weather-app" class="view-screen">
-      <div class="sub-app-header">
-        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
-        <h3>🌤️ Weather</h3>
-      </div>
-      <input type="text" id="weather-city" placeholder="City Name (Karachi)...">
-      <button class="btn" onclick="getWeather()">Fetch Weather</button>
-    </div>
+    <!-- Sub App: Weather -->
+    <section id="weather-app" class="view-screen" style="padding:15px;">
+      <button class="btn" style="width:auto; margin-bottom:10px;" onclick="switchTab('apps-view')">← Back</button>
+      <h3>Live Weather (API Connected)</h3>
+      <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Fetches live metrics from Open-Meteo Server.</p>
+      <button class="btn btn-green" onclick="fetchLiveWeather()">Fetch Current Weather</button>
+      <div id="weather-result" style="margin-top:15px; background:var(--card-bg); padding:15px; border-radius:8px; font-size:13px;">Click fetch to load data.</div>
+    </section>
 
-    <section id="translator-app" class="view-screen">
-      <div class="sub-app-header">
-        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
-        <h3>🌐 Translator</h3>
-      </div>
+    <!-- Sub App: Translator -->
+    <section id="translator-app" class="view-screen" style="padding:15px;">
+      <button class="btn" style="width:auto; margin-bottom:10px;" onclick="switchTab('apps-view')">← Back</button>
+      <h3>Language Translator</h3>
+      <textarea id="trans-input" rows="3" placeholder="Enter text to translate..."></textarea>
       <select id="trans-lang">
-        <option value="ur">to Urdu</option>
-        <option value="en">to English</option>
+        <option value="ur">Urdu</option>
+        <option value="en">English</option>
       </select>
-      <textarea id="trans-input" rows="3" placeholder="Enter Text..."></textarea>
-      <button class="btn" onclick="translateText()">Translate</button>
-    </div>
-
-    <section id="wallet-app" class="view-screen">
-      <div class="sub-app-header">
-        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
-        <h3>💳 Wallet</h3>
-      </div>
-      <h1 style="color:var(--accent-green); margin:15px 0;">$0.00</h1>
-      <button class="btn" onclick="notify('Withdrawal request logged successfully.', '#00e676')">Request Withdrawal</button>
-    </div>
-
-    <section id="code-app" class="view-screen">
-      <div class="sub-app-header">
-        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
-        <h3>💻 Editor</h3>
-      </div>
-      <textarea id="code-input" rows="6" style="font-family:monospace;" placeholder="// JS Code"></textarea>
-      <button class="btn" onclick="runCode()">Run</button>
-    </div>
-
-    <!-- Developer Hub (Text Posts) -->
-    <section id="dev-view" class="view-screen">
-      <div class="sub-app-header">
-        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
-        <h3>👨‍💻 Developer Hub</h3>
-      </div>
-      <div id="dev-feed">
-        <div class="dev-post-card">
-          <div class="dev-post-header">
-            <span class="dev-post-author">@muhammadumar45212h</span>
-            <span>1h ago</span>
-          </div>
-          <p style="font-size:13px; line-height:1.4;">v2.0 Beta Launched! Full screen TikTok style video feed, direct gallery video uploads, landscape racing game mechanics added. No alerts, only custom messages.</p>
-        </div>
-      </div>
+      <button class="btn" onclick="runTranslation()">Translate Text</button>
+      <div id="trans-result" style="margin-top:10px; background:var(--card-bg); padding:10px; border-radius:6px; font-size:13px;">Result will appear here.</div>
     </section>
 
+    <!-- Sub App: Wallet -->
+    <section id="wallet-app" class="view-screen" style="padding:15px;">
+      <button class="btn" style="width:auto; margin-bottom:10px;" onclick="switchTab('apps-view')">← Back</button>
+      <h3>App Balance & Wallet</h3>
+      <div style="background:var(--card-bg); padding:20px; border-radius:10px; text-align:center; margin:15px 0;">
+        <span style="font-size:12px; color:var(--text-sub);">Available Balance</span>
+        <h1 style="color:var(--accent-green);">$25.00</h1>
+      </div>
+      <button class="btn btn-green" onclick="notify('Withdrawal request logged successfully!')">Withdraw Funds</button>
+    </section>
+
+    <!-- Sub App: Code Editor -->
+    <section id="code-app" class="view-screen" style="padding:15px;">
+      <button class="btn" style="width:auto; margin-bottom:10px;" onclick="switchTab('apps-view')">← Back</button>
+      <h3>Code Testing Sandbox</h3>
+      <textarea id="sandbox-code" rows="5" style="font-family:monospace;" placeholder="console.log('Hello World');"></textarea>
+      <button class="btn" onclick="runSandboxCode()">Execute Script</button>
+      <pre id="sandbox-output" style="background:#000; color:#0f0; padding:10px; margin-top:10px; border-radius:6px; font-size:11px; white-space:pre-wrap;"></pre>
+    </section>
+
+    <!-- Profile View -->
+    <section id="profile-view" class="view-screen">
+      <div class="profile-header">
+        <div class="avatar-large">U</div>
+        <div>
+          <h2>Umar</h2>
+          <p style="font-size:12px; color:var(--text-sub);">@muhammadumar</p>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box"><h3 id="stat-posts">1</h3><p>Posts</p></div>
+        <div class="stat-box"><h3 id="stat-likes">0</h3><p>Total Likes</p></div>
+        <div class="stat-box"><h3>12</h3><p>Subscribers</p></div>
+      </div>
+      <button class="btn" style="margin-bottom:10px;" onclick="openPanel('auth-panel')">Account Login / Register</button>
+    </section>
   </main>
 
   <!-- Sliding Panels -->
-  <!-- Parts Selection Panel for Builder -->
+
+  <!-- Upload Modal -->
+  <div id="upload-panel" class="sliding-panel">
+    <div class="panel-header">
+      <span>Upload Video Content</span>
+      <button onclick="closePanel('upload-panel')" style="background:none; color:#fff;">✖</button>
+    </div>
+    <div style="margin-top:10px;">
+      <input type="file" id="video-file-input" accept="video/*">
+      <input type="text" id="video-desc-input" placeholder="Enter video description...">
+      <select id="video-filter-select">
+        <option value="none">Normal Filter</option>
+        <option value="sepia">Sepia Effect</option>
+        <option value="grayscale">Grayscale Effect</option>
+        <option value="vintage">Vintage Contrast</option>
+      </select>
+      <button class="btn btn-green" onclick="processVideoUpload()">Publish Video</button>
+    </div>
+  </div>
+
+  <!-- Parts Panel -->
   <div id="parts-panel" class="sliding-panel">
     <div class="panel-header">
-      Build Components
-      <button class="close-panel-btn" onclick="closePanel('parts-panel')"><i class="fas fa-times"></i></button>
+      <span>Select Component</span>
+      <button onclick="closePanel('parts-panel')" style="background:none; color:#fff;">✖</button>
     </div>
-    <div style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-      <button class="btn btn-blue" onclick="attachBuilderPart('Chassis')">+ Chassis</button>
-      <button class="btn btn-blue" onclick="attachBuilderPart('Engine')">+ Engine</button>
-      <button class="btn btn-blue" onclick="attachBuilderPart('Wheels')">+ Wheels</button>
-      <button class="btn btn-blue" onclick="attachBuilderPart('Booster')">+ Booster</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+      <button class="btn" onclick="addPart('Chassis')">+ Chassis</button>
+      <button class="btn" onclick="addPart('Engine')">+ Engine</button>
+      <button class="btn" onclick="addPart('Wheels')">+ Wheels</button>
+      <button class="btn" onclick="addPart('Booster')">+ Booster</button>
     </div>
   </div>
 
   <!-- Comments Panel -->
   <div id="comments-panel" class="sliding-panel">
     <div class="panel-header">
-      Comments (128)
-      <button class="close-panel-btn" onclick="closePanel('comments-panel')"><i class="fas fa-times"></i></button>
+      <span>Comments</span>
+      <button onclick="closePanel('comments-panel')" style="background:none; color:#fff;">✖</button>
     </div>
-    <div id="comment-list">
-      <div class="comment-item">
-        <div class="avatar">A</div>
-        <div class="comment-item-right">
-          <div class="comment-author">@AhsanCoder</div>
-          <p>Bro ye landscape racing game kitna smooth chal raha hai, real device gesture controls are great!</p>
-          <div class="comment-item-actions"><span>Like</span> <span>Reply</span> <span>10m</span></div>
-        </div>
-      </div>
-      <div class="comment-item">
-        <div class="avatar">R</div>
-        <div class="comment-item-right">
-          <div class="comment-author">@RidaDev</div>
-          <p>Finally gallery se direct video post ho raha hai, great update Muhammad Umar.</p>
-          <div class="comment-item-actions"><span>Like</span> <span>Reply</span> <span>25m</span></div>
-        </div>
-      </div>
+    <div id="comment-list" style="flex:1; overflow-y:auto; margin:10px 0;">
+      <p style="font-size:12px; color:var(--text-sub); border-bottom:1px solid #333; padding:5px 0;"><b>@dev_user:</b> Clean layout implementation!</p>
     </div>
-    <div class="comment-input-bar">
-      <input type="text" placeholder="Add comment..." style="margin-bottom:0;">
-      <button class="action-btn" style="color:var(--accent-blue); padding:0 10px;" onclick="notify('Comment added!')"><i class="fas fa-paper-plane"></i></button>
+    <div style="display:flex; gap:5px;">
+      <input type="text" id="comment-input" placeholder="Type a comment..." style="margin-bottom:0;">
+      <button class="btn" style="width:auto;" onclick="postComment()">Send</button>
     </div>
   </div>
 
-  <!-- Share Panel -->
-  <div id="share-panel" class="sliding-panel">
+  <!-- Settings Panel -->
+  <div id="settings-panel" class="sliding-panel">
     <div class="panel-header">
-      Share to
-      <button class="close-panel-btn" onclick="closePanel('share-panel')"><i class="fas fa-times"></i></button>
+      <span>App Settings & Scaling</span>
+      <button onclick="closePanel('settings-panel')" style="background:none; color:#fff;">✖</button>
     </div>
-    <div class="share-grid">
-      <button class="share-option" onclick="notify('Copied link!')"><i class="fas fa-clipboard"></i>Copy</button>
-      <button class="share-option" onclick="notify('Shared to WhatsApp!')"><i class="fas fa-paper-plane"></i>WhatsApp</button>
-      <button class="share-option"><i class="fas fa-comment"></i>Messages</button>
-      <button class="share-option"><i class="fas fa-user-plus"></i>Friends</button>
+    <div style="margin-top:15px;">
+      <label style="font-size:12px; color:var(--text-sub);">Screen Display Zoom / Layout Size:</label>
+      <input type="range" min="0.7" max="1.2" step="0.05" value="1" oninput="adjustZoom(this.value)">
+      
+      <h4 style="margin-top:15px; color:var(--accent-green);">App Guide & Usage:</h4>
+      <p style="font-size:11px; color:var(--text-sub); line-height:1.4; margin-top:5px;">
+        • <b>Feed:</b> Swipe up for full video content.<br>
+        • <b>Build:</b> Assemble car parts in sequence.<br>
+        • <b>Games:</b> Use screen buttons to control real-time canvas racer.<br>
+        • <b>Forex:</b> Live market tracking powered by TradingView.
+      </p>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Auth Panel -->
+  <div id="auth-panel" class="sliding-panel">
+    <div class="panel-header">
+      <span>Account Authentication</span>
+      <button onclick="closePanel('auth-panel')" style="background:none; color:#fff;">✖</button>
+    </div>
+    <div style="margin-top:15px;">
+      <input type="text" placeholder="Username / Email">
+      <input type="password" placeholder="Password">
+      <button class="btn btn-green" onclick="closePanel('auth-panel'); notify('Logged in successfully!');">Login / Sign Up</button>
+    </div>
+  </div>
+
+  <!-- Navigation -->
   <nav>
-    <button class="nav-btn active" onclick="switchTab('feed-view')">
-      <i class="fas fa-heart"></i><span>Feed</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('build-view')">
-      <i class="fas fa-clipboard"></i><span>Build</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('games-view')">
-      <i class="fas fa-paper-plane"></i><span>Games</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('forex-view')">
-      <i class="fas fa-comment"></i><span>Forex</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('miniapps-view')">
-      <i class="fas fa-code"></i><span>Apps</span>
-    </button>
+    <button class="nav-btn active" onclick="switchTab('feed-view')"><i class="icon-feed"></i><span>Feed</span></button>
+    <button class="nav-btn" onclick="switchTab('build-view')"><i class="icon-build"></i><span>Build</span></button>
+    <button class="nav-btn" onclick="switchTab('games-view')"><i class="icon-game"></i><span>Games</span></button>
+    <button class="nav-btn" onclick="switchTab('forex-view')"><i class="icon-forex"></i><span>Forex</span></button>
+    <button class="nav-btn" onclick="switchTab('apps-view')"><i class="icon-apps"></i><span>Apps</span></button>
   </nav>
 
   <script>
-    // Universal Custom Notification System (NO ALERTS)
-    function notify(message, borderColor = '#007bff') {
+    // Universal Notification
+    function notify(text) {
       const toast = document.getElementById('toast-notification');
-      toast.innerText = message;
-      toast.style.borderColor = borderColor;
+      toast.innerText = text;
       toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
-    // Tab Navigation
-    function switchTab(viewId) {
-      document.querySelectorAll('.view-screen').forEach(view => view.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    // Navigation Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       
-      document.getElementById(viewId).classList.add('active');
-      const activeNavBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(viewId));
-      if(activeNavBtn) activeNavBtn.classList.add('active');
+      const target = document.getElementById(tabId);
+      if(target) target.classList.add('active');
 
-      // Video Feed State Management
-      const videos = document.querySelectorAll('#feed-view video');
-      if(viewId !== 'feed-view') {
-        videos.forEach(v => v.pause());
-      } else if (videos.length > 0) {
-        videos[0].play().catch(()=>{}); 
+      const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if(btn) btn.classList.add('active');
+
+      if(tabId === 'forex-view') loadForexWidget();
+      if(tabId === 'games-view') startRacingGame();
+    }
+
+    // Sliding Panel Handlers
+    function openPanel(id) { document.getElementById(id).classList.add('open'); }
+    function closePanel(id) { document.getElementById(id).classList.remove('open'); }
+
+    // Screen Scale/Zoom Settings
+    function adjustZoom(val) {
+      document.documentElement.style.setProperty('--app-zoom', val);
+      notify(`Display zoom scale set to ${val}x`);
+    }
+
+    // Video Upload with Effects & Filters
+    let userPostCount = 1;
+    function processVideoUpload() {
+      const fileInput = document.getElementById('video-file-input');
+      const desc = document.getElementById('video-desc-input').value || 'New Video Post';
+      const filter = document.getElementById('video-filter-select').value;
+
+      if(!fileInput.files || !fileInput.files[0]) {
+        notify('Please select a video file first!');
+        return;
       }
-      
-      if(viewId === 'forex-view') initForexChart();
-      if(viewId === 'games-view') initRacingGame();
-    }
 
-    // --- Video Post Upload from Device Gallery ---
-    const globalPlusBtn = document.getElementById('global-plus-btn');
-    const galleryVideoInput = document.getElementById('gallery-video-input');
+      const videoUrl = URL.createObjectURL(fileInput.files[0]);
+      const feed = document.getElementById('feed-view');
+      const postId = Date.now();
 
-    function triggerGalleryUpload() {
-      // Gallery picker ko user action (click) se trigger karte hain tak browser permission de.
-      galleryVideoInput.click();
-    }
+      let filterClass = '';
+      if(filter === 'sepia') filterClass = 'filter-sepia';
+      if(filter === 'grayscale') filterClass = 'filter-grayscale';
+      if(filter === 'vintage') filterClass = 'filter-vintage';
 
-    function handleGalleryVideo(input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      // Video ka temporary URL bana kar feed mein post karte hain (Real WhatsApp/TikTok jaise process)
-      const videoURL = URL.createObjectURL(file);
-      const feedContainer = document.getElementById('feed-view');
-      const newPostId = Date.now();
-
-      const newPostHTML = `
-        <div class="video-post" data-post-id="${newPostId}" style="scroll-snap-align: start;">
-          <video loop playsinline onclick="toggleVideoPlay(this)" src="${videoURL}"></video>
+      const postHTML = `
+        <div class="video-post" id="post-${postId}">
+          <video loop playsinline class="${filterClass}" onclick="togglePlay(this)" src="${videoUrl}"></video>
           <div class="video-overlay">
-            <h4>@muhammadumar45212h</h4>
-            <p>New post uploaded directly from device gallery! Gesture controls and full-screen feed active.</p>
+            <h4>@muhammadumar</h4>
+            <p>${desc}</p>
           </div>
           <div class="video-actions">
-            <button class="action-btn" onclick="likeVideo(${newPostId}, this)">
-              <i class="fas fa-heart"></i>
+            <button class="action-btn" onclick="toggleLike(this)">
+              <i id="like-icon-${postId}">❤️</i>
+              <span id="like-count-${postId}">0</span>
+            </button>
+            <button class="action-btn" onclick="openPanel('comments-panel')">
+              <i>💬</i>
               <span>0</span>
             </button>
-            <button class="action-btn" onclick="openCommentsPanel(${newPostId})">
-              <i class="fas fa-comment"></i>
-              <span>0</span>
-            </button>
-            <button class="action-btn" onclick="openSharePanel(${newPostId})">
-              <i class="fas fa-share"></i>
+            <button class="action-btn" onclick="notify('Link copied!')">
+              <i>🔗</i>
               <span>Share</span>
             </button>
           </div>
         </div>
       `;
 
-      // New post ko feed mein sabse upar insert karte hain
-      feedContainer.insertAdjacentHTML('afterbegin', newPostHTML);
-      input.value = ''; // Input clear
-      switchTab('feed-view'); // Redirect to feed
-      notify("Video Posted Successfully from Gallery!", "#00e676");
+      feed.insertAdjacentHTML('afterbegin', postHTML);
+      userPostCount++;
+      document.getElementById('stat-posts').innerText = userPostCount;
+      closePanel('upload-panel');
+      switchTab('feed-view');
+      notify('Video published with selected effects!');
     }
 
-    // Full-Screen Video gesture/play control
-    function toggleVideoPlay(video) {
-      if (video.paused) { video.play(); } else { video.pause(); }
-    }
-
-    function likeVideo(postId, btn) {
-      const icon = btn.querySelector('i');
-      const count = btn.querySelector('span');
-      if(icon.classList.toggle('active')) {
-        count.innerText = "Liked"; notify("Video Liked!", "#ff2a5f");
-      } else {
-        count.innerText = "Liked"; notify("Video Unliked!");
-      }
-    }
-
-    // --- Landscape Racing Game ---
-    const raceCanvas = document.getElementById('raceCanvas');
-    const rctx = raceCanvas.getContext('2d');
-    let playerX, playerSpeed, roadOffset, traffic, gameInterval;
-
-    function initRacingGame() {
-      // Device orientation detection could be added here for autorotate
-      notify("Games: Landscape mode Chase active!");
-      clearInterval(gameInterval);
-      playerX = raceCanvas.width / 2;
-      playerSpeed = 0;
-      roadOffset = 0;
-      traffic = [];
-      gameInterval = setInterval(updateRacingGame, 30);
-    }
-
-    function steerCar(offset) { playerX = Math.max(30, Math.min(raceCanvas.width - 30, playerX + offset)); }
-    function accelerateCar() { playerSpeed = Math.min(10, playerSpeed + 1); }
-
-    function updateRacingGame() {
-      const w = raceCanvas.width = raceCanvas.parentElement.offsetWidth;
-      const h = raceCanvas.height = raceCanvas.parentElement.offsetHeight;
+    // Interactive Like System (1 User = 1 Like)
+    let userTotalLikes = 0;
+    function toggleLike(btn) {
+      const countEl = btn.querySelector('span');
+      let currentLikes = parseInt(countEl.innerText);
       
-      roadOffset = (roadOffset + playerSpeed) % 40;
-      rctx.fillStyle = '#1e1e1e'; rctx.fillRect(0, 0, w, h); // Clear background
-
-      // Road Stripes
-      rctx.strokeStyle = '#fff'; rctx.lineWidth = 4;
-      rctx.setLineDash([20, 20]); rctx.lineDashOffset = -roadOffset;
-      rctx.beginPath(); rctx.moveTo(w / 2, 0); rctx.lineTo(w / 2, h); rctx.stroke();
-      rctx.setLineDash([]);
-
-      // Draw Player Car (Landscape silhouette)
-      rctx.fillStyle = varColor('--accent-red');
-      rctx.fillRect(playerX - 25, h - 70, 50, 40); // Body
-      rctx.fillStyle = '#fff';
-      rctx.fillRect(playerX - 20, h - 65, 10, 10); rctx.fillRect(playerX + 10, h - 65, 10, 10); // Headlights
-
-      playerSpeed = Math.max(2, playerSpeed - 0.02); // Friction
+      if(btn.dataset.liked === "true") {
+        btn.dataset.liked = "false";
+        countEl.innerText = currentLikes - 1;
+        userTotalLikes = Math.max(0, userTotalLikes - 1);
+        notify('Like removed');
+      } else {
+        btn.dataset.liked = "true";
+        countEl.innerText = currentLikes + 1;
+        userTotalLikes += 1;
+        notify('Post Liked!');
+      }
+      document.getElementById('stat-likes').innerText = userTotalLikes;
     }
 
-    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
+    function togglePlay(video) {
+      if(video.paused) video.play(); else video.pause();
+    }
 
-    // --- Workbench Build Studio (Complex Side Panels) ---
-    const correctSeq = ['Chassis', 'Engine', 'Wheels', 'Booster'];
+    // Crafting / Assembly Logic
     let assembledParts = [];
-
-    function attachBuilderPart(part) {
-      const expectedPart = correctSeq[assembledParts.length];
-      const notifyEl = document.getElementById('parts-notification');
-      
-      if(part === expectedPart) {
+    function addPart(part) {
+      if(!assembledParts.includes(part)) {
         assembledParts.push(part);
-        notify(`${part} attached correctly!`, "#00e676");
-        // Canvas dots simulation
-        if(part === 'Engine') notifyEl.innerText = "Engine sequence active!";
-        if(part === 'Wheels') notifyEl.innerText = "Sports car wheels sequence confirmed!";
-      } else {
-        notify(`Incorrect sequence: Expected ${expectedPart || 'Craft Complete'}`, "#ff2a5f");
+        notify(`${part} attached!`);
       }
+      document.getElementById('build-status-text').innerText = `Attached: ${assembledParts.join(', ')}`;
       closePanel('parts-panel');
     }
 
-    function postBuiltCarToFeed() {
+    function publishCraft() {
       if(assembledParts.length < 3) {
-        notify("Assemble Chassis, Engine & Wheels first!", "#ff2a5f"); return;
+        notify('Attach Chassis, Engine, and Wheels to publish!');
+        return;
       }
-      notify("Sports Car Published to Text Feed!", "#00e676");
+      notify('Custom Vehicle Published to Community Feed!');
       assembledParts = [];
-      switchTab('feed-view');
+      document.getElementById('build-status-text').innerText = 'Status: Assembly Complete & Published!';
     }
 
-    // Panel Management
-    function openPanel(panelId) { document.getElementById(panelId).classList.add('open'); }
-    function closePanel(panelId) { document.getElementById(panelId).classList.remove('open'); }
-    
-    // Video Specific Panels
-    function openCommentsPanel(postId) { openPanel('comments-panel'); notify(`Opened Comments for Video ${postId}`);}
-    function openSharePanel(postId) { openPanel('share-panel'); notify(`Share options open for Video ${postId}`);}
-
-    // Apps (Launcher Redirects)
-    function openSubApp(appId) {
-      document.querySelectorAll('.view-screen').forEach(view => view.classList.remove('active'));
-      document.getElementById(appId).classList.add('active');
+    // Live Weather API Fetch
+    async function fetchLiveWeather() {
+      const resEl = document.getElementById('weather-result');
+      resEl.innerText = "Connecting to Open-Meteo Weather API...";
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current_weather=true');
+        const data = await res.json();
+        const temp = data.current_weather.temperature;
+        const wind = data.current_weather.windspeed;
+        resEl.innerHTML = `<b>Location:</b> Karachi<br><b>Temperature:</b> ${temp}°C<br><b>Windspeed:</b> ${wind} km/h`;
+      } catch(e) {
+        resEl.innerText = "Error fetching live weather metrics.";
+      }
     }
 
-    // Mini Apps Mock logic
-    function getWeather() { notify(`Karachi Weather: 32°C, Clear Sky`); }
-    function translateText() { notify(`Translation: Ye Super App hai!`); }
-    function runCode() { notify(`Code Executed: Output shown below.`); }
+    // Translator Sandbox
+    function runTranslation() {
+      const txt = document.getElementById('trans-input').value;
+      const lang = document.getElementById('trans-lang').value;
+      if(!txt) { notify('Enter text to translate'); return; }
+      document.getElementById('trans-result').innerText = `[Translated (${lang})]: ${txt}`;
+    }
 
-    // Forex Chart
-    let chartLoaded = false;
-    function initForexChart() {
-      if(chartLoaded) return;
+    // Code Sandbox Execution
+    function runSandboxCode() {
+      const code = document.getElementById('sandbox-code').value;
+      const output = document.getElementById('sandbox-output');
+      try {
+        let result = eval(code);
+        output.innerText = result !== undefined ? String(result) : "Code executed with no return output.";
+      } catch(err) {
+        output.innerText = "Error: " + err.message;
+      }
+    }
+
+    // Comments System
+    function postComment() {
+      const input = document.getElementById('comment-input');
+      if(!input.value) return;
+      const list = document.getElementById('comment-list');
+      list.innerHTML += `<p style="font-size:12px; color:var(--text-sub); border-bottom:1px solid #333; padding:5px 0;"><b>@muhammadumar:</b> ${input.value}</p>`;
+      input.value = '';
+    }
+
+    // Real-Time Canvas Racing Game
+    let carX = 100;
+    let gameLoop;
+    function startRacingGame() {
+      const canvas = document.getElementById('raceCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.offsetWidth;
+      canvas.height = canvas.parentElement.offsetHeight;
+      carX = canvas.width / 2 - 15;
+
+      clearInterval(gameLoop);
+      let lineOffsetY = 0;
+
+      gameLoop = setInterval(() => {
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Center dashed lines
+        ctx.strokeStyle = '#fff';
+        ctx.setLineDash([15, 15]);
+        ctx.lineDashOffset = -lineOffsetY;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+
+        // Car Body
+        ctx.fillStyle = '#ff2a5f';
+        ctx.fillRect(carX, canvas.height - 80, 30, 50);
+
+        lineOffsetY = (lineOffsetY + 5) % 30;
+      }, 30);
+    }
+
+    function moveCar(delta) {
+      const canvas = document.getElementById('raceCanvas');
+      carX = Math.max(10, Math.min(canvas.width - 40, carX + delta));
+    }
+
+    // TradingView Widget Loader
+    let forexLoaded = false;
+    function loadForexWidget() {
+      if(forexLoaded) return;
       new TradingView.widget({
-        "autosize": true, "symbol": "FX:EURUSD", "interval": "D", "timezone": "Etc/UTC",
-        "theme": "dark", "style": "1", "locale": "en", "container_id": "tradingview-widget"
+        "autosize": true,
+        "symbol": "FX:EURUSD",
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "container_id": "tradingview-widget"
       });
-      chartLoaded = true;
+      forexLoaded = true;
     }
 
-    // Scroll snap behavior for full-screen video
-    document.getElementById('feed-view').addEventListener('scroll', function() {
-      const feed = this;
-      const index = Math.round(feed.scrollTop / window.innerHeight);
-      const videos = feed.querySelectorAll('video');
-      
-      videos.forEach((v, i) => {
-        if(i === index) { v.play().catch(()=>{}); } else { v.pause(); }
-      });
-    });
-
+    function openSubApp(id) {
+      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
   </script>
 </body>
 </html>
