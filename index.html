@@ -1,183 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Umar Super App</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { background: #0b0f19; color: #f8fafc; overflow: hidden; }
-.tab-content { display: none; }.tab-content.active { display: block; }
-.reels-scroll-container { height: calc(100vh - 110px); overflow-y: scroll; scroll-snap-type: y mandatory; }
-.reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
-.bottom-sheet { transition: 0.3s; transform: translateY(100%); }.bottom-sheet.open { transform: translateY(0); }
-.fullscreen-game { position: fixed!important; top:0; left:0; width:100vw; height:100vh; z-index:99; }
-.hide-ui { display: none!important; }
-.feed-card { background:#1e293b; border:1px solid #334155; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umar Super App System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #0f0f12; color: #fff; text-align: center; }
+        .hidden { display: none !important; }
+        
+        /* Auth Screen */
+        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+        input { padding: 12px; margin: 8px; border-radius: 6px; border: 1px solid #333; background: #1a1a24; color: #fff; width: 280px; }
+        button { padding: 12px 24px; margin-top: 10px; background: #007bff; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        /* Main Container */
+        #app-container { display: flex; flex-direction: column; height: 100vh; }
+        nav { background: #181824; display: flex; justify-content: space-around; padding: 15px; }
+        nav button { margin: 0; background: transparent; border: 1px solid #007bff; }
+
+        /* App Sections */
+        .module { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        /* Video Feed Module */
+        .video-card { background: #1f1f2e; margin: 15px auto; padding: 15px; border-radius: 10px; max-width: 400px; text-align: left; }
+        video { width: 100%; border-radius: 8px; }
+        .actions { display: flex; justify-content: space-between; margin-top: 10px; }
+
+        /* Builder Module */
+        .builder-box { background: #1f1f2e; padding: 20px; border-radius: 8px; max-width: 500px; margin: 0 auto; }
+    </style>
 </head>
 <body>
 
-  <!-- TOP BAR WITH BACK BUTTON -->
-  <header id="topBar" class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between fixed top-0 left-0 right-0 z-40">
-    <button onclick="goBack()" id="backBtn" class="hidden text-white"><i class="fas fa-arrow-left"></i></button>
-    <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    <button onclick="switchTab('dm')"><i class="fas fa-paper-plane"></i></button>
-  </header>
-
-  <!-- 1. REELS FEED - SIDE BUTTONS SEEDHE -->
-  <section id="tab-reels" class="tab-content active pt-14">
-    <div id="reelsContainer" class="reels-scroll-container w-full"></div>
-  </section>
-
-  <!-- 2. TEXT + IMAGE FEED -->
-  <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <div class="feed-card p-3 rounded-xl mb-3">
-      <textarea id="feedText" placeholder="What's on your mind?" class="w-full bg-slate-800 p-2 rounded text-xs"></textarea>
-      <button onclick="postFeed()" class="bg-rose-600 text-xs px-4 py-1.5 rounded mt-2">Post</button>
+    <!-- Lock Screen / Mandatory Authentication -->
+    <div id="auth-screen">
+        <h2>Umar Engine Account</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <div>
+            <button onclick="login()">Login</button>
+            <button onclick="register()" style="background:#28a745">Sign Up</button>
+        </div>
     </div>
-    <div id="feedPosts"></div>
-  </section>
 
-  <!-- 3. GAMES HUB - SNAKE + CAR + JUNGLE -->
-  <section id="tab-games" class="tab-content pt-16 p-4 h-screen">
-    <h2 class="text-sm font-bold text-amber-400 mb-3"><i class="fas fa-gamepad"></i> Gaming Zone</h2>
-    <div class="grid grid-cols-3 gap-2 mb-4">
-      <button onclick="startGame('car')" class="bg-slate-800 p-2 rounded-xl text-xs"><i class="fas fa-car"></i> Real Car</button>
-      <button onclick="startGame('snake')" class="bg-slate-800 p-2 rounded-xl text-xs"><i class="fas fa-staff-snake"></i> Snake</button>
-      <button onclick="startGame('jungle')" class="bg-slate-800 p-2 rounded-xl text-xs"><i class="fas fa-tree"></i> Jungle</button>
+    <!-- Main Dynamic Application Engine -->
+    <div id="app-container" class="hidden">
+        <nav>
+            <button onclick="showModule('video-feed')">Video Feed</button>
+            <button onclick="showModule('developer-app')">Dev & Go Builder</button>
+            <button onclick="showModule('game-app')">Game Module</button>
+            <button onclick="showModule('dm-app')">Direct Messages</button>
+        </nav>
+
+        <!-- Module 1: Video App -->
+        <div id="video-feed" class="module">
+            <h3>Short Video Stream</h3>
+            <div id="video-list"></div>
+        </div>
+
+        <!-- Module 2: Dev App + Upload Engine -->
+        <div id="developer-app" class="module hidden">
+            <div class="builder-box">
+                <h3>Go Build & Direct Social Upload</h3>
+                <input type="text" id="video-title" placeholder="Video Title">
+                <input type="file" id="video-file" accept="video/*">
+                <button onclick="uploadVideo()">Upload to Social App</button>
+                <hr style="margin:20px 0; border-color:#333;">
+                <button onclick="triggerGoBuild()" style="background:#6f42c1">Trigger Go Binary Compiler</button>
+                <p id="build-status" style="margin-top:10px; color:#ffc107;"></p>
+            </div>
+        </div>
+
+        <!-- Module 3: Integrated Game Module -->
+        <div id="game-app" class="module hidden">
+            <h3>Game Portal Integration</h3>
+            <p style="margin-top:20px;">Game Runtime Engine Loaded Contextually.</p>
+        </div>
+
+        <!-- Module 4: Direct Messaging -->
+        <div id="dm-app" class="module hidden">
+            <h3>Realtime Chat / DM</h3>
+            <input type="text" id="dm-target" placeholder="Recipient Username">
+            <input type="text" id="dm-text" placeholder="Message">
+            <button onclick="sendDM()">Send DM</button>
+            <div id="dm-log" style="margin-top:20px; text-align:left;"></div>
+        </div>
     </div>
-    <canvas id="gameCanvas" class="w-full h-[60vh] bg-slate-900 rounded-2xl"></canvas>
-    <button onclick="exitGame()" id="exitBtn" class="hidden mt-2 bg-rose-600 w-full py-2 rounded">Exit Game</button>
-    <!-- GAME CONTROLS TUMHARE HATH -->
-    <div id="gameControls" class="grid grid-cols-3 gap-2 mt-3">
-      <div></div><button onmousedown="gameDir='up'" onmouseup="gameDir=null" class="bg-slate-800 p-3 rounded-xl"><i class="fas fa-arrow-up"></i></button><div></div>
-      <button onmousedown="gameDir='left'" onmouseup="gameDir=null" class="bg-slate-800 p-3 rounded-xl"><i class="fas fa-arrow-left"></i></button><button class="bg-rose-600 p-3 rounded-xl">A</button><button onmousedown="gameDir='right'" onmouseup="gameDir=null" class="bg-slate-800 p-3 rounded-xl"><i class="fas fa-arrow-right"></i></button>
-      <div></div><button onmousedown="gameDir='down'" onmouseup="gameDir=null" class="bg-slate-800 p-3 rounded-xl"><i class="fas fa-arrow-down"></i></button><div></div>
-    </div>
-  </section>
 
-  <!-- 4. DEVELOPER FEED -->
-  <section id="tab-dev" class="tab-content pt-16 p-4 h-screen overflow-y-auto">
-    <h2 class="text-sm font-bold text-indigo-400 mb-3"><i class="fas fa-code"></i> Developer Hub</h2>
-    <div class="feed-card p-3 rounded-xl mb-3">
-      <input id="devPostText" placeholder="Share your build..." class="w-full bg-slate-800 p-2 rounded text-xs">
-      <button onclick="postDev()" class="bg-indigo-600 text-xs px-4 py-1.5 rounded mt-2">Post as Developer</button>
-    </div>
-    <div id="devPosts"></div>
-  </section>
+    <script>
+        let token = "";
+        let currentUser = "";
+        let ws;
 
-  <!-- 5. BUILD APP - CAR, BIKE, JAHAAZ -->
-  <section id="tab-build" class="tab-content pt-16 p-4">
-    <h2 class="text-sm font-bold text-emerald-400 mb-3"><i class="fas fa-wrench"></i> Build & Test</h2>
-    <select id="buildType" class="w-full bg-slate-800 p-2 rounded mb-3 text-xs">
-      <option>Car</option><option>Bike</option><option>Jahaz</option><option>Rocket</option>
-    </select>
-    <button onclick="testBuild()" class="bg-emerald-600 w-full py-2 rounded text-xs">Build & Fly Test</button>
-    <canvas id="buildCanvas" class="w-full h-64 bg-slate-900 rounded mt-3"></canvas>
-  </section>
+        async function register() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            if(res.ok) alert("User Registered! Please Login.");
+            else alert("Registration Failed");
+        }
 
-  <!-- 6. DM APP - CHAT VOICE CALL -->
-  <section id="tab-dm" class="tab-content pt-16 p-4 h-screen">
-    <h2 class="text-sm font-bold text-rose-400 mb-3"><i class="fas fa-comments"></i> DM Center</h2>
-    <div class="bg-slate-900 h-[70vh] rounded p-3 overflow-y-auto" id="dmBox"></div>
-    <div class="flex gap-2 mt-2">
-      <input id="dmInput" class="flex-1 bg-slate-800 p-2 rounded text-xs" placeholder="Message...">
-      <button onclick="sendDM()" class="bg-rose-600 px-4 rounded"><i class="fas fa-paper-plane"></i></button>
-      <button onclick="notify('Voice Call')" class="bg-rose-600 px-3 rounded"><i class="fas fa-microphone"></i></button>
-    </div>
-  </section>
+        async function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            
+            if(res.ok) {
+                const data = await res.json();
+                token = data.token;
+                currentUser = data.username;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                initWS();
+                loadVideos();
+            } else {
+                alert("Invalid Credentials");
+            }
+        }
 
-  <!-- 7. FOREX + WEATHER -->
-  <section id="tab-market" class="tab-content pt-16 p-4">
-    <h2 class="text-sm font-bold text-emerald-400">Live Forex</h2>
-    <div class="bg-slate-900 p-3 rounded mt-2 text-xs">USD/PKR: 278.50 <span class="text-green-400">+0.2%</span></div>
-    <h2 class="text-sm font-bold text-sky-400 mt-4">Weather Karachi</h2>
-    <div class="bg-slate-900 p-3 rounded mt-2 text-xs">32°C Sunny</div>
-  </section>
+        function showModule(id) {
+            document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-  <!-- BOTTOM NAV -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around py-2 z-40">
-    <button onclick="switchTab('reels')"><i class="fas fa-film"></i></button>
-    <button onclick="switchTab('feed')"><i class="fas fa-newspaper"></i></button>
-    <button onclick="switchTab('games')"><i class="fas fa-gamepad"></i></button>
-    <button onclick="switchTab('build')"><i class="fas fa-wrench"></i></button>
-    <button onclick="switchTab('dev')"><i class="fas fa-code"></i></button>
-    <button onclick="switchTab('market')"><i class="fas fa-chart-line"></i></button>
-  </nav>
+        async function loadVideos() {
+            const res = await fetch('/api/videos', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const data = await res.json();
+            const list = document.getElementById('video-list');
+            list.innerHTML = "";
+            
+            data.forEach(v => {
+                list.innerHTML += `
+                    <div class="video-card">
+                        <h4>${v.title}</h4>
+                        <video src="${v.url}" controls></video>
+                        <div class="actions">
+                            <button onclick="likeVideo('${v.id}')">❤️ ${v.likes}</button>
+                            <button onclick="commentPrompt('${v.id}')">💬 Comment</button>
+                            <button onclick="shareVideo('${v.id}')">🔗 Share</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-<script>
-let currentTab = 'reels';
-let reelsData = [{video:'https://www.w3schools.com/html/mov_bbb.mp4', caption:'Test Reel'}];
-let feedData = []; let devData = []; let gameDir = null; let gameType = 'car';
+        async function uploadVideo() {
+            const title = document.getElementById('video-title').value;
+            const file = document.getElementById('video-file').files[0];
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('video', file);
 
-// TAB SWITCH + BACK BUTTON
-function switchTab(tab){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  currentTab = tab;
-  document.getElementById('backBtn').classList.toggle('hidden', tab=='reels');
-}
-function goBack(){ switchTab('reels'); }
+            const res = await fetch('/api/upload-video', {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token},
+                body: formData
+            });
 
-// REELS WITH LIKE COMMENT SHARE SUBSCRIBE - SIDE LINE
-function loadReels(){
-  document.getElementById('reelsContainer').innerHTML = reelsData.map(r=>`
-    <div class="reel-card">
-      <video src="${r.video}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>
-      <div class="absolute right-2 bottom-24 flex flex-col items-center gap-5 text-white">
-        <button><i class="fas fa-heart text-3xl"></i><span class="text-xs">1.2K</span></button>
-        <button><i class="fas fa-comment-dots text-3xl"></i><span class="text-xs">42</span></button>
-        <button><i class="fas fa-share text-3xl"></i><span class="text-xs">Share</span></button>
-        <button><i class="fas fa-user-plus text-2xl border-2 rounded-full p-1"></i><span class="text-xs">Follow</span></button>
-      </div>
-    </div>`).join('');
-}
+            if(res.ok) {
+                alert("Video Successfully Uploaded!");
+                showModule('video-feed');
+                loadVideos();
+            }
+        }
 
-// FEED + DEV POST WITH LIKE COMMENT SHARE SUBSCRIBE
-function postFeed(){ feedData.push({text:document.getElementById('feedText').value}); renderFeed(); }
-function postDev(){ devData.push({text:document.getElementById('devPostText').value}); renderDev(); }
-function renderFeed(){ document.getElementById('feedPosts').innerHTML = feedData.map(p=>`<div class="feed-card p-3 rounded-xl mb-2"><p class="text-xs">${p.text}</p><div class="flex gap-4 mt-2 text-slate-400 text-xs"><button><i class="fas fa-heart"></i> Like</button><button><i class="fas fa-comment"></i> Comment</button><button><i class="fas fa-share"></i> Share</button><button><i class="fas fa-user-plus"></i> Follow</button></div></div>`).join(''); }
-function renderDev(){ document.getElementById('devPosts').innerHTML = devData.map(p=>`<div class="feed-card p-3 rounded-xl mb-2 border-indigo-500"><p class="text-xs font-bold text-indigo-400">@UmarDev</p><p class="text-xs">${p.text}</p><div class="flex gap-4 mt-2 text-slate-400 text-xs"><button><i class="fas fa-heart"></i> Like</button><button><i class="fas fa-comment"></i> Comment</button><button><i class="fas fa-share"></i> Share</button><button><i class="fas fa-user-plus"></i> Subscribe</button></div></div>`).join(''); }
+        async function triggerGoBuild() {
+            document.getElementById('build-status').innerText = "Running 'go build'...";
+            const res = await fetch('/api/build', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({app_name: "custom_app", type: "developer_tool"})
+            });
+            const data = await res.json();
+            document.getElementById('build-status').innerText = data.msg;
+        }
 
-// DM
-function sendDM(){ let t=document.getElementById('dmInput').value; document.getElementById('dmBox').innerHTML += `<p class="text-xs bg-rose-600 p-2 rounded mb-1">${t}</p>`; }
+        async function likeVideo(id) {
+            await fetch(`/api/videos/${id}/like`, {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            loadVideos();
+        }
 
-// GAMES - CAR + SNAKE + JUNGLE
-function startGame(type){
-  gameType=type; document.getElementById('gameCanvas').classList.add('fullscreen-game');
-  document.getElementById('topBar').classList.add('hide-ui'); document.getElementById('bottomNav').classList.add('hide-ui'); document.getElementById('exitBtn').classList.remove('hidden');
-  gameLoop();
-}
-function exitGame(){ document.getElementById('gameCanvas').classList.remove('fullscreen-game'); document.getElementById('topBar').classList.remove('hide-ui'); document.getElementById('bottomNav').classList.remove('hide-ui'); document.getElementById('exitBtn').classList.add('hidden'); }
+        function shareVideo(id) {
+            navigator.clipboard.writeText(window.location.origin + "/uploads/" + id);
+            alert("Share Link Copied!");
+        }
 
-function gameLoop(){
-  const c=document.getElementById('gameCanvas'); const ctx=c.getContext('2d'); c.width=window.innerWidth; c.height=window.innerHeight; ctx.clearRect(0,0,c.width,c.height);
-  if(gameType=='car'){
-    ctx.fillStyle='#333'; ctx.fillRect(c.width/2-60,0,120,c.height); // ROAD
-    ctx.fillStyle='blue'; ctx.fillRect(c.width/2-15, c.height-100, 30, 50); // REAL CAR
-    ctx.fillStyle='red'; ctx.fillRect(c.width/2+20, 100, 30, 50); // POLICE
-  }
-  if(gameType=='snake'){
-    ctx.fillStyle='green'; ctx.fillRect(100,100,20,20); ctx.fillText('Snake Game', 50,50);
-  }
-  if(gameType=='jungle'){
-    ctx.fillStyle='#065f46'; ctx.fillRect(0,0,c.width,c.height); ctx.fillStyle='orange'; ctx.fillRect(200,200,30,30); ctx.fillText('Jungle', 50,50);
-  }
-  requestAnimationFrame(gameLoop);
-}
+        function initWS() {
+            ws = new WebSocket(`ws://${location.host}/ws/dm?user_id=${currentUser}`);
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                const log = document.getElementById('dm-log');
+                log.innerHTML += `<p><b>${msg.sender}:</b> ${msg.message}</p>`;
+            };
+        }
 
-// BUILD APP
-function testBuild(){
-  const type=document.getElementById('buildType').value;
-  const c=document.getElementById('buildCanvas'); const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
-  ctx.fillStyle='gray'; ctx.fillRect(50,100,100,30); ctx.fillText(type + ' Flying Test', 10,20);
-}
-
-function notify(t){}
-
-loadReels(); renderFeed(); renderDev();
-</script>
+        function sendDM() {
+            const target = document.getElementById('dm-target').value;
+            const txt = document.getElementById('dm-text').value;
+            ws.send(JSON.stringify({
+                sender: currentUser,
+                receiver: target,
+                message: txt
+            }));
+            const log = document.getElementById('dm-log');
+            log.innerHTML += `<p style="color:#888;"><b>Me -> ${target}:</b> ${txt}</p>`;
+        }
+    </script>
 </body>
 </html>
