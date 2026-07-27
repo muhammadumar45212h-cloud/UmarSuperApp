@@ -7,552 +7,179 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .glass { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .reel-container { height: calc(100vh - 120px); scroll-snap-type: y mandatory; overflow-y: scroll; }
-    .reel-card { height: calc(100vh - 120px); scroll-snap-align: start; position: relative; }
+    body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .reels-scroll-container { height: calc(100vh - 110px); overflow-y: scroll; scroll-snap-type: y mandatory; }
+  .reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
+  .bottom-sheet { transition: transform 0.3s ease-out; transform: translateY(100%); }
+  .bottom-sheet.open { transform: translateY(0); }
+    canvas { background: #111827; border-radius: 12px; }
+  .fullscreen-game { position: fixed!important; top: 0!important; left: 0!important; width: 100vw!important; height: 100vh!important; z-index: 99!important; border-radius: 0!important; }
+  .hide-ui { display: none!important; }
   </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body class="pb-20 select-none">
 
-  <!-- Top Header Bar -->
-  <header class="glass fixed top-0 left-0 right-0 z-50 px-4 py-3 flex justify-between items-center">
-    <h1 class="text-xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">Umar Super App</h1>
-    <button onclick="toggleSettings()" class="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
-      <i class="fa-solid fa-user-gear text-rose-500"></i>
-      <span class="text-xs font-semibold">Settings</span>
-    </button>
+  <!-- TOP APP BAR -->
+  <header id="topBar" class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
+    <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
+    <div class="flex items-center gap-3">
+      <button onclick="toggleChatModal()" class="relative text-slate-300 hover:text-rose-400 text-lg">
+        <i class="fas fa-paper-plane"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white" id="unreadBadge">0</span>
+      </button>
+    </div>
   </header>
 
-  <!-- Main Application Body -->
-  <main class="flex-1 pt-14 pb-16 overflow-y-auto">
-    
-    <!-- 1. REELS TAB -->
-    <section id="tab-reels" class="tab-content active h-full">
-      <div id="reelsContainer" class="reel-container w-full">
-        <div class="flex flex-col items-center justify-center h-full text-slate-400 p-6 text-center">
-          <i class="fa-solid fa-film text-5xl mb-3 text-rose-500/50"></i>
-          <p>No reels posted yet. Click + button to upload your video.</p>
-        </div>
-      </div>
-    </section>
+  <!-- 1. TIKTOK REELS TAB -->
+  <section id="tab-reels" class="tab-content active pt-14">
+    <div id="reelsContainer" class="reels-scroll-container w-full"></div>
+  </section>
 
-    <!-- 2. GAMES TAB -->
-    <section id="tab-games" class="tab-content p-4">
-      <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-gamepad text-rose-500"></i> Umar Gaming Hub</h2>
-      
-      <!-- Games Grid -->
-      <div id="gamesSelectionGrid" class="grid grid-cols-2 gap-4">
-        <button onclick="launchGame('car')" class="glass p-4 rounded-xl flex flex-col items-center justify-center hover:border-rose-500 transition">
-          <i class="fa-solid fa-car-burst text-4xl text-rose-500 mb-2"></i>
-          <span class="font-bold text-sm">Police Chase</span>
-        </button>
-        <button onclick="launchGame('snake')" class="glass p-4 rounded-xl flex flex-col items-center justify-center hover:border-rose-500 transition">
-          <i class="fa-solid fa-staff-snake text-4xl text-emerald-500 mb-2"></i>
-          <span class="font-bold text-sm">Classic Snake</span>
-        </button>
-        <button onclick="launchGame('jungle')" class="glass p-4 rounded-xl flex flex-col items-center justify-center hover:border-rose-500 transition">
-          <i class="fa-solid fa-crosshairs text-4xl text-amber-500 mb-2"></i>
-          <span class="font-bold text-sm">Jungle Target</span>
-        </button>
-        <button onclick="launchGame('space')" class="glass p-4 rounded-xl flex flex-col items-center justify-center hover:border-rose-500 transition">
-          <i class="fa-solid fa-shuttle-space text-4xl text-sky-500 mb-2"></i>
-          <span class="font-bold text-sm">Space War</span>
-        </button>
-      </div>
-
-      <!-- Playable Canvas Screen -->
-      <div id="gamePlayContainer" class="hidden flex-col items-center mt-2">
-        <div class="flex justify-between w-full max-w-xs mb-2 items-center">
-          <button onclick="exitGame()" class="bg-slate-800 px-3 py-1 rounded text-xs"><i class="fa-solid fa-arrow-left"></i> Back</button>
-          <span id="gameTitleDisplay" class="font-bold text-rose-500">GAME</span>
-          <span class="text-xs font-mono">Score: <span id="gameScoreVal">0</span></span>
-        </div>
-        <canvas id="gameCanvas" width="300" height="300" class="bg-slate-950 border border-slate-800 rounded-lg shadow-lg mb-4"></canvas>
-        
-        <!-- Touch Game D-Pad Controls -->
-        <div class="grid grid-cols-3 gap-2 w-48">
-          <div></div>
-          <button onclick="sendGameInput('UP')" class="bg-slate-800 p-3 rounded-lg active:bg-rose-600"><i class="fa-solid fa-caret-up"></i></button>
-          <div></div>
-          <button onclick="sendGameInput('LEFT')" class="bg-slate-800 p-3 rounded-lg active:bg-rose-600"><i class="fa-solid fa-caret-left"></i></button>
-          <button onclick="sendGameInput('ACTION')" class="bg-rose-600 p-3 rounded-lg active:bg-rose-700 text-xs font-bold">FIRE</button>
-          <button onclick="sendGameInput('RIGHT')" class="bg-slate-800 p-3 rounded-lg active:bg-rose-600"><i class="fa-solid fa-caret-right"></i></button>
-          <div></div>
-          <button onclick="sendGameInput('DOWN')" class="bg-slate-800 p-3 rounded-lg active:bg-rose-600"><i class="fa-solid fa-caret-down"></i></button>
-          <div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. AI TAB -->
-    <section id="tab-ai" class="tab-content p-4">
-      <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-robot text-rose-500"></i> AI Assistant Engine</h2>
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="aiInput" placeholder="Ask AI anything..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-500">
-        <button onclick="askAI()" class="bg-rose-600 px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">Ask AI</button>
-      </div>
-      <div id="aiBox" class="glass p-4 rounded-xl min-h-[200px] text-sm text-slate-300 leading-relaxed overflow-y-auto">
-        AI is ready. Type your question above...
-      </div>
-    </section>
-
-    <!-- 4. CHATS TAB -->
-    <section id="tab-chats" class="tab-content p-4">
-      <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-comments text-rose-500"></i> Global Community Messages</h2>
-      <div class="glass rounded-xl p-3 mb-4 flex items-center justify-between cursor-pointer" onclick="openChatRoom('Umar Dev Hub')">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-rose-600/30 border border-rose-500 flex items-center justify-center font-bold text-rose-500">U</div>
-          <div>
-            <h3 class="font-bold text-sm">Umar Developers Hub</h3>
-            <p class="text-xs text-slate-400">Tap to open live global chat...</p>
-          </div>
-        </div>
-        <span class="text-xs bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full">Live</span>
-      </div>
-
-      <!-- Live Chat Window -->
-      <div id="chatRoomWindow" class="hidden glass rounded-xl flex flex-col h-[380px]">
-        <div class="p-3 border-b border-slate-800 font-bold text-sm flex justify-between items-center">
-          <span id="activeChatTitle">Umar Developers Hub</span>
-          <button onclick="closeChatRoom()" class="text-xs text-slate-400">Close</button>
-        </div>
-        <div id="chatFeed" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
-          <div class="bg-slate-800/60 p-2 rounded-lg max-w-[80%]"><strong>Ali:</strong> Umar bhai app is super fast! 🔥</div>
-          <div class="bg-slate-800/60 p-2 rounded-lg max-w-[80%]"><strong>Usman:</strong> Games and AI both working fine!</div>
-        </div>
-        <div class="p-2 border-t border-slate-800 flex gap-2">
-          <input type="text" id="chatMsgInput" placeholder="Type a message..." class="flex-1 bg-slate-900 px-3 py-1.5 text-xs rounded-lg border border-slate-800 focus:outline-none">
-          <button onclick="sendChatMessage()" class="bg-rose-600 px-3 py-1.5 text-xs rounded-lg font-bold">Send</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. FOREX TAB -->
-    <section id="tab-forex" class="tab-content p-4">
-      <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-chart-line text-rose-500"></i> Market Trading Charts</h2>
-      <div class="w-full h-[380px] rounded-xl overflow-hidden glass border border-slate-800">
-        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=OANDA%3AXAUUSD&interval=15&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="w-full h-full border-none"></iframe>
-      </div>
-    </section>
-
-    <!-- 6. TRANSLATE TAB -->
-    <section id="tab-translate" class="tab-content p-4">
-      <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-language text-rose-500"></i> Global Multi-Language Translator</h2>
-      <div class="space-y-3">
-        <div class="flex gap-2">
-          <select id="transFrom" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs">
-            <option value="en">English</option>
-            <option value="ur">Urdu</option>
-            <option value="hi">Hindi</option>
-            <option value="ar">Arabic</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-          </select>
-          <span class="text-slate-500 self-center">➔</span>
-          <select id="transTo" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs">
-            <option value="ur">Urdu</option>
-            <option value="en">English</option>
-            <option value="hi">Hindi</option>
-            <option value="ar">Arabic</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-            <option value="tr">Turkish</option>
-            <option value="zh">Chinese</option>
-            <option value="ru">Russian</option>
-          </select>
-        </div>
-        <textarea id="transText" rows="3" placeholder="Enter text to translate..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs focus:outline-none focus:border-rose-500"></textarea>
-        <button onclick="runTranslation()" class="w-full bg-rose-600 py-2.5 rounded-lg text-xs font-bold">Translate Now</button>
-        <div id="transOutput" class="glass p-3 rounded-lg text-xs min-h-[60px] text-slate-300">Translation output will appear here...</div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Upload Modal -->
-  <div id="uploadModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-    <div class="glass w-full max-w-sm rounded-2xl p-5 border border-slate-700">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-bold text-sm">Post New Reel Video</h3>
-        <button onclick="toggleUploadModal()" class="text-slate-400 text-lg">&times;</button>
-      </div>
-      <input type="file" id="reelVideoInput" accept="video/*" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs mb-3">
-      <input type="text" id="reelCaptionInput" placeholder="Write caption..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs mb-4">
-      <button onclick="postReelVideo()" class="w-full bg-rose-600 py-2 rounded-lg text-xs font-bold">Publish Reel</button>
+  <!-- 2. PUBLIC FEED TAB -->
+  <section id="tab-feed" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
+    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl mb-4">
+      <textarea id="feedTextContent" placeholder="What's on your mind?" class="w-full bg-slate-800 border-slate-700 text-xs text-white p-2.5 rounded-lg h-16 focus:outline-none mb-2"></textarea>
+      <button onclick="publishTextPost()" class="bg-rose-600 text-white text-xs px-4 py-1.5 rounded-lg font-bold w-full">Post</button>
     </div>
-  </div>
+    <div id="feedPosts" class="space-y-3"></div>
+  </section>
 
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-    <div class="glass w-full max-w-sm rounded-2xl p-5 border border-slate-700 space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-sliders text-rose-500"></i> App Settings</h3>
-        <button onclick="toggleSettings()" class="text-slate-400 text-lg">&times;</button>
-      </div>
-      <div>
-        <label class="text-xs text-slate-400 block mb-1">OpenAI / API Key Secret:</label>
-        <input type="password" id="userApiKeyInput" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs">
-      </div>
-      <button onclick="saveSettings()" class="w-full bg-rose-600 py-2 rounded-lg text-xs font-bold">Save Settings</button>
+  <!-- 3. GAMES HUB TAB -->
+  <section id="tab-games" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
+    <h2 class="text-sm font-bold text-amber-400 mb-3"><i class="fas fa-gamepad"></i> Umar Gaming Zone</h2>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <button onclick="selectGame('car')" class="bg-slate-800 border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-car-side"></i> Police Chase</button>
+      <button onclick="selectGame('jungle')" class="bg-slate-800 border border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-tree"></i> Jungle</button>
+      <button onclick="selectGame('snake')" class="bg-slate-800 border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-staff-snake"></i> Snake</button>
     </div>
-  </div>
+    <div id="gameWrapper" class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex-col items-center">
+      <div class="flex justify-between w-full mb-2">
+        <span id="gameTitleDisplay" class="text-xs font-bold text-amber-400">🏎️ Police Chase</span>
+        <span id="gameScoreDisplay" class="text-xs font-bold text-white">Score: 0</span>
+      </div>
+      <canvas id="gameCanvas" width="300" height="320" class="w-full border border-slate-700"></canvas>
+      <button onclick="exitFullscreen()" id="exitBtn" class="hidden mt-2 bg-rose-600 text-white text-xs px-3 py-1 rounded-lg w-full">Exit Fullscreen</button>
+      <div id="gameControls" class="grid grid-cols-3 gap-2 w-full mt-3">
+        <div></div><button onclick="handleGameControl('up')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-up"></i></button><div></div>
+        <button onclick="handleGameControl('left')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-left"></i></button>
+        <button onclick="handleGameControl('action')" class="bg-rose-600 text-white p-3 rounded-xl text-xs">ACTION</button>
+        <button onclick="handleGameControl('right')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-right"></i></button>
+        <div></div><button onclick="handleGameControl('down')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-down"></i></button><div></div>
+      </div>
+    </div>
+  </section>
 
-  <!-- Bottom Navigation Bar -->
-  <nav class="glass fixed bottom-0 left-0 right-0 z-50 px-2 py-2 flex justify-around items-center border-t border-slate-800">
-    <button onclick="switchTab('reels')" class="nav-btn active flex flex-col items-center text-rose-500" id="nav-reels">
-      <i class="fa-solid fa-circle-play text-lg"></i>
-      <span class="text-[10px] mt-0.5">Reels</span>
-    </button>
-    <button onclick="switchTab('games')" class="nav-btn flex flex-col items-center text-slate-400" id="nav-games">
-      <i class="fa-solid fa-gamepad text-lg"></i>
-      <span class="text-[10px] mt-0.5">Games</span>
-    </button>
-    <button onclick="switchTab('ai')" class="nav-btn flex flex-col items-center text-slate-400" id="nav-ai">
-      <i class="fa-solid fa-robot text-lg"></i>
-      <span class="text-[10px] mt-0.5">AI</span>
-    </button>
-    <button onclick="toggleUploadModal()" class="bg-rose-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition -mt-4">
-      <i class="fa-solid fa-plus text-lg"></i>
-    </button>
-    <button onclick="switchTab('chats')" class="nav-btn flex flex-col items-center text-slate-400" id="nav-chats">
-      <i class="fa-solid fa-comments text-lg"></i>
-      <span class="text-[10px] mt-0.5">Chats</span>
-    </button>
-    <button onclick="switchTab('forex')" class="nav-btn flex flex-col items-center text-slate-400" id="nav-forex">
-      <i class="fa-solid fa-chart-line text-lg"></i>
-      <span class="text-[10px] mt-0.5">Forex</span>
-    </button>
-    <button onclick="switchTab('translate')" class="nav-btn flex flex-col items-center text-slate-400" id="nav-translate">
-      <i class="fa-solid fa-language text-lg"></i>
-      <span class="text-[10px] mt-0.5">Translate</span>
-    </button>
+  <!-- 4. FOREX TAB -->
+  <section id="tab-forex" class="tab-content pt-16 p-4"><h2 class="text-sm font-bold text-emerald-400">Live Market</h2></section>
+  <!-- 5. CODE TAB -->
+  <section id="tab-code" class="tab-content pt-16 p-4"><h2 class="text-sm font-bold text-indigo-400">IDE</h2></section>
+  <!-- 6. PROFILE TAB -->
+  <section id="tab-profile" class="tab-content pt-16 p-4"><h3 class="text-lg font-bold text-white text-center">Umar Dev</h3></section>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40">
+    <button onclick="switchTab('reels')" class="text-rose-500"><i class="fas fa-film"></i></button>
+    <button onclick="switchTab('feed')" class="text-slate-400"><i class="fas fa-newspaper"></i></button>
+    <button onclick="switchTab('games')" class="text-slate-400"><i class="fas fa-gamepad"></i></button>
+    <button onclick="toggleCreateModal()" class="bg-rose-500 text-white w-9 h-9 rounded-full"><i class="fas fa-plus"></i></button>
+    <button onclick="switchTab('code')" class="text-slate-400"><i class="fas fa-code"></i></button>
+    <button onclick="switchTab('forex')" class="text-slate-400"><i class="fas fa-chart-line"></i></button>
+    <button onclick="switchTab('profile')" class="text-slate-400"><i class="fas fa-user"></i></button>
   </nav>
 
-  <!-- Application Master Logic Engine -->
-  <script>
-    let activeTab = 'reels';
-    let apiKey = localStorage.getItem('UMAR_AI_KEY') || '';
+  <!-- COMMENT SHEET -->
+  <div id="commentOverlay" onclick="closeCommentSheet()" class="fixed inset-0 bg-black/60 z-50 hidden"></div>
+  <div id="commentSheet" class="bottom-sheet fixed bottom-0 bg-slate-900 p-4 rounded-t-3xl z-50 h-[50vh] flex-col">
+    <h3 class="text-xs font-bold text-center mb-3">Comments</h3>
+    <div id="commentsList" class="flex-1 overflow-y-auto"></div>
+    <div class="flex gap-2 mt-3"><input id="newCommentInput" class="flex-1 bg-slate-800 text-xs p-2 rounded-xl"><button onclick="postComment()" class="bg-rose-600 px-4 rounded-xl">Send</button></div>
+  </div>
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => {
-        el.classList.remove('text-rose-500');
-        el.classList.add('text-slate-400');
-      });
-      document.getElementById('tab-' + tabId).classList.add('active');
-      document.getElementById('nav-' + tabId).classList.remove('text-slate-400');
-      document.getElementById('nav-' + tabId).classList.add('text-rose-500');
-      activeTab = tabId;
-    }
+<script>
+// ====== DATA ======
+const reelsData = [
+  {video: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: 14000, comments: 1},
+  {video: 'https://www.w3schools.com/html/movie.mp4', likes: 2100, comments: 42}
+];
+let gameRunning = false;
+let player = {x: 0, y: 0};
+let police = {x: 0, y: 0};
+let score = 0;
 
-    function toggleUploadModal() {
-      document.getElementById('uploadModal').classList.toggle('hidden');
-    }
+// ====== TABS ======
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
 
-    function toggleSettings() {
-      document.getElementById('settingsModal').classList.toggle('hidden');
-      if(apiKey) document.getElementById('userApiKeyInput').value = apiKey;
-    }
+// ====== REELS LOAD ======
+function loadReels(){
+  document.getElementById('reelsContainer').innerHTML = reelsData.map(r=>`
+    <div class="reel-card">
+      <video src="${r.video}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>
+      <!-- RIGHT SIDE BUTTONS WECHAT STYLE -->
+      <div class="absolute right-3 bottom-24 flex flex-col items-center gap-6 text-white">
+        <button onclick="notify('Liked')"><i class="fas fa-heart text-3xl"></i><span class="text-xs font-bold">${(r.likes/1000).toFixed(1)}K</span></button>
+        <button onclick="openCommentSheet()"><i class="fas fa-comment-dots text-3xl"></i><span class="text-xs font-bold">${r.comments}</span></button>
+        <button onclick="notify('Shared')"><i class="fas fa-share text-3xl"></i><span class="text-xs">Share</span></button>
+        <button onclick="notify('Followed')"><i class="fas fa-user-plus text-2xl border-2 rounded-full p-1"></i><span class="text-xs">Follow</span></button>
+      </div>
+    </div>
+  `).join('');
+}
 
-    function saveSettings() {
-      apiKey = document.getElementById('userApiKeyInput').value.trim();
-      localStorage.setItem('UMAR_AI_KEY', apiKey);
-      toggleSettings();
-      alert('Settings Saved Successfully!');
-    }
+// ====== GAME LOGIC ======
+function selectGame(g){
+  document.getElementById('gameCanvas').classList.add('fullscreen-game');
+  document.getElementById('topBar').classList.add('hide-ui');
+  document.getElementById('bottomNav').classList.add('hide-ui');
+  document.getElementById('exitBtn').classList.remove('hidden');
+  gameRunning = true;
+  player = {x: window.innerWidth/2, y: window.innerHeight-100};
+  police = {x: window.innerWidth/2, y: 0};
+  score = 0;
+  gameLoop();
+}
+function exitFullscreen(){
+  document.getElementById('gameCanvas').classList.remove('fullscreen-game');
+  document.getElementById('topBar').classList.remove('hide-ui');
+  document.getElementById('bottomNav').classList.remove('hide-ui');
+  document.getElementById('exitBtn').classList.add('hidden');
+  gameRunning = false;
+}
+function gameLoop(){
+  if(!gameRunning) return;
+  const c = document.getElementById('gameCanvas');
+  const ctx = c.getContext('2d');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  ctx.clearRect(0,0,c.width,c.height);
+  // Road
+  ctx.fillStyle='#333'; ctx.fillRect(c.width/2-60,0,120,c.height);
+  // Player
+  ctx.fillStyle='blue'; ctx.fillRect(player.x-15,player.y-25,30,50);
+  // Police
+  police.y += 5; if(police.y>c.height){police.y=0; police.x=Math.random()*(c.width-100)+50; score++;}
+  ctx.fillStyle='red'; ctx.fillRect(police.x-15,police.y-25,30,50);
+  document.getElementById('gameScoreDisplay').innerText='Score: '+score;
+  requestAnimationFrame(gameLoop);
+}
+function handleGameControl(d){
+  if(d=='left') player.x-=25; if(d=='right') player.x+=25;
+  if(d=='up') player.y-=25; if(d=='down') player.y+=25;
+}
 
-    // ==========================================
-    // 📹 REELS ENGINE WITH SIDE BUTTONS
-    // ==========================================
-    function postReelVideo() {
-      const fileInput = document.getElementById('reelVideoInput');
-      const caption = document.getElementById('reelCaptionInput').value;
-      
-      if (!fileInput.files || !fileInput.files[0]) {
-        alert('Please select a video file first!');
-        return;
-      }
+// ====== UTILS ======
+function notify(t){ document.getElementById('unreadBadge').innerText = parseInt(document.getElementById('unreadBadge').innerText)+1; }
+function openCommentSheet(){ document.getElementById('commentSheet').classList.add('open'); document.getElementById('commentOverlay').classList.remove('hidden'); }
+function closeCommentSheet(){ document.getElementById('commentSheet').classList.remove('open'); document.getElementById('commentOverlay').classList.add('hidden'); }
+function publishTextPost(){ notify('Posted'); }
+function toggleChatModal(){ notify('Chat'); }
+function toggleCreateModal(){ notify('Upload'); }
 
-      const videoUrl = URL.createObjectURL(fileInput.files[0]);
-      const reelsContainer = document.getElementById('reelsContainer');
-
-      if (reelsContainer.querySelector('p')) {
-        reelsContainer.innerHTML = ''; // Clear empty placeholder state
-      }
-
-      const reelCard = document.createElement('div');
-      reelCard.className = 'reel-card w-full flex items-center justify-center bg-black relative';
-      reelCard.innerHTML = `
-        <video src="${videoUrl}" loop autoplay muted playsinline class="w-full h-full object-cover" onclick="this.paused ? this.play() : this.pause()"></video>
-        <div class="absolute bottom-6 left-4 right-16 z-10 text-left">
-          <p class="font-bold text-sm text-white mb-1">@UmarDev</p>
-          <p class="text-xs text-slate-200">${caption || 'Umar Super App Reel'}</p>
-        </div>
-        <!-- Right Action Sidebar Buttons -->
-        <div class="absolute right-3 bottom-12 z-20 flex flex-col items-center space-y-5">
-          <button onclick="this.classList.toggle('text-rose-500')" class="flex flex-col items-center text-white">
-            <i class="fa-solid fa-heart text-2xl"></i>
-            <span class="text-[10px] mt-1">1.2k</span>
-          </button>
-          <button onclick="switchTab('chats')" class="flex flex-col items-center text-white">
-            <i class="fa-solid fa-comment-dots text-2xl"></i>
-            <span class="text-[10px] mt-1">340</span>
-          </button>
-          <button onclick="navigator.share ? navigator.share({url: location.href}) : alert('Share Link Copied!')" class="flex flex-col items-center text-white">
-            <i class="fa-solid fa-share text-2xl"></i>
-            <span class="text-[10px] mt-1">Share</span>
-          </button>
-          <button onclick="this.innerText='Subscribed'; this.classList.add('bg-slate-700')" class="bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">
-            Subscribe
-          </button>
-        </div>
-      `;
-
-      reelsContainer.prepend(reelCard);
-      toggleUploadModal();
-      switchTab('reels');
-    }
-
-    // ==========================================
-    // 💬 CHATS ENGINE
-    // ==========================================
-    function openChatRoom(title) {
-      document.getElementById('chatRoomWindow').classList.remove('hidden');
-      document.getElementById('activeChatTitle').innerText = title;
-    }
-
-    function closeChatRoom() {
-      document.getElementById('chatRoomWindow').classList.add('hidden');
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById('chatMsgInput');
-      const val = input.value.trim();
-      if(!val) return;
-
-      const feed = document.getElementById('chatFeed');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'bg-rose-600/30 p-2 rounded-lg max-w-[80%] ml-auto text-right border border-rose-500/30';
-      msgDiv.innerHTML = `<strong>You:</strong> ${val}`;
-      feed.appendChild(msgDiv);
-      input.value = '';
-      feed.scrollTop = feed.scrollHeight;
-    }
-
-    // ==========================================
-    // 🎮 REAL PLAYABLE CANVAS GAMES ENGINE
-    // ==========================================
-    let gameInterval = null, currentGame = '', score = 0;
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    // Snake State
-    let snake = [{x: 150, y: 150}], sDir = 'RIGHT', food = {x: 80, y: 80};
-    // Car State
-    let carX = 135, obstacles = [];
-    // Shooter State
-    let playerX = 135, bullets = [], targets = [];
-
-    function launchGame(type) {
-      currentGame = type;
-      document.getElementById('gamesSelectionGrid').classList.add('hidden');
-      document.getElementById('gamePlayContainer').classList.remove('hidden');
-      document.getElementById('gamePlayContainer').classList.add('flex');
-      document.getElementById('gameTitleDisplay').innerText = type.toUpperCase() + ' GAME';
-      score = 0;
-      document.getElementById('gameScoreVal').innerText = score;
-      clearInterval(gameInterval);
-
-      if(type === 'snake') startSnake();
-      else if(type === 'car') startCar();
-      else if(type === 'jungle' || type === 'space') startShooter();
-    }
-
-    function exitGame() {
-      clearInterval(gameInterval);
-      document.getElementById('gamePlayContainer').classList.add('hidden');
-      document.getElementById('gamePlayContainer').classList.remove('flex');
-      document.getElementById('gamesSelectionGrid').classList.remove('hidden');
-    }
-
-    // 🐍 REAL SNAKE GAME
-    function startSnake() {
-      snake = [{x: 150, y: 150}, {x: 140, y: 150}];
-      sDir = 'RIGHT';
-      spawnFood();
-      gameInterval = setInterval(() => {
-        let head = { ...snake[0] };
-        if(sDir === 'RIGHT') head.x += 10;
-        if(sDir === 'LEFT') head.x -= 10;
-        if(sDir === 'UP') head.y -= 10;
-        if(sDir === 'DOWN') head.y += 10;
-
-        if(head.x < 0 || head.x >= 300 || head.y < 0 || head.y >= 300) {
-          alert('Game Over! Score: ' + score);
-          startSnake();
-          return;
-        }
-
-        snake.unshift(head);
-        if(Math.abs(head.x - food.x) < 10 && Math.abs(head.y - food.y) < 10) {
-          score += 10;
-          document.getElementById('gameScoreVal').innerText = score;
-          spawnFood();
-        } else {
-          snake.pop();
-        }
-
-        ctx.fillStyle = '#020617'; ctx.fillRect(0,0,300,300);
-        ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(food.x+5, food.y+5, 5, 0, Math.PI*2); ctx.fill(); // Food
-        ctx.fillStyle = '#22c55e'; snake.forEach(seg => ctx.fillRect(seg.x, seg.y, 9, 9)); // Snake Body
-      }, 90);
-    }
-
-    function spawnFood() {
-      food = { x: Math.floor(Math.random() * 28) * 10, y: Math.floor(Math.random() * 28) * 10 };
-    }
-
-    // 🏎️ REAL POLICE CAR CHASE
-    function startCar() {
-      carX = 135; obstacles = [];
-      gameInterval = setInterval(() => {
-        if(Math.random() < 0.08) {
-          obstacles.push({ x: Math.random() * 240, y: 0, w: 35, h: 25 });
-        }
-
-        ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,300,300);
-        // Road Lanes
-        ctx.strokeStyle = '#334155'; ctx.setLineDash([10, 10]);
-        ctx.beginPath(); ctx.moveTo(100,0); ctx.lineTo(100,300); ctx.moveTo(200,0); ctx.lineTo(200,300); ctx.stroke(); ctx.setLineDash([]);
-
-        // Player Car
-        ctx.fillStyle = '#f43f5e'; ctx.fillRect(carX, 230, 30, 50);
-
-        // Obstacle Cars
-        for(let i = 0; i < obstacles.length; i++) {
-          obstacles[i].y += 5;
-          ctx.fillStyle = '#f59e0b'; ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
-
-          // Collision
-          if(obstacles[i].y + 25 >= 230 && obstacles[i].y <= 280 && obstacles[i].x + 35 >= carX && obstacles[i].x <= carX + 30) {
-            alert('Car Crashed! Score: ' + score);
-            startCar();
-            return;
-          }
-
-          if(obstacles[i].y > 300) {
-            obstacles.splice(i, 1);
-            score += 5;
-            document.getElementById('gameScoreVal').innerText = score;
-          }
-        }
-      }, 40);
-    }
-
-    // 🚀 SHOOTER ENGINE (JUNGLE & SPACE)
-    function startShooter() {
-      playerX = 135; bullets = []; targets = [];
-      gameInterval = setInterval(() => {
-        ctx.fillStyle = '#020617'; ctx.fillRect(0,0,300,300);
-        ctx.fillStyle = currentGame === 'jungle' ? '#eab308' : '#38bdf8';
-        ctx.fillRect(playerX, 260, 30, 20);
-
-        if(Math.random() < 0.06) {
-          targets.push({ x: Math.random() * 260, y: 0, w: 25, h: 25 });
-        }
-
-        for(let b = bullets.length - 1; b >= 0; b--) {
-          bullets[b].y -= 8;
-          ctx.fillStyle = '#ef4444'; ctx.fillRect(bullets[b].x, bullets[b].y, 4, 10);
-
-          for(let t = targets.length - 1; t >= 0; t--) {
-            if(bullets[b] && bullets[b].x >= targets[t].x && bullets[b].x <= targets[t].x + 25 && bullets[b].y <= targets[t].y + 25) {
-              targets.splice(t, 1); bullets.splice(b, 1);
-              score += 15;
-              document.getElementById('gameScoreVal').innerText = score;
-              break;
-            }
-          }
-        }
-
-        for(let t = 0; t < targets.length; t++) {
-          targets[t].y += 2.5;
-          ctx.fillStyle = currentGame === 'jungle' ? '#22c55e' : '#a855f7';
-          ctx.fillRect(targets[t].x, targets[t].y, targets[t].w, targets[t].h);
-        }
-      }, 35);
-    }
-
-    function sendGameInput(dir) {
-      if(currentGame === 'snake') {
-        if(dir === 'UP' && sDir !== 'DOWN') sDir = 'UP';
-        if(dir === 'DOWN' && sDir !== 'UP') sDir = 'DOWN';
-        if(dir === 'LEFT' && sDir !== 'RIGHT') sDir = 'LEFT';
-        if(dir === 'RIGHT' && sDir !== 'LEFT') sDir = 'RIGHT';
-      } else if(currentGame === 'car') {
-        if(dir === 'LEFT' && carX > 10) carX -= 20;
-        if(dir === 'RIGHT' && carX < 260) carX += 20;
-      } else if(currentGame === 'space' || currentGame === 'jungle') {
-        if(dir === 'LEFT' && playerX > 10) playerX -= 20;
-        if(dir === 'RIGHT' && playerX < 260) playerX += 20;
-        if(dir === 'ACTION') bullets.push({ x: playerX + 13, y: 250 });
-      }
-    }
-
-    // ==========================================
-    // 🤖 AI ENGINE (UNLIMITED COMPATIBLE)
-    // ==========================================
-    async function askAI() {
-      const q = document.getElementById('aiInput').value.trim();
-      const box = document.getElementById('aiBox');
-      if(!q) return alert('Please enter a question!');
-
-      box.innerText = "AI is thinking...";
-
-      try {
-        if(apiKey) {
-          const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model: 'gpt-3.5-turbo', messages: [{role: 'user', content: q}] })
-          });
-          const d = await res.json();
-          box.innerText = d.choices ? d.choices[0].message.content : (d.error ? d.error.message : 'Error response.');
-        } else {
-          // Free Secondary AI Endpoint
-          const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=en|ur`);
-          const d = await res.json();
-          box.innerText = "AI Reply: " + (d.responseData ? d.responseData.translatedText : "AI active and connected.");
-        }
-      } catch(err) {
-        box.innerText = "Network Error! Check connection or update API Key in Settings.";
-      }
-    }
-
-    // ==========================================
-    // 🌐 TRANSLATOR ENGINE
-    // ==========================================
-    async function runTranslation() {
-      const text = document.getElementById('transText').value.trim();
-      const from = document.getElementById('transFrom').value;
-      const to = document.getElementById('transTo').value;
-      const out = document.getElementById('transOutput');
-
-      if(!text) return alert('Please enter text to translate!');
-      out.innerText = "Translating...";
-
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
-        const data = await res.json();
-        out.innerText = data.responseData ? data.responseData.translatedText : "Translation Error!";
-      } catch(e) {
-        out.innerText = "Translation Network Error!";
-      }
-    }
-  </script>
+// START
+loadReels();
+</script>
 </body>
 </html>
