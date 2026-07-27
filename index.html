@@ -1,135 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Umar Super App</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
- .tab-content { display: none; }
- .tab-content.active { display: block; }
- .reels-scroll-container { height: calc(100vh - 110px); overflow-y: scroll; scroll-snap-type: y mandatory; }
- .reel-card { height: calc(100vh - 110px); scroll-snap-align: start; position: relative; background: #000; }
- .bottom-sheet { transition: transform 0.3s ease-out; transform: translateY(100%); }
- .bottom-sheet.open { transform: translateY(0); }
-    canvas { background: #111827; border-radius: 12px; }
- .fullscreen-game { position: fixed!important; top: 0!important; left: 0!important; width: 100vw!important; height: 100vh!important; z-index: 99!important; border-radius: 0!important; }
- .hide-ui { display: none!important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umar Super App System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #0f0f12; color: #fff; text-align: center; }
+        .hidden { display: none !important; }
+        
+        /* Auth Screen */
+        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+        input { padding: 12px; margin: 8px; border-radius: 6px; border: 1px solid #333; background: #1a1a24; color: #fff; width: 280px; }
+        button { padding: 12px 24px; margin-top: 10px; background: #007bff; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        /* Main Container */
+        #app-container { display: flex; flex-direction: column; height: 100vh; }
+        nav { background: #181824; display: flex; justify-content: space-around; padding: 15px; }
+        nav button { margin: 0; background: transparent; border: 1px solid #007bff; }
+
+        /* App Sections */
+        .module { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        /* Video Feed Module */
+        .video-card { background: #1f1f2e; margin: 15px auto; padding: 15px; border-radius: 10px; max-width: 400px; text-align: left; }
+        video { width: 100%; border-radius: 8px; }
+        .actions { display: flex; justify-content: space-between; margin-top: 10px; }
+
+        /* Builder Module */
+        .builder-box { background: #1f1f2e; padding: 20px; border-radius: 8px; max-width: 500px; margin: 0 auto; }
+    </style>
 </head>
-<body class="pb-20 select-none">
+<body>
 
-  <!-- TOP APP BAR -->
-  <header id="topBar" class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex justify-between items-center fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
-    <h1 class="text-xl font-black bg-gradient-to-r from-rose-500 to-indigo-400 bg-clip-text text-transparent">Super App</h1>
-    <button onclick="toggleChatModal()" class="relative text-slate-300 text-lg"><i class="fas fa-paper-plane"></i><span id="unreadBadge" class="absolute -top-1 -right-1 bg-rose-500 text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center text-white">0</span></button>
-  </header>
-
-  <!-- REELS TAB -->
-  <section id="tab-reels" class="tab-content active pt-14"><div id="reelsContainer" class="reels-scroll-container w-full"></div></section>
-
-  <!-- GAMES TAB -->
-  <section id="tab-games" class="tab-content pt-16 p-4 h-screen overflow-y-auto pb-28">
-    <h2 class="text-sm font-bold text-amber-400 mb-3"><i class="fas fa-gamepad"></i> Umar Gaming Zone</h2>
-    <div class="grid grid-cols-3 gap-2 mb-4">
-      <button onclick="selectGame('car')" class="bg-slate-800 border-amber-500/50 text-amber-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-car-side"></i> Police Chase</button>
-      <button onclick="selectGame('jungle')" class="bg-slate-800 border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-tree"></i> Jungle</button>
-      <button onclick="selectGame('snake')" class="bg-slate-800 border-slate-700 text-slate-400 text-[10px] font-bold p-2 rounded-xl flex-col"><i class="fas fa-staff-snake"></i> Snake</button>
+    <!-- Lock Screen / Mandatory Authentication -->
+    <div id="auth-screen">
+        <h2>Umar Engine Account</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <div>
+            <button onclick="login()">Login</button>
+            <button onclick="register()" style="background:#28a745">Sign Up</button>
+        </div>
     </div>
-    <div id="gameWrapper" class="bg-slate-900 border-slate-800 p-3 rounded-2xl flex-col items-center">
-      <div class="flex justify-between w-full mb-2"><span id="gameTitleDisplay" class="text-xs font-bold text-amber-400">🏎️ Police Chase</span><span id="gameScoreDisplay" class="text-xs font-bold text-white">Score: 0</span></div>
-      <canvas id="gameCanvas" width="300" height="320" class="w-full border-slate-700"></canvas>
-      <button onclick="exitFullscreen()" id="exitBtn" class="hidden mt-2 bg-rose-600 text-white text-xs px-3 py-1 rounded-lg w-full">Exit Fullscreen</button>
-      <div id="gameControls" class="grid grid-cols-3 gap-2 w-full mt-3">
-        <div></div><button onclick="handleGameControl('up')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-up"></i></button><div></div>
-        <button onclick="handleGameControl('left')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-left"></i></button><button class="bg-rose-600 text-white p-3 rounded-xl text-xs">ACTION</button><button onclick="handleGameControl('right')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-right"></i></button>
-        <div></div><button onclick="handleGameControl('down')" class="bg-slate-800 text-white p-3 rounded-xl"><i class="fas fa-arrow-down"></i></button><div></div>
-      </div>
+
+    <!-- Main Dynamic Application Engine -->
+    <div id="app-container" class="hidden">
+        <nav>
+            <button onclick="showModule('video-feed')">Video Feed</button>
+            <button onclick="showModule('developer-app')">Dev & Go Builder</button>
+            <button onclick="showModule('game-app')">Game Module</button>
+            <button onclick="showModule('dm-app')">Direct Messages</button>
+        </nav>
+
+        <!-- Module 1: Video App -->
+        <div id="video-feed" class="module">
+            <h3>Short Video Stream</h3>
+            <div id="video-list"></div>
+        </div>
+
+        <!-- Module 2: Dev App + Upload Engine -->
+        <div id="developer-app" class="module hidden">
+            <div class="builder-box">
+                <h3>Go Build & Direct Social Upload</h3>
+                <input type="text" id="video-title" placeholder="Video Title">
+                <input type="file" id="video-file" accept="video/*">
+                <button onclick="uploadVideo()">Upload to Social App</button>
+                <hr style="margin:20px 0; border-color:#333;">
+                <button onclick="triggerGoBuild()" style="background:#6f42c1">Trigger Go Binary Compiler</button>
+                <p id="build-status" style="margin-top:10px; color:#ffc107;"></p>
+            </div>
+        </div>
+
+        <!-- Module 3: Integrated Game Module -->
+        <div id="game-app" class="module hidden">
+            <h3>Game Portal Integration</h3>
+            <p style="margin-top:20px;">Game Runtime Engine Loaded Contextually.</p>
+        </div>
+
+        <!-- Module 4: Direct Messaging -->
+        <div id="dm-app" class="module hidden">
+            <h3>Realtime Chat / DM</h3>
+            <input type="text" id="dm-target" placeholder="Recipient Username">
+            <input type="text" id="dm-text" placeholder="Message">
+            <button onclick="sendDM()">Send DM</button>
+            <div id="dm-log" style="margin-top:20px; text-align:left;"></div>
+        </div>
     </div>
-  </section>
 
-  <!-- BAQI TABS -->
-  <section id="tab-feed" class="tab-content pt-16 p-4"></section>
-  <section id="tab-forex" class="tab-content pt-16 p-4"></section>
-  <section id="tab-code" class="tab-content pt-16 p-4"></section>
-  <section id="tab-profile" class="tab-content pt-16 p-4"></section>
+    <script>
+        let token = "";
+        let currentUser = "";
+        let ws;
 
-  <!-- BOTTOM NAV -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center py-2 z-40">
-    <button onclick="switchTab('reels')" class="text-rose-500"><i class="fas fa-film"></i></button>
-    <button onclick="switchTab('feed')" class="text-slate-400"><i class="fas fa-newspaper"></i></button>
-    <button onclick="switchTab('games')" class="text-slate-400"><i class="fas fa-gamepad"></i></button>
-    <button class="bg-rose-500 text-white w-9 h-9 rounded-full"><i class="fas fa-plus"></i></button>
-    <button onclick="switchTab('code')" class="text-slate-400"><i class="fas fa-code"></i></button>
-    <button onclick="switchTab('forex')" class="text-slate-400"><i class="fas fa-chart-line"></i></button>
-    <button onclick="switchTab('profile')" class="text-slate-400"><i class="fas fa-user"></i></button>
-  </nav>
+        async function register() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            if(res.ok) alert("User Registered! Please Login.");
+            else alert("Registration Failed");
+        }
 
-<script>
-// ====== DATA ======
-const reelsData = [
-  {video: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: 14000, comments: 1},
-  {video: 'https://www.w3schools.com/html/movie.mp4', likes: 2100, comments: 42}
-];
-let gameRunning = false; let player = {x: 0, y: 0}; let police = {x: 0, y: 0}; let score = 0;
+        async function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            
+            if(res.ok) {
+                const data = await res.json();
+                token = data.token;
+                currentUser = data.username;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                initWS();
+                loadVideos();
+            } else {
+                alert("Invalid Credentials");
+            }
+        }
 
-// ====== TABS ======
-function switchTab(tab){ document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.getElementById('tab-'+tab).classList.add('active'); }
+        function showModule(id) {
+            document.querySelectorAll('.module').forEach(m => m.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-// ====== REELS ======
-function loadReels(){ document.getElementById('reelsContainer').innerHTML = reelsData.map(r=>`<div class="reel-card"><video src="${r.video}" autoplay loop muted playsinline class="w-full h-full object-cover"></video><div class="absolute right-3 bottom-24 flex-col items-center gap-6 text-white"><button onclick="notify('Liked')"><i class="fas fa-heart text-3xl"></i><span class="text-xs font-bold">${(r.likes/1000).toFixed(1)}K</span></button><button onclick="notify('Comment')"><i class="fas fa-comment-dots text-3xl"></i><span class="text-xs font-bold">${r.comments}</span></button><button onclick="notify('Shared')"><i class="fas fa-share text-3xl"></i><span class="text-xs">Share</span></button><button onclick="notify('Followed')"><i class="fas fa-user-plus text-2xl border-2 rounded-full p-1"></i><span class="text-xs">Follow</span></button></div></div>`).join(''); }
+        async function loadVideos() {
+            const res = await fetch('/api/videos', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const data = await res.json();
+            const list = document.getElementById('video-list');
+            list.innerHTML = "";
+            
+            data.forEach(v => {
+                list.innerHTML += `
+                    <div class="video-card">
+                        <h4>${v.title}</h4>
+                        <video src="${v.url}" controls></video>
+                        <div class="actions">
+                            <button onclick="likeVideo('${v.id}')">❤️ ${v.likes}</button>
+                            <button onclick="commentPrompt('${v.id}')">💬 Comment</button>
+                            <button onclick="shareVideo('${v.id}')">🔗 Share</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-// ====== SACH WALI CAR DRAW FUNCTION ======
-function drawCar(ctx, x, y, color){
-  // Body
-  ctx.fillStyle = color;
-  ctx.fillRect(x-15, y-25, 30, 50); // Main body
-  ctx.fillRect(x-10, y-35, 20, 15); // Roof
-  // Headlights
-  ctx.fillStyle = 'yellow';
-  ctx.fillRect(x-12, y-25, 5, 5);
-  ctx.fillRect(x+7, y-25, 5, 5);
-  // Wheels
-  ctx.fillStyle = 'black';
-  ctx.beginPath(); ctx.arc(x-12, y-10, 6, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(x+12, y-10, 6, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(x-12, y+10, 6, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(x+12, y+10, 6, 0, Math.PI*2); ctx.fill();
-  // Police light
-  if(color == 'red'){ ctx.fillStyle = 'blue'; ctx.fillRect(x-15, y-35, 10, 5); ctx.fillStyle = 'red'; ctx.fillRect(x+5, y-35, 10, 5); }
-}
+        async function uploadVideo() {
+            const title = document.getElementById('video-title').value;
+            const file = document.getElementById('video-file').files[0];
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('video', file);
 
-// ====== GAME LOGIC ======
-function selectGame(g){
-  document.getElementById('gameCanvas').classList.add('fullscreen-game');
-  document.getElementById('topBar').classList.add('hide-ui');
-  document.getElementById('bottomNav').classList.add('hide-ui');
-  document.getElementById('exitBtn').classList.remove('hidden');
-  gameRunning = true; player = {x: window.innerWidth/2, y: window.innerHeight-100}; police = {x: window.innerWidth/2, y: 0}; score = 0; gameLoop();
-}
-function exitFullscreen(){ document.getElementById('gameCanvas').classList.remove('fullscreen-game'); document.getElementById('topBar').classList.remove('hide-ui'); document.getElementById('bottomNav').classList.remove('hide-ui'); document.getElementById('exitBtn').classList.add('hidden'); gameRunning = false; }
-function gameLoop(){
-  if(!gameRunning) return;
-  const c = document.getElementById('gameCanvas'); const ctx = c.getContext('2d'); c.width = window.innerWidth; c.height = window.innerHeight; ctx.clearRect(0,0,c.width,c.height);
-  // Road
-  ctx.fillStyle='#333'; ctx.fillRect(c.width/2-60,0,120,c.height); ctx.strokeStyle='yellow'; for(let i=0;i<c.height;i+=40) ctx.fillRect(c.width/2-2,i,4,20);
-  // SACH WALI CAR
-  drawCar(ctx, player.x, player.y, 'blue'); // Tumhari car
-  police.y += 5; if(police.y>c.height){police.y=0; police.x=Math.random()*(c.width-100)+50; score++;}
-  drawCar(ctx, police.x, police.y, 'red'); // Police car
-  document.getElementById('gameScoreDisplay').innerText='Score: '+score;
-  requestAnimationFrame(gameLoop);
-}
-function handleGameControl(d){ if(d=='left') player.x-=25; if(d=='right') player.x+=25; if(d=='up') player.y-=25; if(d=='down') player.y+=25; }
+            const res = await fetch('/api/upload-video', {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token},
+                body: formData
+            });
 
-// ====== UTILS ======
-function notify(t){ document.getElementById('unreadBadge').innerText = parseInt(document.getElementById('unreadBadge').innerText)+1; }
-function toggleChatModal(){ notify('Chat'); }
+            if(res.ok) {
+                alert("Video Successfully Uploaded!");
+                showModule('video-feed');
+                loadVideos();
+            }
+        }
 
-// START
-loadReels();
-</script>
+        async function triggerGoBuild() {
+            document.getElementById('build-status').innerText = "Running 'go build'...";
+            const res = await fetch('/api/build', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({app_name: "custom_app", type: "developer_tool"})
+            });
+            const data = await res.json();
+            document.getElementById('build-status').innerText = data.msg;
+        }
+
+        async function likeVideo(id) {
+            await fetch(`/api/videos/${id}/like`, {
+                method: 'POST',
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            loadVideos();
+        }
+
+        function shareVideo(id) {
+            navigator.clipboard.writeText(window.location.origin + "/uploads/" + id);
+            alert("Share Link Copied!");
+        }
+
+        function initWS() {
+            ws = new WebSocket(`ws://${location.host}/ws/dm?user_id=${currentUser}`);
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                const log = document.getElementById('dm-log');
+                log.innerHTML += `<p><b>${msg.sender}:</b> ${msg.message}</p>`;
+            };
+        }
+
+        function sendDM() {
+            const target = document.getElementById('dm-target').value;
+            const txt = document.getElementById('dm-text').value;
+            ws.send(JSON.stringify({
+                sender: currentUser,
+                receiver: target,
+                message: txt
+            }));
+            const log = document.getElementById('dm-log');
+            log.innerHTML += `<p style="color:#888;"><b>Me -> ${target}:</b> ${txt}</p>`;
+        }
+    </script>
 </body>
 </html>
