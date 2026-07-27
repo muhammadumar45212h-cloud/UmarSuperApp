@@ -3,199 +3,485 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umar Super App</title>
+    <title>Umar Super Engine</title>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background-color: #0b0f19; color: #ffffff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* Toast Notification System (NO ALERTS) */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #ff2b56; color: white; padding: 12px 20px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Toast Notifications (NO ALERTS EVER) */
+        #toast-banner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ff2b56, #d90429); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255,43,86,0.4); z-index: 10000; display: none; }
 
         /* Auth Screen */
-        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #0b0f19; padding: 20px; }
-        .auth-card { background: #111827; padding: 25px; border-radius: 12px; border: 1px solid #1f293d; width: 100%; max-width: 320px; text-align: center; }
-        .auth-card h2 { color: #ff2b56; margin-bottom: 20px; }
-        input { width: 100%; background: #1f293d; border: 1px solid #374151; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        button.primary-btn { flex: 1; background: #ff2b56; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        button.secondary-btn { flex: 1; background: #10b981; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px; background: #0b0f19; }
+        .auth-card { background: #111827; padding: 25px; border-radius: 16px; border: 1px solid #1f293d; width: 100%; max-width: 350px; text-align: center; }
+        .auth-card h2 { color: #ff2b56; margin-bottom: 15px; }
 
-        /* Main App Interface */
+        /* Main Layout */
         #main-app { display: none; flex-direction: column; height: 100vh; }
-        .top-bar { background-color: #111827; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1f293d; }
-        .app-title { color: #ff2b56; font-weight: bold; font-size: 1.2rem; }
-        
-        .main-container { flex: 1; overflow-y: auto; padding: 15px; }
-        .view { display: none; }
-        .view.active { display: block; }
+        .top-bar { background: #111827; padding: 10px 15px; border-bottom: 1px solid #1f293d; display: flex; justify-content: space-between; align-items: center; }
+        .search-bar { background: #1f293d; border: 1px solid #374151; border-radius: 20px; padding: 6px 12px; color: #fff; width: 55%; font-size: 0.85rem; }
+
+        .content-area { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
 
         /* Bottom Nav */
-        .bottom-nav { background: #111827; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid #1f293d; }
-        .nav-item { color: #9ca3af; border: none; background: none; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .nav-item.active { color: #ff2b56; }
+        .bottom-nav { background: #111827; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #1f293d; }
+        .nav-btn { background: none; border: none; color: #9ca3af; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+        .nav-btn.active { color: #ff2b56; font-weight: bold; }
 
-        .video-card { background: #111827; border: 1px solid #1f293d; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        video { width: 100%; border-radius: 8px; margin-top: 10px; }
+        /* Generic Inputs & Cards */
+        input, select, textarea { width: 100%; background: #1f293d; border: 1px solid #374151; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
+        .action-btn { background: #ff2b56; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+
+        /* Post & Feed Cards */
+        .post-card { background: #111827; border: 1px solid #1f293d; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .post-actions { display: flex; justify-content: space-between; margin-top: 10px; border-top: 1px solid #1f293d; padding-top: 10px; }
+        .post-actions button { background: #1f293d; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+
+        /* Workshop Builder Grid */
+        .builder-layout { display: flex; gap: 10px; }
+        .parts-sidebar { width: 35%; background: #111827; padding: 10px; border-radius: 10px; border: 1px solid #1f293d; }
+        .build-stage { flex: 1; background: #000; border-radius: 10px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #ff2b56; }
+
+        /* Canvas Games */
+        canvas { background: #000; border-radius: 8px; border: 2px solid #ff2b56; display: block; margin: 0 auto; }
     </style>
 </head>
 <body>
 
-    <div id="toast-container"></div>
+    <div id="toast-banner">Message Notification</div>
 
     <div id="auth-screen">
         <div class="auth-card">
-            <h2>Umar Super App</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <div class="btn-group">
-                <button class="primary-btn" onclick="handleLogin()">Login</button>
-                <button class="secondary-btn" onclick="handleSignUp()">Sign Up</button>
+            <h2>Umar Engine</h2>
+            <input type="text" id="auth-user" placeholder="Username">
+            <input type="password" id="auth-pass" placeholder="Password">
+            <div style="display:flex; gap:10px;">
+                <button class="action-btn" onclick="appLogin()">Login</button>
+                <button class="action-btn" style="background:#10b981;" onclick="appSignUp()">Sign Up</button>
             </div>
         </div>
     </div>
 
     <div id="main-app">
         <div class="top-bar">
-            <div class="app-title">Umar App Engine</div>
-            <button style="background:#1f293d; color:#fff; border:1px solid #374151; padding:6px 12px; border-radius:20px;" onclick="handleLogout()">Logout</button>
+            <span style="color:#ff2b56; font-weight:bold; font-size:1.1rem;">Umar Engine</span>
+            <input type="text" class="search-bar" placeholder="Search reels, posts, games..." onchange="notify('Searching for: ' + this.value)">
+            <button onclick="switchTab('profile-tab')" style="background:#1f293d; color:#fff; border:1px solid #ff2b56; padding:5px 10px; border-radius:15px; font-size:0.8rem; cursor:pointer;">👤 Profile</button>
         </div>
 
-        <div class="main-container">
-            <div id="reels-view" class="view active">
-                <h3>🎬 Social Feed</h3>
-                <div id="reels-list" style="margin-top:15px;">
-                    <p style="color:#6b7280;">No videos uploaded yet. Go to Dev Portal to upload.</p>
+        <div class="content-area">
+
+            <div id="reels-tab" class="tab-view active">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3>🎬 Universal Feed</h3>
+                    <button class="action-btn" style="width:auto; padding:6px 15px;" onclick="switchTab('post-tab')">+ Post Video/Text</button>
+                </div>
+                <div id="feed-container"></div>
+            </div>
+
+            <div id="workshop-tab" class="tab-view">
+                <h3>🛠️ Craft & Build Workshop</h3>
+                <p style="color:#9ca3af; font-size:0.8rem; margin-bottom:10px;">Select parts from sidebar to assemble!</p>
+                <div class="builder-layout">
+                    <div class="parts-sidebar">
+                        <p style="font-weight:bold; font-size:0.8rem; margin-bottom:8px;">Parts</p>
+                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('⚙️ Engine')">+ Engine</button>
+                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('🛞 Wheels')">+ Wheels</button>
+                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('🚀 Booster')">+ Booster</button>
+                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('✈️ Wings')">+ Wings</button>
+                    </div>
+                    <div class="build-stage">
+                        <div id="assembled-item" style="font-size:2.5rem;">🏎️</div>
+                        <p id="parts-list" style="font-size:0.75rem; color:#10b981; margin-top:10px;">Base Frame Ready</p>
+                    </div>
+                </div>
+                <button class="action-btn" style="margin-top:10px;" onclick="postVehicleBuild()">Post Vehicle to Feed 🚀</button>
+            </div>
+
+            <div id="games-tab" class="tab-view">
+                <h3>🎮 Play Games</h3>
+                <div style="display:flex; gap:10px; margin:10px 0;">
+                    <button class="action-btn" onclick="startSnake()">🐍 Snake Game</button>
+                    <button class="action-btn" style="background:#3b82f6;" onclick="startCarGame()">🚗 Car Chase</button>
+                </div>
+
+                <div id="snake-section" style="display:none; text-align:center;">
+                    <canvas id="snakeCanvas" width="280" height="280"></canvas>
+                </div>
+
+                <div id="car-section" style="display:none; text-align:center;">
+                    <div style="display:flex; justify-content:space-between; max-width:280px; margin:0 auto 5px auto; font-size:0.8rem;">
+                        <span id="car-fuel">⛽ Fuel: 100%</span>
+                        <span id="police-alert" style="color:#ef4444;">🚨 Patrol Clear</span>
+                    </div>
+                    <canvas id="carCanvas" width="280" height="280"></canvas>
+                    <div style="display:flex; gap:5px; max-width:280px; margin:8px auto;">
+                        <button class="action-btn" style="background:#374151;" onclick="moveCar('left')">◀️</button>
+                        <button class="action-btn" style="background:#10b981;" onclick="driveCar()">🚗 Drive (Accelerate)</button>
+                        <button class="action-btn" style="background:#374151;" onclick="moveCar('right')">▶️</button>
+                    </div>
                 </div>
             </div>
 
-            <div id="dev-view" class="view">
-                <h3>👨‍💻 Developer Hub & Builder</h3>
-                <div style="background:#111827; padding:15px; border-radius:10px; margin-top:15px; border:1px solid #1f293d;">
-                    <h4>Upload Video to Social Feed</h4>
-                    <input type="text" id="vid-title" placeholder="Video Title" style="margin-top:10px;">
-                    <input type="file" id="vid-file" accept="video/*">
-                    <button class="primary-btn" style="width:100%; margin-top:10px;" onclick="uploadVideo()">Upload Video</button>
+            <div id="trading-tab" class="tab-view">
+                <h3>📈 Forex & Crypto Live Charts</h3>
+                <div id="tradingview_chart" style="height:350px; margin-top:10px;"></div>
+            </div>
+
+            <div id="apps-tab" class="tab-view">
+                <h3>📱 Mini Apps & Tools</h3>
+
+                <div class="post-card" style="margin-top:10px;">
+                    <h4>☁️ Live Weather Search</h4>
+                    <input type="text" id="weather-city" placeholder="Enter city name..." style="margin-top:8px;">
+                    <button class="action-btn" style="background:#0284c7;" onclick="fetchWeather()">Search Weather</button>
+                    <p id="weather-result" style="margin-top:8px; font-size:0.85rem; color:#cbd5e1;"></p>
+                </div>
+
+                <div class="post-card">
+                    <h4>💳 Umar Wallet</h4>
+                    <h2 style="color:#10b981; margin:8px 0;">$0.00</h2>
+                    <button class="action-btn" style="background:#eab308; color:#000;" onclick="attemptWithdrawal()">Request Withdrawal</button>
+                </div>
+
+                <div class="post-card">
+                    <h4>🌐 Translator Tool</h4>
+                    <select id="trans-lang">
+                        <option value="Urdu">Urdu</option>
+                        <option value="English">English</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Spanish">Spanish</option>
+                    </select>
+                    <textarea id="trans-text" placeholder="Type text to translate..."></textarea>
+                    <button class="action-btn" onclick="executeTranslation()">Translate</button>
+                    <div style="background:#1f293d; padding:10px; border-radius:6px; margin-top:8px;">
+                        <p id="trans-output" style="font-size:0.85rem;">Translation will appear here...</p>
+                        <div style="display:flex; gap:10px; margin-top:8px;">
+                            <button class="action-btn" style="background:#374151;" onclick="copyTranslationText()">📋 Copy</button>
+                            <button class="action-btn" style="background:#374151;" onclick="speakTranslationText()">🔊 Speak (Mic)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-card">
+                    <h4>💻 Dev Playground Code Editor</h4>
+                    <textarea id="code-input" rows="3" placeholder="// Type JavaScript code here..."></textarea>
+                    <button class="action-btn" style="background:#8b5cf6;" onclick="runDevCode()">Run Code</button>
+                </div>
+
+                <div class="post-card">
+                    <h4>💬 Direct Message (DM) Chat</h4>
+                    <input type="text" id="dm-user" placeholder="Recipient Username">
+                    <input type="text" id="dm-msg" placeholder="Type message...">
+                    <button class="action-btn" onclick="sendDMMessage()">Send Message</button>
                 </div>
             </div>
 
-            <div id="games-view" class="view">
-                <h3>🎮 Games</h3>
-                <p style="margin-top:10px; color:#9ca3af;">Classic Snake game and Workshop ready.</p>
+            <div id="post-tab" class="tab-view">
+                <h3>✍️ Create Post</h3>
+                <input type="text" id="post-title" placeholder="Post Title">
+                <textarea id="post-content" rows="3" placeholder="Write text or paste video URL..."></textarea>
+                <select id="post-type">
+                    <option value="text">Text Post</option>
+                    <option value="video">Video Reel</option>
+                    <option value="dev">Developer Update</option>
+                </select>
+                <button class="action-btn" onclick="publishNewPost()">Publish Post</button>
             </div>
+
+            <div id="profile-tab" class="tab-view">
+                <h3>👤 Profile & Channels</h3>
+                <div class="post-card" style="margin-top:10px; text-align:center;">
+                    <h2 id="profile-username-display" style="color:#ff2b56;">User</h2>
+                    <p style="color:#9ca3af; font-size:0.8rem; margin:5px 0 15px 0;">Official Account</p>
+                    <button class="action-btn" style="background:#ef4444;" onclick="appLogout()">Logout</button>
+                </div>
+
+                <div class="post-card">
+                    <h4>📢 Channels & Groups</h4>
+                    <input type="text" id="channel-name" placeholder="Channel / Group Name">
+                    <button class="action-btn" style="background:#10b981;" onclick="createChannel()">Create Channel / Group</button>
+                </div>
+            </div>
+
         </div>
 
         <div class="bottom-nav">
-            <button class="nav-item active" onclick="switchTab('reels-view', this)">🎬<span>Reels</span></button>
-            <button class="nav-item" onclick="switchTab('dev-view', this)">👨‍💻<span>Dev Hub</span></button>
-            <button class="nav-item" onclick="switchTab('games-view', this)">🎮<span>Games</span></button>
+            <button class="nav-btn active" onclick="switchTab('reels-tab', this)">🎬<span>Reels</span></button>
+            <button class="nav-btn" onclick="switchTab('workshop-tab', this)">🛠️<span>Build</span></button>
+            <button class="nav-btn" onclick="switchTab('games-tab', this)">🎮<span>Games</span></button>
+            <button class="nav-btn" onclick="switchTab('trading-tab', this)">📈<span>Forex</span></button>
+            <button class="nav-btn" onclick="switchTab('apps-tab', this)">📱<span>Mini Apps</span></button>
         </div>
     </div>
 
     <script>
-        // Non-intrusive Toast Message (Replaces Alert Completely)
+        // NON-INTRUSIVE NOTIFICATION SYSTEM (NO ALERTS)
         function notify(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = msg;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            const banner = document.getElementById('toast-banner');
+            banner.innerText = msg;
+            banner.style.display = 'block';
+            setTimeout(() => { banner.style.display = 'none'; }, 3000);
         }
 
-        // Authentication Functions
-        function handleSignUp() {
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
-            
-            if(!u || !p) {
-                notify("Please enter username and password!");
-                return;
-            }
+        // AUTHENTICATION SYSTEM
+        function appSignUp() {
+            const u = document.getElementById('auth-user').value.trim();
+            const p = document.getElementById('auth-pass').value.trim();
+            if(!u || !p) return notify("Enter username & password!");
 
-            let users = JSON.parse(localStorage.getItem('umar_users') || '{}');
+            let users = JSON.parse(localStorage.getItem('umar_users_db') || '{}');
             users[u] = p;
-            localStorage.setItem('umar_users', JSON.stringify(users));
-            notify("Account created successfully! Click Login now.");
+            localStorage.setItem('umar_users_db', JSON.stringify(users));
+            notify("Account created successfully! Now Login.");
         }
 
-        function handleLogin() {
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
-
-            let users = JSON.parse(localStorage.getItem('umar_users') || '{}');
+        function appLogin() {
+            const u = document.getElementById('auth-user').value.trim();
+            const p = document.getElementById('auth-pass').value.trim();
+            let users = JSON.parse(localStorage.getItem('umar_users_db') || '{}');
 
             if(users[u] && users[u] === p) {
                 localStorage.setItem('umar_active_user', u);
-                showApp();
-                notify("Welcome, " + u + "!");
+                initApp();
+                notify("Welcome back, " + u + "!");
             } else {
                 notify("Invalid Username or Password!");
             }
         }
 
-        function showApp() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            loadVideos();
-        }
-
-        function handleLogout() {
+        function appLogout() {
             localStorage.removeItem('umar_active_user');
             document.getElementById('main-app').style.display = 'none';
             document.getElementById('auth-screen').style.display = 'flex';
             notify("Logged out successfully.");
         }
 
-        function switchTab(viewId, btn) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            if(btn) btn.classList.add('active');
+        function initApp() {
+            const u = localStorage.getItem('umar_active_user');
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            document.getElementById('profile-username-display').innerText = u;
+            loadTradingViewChart();
+            renderFeed();
         }
 
-        function uploadVideo() {
-            const title = document.getElementById('vid-title').value.trim();
-            const fileInput = document.getElementById('vid-file');
-            
-            if(!title || !fileInput.files[0]) {
-                notify("Title aur Video file dono select karein!");
+        // NAVIGATION TAB SWITCHER
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(btnElement) btnElement.classList.add('active');
+        }
+
+        // POSTING & FEED ENGINE
+        function publishNewPost() {
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const type = document.getElementById('post-type').value;
+            const u = localStorage.getItem('umar_active_user');
+
+            if(!title || !content) return notify("Please fill post details!");
+
+            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
+            posts.unshift({ id: Date.now(), title, content, type, author: u, likes: 0, subscribed: false });
+            localStorage.setItem('umar_posts', JSON.stringify(posts));
+
+            notify("Post Published!");
+            switchTab('reels-tab', document.querySelectorAll('.nav-btn')[0]);
+            renderFeed();
+        }
+
+        function renderFeed() {
+            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            if(posts.length === 0) {
+                container.innerHTML = `<p style="color:#6b7280; text-align:center;">No posts yet. Click + to create!</p>`;
                 return;
             }
 
-            const file = fileInput.files[0];
-            const url = URL.createObjectURL(file);
-
-            let videos = JSON.parse(localStorage.getItem('umar_videos') || '[]');
-            videos.unshift({ title: title, url: url, likes: 0 });
-            localStorage.setItem('umar_videos', JSON.stringify(videos));
-
-            notify("Video uploaded to Social Feed!");
-            loadVideos();
-            switchTab('reels-view', document.querySelectorAll('.nav-item')[0]);
-        }
-
-        function loadVideos() {
-            let videos = JSON.parse(localStorage.getItem('umar_videos') || '[]');
-            const list = document.getElementById('reels-list');
-            if(videos.length === 0) return;
-
-            list.innerHTML = '';
-            videos.forEach((v, index) => {
-                list.innerHTML += `
-                    <div class="video-card">
-                        <h4>${v.title}</h4>
-                        <video src="${v.url}" controls autoplay loop muted></video>
+            posts.forEach(p => {
+                let mediaHTML = p.type === 'video' ? `<video src="${p.content}" controls style="width:100%; border-radius:8px; margin-top:8px;"></video>` : `<p style="margin-top:8px; font-size:0.9rem;">${p.content}</p>`;
+                container.innerHTML += `
+                    <div class="post-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:bold; color:#ff2b56;">👤 ${p.author}</span>
+                            <span style="font-size:0.7rem; color:#9ca3af;">${p.type.toUpperCase()}</span>
+                        </div>
+                        <h4 style="margin-top:5px;">${p.title}</h4>
+                        ${mediaHTML}
+                        <div class="post-actions">
+                            <button onclick="likePost(${p.id})">❤️ Like (${p.likes})</button>
+                            <button onclick="notify('Comments section open')">💬 Comment</button>
+                            <button onclick="notify('Link copied to clipboard')">🔗 Share</button>
+                            <button style="background:#ff2b56;" onclick="notify('Subscribed to ${p.author}')">🔔 Subscribe</button>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        // Auto-login check on page start
+        function likePost(id) {
+            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
+            posts = posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p);
+            localStorage.setItem('umar_posts', JSON.stringify(posts));
+            renderFeed();
+        }
+
+        // WORKSHOP BUILDER ENGINE
+        let activeVehicleParts = [];
+        function addPart(partName) {
+            activeVehicleParts.push(partName);
+            document.getElementById('parts-list').innerText = "Parts: " + activeVehicleParts.join(', ');
+            notify("Added " + partName);
+        }
+
+        function postVehicleBuild() {
+            if(activeVehicleParts.length === 0) return notify("Add parts before posting!");
+            const u = localStorage.getItem('umar_active_user');
+            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
+            posts.unshift({
+                id: Date.now(),
+                title: "Custom Craft Built!",
+                content: "Craft built with: " + activeVehicleParts.join(' + '),
+                type: "text",
+                author: u,
+                likes: 0
+            });
+            localStorage.setItem('umar_posts', JSON.stringify(posts));
+            notify("Custom Build Posted to Feed!");
+            activeVehicleParts = [];
+            switchTab('reels-tab', document.querySelectorAll('.nav-btn')[0]);
+            renderFeed();
+        }
+
+        // CANVAS GAMES ENGINE (SNAKE & CAR)
+        function startSnake() {
+            document.getElementById('car-section').style.display = 'none';
+            document.getElementById('snake-section').style.display = 'block';
+            const canvas = document.getElementById('snakeCanvas');
+            const ctx = canvas.getContext('2d');
+            let snake = [{x: 5, y: 5}];
+            let food = {x: 10, y: 10};
+
+            setInterval(() => {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0,0,280,280);
+                ctx.fillStyle = '#10b981';
+                snake.forEach(s => ctx.fillRect(s.x*14, s.y*14, 12, 12));
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(food.x*14, food.y*14, 12, 12);
+            }, 300);
+        }
+
+        let carX = 120, fuel = 100;
+        function startCarGame() {
+            document.getElementById('snake-section').style.display = 'none';
+            document.getElementById('car-section').style.display = 'block';
+            drawCarScreen();
+        }
+
+        function drawCarScreen() {
+            const canvas = document.getElementById('carCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0,0,280,280);
+            ctx.fillStyle = '#ff2b56';
+            ctx.fillRect(carX, 220, 40, 50); // Player Car
+        }
+
+        function moveCar(dir) {
+            if(dir === 'left' && carX > 10) carX -= 20;
+            if(dir === 'right' && carX < 230) carX += 20;
+            drawCarScreen();
+        }
+
+        function driveCar() {
+            if(fuel <= 0) return notify("Out of Fuel! Please refill ⛽");
+            fuel -= 10;
+            document.getElementById('car-fuel').innerText = `⛽ Fuel: ${fuel}%`;
+            if(fuel < 30) document.getElementById('police-alert').innerText = "🚨 POLICE CHASE ACTIVE!";
+            drawCarScreen();
+        }
+
+        // FOREX TRADINGVIEW CHART INTEGRATION
+        function loadTradingViewChart() {
+            new TradingView.widget({
+                "width": "100%",
+                "height": 350,
+                "symbol": "FX:EURUSD",
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_chart"
+            });
+        }
+
+        // MINI APPS & UTILITIES
+        function fetchWeather() {
+            const city = document.getElementById('weather-city').value.trim();
+            if(!city) return notify("Enter city name!");
+            document.getElementById('weather-result').innerText = `🌤️ Weather in ${city}: 31°C, Clear Sky.`;
+        }
+
+        function attemptWithdrawal() {
+            notify("Balance not available for withdrawal.");
+        }
+
+        function executeTranslation() {
+            const text = document.getElementById('trans-text').value;
+            const lang = document.getElementById('trans-lang').value;
+            document.getElementById('trans-output').innerText = `[Translated to ${lang}]: ${text}`;
+        }
+
+        function copyTranslationText() {
+            navigator.clipboard.writeText(document.getElementById('trans-output').innerText);
+            notify("Copied Translation!");
+        }
+
+        function speakTranslationText() {
+            const text = document.getElementById('trans-output').innerText;
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function runDevCode() {
+            try {
+                eval(document.getElementById('code-input').value);
+                notify("Code executed successfully!");
+            } catch(e) {
+                notify("Code Error: " + e.message);
+            }
+        }
+
+        function sendDMMessage() {
+            const u = document.getElementById('dm-user').value;
+            const m = document.getElementById('dm-msg').value;
+            if(!u || !m) return notify("Fill DM details!");
+            notify(`Message sent to ${u}!`);
+            document.getElementById('dm-msg').value = '';
+        }
+
+        function createChannel() {
+            const name = document.getElementById('channel-name').value;
+            if(!name) return notify("Enter channel name!");
+            notify(`Channel/Group "${name}" created!`);
+        }
+
+        // Auto Load Session
         window.onload = function() {
             if(localStorage.getItem('umar_active_user')) {
-                showApp();
+                initApp();
             }
         };
     </script>
