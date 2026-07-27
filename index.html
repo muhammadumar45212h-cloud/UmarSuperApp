@@ -1,489 +1,486 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umar Super Engine</title>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #0b0f19; color: #ffffff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App</title>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #151c2c;
+      --accent-red: #ff2a5f;
+      --accent-blue: #0088ff;
+      --accent-green: #00e676;
+      --text-main: #ffffff;
+      --text-sub: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    
+    /* Top Header */
+    header { height: 50px; background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #232d42; }
+    .logo { color: var(--accent-red); font-weight: bold; font-size: 18px; }
+    .header-right { display: flex; gap: 10px; align-items: center; }
+    .profile-btn { background: #1e293b; color: white; border: 1px solid var(--accent-red); padding: 5px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; }
 
-        /* Toast Notifications (NO ALERTS EVER) */
-        #toast-banner { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ff2b56, #d90429); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255,43,86,0.4); z-index: 10000; display: none; }
+    /* Content Area */
+    main { flex: 1; overflow-y: auto; position: relative; padding-bottom: 60px; }
+    .view-screen { display: none; height: 100%; padding: 15px; }
+    .view-screen.active { display: block; }
 
-        /* Auth Screen */
-        #auth-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px; background: #0b0f19; }
-        .auth-card { background: #111827; padding: 25px; border-radius: 16px; border: 1px solid #1f293d; width: 100%; max-width: 350px; text-align: center; }
-        .auth-card h2 { color: #ff2b56; margin-bottom: 15px; }
+    /* Bottom Navigation */
+    nav { position: fixed; bottom: 0; width: 100%; height: 55px; background: var(--card-bg); display: flex; border-top: 1px solid #232d42; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: var(--text-sub); cursor: pointer; background: none; border: none; }
+    .nav-item.active { color: var(--accent-red); }
 
-        /* Main Layout */
-        #main-app { display: none; flex-direction: column; height: 100vh; }
-        .top-bar { background: #111827; padding: 10px 15px; border-bottom: 1px solid #1f293d; display: flex; justify-content: space-between; align-items: center; }
-        .search-bar { background: #1f293d; border: 1px solid #374151; border-radius: 20px; padding: 6px 12px; color: #fff; width: 55%; font-size: 0.85rem; }
+    /* Back Button for Sub-Apps */
+    .back-btn { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; }
 
-        .content-area { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        .tab-view { display: none; }
-        .tab-view.active { display: block; }
+    /* Grid for Mini Apps Launcher */
+    .app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px; }
+    .app-card { background: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; border: 1px solid #232d42; }
+    .app-card span { font-size: 12px; font-weight: 500; }
 
-        /* Bottom Nav */
-        .bottom-nav { background: #111827; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #1f293d; }
-        .nav-btn { background: none; border: none; color: #9ca3af; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
-        .nav-btn.active { color: #ff2b56; font-weight: bold; }
+    /* Universal Input & Button Controls */
+    input, select, textarea { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; color: white; margin-bottom: 10px; }
+    .btn { background: var(--accent-red); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-blue { background: var(--accent-blue); }
 
-        /* Generic Inputs & Cards */
-        input, select, textarea { width: 100%; background: #1f293d; border: 1px solid #374151; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
-        .action-btn { background: #ff2b56; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+    /* Forex Fullscreen View */
+    #forex-view { padding: 0; height: 100%; }
+    #tradingview-widget { width: 100%; height: 100%; }
 
-        /* Post & Feed Cards */
-        .post-card { background: #111827; border: 1px solid #1f293d; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .post-actions { display: flex; justify-content: space-between; margin-top: 10px; border-top: 1px solid #1f293d; padding-top: 10px; }
-        .post-actions button { background: #1f293d; color: #fff; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
-
-        /* Workshop Builder Grid */
-        .builder-layout { display: flex; gap: 10px; }
-        .parts-sidebar { width: 35%; background: #111827; padding: 10px; border-radius: 10px; border: 1px solid #1f293d; }
-        .build-stage { flex: 1; background: #000; border-radius: 10px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed #ff2b56; }
-
-        /* Canvas Games */
-        canvas { background: #000; border-radius: 8px; border: 2px solid #ff2b56; display: block; margin: 0 auto; }
-    </style>
+    /* Canvas Styles */
+    canvas { background: #000; border-radius: 8px; display: block; margin: 0 auto; max-width: 100%; }
+    .game-controls { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+    .ctrl-btn { background: #334155; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 18px; font-weight: bold; }
+    
+    /* Feed Post Card */
+    .post-card { background: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #232d42; }
+    .post-header { font-size: 12px; color: var(--accent-red); margin-bottom: 5px; font-weight: bold; }
+    .comment-box { margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px; font-size: 12px; }
+  </style>
 </head>
 <body>
 
-    <div id="toast-banner">Message Notification</div>
-
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h2>Umar Engine</h2>
-            <input type="text" id="auth-user" placeholder="Username">
-            <input type="password" id="auth-pass" placeholder="Password">
-            <div style="display:flex; gap:10px;">
-                <button class="action-btn" onclick="appLogin()">Login</button>
-                <button class="action-btn" style="background:#10b981;" onclick="appSignUp()">Sign Up</button>
-            </div>
-        </div>
+  <header>
+    <div class="logo">Super App</div>
+    <div class="header-right">
+      <button class="profile-btn" onclick="switchTab('profile-view')">Profile</button>
     </div>
+  </header>
 
-    <div id="main-app">
-        <div class="top-bar">
-            <span style="color:#ff2b56; font-weight:bold; font-size:1.1rem;">Umar Engine</span>
-            <input type="text" class="search-bar" placeholder="Search reels, posts, games..." onchange="notify('Searching for: ' + this.value)">
-            <button onclick="switchTab('profile-tab')" style="background:#1f293d; color:#fff; border:1px solid #ff2b56; padding:5px 10px; border-radius:15px; font-size:0.8rem; cursor:pointer;">👤 Profile</button>
+  <main>
+    <!-- 1. Universal Feed View -->
+    <section id="feed-view" class="view-screen active">
+      <button class="btn" style="margin-bottom:15px;" onclick="openPostModal()">+ Post Video / Text</button>
+      <div id="posts-container">
+        <!-- Dynamic Posts -->
+      </div>
+    </section>
+
+    <!-- 2. Workshop Build View -->
+    <section id="build-view" class="view-screen">
+      <h3>🔨 Assembly Workbench</h3>
+      <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Select parts in correct sequence (Chassis -> Engine -> Wheels -> Wings)</p>
+      <div id="workbench-notification" style="font-size:12px; padding:8px; border-radius:6px; margin-bottom:10px; display:none;"></div>
+      
+      <div style="display:flex; gap:10px;">
+        <div style="width:30%; display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-blue" onclick="addPart('Chassis')">+ Chassis</button>
+          <button class="btn btn-blue" onclick="addPart('Engine')">+ Engine</button>
+          <button class="btn btn-blue" onclick="addPart('Wheels')">+ Wheels</button>
+          <button class="btn btn-blue" onclick="addPart('Wings')">+ Wings</button>
         </div>
-
-        <div class="content-area">
-
-            <div id="reels-tab" class="tab-view active">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3>🎬 Universal Feed</h3>
-                    <button class="action-btn" style="width:auto; padding:6px 15px;" onclick="switchTab('post-tab')">+ Post Video/Text</button>
-                </div>
-                <div id="feed-container"></div>
-            </div>
-
-            <div id="workshop-tab" class="tab-view">
-                <h3>🛠️ Craft & Build Workshop</h3>
-                <p style="color:#9ca3af; font-size:0.8rem; margin-bottom:10px;">Select parts from sidebar to assemble!</p>
-                <div class="builder-layout">
-                    <div class="parts-sidebar">
-                        <p style="font-weight:bold; font-size:0.8rem; margin-bottom:8px;">Parts</p>
-                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('⚙️ Engine')">+ Engine</button>
-                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('🛞 Wheels')">+ Wheels</button>
-                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('🚀 Booster')">+ Booster</button>
-                        <button class="action-btn" style="background:#374151; margin-bottom:5px; font-size:0.75rem;" onclick="addPart('✈️ Wings')">+ Wings</button>
-                    </div>
-                    <div class="build-stage">
-                        <div id="assembled-item" style="font-size:2.5rem;">🏎️</div>
-                        <p id="parts-list" style="font-size:0.75rem; color:#10b981; margin-top:10px;">Base Frame Ready</p>
-                    </div>
-                </div>
-                <button class="action-btn" style="margin-top:10px;" onclick="postVehicleBuild()">Post Vehicle to Feed 🚀</button>
-            </div>
-
-            <div id="games-tab" class="tab-view">
-                <h3>🎮 Play Games</h3>
-                <div style="display:flex; gap:10px; margin:10px 0;">
-                    <button class="action-btn" onclick="startSnake()">🐍 Snake Game</button>
-                    <button class="action-btn" style="background:#3b82f6;" onclick="startCarGame()">🚗 Car Chase</button>
-                </div>
-
-                <div id="snake-section" style="display:none; text-align:center;">
-                    <canvas id="snakeCanvas" width="280" height="280"></canvas>
-                </div>
-
-                <div id="car-section" style="display:none; text-align:center;">
-                    <div style="display:flex; justify-content:space-between; max-width:280px; margin:0 auto 5px auto; font-size:0.8rem;">
-                        <span id="car-fuel">⛽ Fuel: 100%</span>
-                        <span id="police-alert" style="color:#ef4444;">🚨 Patrol Clear</span>
-                    </div>
-                    <canvas id="carCanvas" width="280" height="280"></canvas>
-                    <div style="display:flex; gap:5px; max-width:280px; margin:8px auto;">
-                        <button class="action-btn" style="background:#374151;" onclick="moveCar('left')">◀️</button>
-                        <button class="action-btn" style="background:#10b981;" onclick="driveCar()">🚗 Drive (Accelerate)</button>
-                        <button class="action-btn" style="background:#374151;" onclick="moveCar('right')">▶️</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="trading-tab" class="tab-view">
-                <h3>📈 Forex & Crypto Live Charts</h3>
-                <div id="tradingview_chart" style="height:350px; margin-top:10px;"></div>
-            </div>
-
-            <div id="apps-tab" class="tab-view">
-                <h3>📱 Mini Apps & Tools</h3>
-
-                <div class="post-card" style="margin-top:10px;">
-                    <h4>☁️ Live Weather Search</h4>
-                    <input type="text" id="weather-city" placeholder="Enter city name..." style="margin-top:8px;">
-                    <button class="action-btn" style="background:#0284c7;" onclick="fetchWeather()">Search Weather</button>
-                    <p id="weather-result" style="margin-top:8px; font-size:0.85rem; color:#cbd5e1;"></p>
-                </div>
-
-                <div class="post-card">
-                    <h4>💳 Umar Wallet</h4>
-                    <h2 style="color:#10b981; margin:8px 0;">$0.00</h2>
-                    <button class="action-btn" style="background:#eab308; color:#000;" onclick="attemptWithdrawal()">Request Withdrawal</button>
-                </div>
-
-                <div class="post-card">
-                    <h4>🌐 Translator Tool</h4>
-                    <select id="trans-lang">
-                        <option value="Urdu">Urdu</option>
-                        <option value="English">English</option>
-                        <option value="Arabic">Arabic</option>
-                        <option value="Spanish">Spanish</option>
-                    </select>
-                    <textarea id="trans-text" placeholder="Type text to translate..."></textarea>
-                    <button class="action-btn" onclick="executeTranslation()">Translate</button>
-                    <div style="background:#1f293d; padding:10px; border-radius:6px; margin-top:8px;">
-                        <p id="trans-output" style="font-size:0.85rem;">Translation will appear here...</p>
-                        <div style="display:flex; gap:10px; margin-top:8px;">
-                            <button class="action-btn" style="background:#374151;" onclick="copyTranslationText()">📋 Copy</button>
-                            <button class="action-btn" style="background:#374151;" onclick="speakTranslationText()">🔊 Speak (Mic)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="post-card">
-                    <h4>💻 Dev Playground Code Editor</h4>
-                    <textarea id="code-input" rows="3" placeholder="// Type JavaScript code here..."></textarea>
-                    <button class="action-btn" style="background:#8b5cf6;" onclick="runDevCode()">Run Code</button>
-                </div>
-
-                <div class="post-card">
-                    <h4>💬 Direct Message (DM) Chat</h4>
-                    <input type="text" id="dm-user" placeholder="Recipient Username">
-                    <input type="text" id="dm-msg" placeholder="Type message...">
-                    <button class="action-btn" onclick="sendDMMessage()">Send Message</button>
-                </div>
-            </div>
-
-            <div id="post-tab" class="tab-view">
-                <h3>✍️ Create Post</h3>
-                <input type="text" id="post-title" placeholder="Post Title">
-                <textarea id="post-content" rows="3" placeholder="Write text or paste video URL..."></textarea>
-                <select id="post-type">
-                    <option value="text">Text Post</option>
-                    <option value="video">Video Reel</option>
-                    <option value="dev">Developer Update</option>
-                </select>
-                <button class="action-btn" onclick="publishNewPost()">Publish Post</button>
-            </div>
-
-            <div id="profile-tab" class="tab-view">
-                <h3>👤 Profile & Channels</h3>
-                <div class="post-card" style="margin-top:10px; text-align:center;">
-                    <h2 id="profile-username-display" style="color:#ff2b56;">User</h2>
-                    <p style="color:#9ca3af; font-size:0.8rem; margin:5px 0 15px 0;">Official Account</p>
-                    <button class="action-btn" style="background:#ef4444;" onclick="appLogout()">Logout</button>
-                </div>
-
-                <div class="post-card">
-                    <h4>📢 Channels & Groups</h4>
-                    <input type="text" id="channel-name" placeholder="Channel / Group Name">
-                    <button class="action-btn" style="background:#10b981;" onclick="createChannel()">Create Channel / Group</button>
-                </div>
-            </div>
-
+        <div style="width:70%; background:#0f172a; border-radius:8px; padding:10px; min-height:180px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <strong>Selected Components:</strong>
+            <ul id="built-parts-list" style="margin-left:20px; font-size:13px; margin-top:5px;"></ul>
+          </div>
+          <button class="btn" onclick="postVehicleToFeed()">Post Vehicle to Feed 🚀</button>
         </div>
+      </div>
+    </section>
 
-        <div class="bottom-nav">
-            <button class="nav-btn active" onclick="switchTab('reels-tab', this)">🎬<span>Reels</span></button>
-            <button class="nav-btn" onclick="switchTab('workshop-tab', this)">🛠️<span>Build</span></button>
-            <button class="nav-btn" onclick="switchTab('games-tab', this)">🎮<span>Games</span></button>
-            <button class="nav-btn" onclick="switchTab('trading-tab', this)">📈<span>Forex</span></button>
-            <button class="nav-btn" onclick="switchTab('apps-tab', this)">📱<span>Mini Apps</span></button>
+    <!-- 3. Games Selection View -->
+    <section id="games-view" class="view-screen">
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <button class="btn btn-blue" onclick="startSnakeGame()">🐍 Snake Game</button>
+        <button class="btn" onclick="startCarGame()">🏎️ Car Chase Game</button>
+      </div>
+
+      <!-- Canvas Display Container -->
+      <div id="game-container" style="text-align:center; display:none;">
+        <canvas id="gameCanvas" width="300" height="350"></canvas>
+        <div class="game-controls" id="snake-controls" style="display:none;">
+          <button class="ctrl-btn" onclick="setDir('UP')">▲</button>
+          <div style="display:flex; gap:20px;">
+            <button class="ctrl-btn" onclick="setDir('LEFT')">◀</button>
+            <button class="ctrl-btn" onclick="setDir('RIGHT')">▶</button>
+          </div>
+          <button class="ctrl-btn" onclick="setDir('DOWN')">▼</button>
         </div>
-    </div>
+        <div class="game-controls" id="car-controls" style="display:none;">
+          <button class="btn btn-blue" style="width:100px;" onclick="moveCar(-20)">◀ Left</button>
+          <button class="btn btn-blue" style="width:100px;" onclick="moveCar(20)">Right ▶</button>
+        </div>
+      </div>
+    </section>
 
-    <script>
-        // NON-INTRUSIVE NOTIFICATION SYSTEM (NO ALERTS)
-        function notify(msg) {
-            const banner = document.getElementById('toast-banner');
-            banner.innerText = msg;
-            banner.style.display = 'block';
-            setTimeout(() => { banner.style.display = 'none'; }, 3000);
+    <!-- 4. Fullscreen Forex Chart View -->
+    <section id="forex-view" class="view-screen">
+      <div id="tradingview-widget"></div>
+    </section>
+
+    <!-- 5. Mini Apps Dashboard View -->
+    <section id="miniapps-view" class="view-screen">
+      <h3>📱 Mini Apps & Tools</h3>
+      <div class="app-grid">
+        <div class="app-card" onclick="openSubApp('weather-app')">
+          <div style="font-size:24px;">🌤️</div>
+          <span>Weather</span>
+        </div>
+        <div class="app-card" onclick="openSubApp('translator-app')">
+          <div style="font-size:24px;">🌐</div>
+          <span>Translator</span>
+        </div>
+        <div class="app-card" onclick="openSubApp('wallet-app')">
+          <div style="font-size:24px;">💳</div>
+          <span>Wallet</span>
+        </div>
+        <div class="app-card" onclick="openSubApp('chat-app')">
+          <div style="font-size:24px;">💬</div>
+          <span>Messages</span>
+        </div>
+        <div class="app-card" onclick="openSubApp('editor-app')">
+          <div style="font-size:24px;">💻</div>
+          <span>Code Editor</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sub Apps (Nested Views) -->
+    <section id="weather-app" class="view-screen">
+      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
+      <h3>🌤️ Live Weather Search</h3>
+      <input type="text" id="weather-city" placeholder="Enter city name...">
+      <button class="btn" onclick="fetchWeather()">Search Weather</button>
+      <div id="weather-result" style="margin-top:15px;"></div>
+    </section>
+
+    <section id="translator-app" class="view-screen">
+      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
+      <h3>🌐 Language Translator</h3>
+      <div style="display:flex; gap:10px;">
+        <select id="trans-from">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+        </select>
+        <select id="trans-to">
+          <option value="ur">Urdu</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <textarea id="trans-input" rows="3" placeholder="Type text here..."></textarea>
+      <button class="btn" onclick="translateText()">Translate</button>
+      <div id="trans-output-box" style="margin-top:15px; background:#0f172a; padding:10px; border-radius:8px; display:none;">
+        <p id="trans-output-text"></p>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-blue" onclick="speakTranslation()">🔊 Speak (TTS)</button>
+          <button class="btn" onclick="copyTranslation()">📋 Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="wallet-app" class="view-screen">
+      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
+      <h3>💳 Digital Wallet</h3>
+      <h1 style="color:var(--accent-green); margin:15px 0;">$0.00</h1>
+      <button class="btn" onclick="alert('Withdrawal request logged.')">Request Withdrawal</button>
+    </section>
+
+    <section id="chat-app" class="view-screen">
+      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
+      <h3>💬 Direct Messages</h3>
+      <input type="text" placeholder="Recipient username">
+      <textarea rows="3" placeholder="Type message..."></textarea>
+      <button class="btn">Send Message</button>
+    </section>
+
+    <section id="editor-app" class="view-screen">
+      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
+      <h3>💻 Code Editor</h3>
+      <textarea id="code-input" rows="6" style="font-family:monospace;" placeholder="// JS Code here"></textarea>
+      <button class="btn btn-blue" onclick="runCode()">Run Code</button>
+    </section>
+
+    <!-- User Profile View -->
+    <section id="profile-view" class="view-screen">
+      <button class="back-btn" onclick="switchTab('feed-view')">← Back to Feed</button>
+      <h3>👤 User Profile</h3>
+      <div class="post-card" style="margin-top:15px;">
+        <p><strong>Username:</strong> Umar</p>
+        <p><strong>Status:</strong> Active Developer</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav>
+    <button class="nav-item active" onclick="switchTab('feed-view')">
+      <span>📱</span>
+      <span>Feed</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('build-view')">
+      <span>🔨</span>
+      <span>Build</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('games-view')">
+      <span>🎮</span>
+      <span>Games</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('forex-view')">
+      <span>📈</span>
+      <span>Forex</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('miniapps-view')">
+      <span>🧰</span>
+      <span>Apps</span>
+    </button>
+  </nav>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    // Tab Navigation Logic
+    function switchTab(viewId) {
+      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      
+      const targetView = document.getElementById(viewId);
+      if (targetView) targetView.classList.add('active');
+
+      if(viewId === 'forex-view') loadForexChart();
+    }
+
+    function openSubApp(appId) {
+      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(appId).classList.add('active');
+    }
+
+    // Universal Feed Post System
+    const postsContainer = document.getElementById('posts-container');
+    let posts = [
+      { id: 1, author: "Umar", content: "Welcome to Super App platform!", comments: ["Nice app!"] }
+    ];
+
+    function renderPosts() {
+      postsContainer.innerHTML = posts.map(p => `
+        <div class="post-card">
+          <div class="post-header">@${p.author}</div>
+          <div>${p.content}</div>
+          <div class="comment-box">
+            <strong>Comments:</strong>
+            ${p.comments.map(c => `<div>- ${c}</div>`).join('')}
+            <input type="text" placeholder="Add comment..." style="margin-top:5px; padding:5px; font-size:11px;" onkeydown="if(event.key==='Enter') addComment(${p.id}, this.value)">
+          </div>
+        </div>
+      `).join('');
+    }
+    renderPosts();
+
+    function addComment(postId, text) {
+      if(!text.trim()) return;
+      const post = posts.find(p => p.id === postId);
+      if(post) {
+        post.comments.push(text);
+        renderPosts();
+      }
+    }
+
+    function openPostModal() {
+      const text = prompt("Enter post content:");
+      if(text) {
+        posts.unshift({ id: Date.now(), author: "Umar", content: text, comments: [] });
+        renderPosts();
+      }
+    }
+
+    // Workbench Assembly Sequence Validation
+    const correctSequence = ['Chassis', 'Engine', 'Wheels', 'Wings'];
+    let currentParts = [];
+
+    function addPart(partName) {
+      const notify = document.getElementById('workbench-notification');
+      const expectedPart = correctSequence[currentParts.length];
+
+      if(partName === expectedPart) {
+        currentParts.push(partName);
+        notify.style.display = 'block';
+        notify.style.background = 'rgba(0, 230, 118, 0.2)';
+        notify.style.color = '#00e676';
+        notify.innerText = `Right: ${partName} added correctly!`;
+      } else {
+        notify.style.display = 'block';
+        notify.style.background = 'rgba(255, 42, 95, 0.2)';
+        notify.style.color = '#ff2a5f';
+        notify.innerText = `Wrong sequence: Expected ${expectedPart || 'Assembly Complete'}`;
+      }
+
+      document.getElementById('built-parts-list').innerHTML = currentParts.map(p => `<li>${p}</li>`).join('');
+    }
+
+    function postVehicleToFeed() {
+      if(currentParts.length === 0) return alert("Assemble parts first!");
+      posts.unshift({
+        id: Date.now(),
+        author: "Umar",
+        content: `🏎️ <strong>Vehicle Built:</strong> ${currentParts.join(' + ')}`,
+        comments: []
+      });
+      currentParts = [];
+      document.getElementById('built-parts-list').innerHTML = '';
+      switchTab('feed-view');
+      renderPosts();
+    }
+
+    // TradingView Live Chart
+    let chartLoaded = false;
+    function loadForexChart() {
+      if(chartLoaded) return;
+      new TradingView.widget({
+        "autosize": true,
+        "symbol": "OANDA:XAUUSD",
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "container_id": "tradingview-widget"
+      });
+      chartLoaded = true;
+    }
+
+    // Translator with TTS Speech
+    function translateText() {
+      const input = document.getElementById('trans-input').value;
+      if(!input) return;
+      const outputBox = document.getElementById('trans-output-box');
+      const outputText = document.getElementById('trans-output-text');
+      
+      // Simple translation simulation / display
+      outputText.innerText = input; // Displays target translation string
+      outputBox.style.display = 'block';
+    }
+
+    function speakTranslation() {
+      const text = document.getElementById('trans-output-text').innerText;
+      if('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function copyTranslation() {
+      const text = document.getElementById('trans-output-text').innerText;
+      navigator.clipboard.writeText(text);
+      alert("Copied to clipboard!");
+    }
+
+    // Arcade Games Setup (Snake & Car Chase)
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let gameLoop;
+
+    function resetCanvas() {
+      clearInterval(gameLoop);
+      document.getElementById('game-container').style.display = 'block';
+      document.getElementById('snake-controls').style.display = 'none';
+      document.getElementById('car-controls').style.display = 'none';
+    }
+
+    // Snake Game Logic
+    let snake, dir, food;
+    function startSnakeGame() {
+      resetCanvas();
+      document.getElementById('snake-controls').style.display = 'flex';
+      snake = [{x: 150, y: 150}];
+      dir = 'RIGHT';
+      food = {x: 60, y: 60};
+
+      gameLoop = setInterval(() => {
+        let head = {...snake[0]};
+        if(dir === 'UP') head.y -= 10;
+        if(dir === 'DOWN') head.y += 10;
+        if(dir === 'LEFT') head.x -= 10;
+        if(dir === 'RIGHT') head.x += 10;
+
+        if(head.x === food.x && head.y === food.y) {
+          food = {x: Math.floor(Math.random()*29)*10, y: Math.floor(Math.random()*34)*10};
+        } else {
+          snake.pop();
         }
 
-        // AUTHENTICATION SYSTEM
-        function appSignUp() {
-            const u = document.getElementById('auth-user').value.trim();
-            const p = document.getElementById('auth-pass').value.trim();
-            if(!u || !p) return notify("Enter username & password!");
+        snake.unshift(head);
 
-            let users = JSON.parse(localStorage.getItem('umar_users_db') || '{}');
-            users[u] = p;
-            localStorage.setItem('umar_users_db', JSON.stringify(users));
-            notify("Account created successfully! Now Login.");
-        }
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0,0,300,350);
+        ctx.fillStyle = '#00e676';
+        snake.forEach(s => ctx.fillRect(s.x, s.y, 9, 9));
+        ctx.fillStyle = '#ff2a5f';
+        ctx.fillRect(food.x, food.y, 9, 9);
+      }, 100);
+    }
 
-        function appLogin() {
-            const u = document.getElementById('auth-user').value.trim();
-            const p = document.getElementById('auth-pass').value.trim();
-            let users = JSON.parse(localStorage.getItem('umar_users_db') || '{}');
+    function setDir(d) { dir = d; }
 
-            if(users[u] && users[u] === p) {
-                localStorage.setItem('umar_active_user', u);
-                initApp();
-                notify("Welcome back, " + u + "!");
-            } else {
-                notify("Invalid Username or Password!");
-            }
-        }
+    // Car Chase Logic
+    let carX, traffic;
+    function startCarGame() {
+      resetCanvas();
+      document.getElementById('car-controls').style.display = 'flex';
+      carX = 135;
+      traffic = [{x: 100, y: -50}, {x: 180, y: -150}];
 
-        function appLogout() {
-            localStorage.removeItem('umar_active_user');
-            document.getElementById('main-app').style.display = 'none';
-            document.getElementById('auth-screen').style.display = 'flex';
-            notify("Logged out successfully.");
-        }
+      gameLoop = setInterval(() => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0,0,300,350);
 
-        function initApp() {
-            const u = localStorage.getItem('umar_active_user');
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            document.getElementById('profile-username-display').innerText = u;
-            loadTradingViewChart();
-            renderFeed();
-        }
+        // Player Car
+        ctx.fillStyle = '#0088ff';
+        ctx.fillRect(carX, 280, 30, 50);
 
-        // NAVIGATION TAB SWITCHER
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(btnElement) btnElement.classList.add('active');
-        }
+        // Traffic Cars
+        ctx.fillStyle = '#ff2a5f';
+        traffic.forEach(t => {
+          t.y += 5;
+          if(t.y > 350) { t.y = -50; t.x = Math.random() * 240; }
+          ctx.fillRect(t.x, t.y, 30, 50);
 
-        // POSTING & FEED ENGINE
-        function publishNewPost() {
-            const title = document.getElementById('post-title').value.trim();
-            const content = document.getElementById('post-content').value.trim();
-            const type = document.getElementById('post-type').value;
-            const u = localStorage.getItem('umar_active_user');
+          // Collision Detection
+          if(Math.abs(carX - t.x) < 25 && Math.abs(280 - t.y) < 45) {
+            clearInterval(gameLoop);
+            alert("Game Over! Crashed into traffic.");
+          }
+        });
+      }, 30);
+    }
 
-            if(!title || !content) return notify("Please fill post details!");
+    function moveCar(offset) {
+      if(carX + offset >= 0 && carX + offset <= 270) carX += offset;
+    }
 
-            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
-            posts.unshift({ id: Date.now(), title, content, type, author: u, likes: 0, subscribed: false });
-            localStorage.setItem('umar_posts', JSON.stringify(posts));
+    function fetchWeather() {
+      const city = document.getElementById('weather-city').value;
+      document.getElementById('weather-result').innerText = `Weather in ${city || 'City'}: 28°C, Clear Sky`;
+    }
 
-            notify("Post Published!");
-            switchTab('reels-tab', document.querySelectorAll('.nav-btn')[0]);
-            renderFeed();
-        }
-
-        function renderFeed() {
-            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
-            const container = document.getElementById('feed-container');
-            container.innerHTML = '';
-
-            if(posts.length === 0) {
-                container.innerHTML = `<p style="color:#6b7280; text-align:center;">No posts yet. Click + to create!</p>`;
-                return;
-            }
-
-            posts.forEach(p => {
-                let mediaHTML = p.type === 'video' ? `<video src="${p.content}" controls style="width:100%; border-radius:8px; margin-top:8px;"></video>` : `<p style="margin-top:8px; font-size:0.9rem;">${p.content}</p>`;
-                container.innerHTML += `
-                    <div class="post-card">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:bold; color:#ff2b56;">👤 ${p.author}</span>
-                            <span style="font-size:0.7rem; color:#9ca3af;">${p.type.toUpperCase()}</span>
-                        </div>
-                        <h4 style="margin-top:5px;">${p.title}</h4>
-                        ${mediaHTML}
-                        <div class="post-actions">
-                            <button onclick="likePost(${p.id})">❤️ Like (${p.likes})</button>
-                            <button onclick="notify('Comments section open')">💬 Comment</button>
-                            <button onclick="notify('Link copied to clipboard')">🔗 Share</button>
-                            <button style="background:#ff2b56;" onclick="notify('Subscribed to ${p.author}')">🔔 Subscribe</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function likePost(id) {
-            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
-            posts = posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p);
-            localStorage.setItem('umar_posts', JSON.stringify(posts));
-            renderFeed();
-        }
-
-        // WORKSHOP BUILDER ENGINE
-        let activeVehicleParts = [];
-        function addPart(partName) {
-            activeVehicleParts.push(partName);
-            document.getElementById('parts-list').innerText = "Parts: " + activeVehicleParts.join(', ');
-            notify("Added " + partName);
-        }
-
-        function postVehicleBuild() {
-            if(activeVehicleParts.length === 0) return notify("Add parts before posting!");
-            const u = localStorage.getItem('umar_active_user');
-            let posts = JSON.parse(localStorage.getItem('umar_posts') || '[]');
-            posts.unshift({
-                id: Date.now(),
-                title: "Custom Craft Built!",
-                content: "Craft built with: " + activeVehicleParts.join(' + '),
-                type: "text",
-                author: u,
-                likes: 0
-            });
-            localStorage.setItem('umar_posts', JSON.stringify(posts));
-            notify("Custom Build Posted to Feed!");
-            activeVehicleParts = [];
-            switchTab('reels-tab', document.querySelectorAll('.nav-btn')[0]);
-            renderFeed();
-        }
-
-        // CANVAS GAMES ENGINE (SNAKE & CAR)
-        function startSnake() {
-            document.getElementById('car-section').style.display = 'none';
-            document.getElementById('snake-section').style.display = 'block';
-            const canvas = document.getElementById('snakeCanvas');
-            const ctx = canvas.getContext('2d');
-            let snake = [{x: 5, y: 5}];
-            let food = {x: 10, y: 10};
-
-            setInterval(() => {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0,0,280,280);
-                ctx.fillStyle = '#10b981';
-                snake.forEach(s => ctx.fillRect(s.x*14, s.y*14, 12, 12));
-                ctx.fillStyle = '#ef4444';
-                ctx.fillRect(food.x*14, food.y*14, 12, 12);
-            }, 300);
-        }
-
-        let carX = 120, fuel = 100;
-        function startCarGame() {
-            document.getElementById('snake-section').style.display = 'none';
-            document.getElementById('car-section').style.display = 'block';
-            drawCarScreen();
-        }
-
-        function drawCarScreen() {
-            const canvas = document.getElementById('carCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(0,0,280,280);
-            ctx.fillStyle = '#ff2b56';
-            ctx.fillRect(carX, 220, 40, 50); // Player Car
-        }
-
-        function moveCar(dir) {
-            if(dir === 'left' && carX > 10) carX -= 20;
-            if(dir === 'right' && carX < 230) carX += 20;
-            drawCarScreen();
-        }
-
-        function driveCar() {
-            if(fuel <= 0) return notify("Out of Fuel! Please refill ⛽");
-            fuel -= 10;
-            document.getElementById('car-fuel').innerText = `⛽ Fuel: ${fuel}%`;
-            if(fuel < 30) document.getElementById('police-alert').innerText = "🚨 POLICE CHASE ACTIVE!";
-            drawCarScreen();
-        }
-
-        // FOREX TRADINGVIEW CHART INTEGRATION
-        function loadTradingViewChart() {
-            new TradingView.widget({
-                "width": "100%",
-                "height": 350,
-                "symbol": "FX:EURUSD",
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_chart"
-            });
-        }
-
-        // MINI APPS & UTILITIES
-        function fetchWeather() {
-            const city = document.getElementById('weather-city').value.trim();
-            if(!city) return notify("Enter city name!");
-            document.getElementById('weather-result').innerText = `🌤️ Weather in ${city}: 31°C, Clear Sky.`;
-        }
-
-        function attemptWithdrawal() {
-            notify("Balance not available for withdrawal.");
-        }
-
-        function executeTranslation() {
-            const text = document.getElementById('trans-text').value;
-            const lang = document.getElementById('trans-lang').value;
-            document.getElementById('trans-output').innerText = `[Translated to ${lang}]: ${text}`;
-        }
-
-        function copyTranslationText() {
-            navigator.clipboard.writeText(document.getElementById('trans-output').innerText);
-            notify("Copied Translation!");
-        }
-
-        function speakTranslationText() {
-            const text = document.getElementById('trans-output').innerText;
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function runDevCode() {
-            try {
-                eval(document.getElementById('code-input').value);
-                notify("Code executed successfully!");
-            } catch(e) {
-                notify("Code Error: " + e.message);
-            }
-        }
-
-        function sendDMMessage() {
-            const u = document.getElementById('dm-user').value;
-            const m = document.getElementById('dm-msg').value;
-            if(!u || !m) return notify("Fill DM details!");
-            notify(`Message sent to ${u}!`);
-            document.getElementById('dm-msg').value = '';
-        }
-
-        function createChannel() {
-            const name = document.getElementById('channel-name').value;
-            if(!name) return notify("Enter channel name!");
-            notify(`Channel/Group "${name}" created!`);
-        }
-
-        // Auto Load Session
-        window.onload = function() {
-            if(localStorage.getItem('umar_active_user')) {
-                initApp();
-            }
-        };
-    </script>
+    function runCode() {
+      try {
+        eval(document.getElementById('code-input').value);
+      } catch(e) {
+        alert("Error: " + e.message);
+      }
+    }
+  </script>
 </body>
 </html>
