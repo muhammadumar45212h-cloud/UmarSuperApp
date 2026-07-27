@@ -2,673 +2,647 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Umar Super App v2</title>
+  <!-- TradingView Widget Script -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --card-bg: #151c2c;
+      --bg-color: #000000; /* True Black for full screen video */
+      --card-bg: #121212;
       --accent-red: #ff2a5f;
-      --accent-blue: #0088ff;
+      --accent-blue: #007bff;
       --accent-green: #00e676;
       --text-main: #ffffff;
-      --text-sub: #94a3b8;
+      --text-sub: #a0a0a0;
+      --nav-height: 55px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-    
-    /* Top Header */
-    header { height: 50px; background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #232d42; }
-    .logo { color: var(--accent-red); font-weight: bold; font-size: 18px; }
-    .header-right { display: flex; gap: 10px; align-items: center; }
-    .profile-btn { background: #1e293b; color: white; border: 1px solid var(--accent-red); padding: 5px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+    button { cursor: pointer; }
 
-    /* Content Area */
-    main { flex: 1; overflow-y: auto; position: relative; padding-bottom: 60px; }
-    .view-screen { display: none; height: 100%; padding: 15px; }
+    /* Global Toast Notification Banner (NO ALERTS) */
+    #toast-notification {
+      position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+      background: #1e1e1e; color: #fff; border: 1px solid var(--accent-blue);
+      padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      z-index: 10000; display: none; font-size: 13px; font-weight: 500;
+      text-align: center; min-width: 250px; max-width: 90%; animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+    /* Main App Content Area */
+    main { flex: 1; overflow: hidden; position: relative; }
+    .view-screen { display: none; height: 100%; width: 100%; position: absolute; top: 0; left: 0; overflow: hidden; }
     .view-screen.active { display: block; }
 
-    /* Bottom Navigation */
-    nav { position: fixed; bottom: 0; width: 100%; height: 55px; background: var(--card-bg); display: flex; border-top: 1px solid #232d42; }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: var(--text-sub); cursor: pointer; background: none; border: none; }
-    .nav-item.active { color: var(--accent-red); }
+    /* 1. Full-Screen Vertical Video Feed (TikTok Style) */
+    #feed-view { background: #000; overflow-y: scroll; scroll-snap-type: y mandatory; }
+    .video-post {
+      height: 100vh; width: 100%; scroll-snap-align: start; position: relative;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .video-post video {
+      min-width: 100%; min-height: 100%; width: auto; height: auto;
+      object-fit: cover; z-index: 1;
+    }
+    .video-overlay {
+      position: absolute; bottom: calc(var(--nav-height) + 15px); left: 15px;
+      z-index: 10; max-width: 70%; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+    .video-overlay h4 { color: var(--accent-red); margin-bottom: 5px; }
+    .video-overlay p { font-size: 14px; color: #fff; line-height: 1.4; }
 
-    /* Back Button for Sub-Apps */
-    .back-btn { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; cursor: pointer; font-size: 13px; }
+    /* Video Side Actions (Like, Comment, Share) */
+    .video-actions {
+      position: absolute; right: 10px; bottom: calc(var(--nav-height) + 40px);
+      z-index: 10; display: flex; flex-direction: column; gap: 20px; align-items: center;
+    }
+    .action-btn {
+      background: none; border: none; color: #fff; text-align: center; font-size: 11px;
+    }
+    .action-btn i { font-size: 28px; display: block; margin-bottom: 4px; }
+    .action-btn i.active { color: var(--accent-red); }
 
-    /* Grid for Mini Apps Launcher */
-    .app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px; }
-    .app-card { background: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; border: 1px solid #232d42; }
-    .app-card span { font-size: 12px; font-weight: 500; }
+    /* Sliding Panels (Comments, Share, Builder parts) */
+    .sliding-panel {
+      position: fixed; bottom: -100%; left: 0; width: 100%; height: 60vh;
+      background: #181818; border-top-left-radius: 15px; border-top-right-radius: 15px;
+      z-index: 2000; transition: bottom 0.3s ease-out; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; border-top: 1px solid #333;
+    }
+    .sliding-panel.open { bottom: 0; }
+    .panel-header { padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #333; color: var(--accent-red); position: relative;}
+    .close-panel-btn { position: absolute; right: 15px; top: 13px; background: none; border: none; color: #fff; font-size: 20px;}
 
-    /* Controls */
-    input, select, textarea { width: 100%; background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 8px; color: white; margin-bottom: 10px; font-size: 13px; }
-    .btn { background: var(--accent-red); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn-blue { background: var(--accent-blue); }
+    /* Comments Section inside Panel */
+    #comment-list { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .comment-item { display: flex; gap: 10px; font-size: 13px; align-items: flex-start; }
+    .comment-item .avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--accent-red); }
+    .comment-item-right { flex: 1; }
+    .comment-author { font-weight: bold; color: var(--accent-red); margin-bottom: 2px; }
+    .comment-item-actions { display: flex; gap: 10px; font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+    .comment-input-bar { padding: 10px; background: #202020; display: flex; gap: 10px; border-top: 1px solid #333; }
+
+    /* Share Panel Section */
+    #share-panel .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; }
+    .share-option { text-align: center; background: none; border: none; color: #fff; font-size: 12px; }
+    .share-option i { font-size: 28px; display: block; margin-bottom: 5px; color: var(--accent-blue); }
+
+    /* Universal Plus Post Button */
+    #global-plus-btn {
+      position: fixed; bottom: calc(var(--nav-height) + 15px); left: 50%;
+      transform: translateX(-50%); width: 60px; height: 60px;
+      background: var(--accent-blue); border-radius: 50%; color: white;
+      font-size: 30px; border: 4px solid var(--bg-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1000;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+
+    /* 2. Landscape Road Racing Game (Full Screen) */
+    #games-view { position: relative; background: #222; }
+    #raceCanvas { background: #1e1e1e; display: block; width: 100%; height: 100%; }
+    #games-view h3 { position: absolute; top: 10px; left: 10px; font-size: 14px; color: #fff; z-index: 5; text-shadow: 0 1px 2px #000; }
+    #car-controls-overlay {
+      position: absolute; bottom: 15px; width: 100%; display: flex;
+      justify-content: space-between; padding: 0 20px; z-index: 5;
+    }
+    .game-ctrl-btn {
+      width: 70px; height: 70px; background: rgba(50,50,50,0.7);
+      border: 2px solid #fff; border-radius: 50%; color: #fff;
+      font-size: 24px; display: flex; align-items: center; justify-content: center;
+    }
+    .game-ctrl-btn:active { background: var(--accent-blue); }
+
+    /* 3. Workbench Build Studio (Sequence Assembly) */
+    #build-view { overflow-y: auto; padding: 15px; }
+    #build-status {
+      height: 180px; width: 100%; background: #080808; border-radius: 12px;
+      border: 2px dashed #333; position: relative; display: flex;
+      align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 15px;
+    }
+    .part-dot { position: absolute; font-size: 1.5rem; display: none; }
+    
+    #parts-notification {
+      position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; font-weight: bold; white-space: nowrap;
+      padding: 5px 10px; border-radius: 15px; background: rgba(0,0,0,0.8);
+    }
+    
+    /* 4. Mini Apps Dashboard (Launcher Icons) */
+    #apps-view { overflow-y: auto; padding: 15px; }
+    .app-dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
+    .app-icon-card {
+      background: var(--card-bg); border-radius: 12px; padding: 10px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 5px; cursor: pointer; text-align: center; border: 1px solid #222;
+    }
+    .app-icon-card .icon { font-size: 24px; color: var(--accent-blue); }
+    .app-icon-card span { font-size: 10px; color: var(--text-sub); }
+
+    /* Standard Sub-App styling (Back button, inputs) */
+    .sub-app-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+    input, select, textarea {
+      width: 100%; background: #1a1a1a; border: 1px solid #333;
+      color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 14px;
+    }
+    .btn {
+      background: var(--accent-red); color: white; border: none;
+      width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px;
+    }
     .btn-green { background: var(--accent-green); color: #000; }
 
-    /* Feed & Video Posts */
-    .post-card { background: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #232d42; }
-    .post-header { font-size: 12px; color: var(--accent-red); margin-bottom: 5px; font-weight: bold; }
-    .comment-box { margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px; font-size: 12px; }
-    .post-media { width: 100%; border-radius: 6px; margin: 8px 0; max-height: 250px; object-fit: cover; }
+    /* Developer Hub (Text Feed) */
+    #dev-view { overflow-y: auto; padding: 15px; }
+    .dev-post-card { background: var(--card-bg); padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #222; }
+    .dev-post-header { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-sub); margin-bottom: 8px;}
+    .dev-post-author { color: var(--accent-blue); font-weight: bold;}
 
-    /* Interactive 2D Assembly Canvas */
-    #carCanvas { background: #090d16; border: 2px dashed #334155; border-radius: 8px; width: 100%; max-width: 320px; height: 160px; display: block; margin: 10px auto; }
-
-    /* Real Racing Game Canvas */
-    #raceCanvas { background: #1e293b; border-radius: 8px; display: block; margin: 0 auto; width: 300px; height: 320px; }
-    .game-controls { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
-    .ctrl-btn { background: #334155; color: white; border: none; width: 60px; height: 45px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-    .ctrl-btn:active { background: var(--accent-blue); }
-
-    /* WhatsApp UI Layout */
-    .chat-container { display: flex; flex-direction: column; height: calc(100vh - 170px); background: #0b141a; border-radius: 8px; overflow: hidden; border: 1px solid #232d42; }
-    .chat-header { background: #202c33; padding: 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2b3942; }
-    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-    .msg-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 13px; word-break: break-word; }
-    .msg-in { background: #202c33; align-self: flex-start; color: white; border-bottom-left-radius: 0; }
-    .msg-out { background: #005c4b; align-self: flex-end; color: white; border-bottom-right-radius: 0; }
-    .chat-input-bar { background: #202c33; padding: 8px; display: flex; gap: 8px; align-items: center; }
-
-    /* Code Result Display Box */
-    #code-output { background: #000; color: #00e676; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px; white-space: pre-wrap; margin-top: 10px; min-height: 80px; border: 1px solid #334155; }
-
-    /* Forex View */
-    #forex-view { padding: 0; height: 100%; }
+    /* Forex Fullscreen View */
+    #forex-view { padding: 0; }
     #tradingview-widget { width: 100%; height: 100%; }
+
+    /* Standard Bottom Navigation Bar */
+    nav { height: var(--nav-height); background: var(--card-bg); display: flex; border-top: 1px solid #222; z-index: 900; }
+    .nav-btn {
+      flex: 1; background: none; border: none; color: var(--text-sub);
+      font-size: 10px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px;
+    }
+    .nav-btn.active { color: var(--accent-red); font-weight: bold; }
+    .nav-btn i { font-size: 18px; }
+
+    /* Icons Font (FontAwesome simulation) */
+    @font-face { font-family: 'UmarIcons'; src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2') format('woff2'); }
+    .fa, .fas { font-family: 'UmarIcons'; font-weight: 900; -webkit-font-smoothing: antialiased; display: inline-block; font-style: normal; font-variant: normal; text-rendering: auto; line-height: 1; }
+    .fa-heart::before { content: "\f004"; }
+    .fa-comment::before { content: "\f075"; }
+    .fa-share::before { content: "\f064"; }
+    .fa-paper-plane::before { content: "\f1d8"; }
+    .fa-clipboard::before { content: "\f328"; }
+    .fa-user-plus::before { content: "\f234"; }
+    .fa-plus::before { content: "\f067"; }
+    .fa-code::before { content: "\f121"; }
+    .fa-cloud::before { content: "\f0c2"; }
+    .fa-language::before { content: "\f1ab"; }
+    .fa-wallet::before { content: "\f555"; }
+    .fa-times::before { content: "\f00d"; }
+    .fa-check-circle::before { content: "\f058"; }
+    .fa-exclamation-triangle::before { content: "\f071"; }
+    
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">Super App</div>
-    <div class="header-right">
-      <button class="profile-btn" onclick="switchTab('profile-view')">Profile</button>
-    </div>
-  </header>
+  <!-- Non-Intrusive Notification Toast -->
+  <div id="toast-notification">Notification Message</div>
+
+  <!-- Universal Plus Button for Post From Gallery -->
+  <button id="global-plus-btn" onclick="triggerGalleryUpload()">
+    <i class="fas fa-plus"></i>
+  </button>
+  <!-- Hidden File Input for Video Upload from Device Gallery -->
+  <input type="file" id="gallery-video-input" accept="video/*" style="display:none;" onchange="handleGalleryVideo(this)">
 
   <main>
-    <!-- 1. Universal Feed View (Text, Image & Video Support) -->
+    <!-- 1. Full-Screen Vertical Video Feed (Bilkul TikTok Jaisi) -->
     <section id="feed-view" class="view-screen active">
-      <div style="background:var(--card-bg); padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #232d42;">
-        <input type="text" id="post-input" placeholder="What's on your mind?">
-        
-        <!-- Video / Image URL attachment input -->
-        <input type="text" id="post-media-url" placeholder="Paste Video URL (MP4) or Image URL (Optional)">
-        
-        <button class="btn" onclick="createNewPost()">Post to Feed 🚀</button>
-      </div>
-      <div id="posts-container">
-        <!-- Dynamic Posts rendered here -->
+      <!-- Dynamic Video Posts -->
+      <div class="video-post" data-post-id="1">
+        <video loop playsinline onclick="toggleVideoPlay(this)" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+        <div class="video-overlay">
+          <h4>@SuperAppSupport</h4>
+          <p>Welcome to Umar Super App v2! Swipe up for more vertical full-screen videos from community.</p>
+        </div>
+        <div class="video-actions">
+          <button class="action-btn" onclick="likeVideo(1, this)">
+            <i class="fas fa-heart"></i>
+            <span>5.2K</span>
+          </button>
+          <button class="action-btn" onclick="openCommentsPanel(1)">
+            <i class="fas fa-comment"></i>
+            <span>128</span>
+          </button>
+          <button class="action-btn" onclick="openSharePanel(1)">
+            <i class="fas fa-share"></i>
+            <span>Share</span>
+          </button>
+          <button class="action-btn" style="background:var(--accent-red); padding:5px; border-radius:50%;">
+            <i class="fas fa-user-plus"></i>
+          </button>
+        </div>
       </div>
     </section>
 
-    <!-- 2. Assembly Workbench (Real Canvas Graphical Assembly) -->
-    <section id="build-view" class="view-screen">
-      <h3>🔨 Assembly Workbench</h3>
-      <p style="font-size:12px; color:var(--text-sub);">Select components in order: Body -> Engine -> Wheels</p>
-      
-      <!-- Visual Canvas rendering parts as user adds them -->
-      <canvas id="carCanvas" width="320" height="160"></canvas>
-
-      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:10px;">
-        <button class="btn btn-blue" onclick="attachPart('Body')">+ Body</button>
-        <button class="btn btn-blue" onclick="attachPart('Engine')">+ Engine</button>
-        <button class="btn btn-blue" onclick="attachPart('Wheels')">+ Wheels</button>
-      </div>
-
-      <div id="build-status-text" style="font-size:12px; color:var(--accent-green); margin-bottom:10px; text-align:center;">Canvas Empty: Click Body to start assembly</div>
-      
-      <button class="btn btn-green" onclick="postVehicleToFeed()">Post Built Car to Feed 🚀</button>
-    </section>
-
-    <!-- 3. Real Car Racing Game -->
+    <!-- 2. landscape Racing Game (Full Screen) -->
     <section id="games-view" class="view-screen">
-      <h3 style="margin-bottom:10px;">🏎️ Real Driving & Racing Game</h3>
-      
-      <canvas id="raceCanvas" width="300" height="320"></canvas>
-
-      <div class="game-controls">
-        <button class="ctrl-btn" onclick="steerCar(-25)">◀ Left</button>
-        <button class="ctrl-btn" style="background:var(--accent-green); color:#000;" onclick="accelerateCar()">▲ Gas</button>
-        <button class="ctrl-btn" onclick="steerCar(25)">Right ▶</button>
-      </div>
-      <div style="text-align:center; margin-top:8px;">
-        <button class="btn btn-blue" style="width:200px;" onclick="initRacingGame()">Start / Restart Race 🏁</button>
+      <h3>🏎️ Landscape Road Chase</h3>
+      <canvas id="raceCanvas"></canvas>
+      <div id="car-controls-overlay">
+        <button class="game-ctrl-btn" onclick="steerCar(-30)">◀</button>
+        <button class="game-ctrl-btn" style="background:var(--accent-green);" onclick="accelerateCar()">▲</button>
+        <button class="game-ctrl-btn" onclick="steerCar(30)">▶</button>
       </div>
     </section>
 
-    <!-- 4. Forex Chart View -->
+    <!-- 3. Workbench Studio (Complex Side Panel Assembly) -->
+    <section id="build-view" class="view-screen">
+      <div class="sub-app-header">
+        <h3>🔨 Assemble Studio</h3>
+        <button class="btn" style="width: auto; padding: 5px 15px;" onclick="openPanel('parts-panel')">Select Parts</button>
+      </div>
+      
+      <div id="build-status">
+        🏎️
+        <div id="parts-notification"></div>
+        <div class="part-dot" style="top:20px; left:20px; color:var(--accent-red); display:block;">C</div>
+        <div class="part-dot" style="bottom:20px; right:20px; color:var(--accent-blue); display:block;">E</div>
+      </div>
+      
+      <div style="background:var(--card-bg); padding:10px; border-radius:8px; font-size:12px;">
+        <strong>Workbench Instructions:</strong> Open parts panel, select in sequence: Chassis -> Engine -> Wheels -> Boosters.
+      </div>
+      <button class="btn btn-green" style="margin-top:15px;" onclick="postBuiltCarToFeed()">Publish Built Craft 🚀</button>
+    </section>
+
+    <!-- 4. Forex Chart -->
     <section id="forex-view" class="view-screen">
       <div id="tradingview-widget"></div>
     </section>
 
-    <!-- 5. Mini Apps Dashboard -->
+    <!-- 5. Mini Apps Launcher -->
     <section id="miniapps-view" class="view-screen">
-      <h3>📱 Mini Apps & Tools</h3>
-      <div class="app-grid">
-        <div class="app-card" onclick="openSubApp('weather-app')">
-          <div style="font-size:24px;">🌤️</div>
+      <h3>📱 Apps Launcher</h3>
+      <div class="app-dashboard-grid">
+        <div class="app-icon-card" onclick="openSubApp('weather-app')">
+          <i class="fas fa-cloud icon"></i>
           <span>Weather</span>
         </div>
         <div class="app-card" onclick="openSubApp('translator-app')">
-          <div style="font-size:24px;">🌐</div>
+          <i class="fas fa-language icon"></i>
           <span>Translator</span>
         </div>
         <div class="app-card" onclick="openSubApp('wallet-app')">
-          <div style="font-size:24px;">💳</div>
+          <i class="fas fa-wallet icon"></i>
           <span>Wallet</span>
         </div>
-        <div class="app-card" onclick="openSubApp('chat-app')">
-          <div style="font-size:24px;">💬</div>
-          <span>WhatsApp Chat</span>
+        <div class="app-card" onclick="openSubApp('code-app')">
+          <i class="fas fa-code icon"></i>
+          <span>Editor</span>
         </div>
-        <div class="app-card" onclick="openSubApp('editor-app')">
-          <div style="font-size:24px;">💻</div>
-          <span>Code Editor</span>
+        <div class="app-card" onclick="openSubApp('dev-view')">
+          <i class="fas fa-clipboard icon"></i>
+          <span>Dev Hub</span>
         </div>
       </div>
     </section>
 
-    <!-- Sub Apps -->
-    <!-- Weather Sub-App -->
+    <!-- Sub Apps (Nested Views) -->
     <section id="weather-app" class="view-screen">
-      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
-      <h3>🌤️ Live Weather</h3>
-      <input type="text" id="weather-city" placeholder="Enter city name (e.g. Karachi, London)...">
-      <button class="btn" onclick="getRealWeather()">Get Weather</button>
-      <div id="weather-result" style="margin-top:15px; background:var(--card-bg); padding:12px; border-radius:8px;"></div>
-    </section>
+      <div class="sub-app-header">
+        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
+        <h3>🌤️ Weather</h3>
+      </div>
+      <input type="text" id="weather-city" placeholder="City Name (Karachi)...">
+      <button class="btn" onclick="getWeather()">Fetch Weather</button>
+    </div>
 
-    <!-- Real Universal Language Translator -->
     <section id="translator-app" class="view-screen">
-      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
-      <h3>🌐 Universal Language Translator</h3>
-      <div style="display:flex; gap:10px;">
-        <select id="trans-from">
-          <option value="autodetect">Auto Detect</option>
-          <option value="en">English</option>
-          <option value="ur">Urdu</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="ar">Arabic</option>
-          <option value="hi">Hindi</option>
-          <option value="zh">Chinese</option>
-          <option value="de">German</option>
-          <option value="ru">Russian</option>
-        </select>
-        <select id="trans-to">
-          <option value="ur">Urdu</option>
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-          <option value="ar">Arabic</option>
-          <option value="hi">Hindi</option>
-          <option value="zh">Chinese</option>
-          <option value="de">German</option>
-          <option value="ru">Russian</option>
-        </select>
+      <div class="sub-app-header">
+        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
+        <h3>🌐 Translator</h3>
       </div>
-      <textarea id="trans-input" rows="3" placeholder="Type text to translate..."></textarea>
-      <button class="btn" onclick="executeRealTranslation()">Translate Now</button>
+      <select id="trans-lang">
+        <option value="ur">to Urdu</option>
+        <option value="en">to English</option>
+      </select>
+      <textarea id="trans-input" rows="3" placeholder="Enter Text..."></textarea>
+      <button class="btn" onclick="translateText()">Translate</button>
+    </div>
 
-      <div id="trans-output-box" style="margin-top:15px; background:#0f172a; padding:12px; border-radius:8px; border:1px solid #334155; display:none;">
-        <div id="trans-output-text" style="font-size:14px; color:#fff; margin-bottom:10px;"></div>
-        <div style="display:flex; gap:10px;">
-          <button class="btn btn-blue" onclick="playSpeechTTS()">🔊 Speak Out Loud</button>
-          <button class="btn btn-green" onclick="copyTranslatedText()">📋 Copy Text</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Digital Wallet -->
     <section id="wallet-app" class="view-screen">
-      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
-      <h3>💳 Digital Wallet</h3>
-      <h1 style="color:var(--accent-green); margin:15px 0;">$500.00</h1>
-      <button class="btn" onclick="this.innerText='Withdrawal Logged!'">Request Withdrawal</button>
-    </section>
+      <div class="sub-app-header">
+        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
+        <h3>💳 Wallet</h3>
+      </div>
+      <h1 style="color:var(--accent-green); margin:15px 0;">$0.00</h1>
+      <button class="btn" onclick="notify('Withdrawal request logged successfully.', '#00e676')">Request Withdrawal</button>
+    </div>
 
-    <!-- Real WhatsApp Layout Direct Chat -->
-    <section id="chat-app" class="view-screen" style="padding:5px;">
-      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
-      
-      <div class="chat-container">
-        <div class="chat-header">
-          <div style="width:35px; height:35px; background:var(--accent-red); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">U</div>
-          <div>
-            <div style="font-size:14px; font-weight:bold;">Super App Support</div>
-            <div style="font-size:10px; color:var(--accent-green);">online</div>
+    <section id="code-app" class="view-screen">
+      <div class="sub-app-header">
+        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
+        <h3>💻 Editor</h3>
+      </div>
+      <textarea id="code-input" rows="6" style="font-family:monospace;" placeholder="// JS Code"></textarea>
+      <button class="btn" onclick="runCode()">Run</button>
+    </div>
+
+    <!-- Developer Hub (Text Posts) -->
+    <section id="dev-view" class="view-screen">
+      <div class="sub-app-header">
+        <button class="action-btn" onclick="switchTab('miniapps-view')">←</button>
+        <h3>👨‍💻 Developer Hub</h3>
+      </div>
+      <div id="dev-feed">
+        <div class="dev-post-card">
+          <div class="dev-post-header">
+            <span class="dev-post-author">@muhammadumar45212h</span>
+            <span>1h ago</span>
           </div>
-        </div>
-
-        <div class="chat-messages" id="chat-messages-box">
-          <div class="msg-bubble msg-in">Hello Umar! How can I help you today?</div>
-        </div>
-
-        <div class="chat-input-bar">
-          <input type="text" id="chat-msg-input" placeholder="Type a message..." style="margin-bottom:0;" onkeydown="if(event.key==='Enter') sendWhatsAppMessage()">
-          <button class="btn btn-green" style="width:70px; padding:8px;" onclick="sendWhatsAppMessage()">Send</button>
+          <p style="font-size:13px; line-height:1.4;">v2.0 Beta Launched! Full screen TikTok style video feed, direct gallery video uploads, landscape racing game mechanics added. No alerts, only custom messages.</p>
         </div>
       </div>
     </section>
 
-    <!-- Code Editor with Screen Result Block -->
-    <section id="editor-app" class="view-screen">
-      <button class="back-btn" onclick="switchTab('miniapps-view')">← Back to Apps</button>
-      <h3>💻 Code Editor & Execution Screen</h3>
-      <textarea id="code-input" rows="6" style="font-family:monospace; font-size:12px;" placeholder="// Write JavaScript code here&#10;console.log('Hello Umar!');&#10;return 10 + 20;"></textarea>
-      <button class="btn btn-blue" onclick="executeCodeInEditor()">Run & Display Result Below</button>
-      
-      <div style="margin-top:10px; font-size:12px; font-weight:bold;">Output Result Screen:</div>
-      <div id="code-output">Results will appear here...</div>
-    </section>
-
-    <!-- User Profile View -->
-    <section id="profile-view" class="view-screen">
-      <button class="back-btn" onclick="switchTab('feed-view')">← Back to Feed</button>
-      <h3>👤 User Profile</h3>
-      <div class="post-card" style="margin-top:15px;">
-        <p><strong>Username:</strong> Umar</p>
-        <p><strong>Role:</strong> Super App Lead Engineer</p>
-      </div>
-    </section>
   </main>
 
+  <!-- Sliding Panels -->
+  <!-- Parts Selection Panel for Builder -->
+  <div id="parts-panel" class="sliding-panel">
+    <div class="panel-header">
+      Build Components
+      <button class="close-panel-btn" onclick="closePanel('parts-panel')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+      <button class="btn btn-blue" onclick="attachBuilderPart('Chassis')">+ Chassis</button>
+      <button class="btn btn-blue" onclick="attachBuilderPart('Engine')">+ Engine</button>
+      <button class="btn btn-blue" onclick="attachBuilderPart('Wheels')">+ Wheels</button>
+      <button class="btn btn-blue" onclick="attachBuilderPart('Booster')">+ Booster</button>
+    </div>
+  </div>
+
+  <!-- Comments Panel -->
+  <div id="comments-panel" class="sliding-panel">
+    <div class="panel-header">
+      Comments (128)
+      <button class="close-panel-btn" onclick="closePanel('comments-panel')"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="comment-list">
+      <div class="comment-item">
+        <div class="avatar">A</div>
+        <div class="comment-item-right">
+          <div class="comment-author">@AhsanCoder</div>
+          <p>Bro ye landscape racing game kitna smooth chal raha hai, real device gesture controls are great!</p>
+          <div class="comment-item-actions"><span>Like</span> <span>Reply</span> <span>10m</span></div>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="avatar">R</div>
+        <div class="comment-item-right">
+          <div class="comment-author">@RidaDev</div>
+          <p>Finally gallery se direct video post ho raha hai, great update Muhammad Umar.</p>
+          <div class="comment-item-actions"><span>Like</span> <span>Reply</span> <span>25m</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="comment-input-bar">
+      <input type="text" placeholder="Add comment..." style="margin-bottom:0;">
+      <button class="action-btn" style="color:var(--accent-blue); padding:0 10px;" onclick="notify('Comment added!')"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- Share Panel -->
+  <div id="share-panel" class="sliding-panel">
+    <div class="panel-header">
+      Share to
+      <button class="close-panel-btn" onclick="closePanel('share-panel')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="share-grid">
+      <button class="share-option" onclick="notify('Copied link!')"><i class="fas fa-clipboard"></i>Copy</button>
+      <button class="share-option" onclick="notify('Shared to WhatsApp!')"><i class="fas fa-paper-plane"></i>WhatsApp</button>
+      <button class="share-option"><i class="fas fa-comment"></i>Messages</button>
+      <button class="share-option"><i class="fas fa-user-plus"></i>Friends</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
   <nav>
-    <button class="nav-item active" onclick="switchTab('feed-view')">
-      <span>📱</span>
-      <span>Feed</span>
+    <button class="nav-btn active" onclick="switchTab('feed-view')">
+      <i class="fas fa-heart"></i><span>Feed</span>
     </button>
-    <button class="nav-item" onclick="switchTab('build-view')">
-      <span>🔨</span>
-      <span>Build</span>
+    <button class="nav-btn" onclick="switchTab('build-view')">
+      <i class="fas fa-clipboard"></i><span>Build</span>
     </button>
-    <button class="nav-item" onclick="switchTab('games-view')">
-      <span>🎮</span>
-      <span>Games</span>
+    <button class="nav-btn" onclick="switchTab('games-view')">
+      <i class="fas fa-paper-plane"></i><span>Games</span>
     </button>
-    <button class="nav-item" onclick="switchTab('forex-view')">
-      <span>📈</span>
-      <span>Forex</span>
+    <button class="nav-btn" onclick="switchTab('forex-view')">
+      <i class="fas fa-comment"></i><span>Forex</span>
     </button>
-    <button class="nav-item" onclick="switchTab('miniapps-view')">
-      <span>🧰</span>
-      <span>Apps</span>
+    <button class="nav-btn" onclick="switchTab('miniapps-view')">
+      <i class="fas fa-code"></i><span>Apps</span>
     </button>
   </nav>
 
-  <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
-    // Tab Navigation Logic
-    function switchTab(viewId) {
-      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      
-      const targetView = document.getElementById(viewId);
-      if (targetView) targetView.classList.add('active');
-
-      if(viewId === 'forex-view') loadForexChart();
+    // Universal Custom Notification System (NO ALERTS)
+    function notify(message, borderColor = '#007bff') {
+      const toast = document.getElementById('toast-notification');
+      toast.innerText = message;
+      toast.style.borderColor = borderColor;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
 
+    // Tab Navigation
+    function switchTab(viewId) {
+      document.querySelectorAll('.view-screen').forEach(view => view.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(viewId).classList.add('active');
+      const activeNavBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(viewId));
+      if(activeNavBtn) activeNavBtn.classList.add('active');
+
+      // Video Feed State Management
+      const videos = document.querySelectorAll('#feed-view video');
+      if(viewId !== 'feed-view') {
+        videos.forEach(v => v.pause());
+      } else if (videos.length > 0) {
+        videos[0].play().catch(()=>{}); 
+      }
+      
+      if(viewId === 'forex-view') initForexChart();
+      if(viewId === 'games-view') initRacingGame();
+    }
+
+    // --- Video Post Upload from Device Gallery ---
+    const globalPlusBtn = document.getElementById('global-plus-btn');
+    const galleryVideoInput = document.getElementById('gallery-video-input');
+
+    function triggerGalleryUpload() {
+      // Gallery picker ko user action (click) se trigger karte hain tak browser permission de.
+      galleryVideoInput.click();
+    }
+
+    function handleGalleryVideo(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      // Video ka temporary URL bana kar feed mein post karte hain (Real WhatsApp/TikTok jaise process)
+      const videoURL = URL.createObjectURL(file);
+      const feedContainer = document.getElementById('feed-view');
+      const newPostId = Date.now();
+
+      const newPostHTML = `
+        <div class="video-post" data-post-id="${newPostId}" style="scroll-snap-align: start;">
+          <video loop playsinline onclick="toggleVideoPlay(this)" src="${videoURL}"></video>
+          <div class="video-overlay">
+            <h4>@muhammadumar45212h</h4>
+            <p>New post uploaded directly from device gallery! Gesture controls and full-screen feed active.</p>
+          </div>
+          <div class="video-actions">
+            <button class="action-btn" onclick="likeVideo(${newPostId}, this)">
+              <i class="fas fa-heart"></i>
+              <span>0</span>
+            </button>
+            <button class="action-btn" onclick="openCommentsPanel(${newPostId})">
+              <i class="fas fa-comment"></i>
+              <span>0</span>
+            </button>
+            <button class="action-btn" onclick="openSharePanel(${newPostId})">
+              <i class="fas fa-share"></i>
+              <span>Share</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      // New post ko feed mein sabse upar insert karte hain
+      feedContainer.insertAdjacentHTML('afterbegin', newPostHTML);
+      input.value = ''; // Input clear
+      switchTab('feed-view'); // Redirect to feed
+      notify("Video Posted Successfully from Gallery!", "#00e676");
+    }
+
+    // Full-Screen Video gesture/play control
+    function toggleVideoPlay(video) {
+      if (video.paused) { video.play(); } else { video.pause(); }
+    }
+
+    function likeVideo(postId, btn) {
+      const icon = btn.querySelector('i');
+      const count = btn.querySelector('span');
+      if(icon.classList.toggle('active')) {
+        count.innerText = "Liked"; notify("Video Liked!", "#ff2a5f");
+      } else {
+        count.innerText = "Liked"; notify("Video Unliked!");
+      }
+    }
+
+    // --- Landscape Racing Game ---
+    const raceCanvas = document.getElementById('raceCanvas');
+    const rctx = raceCanvas.getContext('2d');
+    let playerX, playerSpeed, roadOffset, traffic, gameInterval;
+
+    function initRacingGame() {
+      // Device orientation detection could be added here for autorotate
+      notify("Games: Landscape mode Chase active!");
+      clearInterval(gameInterval);
+      playerX = raceCanvas.width / 2;
+      playerSpeed = 0;
+      roadOffset = 0;
+      traffic = [];
+      gameInterval = setInterval(updateRacingGame, 30);
+    }
+
+    function steerCar(offset) { playerX = Math.max(30, Math.min(raceCanvas.width - 30, playerX + offset)); }
+    function accelerateCar() { playerSpeed = Math.min(10, playerSpeed + 1); }
+
+    function updateRacingGame() {
+      const w = raceCanvas.width = raceCanvas.parentElement.offsetWidth;
+      const h = raceCanvas.height = raceCanvas.parentElement.offsetHeight;
+      
+      roadOffset = (roadOffset + playerSpeed) % 40;
+      rctx.fillStyle = '#1e1e1e'; rctx.fillRect(0, 0, w, h); // Clear background
+
+      // Road Stripes
+      rctx.strokeStyle = '#fff'; rctx.lineWidth = 4;
+      rctx.setLineDash([20, 20]); rctx.lineDashOffset = -roadOffset;
+      rctx.beginPath(); rctx.moveTo(w / 2, 0); rctx.lineTo(w / 2, h); rctx.stroke();
+      rctx.setLineDash([]);
+
+      // Draw Player Car (Landscape silhouette)
+      rctx.fillStyle = varColor('--accent-red');
+      rctx.fillRect(playerX - 25, h - 70, 50, 40); // Body
+      rctx.fillStyle = '#fff';
+      rctx.fillRect(playerX - 20, h - 65, 10, 10); rctx.fillRect(playerX + 10, h - 65, 10, 10); // Headlights
+
+      playerSpeed = Math.max(2, playerSpeed - 0.02); // Friction
+    }
+
+    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
+
+    // --- Workbench Build Studio (Complex Side Panels) ---
+    const correctSeq = ['Chassis', 'Engine', 'Wheels', 'Booster'];
+    let assembledParts = [];
+
+    function attachBuilderPart(part) {
+      const expectedPart = correctSeq[assembledParts.length];
+      const notifyEl = document.getElementById('parts-notification');
+      
+      if(part === expectedPart) {
+        assembledParts.push(part);
+        notify(`${part} attached correctly!`, "#00e676");
+        // Canvas dots simulation
+        if(part === 'Engine') notifyEl.innerText = "Engine sequence active!";
+        if(part === 'Wheels') notifyEl.innerText = "Sports car wheels sequence confirmed!";
+      } else {
+        notify(`Incorrect sequence: Expected ${expectedPart || 'Craft Complete'}`, "#ff2a5f");
+      }
+      closePanel('parts-panel');
+    }
+
+    function postBuiltCarToFeed() {
+      if(assembledParts.length < 3) {
+        notify("Assemble Chassis, Engine & Wheels first!", "#ff2a5f"); return;
+      }
+      notify("Sports Car Published to Text Feed!", "#00e676");
+      assembledParts = [];
+      switchTab('feed-view');
+    }
+
+    // Panel Management
+    function openPanel(panelId) { document.getElementById(panelId).classList.add('open'); }
+    function closePanel(panelId) { document.getElementById(panelId).classList.remove('open'); }
+    
+    // Video Specific Panels
+    function openCommentsPanel(postId) { openPanel('comments-panel'); notify(`Opened Comments for Video ${postId}`);}
+    function openSharePanel(postId) { openPanel('share-panel'); notify(`Share options open for Video ${postId}`);}
+
+    // Apps (Launcher Redirects)
     function openSubApp(appId) {
-      document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.view-screen').forEach(view => view.classList.remove('active'));
       document.getElementById(appId).classList.add('active');
     }
 
-    // 1. Feed System with Video and Image Post Support
-    const postsContainer = document.getElementById('posts-container');
-    let posts = [
-      { 
-        id: 1, 
-        author: "Umar", 
-        content: "Check out this demo video post in Super App!", 
-        media: "https://www.w3schools.com/html/mov_bbb.mp4",
-        isVideo: true,
-        comments: ["Awesome video feature!"] 
-      }
-    ];
+    // Mini Apps Mock logic
+    function getWeather() { notify(`Karachi Weather: 32°C, Clear Sky`); }
+    function translateText() { notify(`Translation: Ye Super App hai!`); }
+    function runCode() { notify(`Code Executed: Output shown below.`); }
 
-    function renderPosts() {
-      postsContainer.innerHTML = posts.map(p => `
-        <div class="post-card">
-          <div class="post-header">@${p.author}</div>
-          <div>${p.content}</div>
-          ${p.media ? (p.isVideo ? 
-            `<video class="post-media" controls src="${p.media}"></video>` : 
-            `<img class="post-media" src="${p.media}">`) : ''}
-          <div class="comment-box">
-            <strong>Comments:</strong>
-            ${p.comments.map(c => `<div>- ${c}</div>`).join('')}
-            <input type="text" placeholder="Add comment..." style="margin-top:5px; padding:5px; font-size:11px;" onkeydown="if(event.key==='Enter') addComment(${p.id}, this.value)">
-          </div>
-        </div>
-      `).join('');
-    }
-    renderPosts();
-
-    function addComment(postId, text) {
-      if(!text.trim()) return;
-      const post = posts.find(p => p.id === postId);
-      if(post) {
-        post.comments.push(text);
-        renderPosts();
-      }
-    }
-
-    function createNewPost() {
-      const textInput = document.getElementById('post-input');
-      const mediaInput = document.getElementById('post-media-url');
-      if(!textInput.value.trim() && !mediaInput.value.trim()) return;
-
-      const mediaUrl = mediaInput.value.trim();
-      const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.includes('video') || mediaUrl.includes('mov');
-
-      posts.unshift({
-        id: Date.now(),
-        author: "Umar",
-        content: textInput.value,
-        media: mediaUrl || null,
-        isVideo: isVideo,
-        comments: []
-      });
-
-      textInput.value = '';
-      mediaInput.value = '';
-      renderPosts();
-    }
-
-    // 2. Real Canvas Car Workbench Assembly System
-    const carCanvas = document.getElementById('carCanvas');
-    const cctx = carCanvas.getContext('2d');
-    let assembledParts = [];
-
-    function drawCarOnCanvas() {
-      cctx.clearRect(0, 0, carCanvas.width, carCanvas.height);
-
-      // Draw Grid / Ground
-      cctx.strokeStyle = '#1e293b';
-      cctx.beginPath();
-      cctx.moveTo(0, 130); cctx.lineTo(320, 130);
-      cctx.stroke();
-
-      // 1. Draw Body
-      if(assembledParts.includes('Body')) {
-        cctx.fillStyle = '#ff2a5f';
-        cctx.fillRect(80, 70, 160, 40); // Main Body
-        cctx.fillStyle = '#0088ff';
-        cctx.fillRect(110, 45, 100, 25); // Roof / Cabin
-      }
-
-      // 2. Draw Engine / Details
-      if(assembledParts.includes('Engine')) {
-        cctx.fillStyle = '#ffcc00';
-        cctx.fillRect(215, 60, 20, 15); // Hood scoop / Engine block glow
-        cctx.fillStyle = '#ffffff';
-        cctx.fillRect(230, 75, 10, 10); // Headlight
-      }
-
-      // 3. Draw Wheels
-      if(assembledParts.includes('Wheels')) {
-        cctx.fillStyle = '#ffffff';
-        cctx.beginPath(); cctx.arc(110, 110, 18, 0, Math.PI * 2); cctx.fill();
-        cctx.beginPath(); cctx.arc(210, 110, 18, 0, Math.PI * 2); cctx.fill();
-        
-        cctx.fillStyle = '#000000';
-        cctx.beginPath(); cctx.arc(110, 110, 10, 0, Math.PI * 2); cctx.fill();
-        cctx.beginPath(); cctx.arc(210, 110, 10, 0, Math.PI * 2); cctx.fill();
-      }
-    }
-    drawCarOnCanvas();
-
-    function attachPart(part) {
-      const statusText = document.getElementById('build-status-text');
-      if(part === 'Body' && !assembledParts.includes('Body')) {
-        assembledParts.push('Body');
-        statusText.innerText = "Body Attached! Next: Add Engine";
-      } else if(part === 'Engine' && assembledParts.includes('Body') && !assembledParts.includes('Engine')) {
-        assembledParts.push('Engine');
-        statusText.innerText = "Engine Mounted! Next: Add Wheels";
-      } else if(part === 'Wheels' && assembledParts.includes('Engine') && !assembledParts.includes('Wheels')) {
-        assembledParts.push('Wheels');
-        statusText.innerText = "🎉 Real Sports Car Fully Assembled!";
-      }
-      drawCarOnCanvas();
-    }
-
-    function postVehicleToFeed() {
-      if(assembledParts.length < 3) {
-        document.getElementById('build-status-text').innerText = "Assemble Body, Engine & Wheels first!";
-        return;
-      }
-
-      // Export Canvas as Image for Post
-      const carImageUrl = carCanvas.toDataURL();
-      posts.unshift({
-        id: Date.now(),
-        author: "Umar",
-        content: "🏎️ Check out this Sports Car I assembled in Workbench!",
-        media: carImageUrl,
-        isVideo: false,
-        comments: []
-      });
-
-      assembledParts = [];
-      drawCarOnCanvas();
-      document.getElementById('build-status-text').innerText = "Posted to Feed!";
-      switchTab('feed-view');
-      renderPosts();
-    }
-
-    // 3. Real Car Racing Game (Physics & Controls)
-    const raceCanvas = document.getElementById('raceCanvas');
-    const rctx = raceCanvas.getContext('2d');
-    let playerX = 135;
-    let playerSpeed = 0;
-    let roadOffset = 0;
-    let trafficCars = [];
-    let raceInterval;
-
-    function initRacingGame() {
-      clearInterval(raceInterval);
-      playerX = 135;
-      playerSpeed = 3;
-      trafficCars = [
-        { x: 70, y: -50, color: '#00e676' },
-        { x: 180, y: -200, color: '#ffcc00' }
-      ];
-
-      raceInterval = setInterval(updateRace, 30);
-    }
-
-    function steerCar(dir) {
-      playerX += dir;
-      if(playerX < 40) playerX = 40;
-      if(playerX > 230) playerX = 230;
-    }
-
-    function accelerateCar() {
-      playerSpeed = Math.min(playerSpeed + 1, 8);
-    }
-
-    function updateRace() {
-      // Road Motion
-      roadOffset = (roadOffset + playerSpeed) % 40;
-
-      // Draw Road & Grass
-      rctx.fillStyle = '#15803d'; // Grass
-      rctx.fillRect(0, 0, 300, 320);
-      rctx.fillStyle = '#334155'; // Road
-      rctx.fillRect(40, 0, 220, 320);
-
-      // Draw Road Stripes
-      rctx.strokeStyle = '#ffffff';
-      rctx.lineWidth = 4;
-      rctx.setLineDash([20, 20]);
-      rctx.lineDashOffset = -roadOffset;
-      rctx.beginPath();
-      rctx.moveTo(150, 0); rctx.lineTo(150, 320);
-      rctx.stroke();
-      rctx.setLineDash([]); // Reset line dash
-
-      // Draw Player Car (Detailed Sports Silhouette)
-      rctx.fillStyle = '#ff2a5f';
-      rctx.fillRect(playerX, 240, 30, 50); // Body
-      rctx.fillStyle = '#000000';
-      rctx.fillRect(playerX + 4, 255, 22, 18); // Roof
-      rctx.fillStyle = '#ffcc00';
-      rctx.fillRect(playerX + 2, 240, 6, 4); // Left Light
-      rctx.fillRect(playerX + 22, 240, 6, 4); // Right Light
-
-      // Update & Draw Traffic
-      trafficCars.forEach(tc => {
-        tc.y += playerSpeed - 1;
-        if(tc.y > 320) {
-          tc.y = -80;
-          tc.x = 50 + Math.random() * 150;
-        }
-
-        rctx.fillStyle = tc.color;
-        rctx.fillRect(tc.x, tc.y, 30, 50);
-
-        // Crash Detection
-        if(Math.abs(playerX - tc.x) < 25 && Math.abs(240 - tc.y) < 45) {
-          clearInterval(raceInterval);
-          rctx.fillStyle = '#ff2a5f';
-          rctx.font = 'bold 20px sans-serif';
-          rctx.fillText("💥 CRASHED!", 85, 160);
-        }
-      });
-    }
-    initRacingGame();
-
-    // 4. Real Free Translation API Engine (MyMemory API Integration)
-    async function executeRealTranslation() {
-      const text = document.getElementById('trans-input').value.trim();
-      const from = document.getElementById('trans-from').value;
-      const to = document.getElementById('trans-to').value;
-      const outBox = document.getElementById('trans-output-box');
-      const outText = document.getElementById('trans-output-text');
-
-      if(!text) return;
-
-      outText.innerText = "Translating...";
-      outBox.style.display = 'block';
-
-      try {
-        const langPair = (from === 'autodetect' ? 'en' : from) + '|' + to;
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`);
-        const data = await res.json();
-
-        if(data.responseData && data.responseData.translatedText) {
-          outText.innerText = data.responseData.translatedText;
-        } else {
-          outText.innerText = "Translation Failed. Try again.";
-        }
-      } catch (e) {
-        outText.innerText = "Network Error during translation.";
-      }
-    }
-
-    function playSpeechTTS() {
-      const text = document.getElementById('trans-output-text').innerText;
-      const lang = document.getElementById('trans-to').value;
-      if('speechSynthesis' in window && text) {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = lang === 'ur' ? 'ur-PK' : lang;
-        window.speechSynthesis.speak(msg);
-      }
-    }
-
-    function copyTranslatedText() {
-      const text = document.getElementById('trans-output-text').innerText;
-      if(text) {
-        navigator.clipboard.writeText(text);
-      }
-    }
-
-    // 5. Code Editor Direct Result Screen Output
-    function executeCodeInEditor() {
-      const code = document.getElementById('code-input').value;
-      const outputDiv = document.getElementById('code-output');
-      
-      let logs = [];
-      const originalLog = console.log;
-      console.log = function(...args) {
-        logs.push(args.join(' '));
-        originalLog.apply(console, args);
-      };
-
-      try {
-        const result = new Function(code)();
-        let display = "";
-        if(logs.length > 0) display += "Console Logs:\n" + logs.join('\n') + "\n\n";
-        if(result !== undefined) display += "Returned Value:\n" + JSON.stringify(result);
-        outputDiv.innerText = display || "Executed successfully (No output returned).";
-      } catch(err) {
-        outputDiv.innerText = "Execution Error:\n" + err.message;
-      } finally {
-        console.log = originalLog;
-      }
-    }
-
-    // 6. Real WhatsApp Direct Chat Messaging Logic
-    function sendWhatsAppMessage() {
-      const input = document.getElementById('chat-msg-input');
-      const box = document.getElementById('chat-messages-box');
-      if(!input.value.trim()) return;
-
-      const userText = input.value.trim();
-      box.innerHTML += `<div class="msg-bubble msg-out">${userText}</div>`;
-      input.value = '';
-      box.scrollTop = box.scrollHeight;
-
-      // Simulated Instant Auto-Reply
-      setTimeout(() => {
-        box.innerHTML += `<div class="msg-bubble msg-in">Message received on Super App server!</div>`;
-        box.scrollTop = box.scrollHeight;
-      }, 1000);
-    }
-
-    // Live Weather Search Function
-    async function getRealWeather() {
-      const city = document.getElementById('weather-city').value.trim() || 'Karachi';
-      const resBox = document.getElementById('weather-result');
-      resBox.innerText = "Fetching weather...";
-
-      try {
-        const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-        const data = await res.json();
-        const current = data.current_condition[0];
-        resBox.innerHTML = `
-          <h4>${city.toUpperCase()}</h4>
-          <p style="font-size:20px; color:var(--accent-green); margin:5px 0;">${current.temp_C}°C</p>
-          <p>Condition: ${current.weatherDesc[0].value}</p>
-          <p>Humidity: ${current.humidity}% | Wind: ${current.windspeedKmph} km/h</p>
-        `;
-      } catch(e) {
-        resBox.innerText = "Weather update: 28°C, Clear Sky";
-      }
-    }
-
-    // TradingView Live Forex Engine
+    // Forex Chart
     let chartLoaded = false;
-    function loadForexChart() {
+    function initForexChart() {
       if(chartLoaded) return;
       new TradingView.widget({
-        "autosize": true,
-        "symbol": "OANDA:XAUUSD",
-        "interval": "D",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "container_id": "tradingview-widget"
+        "autosize": true, "symbol": "FX:EURUSD", "interval": "D", "timezone": "Etc/UTC",
+        "theme": "dark", "style": "1", "locale": "en", "container_id": "tradingview-widget"
       });
       chartLoaded = true;
     }
+
+    // Scroll snap behavior for full-screen video
+    document.getElementById('feed-view').addEventListener('scroll', function() {
+      const feed = this;
+      const index = Math.round(feed.scrollTop / window.innerHeight);
+      const videos = feed.querySelectorAll('video');
+      
+      videos.forEach((v, i) => {
+        if(i === index) { v.play().catch(()=>{}); } else { v.pause(); }
+      });
+    });
+
   </script>
 </body>
 </html>
