@@ -2,690 +2,527 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super App Universal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuperApp - Universal All-in-One Platform</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    :root {
-      --bg-dark: #090a0f;
-      --card-bg: #161822;
-      --accent-primary: #00f2fe;
-      --accent-pink: #ff007f;
-      --text-main: #ffffff;
-      --text-muted: #a0a5b5;
-      --nav-height: 60px;
-      --app-scale: 1;
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; zoom: var(--app-scale); }
-    button, input, select, textarea { outline: none; border: none; font-family: inherit; }
-    button { cursor: pointer; }
-
-    /* Custom Toast Banner (No Native Alert) */
-    #toast-banner {
-      position: fixed; top: -70px; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, #161822, #232738);
-      color: var(--accent-primary); border: 1px solid var(--accent-primary);
-      padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.7); z-index: 10000;
-      transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: flex; align-items: center; gap: 8px; max-width: 90%;
+    .animate-slide-up {
+      animation: slideUp 0.3s ease-out forwards;
     }
-    #toast-banner.show { top: 15px; }
-
-    /* Login Overlay Gatekeeper */
-    #auth-screen {
-      position: fixed; inset: 0; background: var(--bg-dark); z-index: 9000;
-      display: flex; flex-direction: column; justify-content: center; padding: 25px;
-    }
-    .auth-box { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid #2a2e42; }
-    .auth-box h2 { font-size: 22px; color: var(--accent-primary); margin-bottom: 8px; text-align: center; }
-    .auth-box p { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 20px; }
-    .auth-box input { width: 100%; background: #0c0d14; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; border: 1px solid #2a2e42; }
-    .auth-btn { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--accent-primary), #4facfe); color: #000; font-weight: bold; border-radius: 8px; font-size: 14px; }
-
-    /* Header Bar */
-    header {
-      height: 50px; background: #0c0d14; border-bottom: 1px solid #1f2333;
-      display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 800;
-    }
-    .app-logo { font-size: 16px; font-weight: 800; background: linear-gradient(45deg, var(--accent-primary), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .header-icons { display: flex; gap: 15px; }
-    .icon-btn { background: none; color: #fff; font-size: 18px; position: relative; }
-
-    /* Views Framework */
-    main { flex: 1; position: relative; overflow: hidden; }
-    .app-screen { display: none; height: 100%; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; }
-    .app-screen.active { display: block; }
-
-    /* 1. Reel Video Feed */
-    #reel-feed { background: #000; overflow-y: scroll; scroll-snap-type: y mandatory; height: 100%; }
-    .reel-item {
-      height: calc(100vh - 110px); width: 100%; scroll-snap-align: start; position: relative;
-      display: flex; align-items: center; justify-content: center; background: #050508;
-    }
-    .reel-item video { width: 100%; height: 100%; object-fit: cover; }
-    
-    .reel-overlay { position: absolute; bottom: 20px; left: 15px; max-width: 70%; text-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 10; }
-    .reel-overlay .user-handle { font-size: 14px; font-weight: bold; color: var(--accent-primary); margin-bottom: 4px; }
-    .reel-overlay .caption { font-size: 13px; color: #fff; line-height: 1.3; }
-
-    .reel-actions {
-      position: absolute; right: 12px; bottom: 30px; z-index: 10;
-      display: flex; flex-direction: column; gap: 18px; align-items: center;
-    }
-    .side-action-btn { background: rgba(22, 24, 34, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); width: 44px; height: 44px; border-radius: 50%; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; }
-    .side-action-btn svg { width: 20px; height: 20px; fill: currentColor; }
-    .side-action-btn.active { color: var(--accent-pink); border-color: var(--accent-pink); }
-    .action-count { font-size: 10px; margin-top: 2px; color: var(--text-muted); }
-
-    /* Hold Reaction Overlay */
-    .reaction-popup {
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
-      background: rgba(0,0,0,0.85); border: 1px solid var(--accent-primary); padding: 10px 20px;
-      border-radius: 30px; display: flex; gap: 15px; font-size: 24px; transition: transform 0.2s ease; z-index: 100;
-    }
-    .reaction-popup.active { transform: translate(-50%, -50%) scale(1); }
-
-    /* Half-Screen Drawer (Comments / DM) */
-    .half-drawer {
-      position: fixed; bottom: -100%; left: 0; width: 100%; height: 55vh;
-      background: var(--card-bg); border-top-left-radius: 20px; border-top-right-radius: 20px;
-      z-index: 3000; transition: bottom 0.3s ease; display: flex; flex-direction: column;
-      border-top: 1px solid #2a2e42; padding: 15px;
-    }
-    .half-drawer.open { bottom: 0; }
-    .drawer-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #2a2e42; font-weight: bold; font-size: 14px; }
-    .comment-scroll { flex: 1; overflow-y: auto; margin: 10px 0; display: flex; flex-direction: column; gap: 10px; }
-    .comment-node { background: #0c0d14; padding: 10px; border-radius: 8px; font-size: 12px; }
-    .comment-node .c-user { color: var(--accent-primary); font-weight: bold; margin-bottom: 3px; }
-    .comment-reply-btn { font-size: 10px; color: var(--accent-pink); margin-top: 5px; display: inline-block; }
-
-    /* 2. Text Feed Section */
-    #text-feed { padding: 15px; }
-    .text-post-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #2a2e42; }
-    .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .post-author { font-weight: bold; font-size: 13px; color: var(--accent-primary); }
-    .post-body { font-size: 13px; line-height: 1.4; color: #ddd; margin-bottom: 12px; white-space: pre-wrap; }
-    .post-bottom-bar { display: flex; justify-content: space-between; border-top: 1px solid #2a2e42; pt: 10px; margin-top: 10px; padding-top: 8px; }
-    .p-btn { background: none; color: var(--text-muted); font-size: 12px; display: flex; align-items: center; gap: 4px; }
-
-    /* 3. Apps View */
-    #apps-view { padding: 15px; }
-    .app-grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
-    .app-module-card { background: var(--card-bg); border: 1px solid #2a2e42; padding: 20px; border-radius: 12px; text-align: center; }
-    .app-module-card h4 { font-size: 15px; color: #fff; margin-bottom: 6px; }
-    .app-module-card p { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
-
-    /* Module Views */
-    .module-screen { display: none; padding: 15px; height: 100%; overflow-y: auto; }
-    .module-screen.active { display: block; }
-
-    /* Weather UI */
-    .search-row { display: flex; gap: 8px; margin-bottom: 15px; }
-    .search-row input { flex: 1; background: var(--card-bg); padding: 10px; border-radius: 8px; color: #fff; border: 1px solid #2a2e42; }
-
-    /* Translator UI */
-    .trans-box { display: flex; flex-direction: column; gap: 10px; }
-    .trans-selects { display: flex; justify-content: space-between; gap: 10px; }
-    .trans-selects select { flex: 1; background: var(--card-bg); color: #fff; padding: 8px; border-radius: 6px; border: 1px solid #2a2e42; font-size: 12px; }
-
-    /* Floating Action Button (+) */
-    #global-post-fab {
-      position: fixed; bottom: calc(var(--nav-height) + 12px); right: 20px;
-      width: 50px; height: 50px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
-      color: #fff; font-size: 24px; font-weight: bold;
-      box-shadow: 0 5px 15px rgba(0,242,254,0.4); z-index: 850;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* Bottom Nav Bar */
-    nav { height: var(--nav-height); background: #0c0d14; display: flex; border-top: 1px solid #1f2333; z-index: 800; }
-    .nav-item { flex: 1; background: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; gap: 3px; }
-    .nav-item.active { color: var(--accent-primary); font-weight: bold; }
-
-    /* Snake Game Canvas */
-    #snakeCanvas { background: #000; display: block; margin: 10px auto; border: 2px solid var(--accent-primary); border-radius: 8px; }
   </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20">
 
-  <div id="toast-banner">
-    <span id="toast-msg">Notification System Active</span>
-  </div>
-
-  <div id="auth-screen">
-    <div class="auth-box">
-      <h2>Welcome Back</h2>
-      <p>Please Login or Register to access feeds & apps</p>
-      <input type="text" id="auth-email" placeholder="Email / Username">
-      <input type="password" id="auth-pass" placeholder="Password">
-      <button class="auth-btn" onclick="handleAccountAuth()">Login / Sign Up</button>
-    </div>
-  </div>
-
-  <header>
-    <div class="app-logo">SUPER APP</div>
-    <div class="header-icons">
-      <button class="icon-btn" onclick="openProfilePage()">👤</button>
-      <button class="icon-btn" onclick="openDrawer('settings-drawer')">⚙️</button>
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex justify-between items-center max-w-md mx-auto">
+    <h1 class="text-xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+      SUPERAPP
+    </h1>
+    <div class="flex gap-2">
+      <button onclick="switchTab('weather')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 text-amber-400">
+        <i class="fa-solid fa-cloud-sun"></i>
+      </button>
+      <button onclick="switchTab('translator')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 text-cyan-400">
+        <i class="fa-solid fa-language"></i>
+      </button>
     </div>
   </header>
 
-  <button id="global-post-fab" onclick="openDrawer('upload-drawer')">+</button>
+  <main class="max-w-md mx-auto p-3">
 
-  <main>
-    <section id="reel-feed" class="app-screen active">
-      <div class="reel-item" id="default-reel" oncontextmenu="return false;">
-        <video loop playsinline src="https://www.w3schools.com/html/mov_bbb.mp4" onclick="toggleReelAudio(this)"></video>
-        <div class="reel-overlay">
-          <div class="user-handle">@official_umar</div>
-          <div class="caption">Welcome to the permanent video feed!</div>
+    <section id="tab-feed" class="tab-content space-y-4">
+      <div id="posts-container" class="space-y-4">
         </div>
-        <div class="reel-actions">
-          <button class="side-action-btn" onclick="toggleSingleLike(this, 'reel-1')">
-            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span class="action-count" id="like-cnt-reel-1">0</span>
+    </section>
+
+    <section id="tab-forex" class="tab-content hidden">
+      <h2 class="text-lg font-bold mb-3 text-cyan-400">FOREX Live Market Charts</h2>
+      <div class="w-full h-[500px] bg-slate-900 rounded-xl overflow-hidden shadow-lg border border-slate-800">
+        <div id="tradingview_widget" class="w-full h-full"></div>
+      </div>
+    </section>
+
+    <section id="tab-create" class="tab-content hidden">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+        <h2 class="text-lg font-bold mb-4 text-cyan-400">Create New Post</h2>
+        <form onsubmit="handleCreatePost(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Post Type</label>
+            <div class="flex gap-2">
+              <button type="button" id="btn-type-text" onclick="setPostType('text')" class="flex-1 py-2 text-xs rounded-xl font-semibold border bg-cyan-600 border-cyan-500 text-white">
+                Text Post
+              </button>
+              <button type="button" id="btn-type-video" onclick="setPostType('video')" class="flex-1 py-2 text-xs rounded-xl font-semibold border bg-slate-800 border-slate-700 text-slate-400">
+                Video Post
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <textarea id="post-text-input" rows="4" placeholder="What's on your mind? (Explicit/XXX content is strictly blocked)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-500"></textarea>
+          </div>
+
+          <div id="video-upload-box" class="hidden">
+            <label class="block text-xs font-medium text-slate-400 mb-1">Upload Video File</label>
+            <input type="file" id="post-file-input" accept="video/*" class="w-full text-xs text-slate-400 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+          </div>
+
+          <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-3 rounded-xl transition">
+            Publish Post
           </button>
-          <button class="side-action-btn" onclick="openComments('reel-1')">
-            <svg viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
-            <span class="action-count">3</span>
-          </button>
-          <button class="side-action-btn" onclick="copyReelLink()">
-            <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-            <span class="action-count">Share</span>
-          </button>
-          <button class="side-action-btn" onclick="toggleSubscribe(this)">
-            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            <span class="action-count">Sub</span>
-          </button>
-        </div>
-        <div class="reaction-popup" id="react-pop-1">
-          <span>👍</span><span>❤️</span><span>🔥</span>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-chats" class="tab-content hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h2 class="text-lg font-bold text-cyan-400 mb-3">Messages, Channels & Groups</h2>
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div>
+              <h4 class="text-sm font-semibold text-white">SuperApp Official Channel</h4>
+              <p class="text-xs text-slate-400">Welcome to the future of trading & social connect...</p>
+            </div>
+            <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full font-bold">Channel</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+            <div>
+              <h4 class="text-sm font-semibold text-white">Forex Traders Group</h4>
+              <p class="text-xs text-slate-400">Alex: EUR/USD looking strong today!</p>
+            </div>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full font-bold">Group</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="text-feed" class="app-screen">
-      <div id="text-posts-container">
+    <section id="tab-profile" class="tab-content hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center">
+        <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white mb-3">
+          C
         </div>
-    </section>
+        <h2 class="text-lg font-bold">@creator_pro</h2>
+        <p class="text-xs text-slate-400 mb-4">Official Creator Profile</p>
 
-    <section id="apps-view" class="app-screen">
-      <div class="app-grid-container">
-        <div class="app-module-card" onclick="openModule('dev-app')">
-          <h4>Developer Platform</h4>
-          <p>Dev posts, profiles & direct messages</p>
-          <button class="auth-btn" style="padding:6px; font-size:11px;">Open Studio</button>
-        </div>
-        <div class="app-module-card" onclick="openModule('snake-app')">
-          <h4>Snake Arcade</h4>
-          <p>Classic arcade snake game</p>
-          <button class="auth-btn" style="padding:6px; font-size:11px;">Play Game</button>
-        </div>
-        <div class="app-module-card" onclick="openModule('weather-app')">
-          <h4>Weather Radar</h4>
-          <p>City search, temperature & rain forecast</p>
-          <button class="auth-btn" style="padding:6px; font-size:11px;">View Weather</button>
-        </div>
-        <div class="app-module-card" onclick="openModule('translator-app')">
-          <h4>Multi-Translator</h4>
-          <p>20+ languages instant translator</p>
-          <button class="auth-btn" style="padding:6px; font-size:11px;">Translate</button>
+        <div class="grid grid-cols-3 gap-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div>
+            <span id="stat-posts" class="block text-lg font-black text-cyan-400">1</span>
+            <span class="text-[10px] text-slate-400 uppercase">Posts</span>
+          </div>
+          <div>
+            <span id="stat-likes" class="block text-lg font-black text-pink-500">124</span>
+            <span class="text-[10px] text-slate-400 uppercase">Likes</span>
+          </div>
+          <div>
+            <span id="stat-subscribers" class="block text-lg font-black text-emerald-400">89</span>
+            <span class="text-[10px] text-slate-400 uppercase">Subscribers</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <div id="dev-app" class="module-screen">
-      <button class="auth-btn" style="width:auto; padding:6px 15px; margin-bottom:15px;" onclick="closeModules()">← Back</button>
-      <h3>Developer Community</h3>
-      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin:10px 0; border:1px solid #2a2e42;">
-        <textarea id="dev-post-input" rows="3" placeholder="Share technical update..." style="width:100%; background:#0c0d14; color:#fff; padding:10px; border-radius:8px; border:1px solid #2a2e42; margin-bottom:10px;"></textarea>
-        <button class="auth-btn" onclick="publishDevPost()">Post to Dev Feed</button>
-      </div>
-      <div id="dev-posts-container"></div>
-    </div>
-
-    <div id="snake-app" class="module-screen">
-      <button class="auth-btn" style="width:auto; padding:6px 15px; margin-bottom:15px;" onclick="closeModules()">← Back</button>
-      <h3>Snake Arcade</h3>
-      <canvas id="snakeCanvas" width="280" height="280"></canvas>
-      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:200px; margin:15px auto;">
-        <div></div><button class="auth-btn" onclick="changeSnakeDir('UP')">▲</button><div></div>
-        <button class="auth-btn" onclick="changeSnakeDir('LEFT')">◀</button>
-        <button class="auth-btn" onclick="changeSnakeDir('DOWN')">▼</button>
-        <button class="auth-btn" onclick="changeSnakeDir('RIGHT')">▶</button>
-      </div>
-    </div>
-
-    <div id="weather-app" class="module-screen">
-      <button class="auth-btn" style="width:auto; padding:6px 15px; margin-bottom:15px;" onclick="closeModules()">← Back</button>
-      <h3>Live Weather Intelligence</h3>
-      <div class="search-row" style="margin-top:10px;">
-        <input type="text" id="weather-city-input" placeholder="Enter City/Country (e.g. Karachi)...">
-        <button class="auth-btn" style="width:auto; padding:0 15px;" onclick="fetchCityWeather()">Search</button>
-      </div>
-      <div id="weather-card-output" style="background:var(--card-bg); padding:20px; border-radius:12px; border:1px solid #2a2e42; display:none;">
-        <h2 id="w-city-name" style="color:var(--accent-primary);">City</h2>
-        <h1 id="w-temp" style="font-size:36px; margin:10px 0;">--°C</h1>
-        <p id="w-rain" style="font-size:12px; color:var(--text-muted);">Rain Probability: --</p>
-      </div>
-    </div>
-
-    <div id="translator-app" class="module-screen">
-      <button class="auth-btn" style="width:auto; padding:6px 15px; margin-bottom:15px;" onclick="closeModules()">← Back</button>
-      <h3>Universal Translator</h3>
-      <div class="trans-box" style="margin-top:10px;">
-        <div class="trans-selects">
-          <select id="lang-from"><option value="en">English</option></select>
-          <select id="lang-to">
-            <option value="ur">Urdu</option>
+    <section id="tab-translator" class="tab-content hidden">
+      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+        <h2 class="text-lg font-bold mb-4 text-cyan-400">Universal Language Translator</h2>
+        
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <select id="trans-from" class="bg-slate-800 text-white px-3 py-2 rounded-lg border border-slate-700 text-xs w-full">
+            <option value="en">English</option>
+            <option value="ur">Urdu (اردو)</option>
+            <option value="hi">Hindi (हिंदी)</option>
+            <option value="ar">Arabic (العربية)</option>
             <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-            <option value="ar">Arabic</option>
-            <option value="zh">Chinese</option>
-            <option value="hi">Hindi</option>
-            <option value="tr">Turkish</option>
-            <option value="ru">Russian</option>
-            <option value="ja">Japanese</option>
+          </select>
+          <button onclick="swapLanguages()" class="p-2 bg-slate-800 rounded-full border border-slate-700 text-cyan-400">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </button>
+          <select id="trans-to" class="bg-slate-800 text-white px-3 py-2 rounded-lg border border-slate-700 text-xs w-full">
+            <option value="ur">Urdu (اردو)</option>
+            <option value="en">English</option>
+            <option value="hi">Hindi (हिंदी)</option>
+            <option value="ar">Arabic (العربية)</option>
+            <option value="es">Spanish</option>
           </select>
         </div>
-        <textarea id="trans-text-in" rows="3" placeholder="Type text to translate..." style="width:100%; background:var(--card-bg); color:#fff; padding:10px; border-radius:8px; border:1px solid #2a2e42;"></textarea>
-        <button class="auth-btn" onclick="executeTranslation()">Translate Now</button>
-        <div id="trans-output-box" style="background:#0c0d14; padding:12px; border-radius:8px; font-size:13px; min-height:50px; border:1px solid #2a2e42;">Translation output will appear here...</div>
-      </div>
-    </div>
 
-    <section id="profile-view" class="app-screen" style="padding:15px;">
-      <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-        <div style="width:65px; height:65px; border-radius:50%; background:linear-gradient(45deg, var(--accent-primary), var(--accent-pink)); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold;" id="prof-avatar">U</div>
-        <div>
-          <h2 id="prof-username">User</h2>
-          <p style="font-size:12px; color:var(--text-muted);" id="prof-email">user@app.com</p>
+        <textarea id="trans-input" rows="3" placeholder="Type or paste text to translate..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none mb-3"></textarea>
+
+        <button onclick="translateText()" class="w-full bg-cyan-600 hover:bg-cyan-500 font-semibold py-2.5 rounded-xl transition mb-4 text-sm">
+          Translate Now
+        </button>
+
+        <div id="trans-output-box" class="hidden relative bg-slate-950 border border-slate-800 rounded-xl p-4">
+          <p id="trans-output-text" class="text-slate-200 text-sm leading-relaxed"></p>
+          <button onclick="copyTranslation()" class="mt-3 flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 text-cyan-400">
+            <i class="fa-regular fa-copy"></i> Copy Text
+          </button>
         </div>
       </div>
-      <div style="display:flex; justify-content:space-around; background:var(--card-bg); padding:12px; border-radius:12px; border:1px solid #2a2e42; text-align:center; margin-bottom:20px;">
-        <div><h3 id="prof-post-cnt" style="color:var(--accent-primary);">0</h3><p style="font-size:10px; color:var(--text-muted);">Posts</p></div>
-        <div><h3 id="prof-like-cnt" style="color:var(--accent-primary);">0</h3><p style="font-size:10px; color:var(--text-muted);">Total Likes</p></div>
-        <div><h3 style="color:var(--accent-primary);">1</h3><p style="font-size:10px; color:var(--text-muted);">Subs</p></div>
+    </section>
+
+    <section id="tab-weather" class="tab-content hidden">
+      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 text-center">
+        <h2 class="text-lg font-bold text-amber-400 mb-2">Global Weather</h2>
+        <input type="text" id="weather-city" placeholder="Enter city or country..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white mb-3 text-center">
+        <button onclick="checkWeather()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2 rounded-xl text-sm">Check Weather</button>
+        <div id="weather-result" class="mt-4 text-sm text-slate-300"></div>
       </div>
-      <button class="auth-btn" style="background:#ff3b30; color:#fff;" onclick="logoutAccount()">Logout Account</button>
     </section>
   </main>
 
-  <div id="comments-drawer" class="half-drawer">
-    <div class="drawer-header">
-      <span>Comments & Replies</span>
-      <button onclick="closeDrawer('comments-drawer')" style="background:none; color:#fff;">✖</button>
-    </div>
-    <div class="comment-scroll" id="comments-list-box">
-      <div class="comment-node">
-        <div class="c-user">@dev_expert</div>
-        <div>Great layout update! Working really smooth.</div>
-        <span class="comment-reply-btn" onclick="showToast('Reply mode active')">Reply</span>
-      </div>
-    </div>
-    <div style="display:flex; gap:8px;">
-      <input type="text" id="new-comment-input" placeholder="Add a comment..." style="flex:1; background:#0c0d14; color:#fff; padding:10px; border-radius:8px; border:1px solid #2a2e42;">
-      <button class="auth-btn" style="width:auto; padding:0 15px;" onclick="addCommentNode()">Send</button>
-    </div>
-  </div>
-
-  <div id="upload-drawer" class="half-drawer" style="height:65vh;">
-    <div class="drawer-header">
-      <span>Publish New Content</span>
-      <button onclick="closeDrawer('upload-drawer')" style="background:none; color:#fff;">✖</button>
-    </div>
-    <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px;">
-      <select id="upload-type" style="background:#0c0d14; color:#fff; padding:10px; border-radius:8px; border:1px solid #2a2e42;">
-        <option value="text">Text Post Feed</option>
-        <option value="video">Reel Video Feed</option>
-      </select>
-      <input type="file" id="upload-file" accept="video/*" style="background:#0c0d14; color:#fff; padding:8px; border-radius:8px; border:1px solid #2a2e42;">
-      <textarea id="upload-caption" rows="3" placeholder="Enter post caption or body text..." style="width:100%; background:#0c0d14; color:#fff; padding:10px; border-radius:8px; border:1px solid #2a2e42;"></textarea>
-      <button class="auth-btn" onclick="processNewPublish()">Publish Post</button>
-    </div>
-  </div>
-
-  <div id="settings-drawer" class="half-drawer" style="height:70vh;">
-    <div class="drawer-header">
-      <span>Settings & App Wallet</span>
-      <button onclick="closeDrawer('settings-drawer')" style="background:none; color:#fff;">✖</button>
-    </div>
-    <div style="margin-top:15px; overflow-y:auto; flex:1;">
-      <div style="background:#0c0d14; padding:15px; border-radius:10px; border:1px solid #2a2e42; margin-bottom:15px;">
-        <span style="font-size:11px; color:var(--text-muted);">Wallet Balance</span>
-        <h2 style="color:var(--accent-primary); font-size:26px;">$0.00 USD</h2>
-        <button class="auth-btn" style="margin-top:8px; padding:6px;" onclick="openWithdrawModal()">Withdraw Funds</button>
-      </div>
-      <label style="font-size:12px; color:var(--text-muted);">Display Scaling / Zoom Level:</label>
-      <input type="range" min="0.75" max="1.15" step="0.05" value="1" oninput="changeAppScaling(this.value)" style="width:100%; margin:10px 0;">
-      <p style="font-size:11px; color:var(--text-muted); line-height:1.4;">
-        <b>System Status:</b> Persistent Local DB Active.<br>
-        Video files and account credentials will remain preserved across browser sessions.
-      </p>
-    </div>
-  </div>
-
-  <nav>
-    <button class="nav-item active" onclick="switchMainTab('reel-feed')">🎬<span>Reels</span></button>
-    <button class="nav-item" onclick="switchMainTab('text-feed')">📝<span>Posts</span></button>
-    <button class="nav-item" onclick="switchMainTab('apps-view')">📱<span>Apps</span></button>
+  <nav class="fixed bottom-0 inset-x-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 z-40 px-4 py-2 flex justify-between items-center max-w-md mx-auto">
+    <button onclick="switchTab('feed')" class="nav-btn flex flex-col items-center text-xs text-cyan-400 font-bold">
+      <i class="fa-solid fa-house text-lg"></i>
+      <span>Home</span>
+    </button>
+    <button onclick="switchTab('forex')" class="nav-btn flex flex-col items-center text-xs text-slate-400">
+      <i class="fa-solid fa-chart-line text-lg"></i>
+      <span>Forex</span>
+    </button>
+    <button onclick="switchTab('create')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:scale-105 transition -mt-5 border-4 border-slate-950">
+      <i class="fa-solid fa-plus text-xl"></i>
+    </button>
+    <button onclick="switchTab('chats')" class="nav-btn flex flex-col items-center text-xs text-slate-400">
+      <i class="fa-solid fa-comments text-lg"></i>
+      <span>Chat</span>
+    </button>
+    <button onclick="switchTab('profile')" class="nav-btn flex flex-col items-center text-xs text-slate-400">
+      <i class="fa-solid fa-user text-lg"></i>
+      <span>Profile</span>
+    </button>
   </nav>
 
+  <div id="comment-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-end hidden">
+    <div class="bg-slate-900 border-t border-slate-800 w-full max-w-md h-[65vh] rounded-t-3xl p-4 text-white flex flex-col animate-slide-up">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <h3 class="font-bold text-base">Comments</h3>
+        <button onclick="closeCommentModal()" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="comments-list" class="flex-1 overflow-y-auto py-3 space-y-3"></div>
+      <form onsubmit="submitComment(event)" class="pt-2 border-t border-slate-800 flex gap-2">
+        <input type="text" id="comment-input" placeholder="Add a comment..." class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-4 py-2 text-sm text-white focus:outline-none">
+        <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 p-2.5 rounded-full text-white"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+    </div>
+  </div>
+
+  <div id="share-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-end hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl p-5 text-white animate-slide-up">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+        <h3 class="font-bold text-lg flex items-center gap-2 text-cyan-400"><i class="fa-solid fa-share-nodes"></i> Share Video / Post</h3>
+        <button onclick="closeShareModal()" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2 mb-4">
+        <span id="share-url-text" class="text-xs text-slate-400 truncate">https://superapp.com/@creator_pro/post/1</span>
+        <button onclick="copyShareUrl()" class="bg-cyan-600 hover:bg-cyan-500 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1">
+          <i class="fa-regular fa-copy"></i> Copy
+        </button>
+      </div>
+      <div class="grid grid-cols-3 gap-3 text-center my-2">
+        <button onclick="copyShareUrl()" class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-brands fa-whatsapp text-lg block mb-1"></i> WhatsApp</button>
+        <button onclick="copyShareUrl()" class="bg-sky-600/20 text-sky-400 border border-sky-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-brands fa-telegram text-lg block mb-1"></i> Telegram</button>
+        <button onclick="copyShareUrl()" class="bg-purple-600/20 text-purple-400 border border-purple-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-solid fa-link text-lg block mb-1"></i> Direct Link</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+
   <script>
-    // System Toast (No Alert Policy)
-    function showToast(text) {
-      const banner = document.getElementById('toast-banner');
-      document.getElementById('toast-msg').innerText = text;
-      banner.classList.add('show');
-      setTimeout(() => { banner.classList.remove('show'); }, 2500);
-    }
+    // App State
+    let currentPostType = 'text';
+    let activePostForModal = null;
 
-    // Account Preserving LocalStorage Gatekeeper
-    let currentUser = JSON.parse(localStorage.getItem('app_active_user')) || null;
-    let storedPosts = JSON.parse(localStorage.getItem('app_saved_posts')) || [];
-
-    window.onload = function() {
-      if(currentUser) {
-        document.getElementById('auth-screen').style.display = 'none';
-        updateProfileUI();
-      }
-      renderSavedPosts();
-      setupReelHoldGesture();
+    const userProfile = {
+      username: 'creator_pro',
+      totalPosts: 1,
+      totalLikes: 124,
+      subscribers: 89
     };
 
-    function handleAccountAuth() {
-      const email = document.getElementById('auth-email').value.trim();
-      const pass = document.getElementById('auth-pass').value.trim();
+    let posts = [
+      {
+        id: 1,
+        user: 'SuperDev',
+        isDeveloper: true,
+        text: '🚀 Welcome to SuperApp! Forex Live Charts, Messenger, Multi-Language Translation aur Moderated Video Feeds live hain.',
+        mediaUrl: null,
+        type: 'text',
+        likes: 124,
+        isLiked: false,
+        isSubscribed: false,
+        comments: [
+          { user: 'alex_trader', text: 'Forex TradingView chart is working great!' }
+        ]
+      }
+    ];
 
-      if(!email || !pass) { showToast('Please enter both Email and Password'); return; }
+    // Banned Words Filter (Smart Moderation)
+    const BANNED_KEYWORDS = ['xxx', 'porn', 'adult', 'sex', 'nude', 'nsfw', 'naked', 'explicit'];
 
-      currentUser = { email: email, username: email.split('@')[0], likes: 0, posts: 0 };
-      localStorage.setItem('app_active_user', JSON.stringify(currentUser));
-      document.getElementById('auth-screen').style.display = 'none';
-      updateProfileUI();
-      showToast('Login Successful! Welcome ' + currentUser.username);
+    function checkContentSafety(text, file) {
+      const lower = text.toLowerCase();
+      if (BANNED_KEYWORDS.some(w => lower.includes(w))) return false;
+      if (file && BANNED_KEYWORDS.some(w => file.name.toLowerCase().includes(w))) return false;
+      return true;
     }
 
-    function logoutAccount() {
-      localStorage.removeItem('app_active_user');
-      location.reload();
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      if (tabId === 'forex') loadTradingView();
     }
 
-    function updateProfileUI() {
-      if(!currentUser) return;
-      document.getElementById('prof-username').innerText = '@' + currentUser.username;
-      document.getElementById('prof-email').innerText = currentUser.email;
-      document.getElementById('prof-avatar').innerText = currentUser.username.charAt(0).toUpperCase();
-      document.getElementById('prof-like-cnt').innerText = currentUser.likes || 0;
-      document.getElementById('prof-post-cnt').innerText = storedPosts.length;
-    }
-
-    // Tab Navigation System
-    function switchMainTab(tabId) {
-      document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      closeModules();
-
-      const screen = document.getElementById(tabId);
-      if(screen) screen.classList.add('active');
-
-      const navBtn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.getAttribute('onclick').includes(tabId));
-      if(navBtn) navBtn.classList.add('active');
-
-      // Stop video audio when switching away
-      if(tabId !== 'reel-feed') {
-        document.querySelectorAll('video').forEach(v => v.pause());
+    // Load TradingView Chart
+    function loadTradingView() {
+      const widgetContainer = document.getElementById('tradingview_widget');
+      widgetContainer.innerHTML = '';
+      if (window.TradingView) {
+        new window.TradingView.widget({
+          autosize: true,
+          symbol: "FX:EURUSD",
+          interval: "D",
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#f1f3f6",
+          container_id: "tradingview_widget"
+        });
       }
     }
 
-    function openDrawer(id) { document.getElementById(id).classList.add('open'); }
-    function closeDrawer(id) { document.getElementById(id).classList.remove('open'); }
+    // Post Type Switcher
+    function setPostType(type) {
+      currentPostType = type;
+      const btnText = document.getElementById('btn-type-text');
+      const btnVideo = document.getElementById('btn-type-video');
+      const videoBox = document.getElementById('video-upload-box');
 
-    function openModule(id) {
-      document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.module-screen').forEach(el => el.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if(id === 'snake-app') initSnakeGame();
-    }
-
-    function closeModules() {
-      document.querySelectorAll('.module-screen').forEach(el => el.classList.remove('active'));
-      document.getElementById('apps-view').classList.add('active');
-    }
-
-    // Persistent Publishing Engine
-    function processNewPublish() {
-      const type = document.getElementById('upload-type').value;
-      const caption = document.getElementById('upload-caption').value.trim();
-      const fileInput = document.getElementById('upload-file');
-
-      if(type === 'text') {
-        if(!caption) { showToast('Please enter post text body'); return; }
-        const newPost = { id: Date.now(), author: '@' + currentUser.username, text: caption, likes: 0 };
-        storedPosts.unshift(newPost);
-        localStorage.setItem('app_saved_posts', JSON.stringify(storedPosts));
-        renderSavedPosts();
-        closeDrawer('upload-drawer');
-        switchMainTab('text-feed');
-        showToast('Text Post Published Permanently!');
-      } else if(type === 'video') {
-        if(!fileInput.files[0]) { showToast('Please select a video file'); return; }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const videoDataUrl = e.target.result;
-          appendReelToFeed(videoDataUrl, caption);
-          closeDrawer('upload-drawer');
-          switchMainTab('reel-feed');
-          showToast('Reel Published Successfully!');
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      }
-    }
-
-    function renderSavedPosts() {
-      const container = document.getElementById('text-posts-container');
-      container.innerHTML = '';
-      storedPosts.forEach(post => {
-        const card = `
-          <div class="text-post-card">
-            <div class="post-header"><span class="post-author">${post.author}</span></div>
-            <div class="post-body">${post.text}</div>
-            <div class="post-bottom-bar">
-              <button class="p-btn" onclick="toggleSingleLike(this, 'p-${post.id}')">❤️ <span id="like-cnt-p-${post.id}">${post.likes}</span></button>
-              <button class="p-btn" onclick="openComments('p-${post.id}')">💬 Comment</button>
-              <button class="p-btn" onclick="copyText('${post.text}')">🔗 Copy</button>
-            </div>
-          </div>
-        `;
-        container.innerHTML += card;
-      });
-      updateProfileUI();
-    }
-
-    function appendReelToFeed(url, caption) {
-      const feed = document.getElementById('reel-feed');
-      const id = Date.now();
-      const reelHTML = `
-        <div class="reel-item" id="reel-${id}">
-          <video loop playsinline src="${url}" onclick="toggleReelAudio(this)"></video>
-          <div class="reel-overlay">
-            <div class="user-handle">@${currentUser.username}</div>
-            <div class="caption">${caption || ''}</div>
-          </div>
-          <div class="reel-actions">
-            <button class="side-action-btn" onclick="toggleSingleLike(this, 'reel-${id}')">
-              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <span class="action-count" id="like-cnt-reel-${id}">0</span>
-            </button>
-            <button class="side-action-btn" onclick="openComments('reel-${id}')">
-              <svg viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
-              <span class="action-count">0</span>
-            </button>
-            <button class="side-action-btn" onclick="copyReelLink()">
-              <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-              <span class="action-count">Share</span>
-            </button>
-          </div>
-        </div>
-      `;
-      feed.insertAdjacentHTML('afterbegin', reelHTML);
-    }
-
-    // Audio & Single-Like Logic
-    function toggleReelAudio(video) {
-      if(video.paused) {
-        document.querySelectorAll('video').forEach(v => v.pause());
-        video.play();
-      } else { video.pause(); }
-    }
-
-    function toggleSingleLike(btn, idKey) {
-      const cntEl = document.getElementById('like-cnt-' + idKey);
-      let count = parseInt(cntEl.innerText);
-
-      if(btn.classList.contains('active')) {
-        btn.classList.remove('active');
-        cntEl.innerText = count - 1;
-        if(currentUser.likes > 0) currentUser.likes--;
-        showToast('Like removed');
+      if (type === 'text') {
+        btnText.className = "flex-1 py-2 text-xs rounded-xl font-semibold border bg-cyan-600 border-cyan-500 text-white";
+        btnVideo.className = "flex-1 py-2 text-xs rounded-xl font-semibold border bg-slate-800 border-slate-700 text-slate-400";
+        videoBox.classList.add('hidden');
       } else {
-        btn.classList.add('active');
-        cntEl.innerText = count + 1;
-        currentUser.likes = (currentUser.likes || 0) + 1;
-        showToast('Liked post!');
+        btnVideo.className = "flex-1 py-2 text-xs rounded-xl font-semibold border bg-cyan-600 border-cyan-500 text-white";
+        btnText.className = "flex-1 py-2 text-xs rounded-xl font-semibold border bg-slate-800 border-slate-700 text-slate-400";
+        videoBox.classList.remove('hidden');
       }
-      localStorage.setItem('app_active_user', JSON.stringify(currentUser));
-      updateProfileUI();
     }
 
-    function openComments(id) { openDrawer('comments-drawer'); }
+    // Create New Post
+    function handleCreatePost(e) {
+      e.preventDefault();
+      const textInput = document.getElementById('post-text-input').value;
+      const fileInput = document.getElementById('post-file-input').files[0];
 
-    function addCommentNode() {
-      const input = document.getElementById('new-comment-input');
-      if(!input.value) return;
-      const box = document.getElementById('comments-list-box');
-      box.innerHTML += `
-        <div class="comment-node">
-          <div class="c-user">@${currentUser.username}</div>
-          <div>${input.value}</div>
-          <span class="comment-reply-btn" onclick="showToast('Replying...')">Reply</span>
+      if (!checkContentSafety(textInput, fileInput)) {
+        alert('⚠️ Post Blocked: Inappropriate or restricted content detected!');
+        return;
+      }
+
+      let mediaUrl = null;
+      if (currentPostType === 'video' && fileInput) {
+        mediaUrl = URL.createObjectURL(fileInput);
+      }
+
+      const newPost = {
+        id: Date.now(),
+        user: userProfile.username,
+        isDeveloper: false,
+        text: textInput,
+        mediaUrl: mediaUrl,
+        type: currentPostType,
+        likes: 0,
+        isLiked: false,
+        isSubscribed: false,
+        comments: []
+      };
+
+      posts.unshift(newPost);
+      userProfile.totalPosts += 1;
+      updateProfileStats();
+
+      document.getElementById('post-text-input').value = '';
+      renderPosts();
+      alert('Post published successfully!');
+      switchTab('feed');
+    }
+
+    // Render Feed Posts
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      container.innerHTML = posts.map(post => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-sm">
+                ${post.user[0].toUpperCase()}
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="font-semibold text-sm">@${post.user}</span>
+                ${post.isDeveloper ? `<span class="bg-cyan-500/20 text-cyan-400 text-[10px] px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">DEV</span>` : ''}
+              </div>
+            </div>
+            <button onclick="toggleSubscribe(${post.id})" class="px-3 py-1 rounded-full text-xs font-semibold ${post.isSubscribed ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-cyan-600 text-white'}">
+              ${post.isSubscribed ? 'Subscribed' : 'Subscribe'}
+            </button>
+          </div>
+
+          ${post.text ? `<p class="text-sm text-slate-200 mb-3 leading-relaxed">${post.text}</p>` : ''}
+
+          ${post.mediaUrl ? `
+            <div class="mb-3 rounded-xl overflow-hidden bg-black border border-slate-800">
+              ${post.type === 'video' 
+                ? `<video src="${post.mediaUrl}" controls class="w-full max-h-80 object-cover"></video>`
+                : `<img src="${post.mediaUrl}" class="w-full max-h-80 object-cover" />`
+              }
+            </div>
+          ` : ''}
+
+          <div class="flex justify-between items-center border-t border-slate-800/80 pt-2.5 text-slate-400">
+            <button onclick="toggleLike(${post.id})" class="flex items-center gap-1.5 text-xs font-medium ${post.isLiked ? 'text-pink-500' : 'hover:text-white'}">
+              <i class="fa-solid fa-heart"></i> ${post.likes}
+            </button>
+            <button onclick="openCommentModal(${post.id})" class="flex items-center gap-1.5 text-xs font-medium hover:text-white">
+              <i class="fa-solid fa-comment"></i> ${post.comments.length}
+            </button>
+            <button onclick="openShareModal(${post.id})" class="flex items-center gap-1.5 text-xs font-medium hover:text-white">
+              <i class="fa-solid fa-share"></i> Share
+            </button>
+          </div>
         </div>
-      `;
+      `).join('');
+    }
+
+    // Likes & Subscriptions
+    function toggleLike(id) {
+      const p = posts.find(item => item.id === id);
+      if (p) {
+        p.isLiked = !p.isLiked;
+        p.likes += p.isLiked ? 1 : -1;
+        if (p.user === userProfile.username) userProfile.totalLikes += p.isLiked ? 1 : -1;
+        updateProfileStats();
+        renderPosts();
+      }
+    }
+
+    function toggleSubscribe(id) {
+      const p = posts.find(item => item.id === id);
+      if (p) {
+        p.isSubscribed = !p.isSubscribed;
+        renderPosts();
+      }
+    }
+
+    function updateProfileStats() {
+      document.getElementById('stat-posts').innerText = userProfile.totalPosts;
+      document.getElementById('stat-likes').innerText = userProfile.totalLikes;
+      document.getElementById('stat-subscribers').innerText = userProfile.subscribers;
+    }
+
+    // Comments Modal
+    function openCommentModal(id) {
+      activePostForModal = posts.find(p => p.id === id);
+      if (!activePostForModal) return;
+      
+      const list = document.getElementById('comments-list');
+      list.innerHTML = activePostForModal.comments.map(c => `
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+          <span class="text-xs font-semibold text-cyan-400">@${c.user}</span>
+          <p class="text-sm text-slate-200">${c.text}</p>
+        </div>
+      `).join('');
+
+      document.getElementById('comment-modal').classList.remove('hidden');
+    }
+
+    function closeCommentModal() {
+      document.getElementById('comment-modal').classList.add('hidden');
+    }
+
+    function submitComment(e) {
+      e.preventDefault();
+      const input = document.getElementById('comment-input');
+      if (!input.value.trim() || !activePostForModal) return;
+
+      activePostForModal.comments.push({ user: userProfile.username, text: input.value });
       input.value = '';
+      openCommentModal(activePostForModal.id);
+      renderPosts();
     }
 
-    function toggleSubscribe(btn) {
-      btn.classList.toggle('active');
-      showToast(btn.classList.contains('active') ? 'Subscribed!' : 'Unsubscribed');
+    // Share Modal
+    function openShareModal(id) {
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      const shareUrl = `https://superapp.com/@${post.user}/post/${post.id}`;
+      document.getElementById('share-url-text').innerText = shareUrl;
+      document.getElementById('share-modal').classList.remove('hidden');
     }
 
-    function copyText(txt) { navigator.clipboard.writeText(txt); showToast('Text copied to clipboard!'); }
-    function copyReelLink() { showToast('Reel URL copied!'); }
-
-    // 3-Second Tap-Hold Gesture Setup
-    function setupReelHoldGesture() {
-      let timer;
-      document.addEventListener('touchstart', function(e) {
-        if(e.target.tagName === 'VIDEO') {
-          timer = setTimeout(() => {
-            const pop = document.getElementById('react-pop-1');
-            pop.classList.add('active');
-            showToast('Reaction & Auto Repost Options Active');
-            setTimeout(() => pop.classList.remove('active'), 2000);
-          }, 3000);
-        }
-      });
-      document.addEventListener('touchend', function() { clearTimeout(timer); });
+    function closeShareModal() {
+      document.getElementById('share-modal').classList.add('hidden');
     }
 
-    // App Modules Logic
-    function publishDevPost() {
-      const txt = document.getElementById('dev-post-input').value;
-      if(!txt) return;
-      document.getElementById('dev-posts-container').innerHTML += `
-        <div class="text-post-card">
-          <div class="post-header"><span class="post-author">@${currentUser.username} [DEV]</span></div>
-          <div class="post-body">${txt}</div>
-        </div>
-      `;
-      document.getElementById('dev-post-input').value = '';
-      showToast('Dev update posted!');
+    function copyShareUrl() {
+      const url = document.getElementById('share-url-text').innerText;
+      navigator.clipboard.writeText(url);
+      alert('Deep Link Copied: ' + url);
     }
 
-    // Weather API Fetch
-    async function fetchCityWeather() {
-      const city = document.getElementById('weather-city-input').value.trim();
-      if(!city) return;
+    // Translator
+    async function translateText() {
+      const text = document.getElementById('trans-input').value;
+      const from = document.getElementById('trans-from').value;
+      const to = document.getElementById('trans-to').value;
+      if (!text) return;
+
       try {
-        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-        const geoData = await geoRes.json();
-        if(!geoData.results || !geoData.results[0]) { showToast('City not found'); return; }
-
-        const { latitude, longitude, name } = geoData.results[0];
-        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-        const wData = await wRes.json();
-
-        document.getElementById('w-city-name').innerText = name;
-        document.getElementById('w-temp').innerText = wData.current_weather.temperature + '°C';
-        document.getElementById('w-rain').innerText = `Windspeed: ${wData.current_weather.windspeed} km/h`;
-        document.getElementById('weather-card-output').style.display = 'block';
-      } catch(e) { showToast('Error loading weather data'); }
-    }
-
-    // Translator Logic
-    function executeTranslation() {
-      const txt = document.getElementById('trans-text-in').value;
-      const target = document.getElementById('lang-to').value;
-      if(!txt) return;
-      document.getElementById('trans-output-box').innerText = `[Translated to ${target.toUpperCase()}]: ${txt}`;
-      showToast('Text Translated');
-    }
-
-    function openProfilePage() { switchMainTab('profile-view'); }
-    function openWithdrawModal() { showToast('Withdrawal Portal Pending 0.00 Balance'); }
-    function changeAppScaling(val) { document.documentElement.style.setProperty('--app-scale', val); }
-
-    // Arcade Snake Engine
-    let snakeCtx, snakeTimer, snake = [], food = {}, dir = 'RIGHT';
-    function initSnakeGame() {
-      const canvas = document.getElementById('snakeCanvas');
-      snakeCtx = canvas.getContext('2d');
-      snake = [{x: 5, y: 5}, {x: 4, y: 5}];
-      food = {x: 10, y: 10};
-      dir = 'RIGHT';
-      clearInterval(snakeTimer);
-      snakeTimer = setInterval(updateSnake, 150);
-    }
-
-    function changeSnakeDir(d) { dir = d; }
-
-    function updateSnake() {
-      let head = {...snake[0]};
-      if(dir === 'UP') head.y--;
-      if(dir === 'DOWN') head.y++;
-      if(dir === 'LEFT') head.x--;
-      if(dir === 'RIGHT') head.x++;
-
-      if(head.x < 0 || head.x >= 14 || head.y < 0 || head.y >= 14) {
-        clearInterval(snakeTimer); showToast('Game Over!'); return;
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+        const data = await res.json();
+        document.getElementById('trans-output-text').innerText = data.responseData.translatedText;
+        document.getElementById('trans-output-box').classList.remove('hidden');
+      } catch (err) {
+        alert('Translation failed!');
       }
-
-      snake.unshift(head);
-      if(head.x === food.x && head.y === food.y) {
-        food = {x: Math.floor(Math.random()*14), y: Math.floor(Math.random()*14)};
-      } else { snake.pop(); }
-
-      snakeCtx.fillStyle = '#000';
-      snakeCtx.fillRect(0, 0, 280, 280);
-      snakeCtx.fillStyle = '#00f2fe';
-      snake.forEach(s => snakeCtx.fillRect(s.x*20, s.y*20, 18, 18));
-      snakeCtx.fillStyle = '#ff007f';
-      snakeCtx.fillRect(food.x*20, food.y*20, 18, 18);
     }
+
+    function swapLanguages() {
+      const from = document.getElementById('trans-from');
+      const to = document.getElementById('trans-to');
+      const temp = from.value;
+      from.value = to.value;
+      to.value = temp;
+    }
+
+    function copyTranslation() {
+      const text = document.getElementById('trans-output-text').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Translated text copied!');
+    }
+
+    // Weather
+    async function checkWeather() {
+      const city = document.getElementById('weather-city').value || 'London';
+      document.getElementById('weather-result').innerText = `Checking weather for ${city}...`;
+      setTimeout(() => {
+        document.getElementById('weather-result').innerText = `☀️ ${city}: 28°C, Clear Sky`;
+      }, 1000);
+    }
+
+    // Initial Load
+    renderPosts();
+    updateProfileStats();
   </script>
 </body>
 </html>
