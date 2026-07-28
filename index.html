@@ -3,434 +3,444 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SUPER APP</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <title>Super App</title>
+  <!-- FontAwesome & CDN Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --bg-main: #0b1120;
-      --bg-card: #151e32;
-      --accent-blue: #0088ff;
-      --text-main: #ffffff;
-      --text-sub: #94a3b8;
-      --danger: #ff4757;
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    
-    /* Header */
-    header { background: var(--bg-card); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; }
-    header h1 { color: var(--accent-blue); font-size: 1.2rem; font-weight: bold; letter-spacing: 1px; }
-    .header-btns button { background: #1e293b; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; margin-left: 6px; font-size: 0.9rem; cursor: pointer; }
+    body { background-color: #0b1120; color: #ffffff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* Main Container Views */
-    main { flex: 1; position: relative; overflow-y: auto; }
-    .view { display: none; height: 100%; width: 100%; }
-    .view.active { display: block; }
+    /* Top Header */
+    .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #0b1120; border-bottom: 1px solid #1e293b; z-index: 100; }
+    .logo { color: #38bdf8; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+    .header-actions { display: flex; gap: 12px; }
+    .icon-btn { background: #1e293b; border: none; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
 
-    /* Reels View */
-    #view-reels { background: #000; position: relative; height: 100%; }
-    .reel-card { height: 100%; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; background: #050505; }
-    .reel-card video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-overlay { position: absolute; bottom: 20px; left: 15px; right: 80px; z-index: 5; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-    .reel-overlay h4 { font-size: 1rem; margin-bottom: 5px; }
-    .reel-overlay p { font-size: 0.85rem; color: #ddd; }
-    
-    /* Reel Side Controls */
-    .reel-actions { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 5; }
-    .action-btn { background: rgba(0,0,0,0.4); border: none; color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(4px); }
-    .action-btn span { font-size: 0.65rem; margin-top: 2px; }
-    .action-btn.active { color: var(--danger); }
-    .sub-btn { background: var(--accent-blue); font-size: 0.7rem; font-weight: bold; border-radius: 12px; padding: 4px 8px; width: auto; height: auto; }
+    /* Secondary Action Bar (Chart, Weather, Chat) */
+    .sub-bar { display: flex; justify-content: space-around; background: #0f172a; padding: 8px 10px; border-bottom: 1px solid #1e293b; }
+    .sub-bar-btn { background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 
-    /* Custom Video Play Button */
-    .play-trigger { position: absolute; font-size: 3rem; color: rgba(255,255,255,0.7); pointer-events: none; display: none; }
+    /* Main View Area */
+    .main-container { flex: 1; overflow-y: auto; position: relative; scroll-snap-type: y mandatory; }
 
-    /* Feeds & Standard UI */
-    .feed-container { padding: 15px; }
-    .post-card { background: var(--bg-card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #1e293b; }
-    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .avatar { width: 36px; height: 36px; background: var(--accent-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    /* Video Reels Section */
+    .reel-card { width: 100%; height: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+    .reel-video { width: 100%; height: 100%; object-fit: cover; }
+    .reel-overlay { position: absolute; bottom: 20px; left: 16px; right: 70px; z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .reel-sidebar { position: absolute; right: 12px; bottom: 40px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+    .side-btn { background: rgba(0,0,0,0.4); border: none; color: #fff; display: flex; flex-direction: column; align-items: center; font-size: 20px; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .side-btn.liked i { color: #ef4444; }
+    .side-btn.subscribed { color: #22c55e; font-size: 12px; font-weight: bold; }
+    .side-btn span { font-size: 11px; margin-top: 4px; }
 
-    /* Modals & Bottom Sheets */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
-    .modal.active { display: flex; }
-    .modal-content { background: var(--bg-card); width: 100%; max-height: 80vh; border-radius: 20px 20px 0 0; padding: 20px; overflow-y: auto; border-top: 1px solid #2a3854; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .modal-close { background: #2a3854; border: none; color: white; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; }
-
-    /* Form Controls */
-    input, select, textarea { width: 100%; background: #0b1120; border: 1px solid #1e293b; color: white; padding: 12px; border-radius: 8px; margin-bottom: 12px; outline: none; }
-    .btn-primary { width: 100%; background: var(--accent-blue); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    /* Text Feed Section */
+    .feed-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .post-card { background: #1e293b; padding: 14px; border-radius: 12px; border: 1px solid #334155; }
+    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .avatar { width: 36px; height: 36px; background: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
     /* Bottom Navigation Bar */
-    nav { background: var(--bg-card); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #1e293b; }
-    .nav-item { color: var(--text-sub); border: none; background: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; gap: 4px; cursor: pointer; }
-    .nav-item.active { color: var(--accent-blue); }
-    .nav-item i { font-size: 1.2rem; }
-    .plus-btn { background: var(--accent-blue); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; border: 3px solid var(--bg-main); font-size: 1.2rem; }
+    .bottom-nav { display: flex; justify-content: space-around; align-items: center; background: #0b1120; border-top: 1px solid #1e293b; padding: 8px 0; z-index: 100; }
+    .nav-btn { background: none; border: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 11px; cursor: pointer; gap: 3px; }
+    .nav-btn.active { color: #38bdf8; }
+    .create-btn-circle { background: #0284c7; color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: none; }
 
-    /* Comments Half-Sheet */
-    .comments-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
-    .comment-item { background: #0b1120; padding: 10px; border-radius: 8px; font-size: 0.85rem; }
-    .comment-item .author { font-weight: bold; color: var(--accent-blue); margin-bottom: 3px; }
+    /* Modals & Bottom Sheets */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .sheet-content { background: #0f172a; width: 100%; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; overflow-y: auto; border-top: 1px solid #334155; }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
+    
+    /* Inputs & Buttons */
+    input, textarea, select { width: 100%; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+    .action-submit-btn { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+    .share-item { background: #1e293b; border: none; color: #fff; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+
+    /* Profile Stats */
+    .profile-header { text-align: center; padding: 20px 0; }
+    .profile-avatar { width: 70px; height: 70px; background: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 10px; }
+    .stats-card { display: flex; justify-content: space-around; background: #1e293b; padding: 14px; border-radius: 12px; margin: 15px 0; }
+    .stat-box { text-align: center; }
+    .stat-num { font-weight: bold; font-size: 16px; color: #38bdf8; }
+    .stat-label { font-size: 11px; color: #94a3b8; }
   </style>
 </head>
 <body>
 
-  <!-- App Header -->
-  <header>
-    <h1>SUPER APP</h1>
-    <div class="header-btns">
-      <button onclick="openModal('modal-chart')"><i class="fa-solid fa-chart-line"></i> Chart</button>
-      <button onclick="openModal('modal-weather')"><i class="fa-solid fa-cloud-sun"></i> Weather</button>
-      <button onclick="openModal('modal-translate')"><i class="fa-solid fa-globe"></i></button>
-      <button onclick="openModal('modal-code')"><i class="fa-solid fa-code"></i></button>
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="logo">SUPER APP</div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openModal('translatorModal')"><i class="fa fa-globe"></i></button>
+      <button class="icon-btn" onclick="openModal('codeRunnerModal')"><i class="fa fa-code"></i></button>
     </div>
-  </header>
+  </div>
 
-  <!-- Views -->
-  <main>
-    <!-- 1. Reels View -->
-    <div id="view-reels" class="view active">
-      <div class="reel-card" onclick="togglePlayVideo()">
-        <video id="active-video" loop playsinline></video>
-        <i class="fa-solid fa-play play-trigger" id="play-icon"></i>
+  <!-- Secondary Bar (Sub Bar) -->
+  <div class="sub-bar">
+    <button class="sub-bar-btn" onclick="openModal('chartModal')"><i class="fa fa-line-chart"></i> Forex Chart</button>
+    <button class="sub-bar-btn" onclick="openModal('weatherModal')"><i class="fa fa-cloud-sun"></i> Weather</button>
+    <button class="sub-bar-btn" onclick="openModal('chatModal')"><i class="fa fa-comments"></i> Messages</button>
+  </div>
+
+  <!-- Main Container Tabs -->
+  <div class="main-container" id="mainContainer">
+    <!-- Default Reels Section -->
+    <div id="videosTab" class="tab-content" style="height: 100%;">
+      <div class="reel-card">
+        <video class="reel-video" loop playsinline src="https://assets.mixkit.co/videos/preview/mixkit-vertical-animation-of-a-futuristic-city-43184-large.mp4"></video>
         <div class="reel-overlay">
-          <h4 id="video-author">@Umar_Developer</h4>
-          <p id="video-desc">No video loaded yet. Click '+' to upload!</p>
+          <h3>@Umar_Developer</h3>
+          <p>Welcome to Super App Reels!</p>
         </div>
-        <div class="reel-actions">
-          <button class="action-btn sub-btn" id="sub-btn" onclick="toggleSubscribe(event)">Subscribe</button>
-          <button class="action-btn" id="like-btn" onclick="likeVideo(event)"><i class="fa-solid fa-heart"></i><span id="video-like-count">0</span></button>
-          <button class="action-btn" onclick="openComments(event)"><i class="fa-solid fa-comment"></i><span>Comment</span></button>
-          <button class="action-btn" onclick="shareVideo(event)"><i class="fa-solid fa-share"></i><span>Share</span></button>
+        <div class="reel-sidebar">
+          <button class="side-btn" id="likeBtn" onclick="toggleLike()"><i class="fa fa-heart"></i><span id="likeCount">10</span></button>
+          <button class="side-btn" onclick="openModal('commentsModal')"><i class="fa fa-comment"></i><span>Comment</span></button>
+          <button class="side-btn" onclick="openModal('shareModal')"><i class="fa fa-share"></i><span>Share</span></button>
+          <button class="side-btn" id="subBtn" onclick="toggleSubscribe()"><span>Subscribe</span></button>
         </div>
       </div>
     </div>
 
-    <!-- 2. Community Feed -->
-    <div id="view-feed" class="view">
-      <div class="feed-container" id="text-feed-list">
-        <!-- Posts load here -->
-      </div>
-    </div>
-
-    <!-- 3. Profile View -->
-    <div id="view-profile" class="view">
-      <div class="feed-container" style="text-align:center;">
-        <div class="avatar" style="width:70px; height:70px; font-size:1.8rem; margin:10px auto;" id="profile-avatar">U</div>
-        <h3 id="profile-name">@Umar_Developer</h3>
-        <p style="color:var(--text-sub); font-size:0.85rem; margin-bottom:15px;">Verified Creator Profile</p>
-        
-        <div style="display:flex; justify-content:space-around; background:var(--bg-card); padding:15px; border-radius:12px; margin-bottom:20px;">
-          <div><h4 id="stat-likes">0</h4><p style="font-size:0.75rem; color:var(--text-sub);">Total Likes</p></div>
-          <div><h4 id="stat-subs">0</h4><p style="font-size:0.75rem; color:var(--text-sub);">Subscribers</p></div>
-          <div><h4 id="stat-posts">0</h4><p style="font-size:0.75rem; color:var(--text-sub);">Total Posts</p></div>
+    <!-- Text Feed Section -->
+    <div id="feedTab" class="tab-content" style="display: none;">
+      <div class="feed-container">
+        <div class="post-card">
+          <div class="post-header">
+            <div class="avatar">U</div>
+            <div><strong>@Umar</strong></div>
+          </div>
+          <p>Hello guys welcome to super app</p>
         </div>
-
-        <button class="btn-primary" onclick="openModal('modal-auth')">Account Settings / Switch User</button>
       </div>
     </div>
-  </main>
 
-  <!-- Navigation Bar -->
-  <nav>
-    <button class="nav-item active" onclick="switchTab('reels', this)"><i class="fa-solid fa-play"></i>Videos</button>
-    <button class="nav-item" onclick="switchTab('feed', this)"><i class="fa-solid fa-list"></i>Feed</button>
-    <button class="plus-btn" onclick="openModal('modal-create')"><i class="fa-solid fa-plus"></i></button>
-    <button class="nav-item" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i>Profile</button>
-  </nav>
+    <!-- Profile View Tab -->
+    <div id="profileTab" class="tab-content" style="display: none; padding: 16px;">
+      <div class="profile-header">
+        <div class="profile-avatar">U</div>
+        <h2>@Umar</h2>
+        <p style="font-size: 12px; color: #94a3b8;">Verified Creator Profile</p>
+      </div>
 
-  <!-- MODALS -->
+      <div class="stats-card">
+        <div class="stat-box">
+          <div class="stat-num" id="profLikes">10</div>
+          <div class="stat-label">Total Likes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="profSubs">1</div>
+          <div class="stat-label">Subscribers</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="profPosts">3</div>
+          <div class="stat-label">Total Posts</div>
+        </div>
+      </div>
 
-  <!-- Create Post/Reel Modal -->
-  <div class="modal" id="modal-create">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Create New Content</h3>
-        <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
-      </div>
-      <select id="post-type" onchange="togglePostInput()">
-        <option value="reel">Short Video (Reel)</option>
-        <option value="text">Text Post</option>
-      </select>
-      <textarea id="post-caption" placeholder="Caption/Description..."></textarea>
-      <div id="file-input-box">
-        <input type="file" id="post-file" accept="video/*">
-      </div>
-      <button class="btn-primary" onclick="publishPost()">Publish</button>
-    </div>
-  </div>
-
-  <!-- Comments Modal (Half-Sheet) -->
-  <div class="modal" id="modal-comments">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Comments</h3>
-        <button class="modal-close" onclick="closeModal('modal-comments')">✕</button>
-      </div>
-      <div class="comments-list" id="comments-box">
-        <div class="comment-item"><div class="author">@System</div>Welcome to the post discussion!</div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="comment-input" placeholder="Add a comment..." style="margin:0;">
-        <button class="btn-primary" style="width: auto; padding: 0 15px;" onclick="addComment()">Send</button>
+      <h4 style="margin-bottom: 10px;">My Text Posts</h4>
+      <div class="post-card" style="margin-bottom: 10px;">
+        <p>Hello guys welcome to super app</p>
       </div>
     </div>
   </div>
 
-  <!-- Fullscreen Forex Chart Modal -->
-  <div class="modal" id="modal-chart">
-    <div class="modal-content" style="max-height:90vh; height:90vh;">
-      <div class="modal-header">
-        <h3>Live Forex Market</h3>
-        <button class="modal-close" onclick="closeModal('modal-chart')">✕</button>
-      </div>
-      <iframe src="https://s.tradingview.com/widgetembed/?symbol=XAUUSD&interval=D&hidesidetoolbar=1&theme=dark" style="width:100%; height:calc(100% - 40px); border:none; border-radius:8px;"></iframe>
-    </div>
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('videosTab', this)"><i class="fa fa-play-circle" style="font-size: 18px;"></i>Videos</button>
+    <button class="nav-btn" onclick="switchTab('feedTab', this)"><i class="fa fa-list" style="font-size: 18px;"></i>Feed</button>
+    <button class="create-btn-circle" onclick="openModal('createModal')"><i class="fa fa-plus"></i></button>
+    <button class="nav-btn" onclick="switchTab('profileTab', this)"><i class="fa fa-user" style="font-size: 18px;"></i>Profile</button>
   </div>
 
-  <!-- Weather Search Modal -->
-  <div class="modal" id="modal-weather">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Weather Search</h3>
-        <button class="modal-close" onclick="closeModal('modal-weather')">✕</button>
+  <!-- MODALS & SHEETS -->
+
+  <!-- Share Sheet -->
+  <div id="shareModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Share To</h3>
+        <button class="icon-btn" onclick="closeModal('shareModal')">&times;</button>
       </div>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="weather-search" placeholder="Search City/Country..." style="margin:0;">
-        <button class="btn-primary" style="width:auto; padding:0 15px;" onclick="getWeather()">Search</button>
-      </div>
-      <div id="weather-result" style="margin-top:15px; background:#0b1120; padding:15px; border-radius:8px; display:none;">
-        <h4 id="w-city">City</h4>
-        <p id="w-temp" style="font-size:1.5rem; font-weight:bold; color:var(--accent-blue);"></p>
-        <p id="w-cond" style="color:var(--text-sub);"></p>
+      <div class="share-grid">
+        <button class="share-item" onclick="copyLink()"><i class="fa fa-copy"></i>Copy Link</button>
+        <button class="share-item" onclick="shareSocial('WhatsApp')"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>
+        <button class="share-item" onclick="shareSocial('Telegram')"><i class="fa-brands fa-telegram"></i>Telegram</button>
       </div>
     </div>
   </div>
 
   <!-- Translator Modal -->
-  <div class="modal" id="modal-translate">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Translator</h3>
-        <button class="modal-close" onclick="closeModal('modal-translate')">✕</button>
+  <div id="translatorModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Live Translator</h3>
+        <button class="icon-btn" onclick="closeModal('translatorModal')">&times;</button>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <select id="trans-from">
-          <option value="en">English</option>
-          <option value="ur">Urdu</option>
-          <option value="ja">Japanese</option>
-          <option value="zh">Chinese</option>
-          <option value="es">Spanish</option>
-          <option value="ar">Arabic</option>
-        </select>
-        <select id="trans-to">
-          <option value="ur">Urdu</option>
-          <option value="en">English</option>
-          <option value="ja">Japanese</option>
-          <option value="zh">Chinese</option>
-          <option value="es">Spanish</option>
-          <option value="ar">Arabic</option>
-        </select>
-      </div>
-      <textarea id="trans-input" placeholder="Type text here..."></textarea>
-      <button class="btn-primary" onclick="runTranslate()">Translate Now</button>
-      <div id="trans-output" style="margin-top:10px; padding:10px; background:#0b1120; border-radius:8px; min-height:40px;"></div>
+      <select id="langTarget">
+        <option value="ur">Urdu</option>
+        <option value="en">English</option>
+        <option value="ar">Arabic</option>
+        <option value="es">Spanish</option>
+      </select>
+      <textarea id="transInput" placeholder="Enter text to translate..."></textarea>
+      <button class="action-submit-btn" onclick="runTranslation()">Translate Now</button>
+      <p id="transOutput" style="margin-top: 15px; color: #38bdf8; font-weight: bold;"></p>
     </div>
   </div>
 
-  <!-- Code Tester & Syntax Modal -->
-  <div class="modal" id="modal-code">
-    <div class="modal-content">
-      <div class="modal-header">
+  <!-- Code Engine / Runner Modal -->
+  <div id="codeRunnerModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
         <h3>Code Execution Output</h3>
-        <button class="modal-close" onclick="closeModal('modal-code')">✕</button>
+        <button class="icon-btn" onclick="closeModal('codeRunnerModal')">&times;</button>
       </div>
-      <textarea id="code-input" placeholder="// Write JavaScript here...&#10;console.log('Hello World');" style="height:100px; font-family:monospace;"></textarea>
-      <button class="btn-primary" onclick="runCode()">Run Code</button>
-      <p style="margin-top:10px; font-weight:bold;">Execution Results:</p>
-      <pre id="code-output" style="background:#0b1120; padding:10px; border-radius:8px; color:#00ffcc; font-size:0.85rem; margin-top:5px; white-space:pre-wrap;"></pre>
+      <textarea id="codeInput" style="height: 120px; font-family: monospace;">console.log("Hello Umar Developer!");</textarea>
+      <button class="action-submit-btn" onclick="runCodeEngine()">Run Code</button>
+      <div style="margin-top: 12px;">
+        <strong>Execution Results:</strong>
+        <div id="codeResult" style="background: #1e293b; padding: 10px; border-radius: 8px; margin-top: 6px; font-family: monospace; min-height: 50px;"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Auth Modal -->
-  <div class="modal" id="modal-auth">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Account System</h3>
-        <button class="modal-close" onclick="closeModal('modal-auth')">✕</button>
+  <!-- Comments Sheet -->
+  <div id="commentsModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Comments</h3>
+        <button class="icon-btn" onclick="closeModal('commentsModal')">&times;</button>
       </div>
-      <input type="text" id="auth-username" placeholder="Enter User Name...">
-      <button class="btn-primary" onclick="saveUser()">Save Account</button>
+      <div id="commentsList" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
+        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 6px;"><b>@User1:</b> Amazing video!</p>
+      </div>
+      <input type="text" id="commentInput" placeholder="Write unlimited comments...">
+      <button class="action-submit-btn" onclick="postComment()">Post Comment</button>
+    </div>
+  </div>
+
+  <!-- Create Content Modal -->
+  <div id="createModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Create New Content</h3>
+        <button class="icon-btn" onclick="closeModal('createModal')">&times;</button>
+      </div>
+      <select id="postType">
+        <option value="text">Text Post</option>
+        <option value="video">Video Post</option>
+      </select>
+      <textarea placeholder="Caption/Description..."></textarea>
+      <button class="action-submit-btn" onclick="closeModal('createModal')">Publish</button>
+    </div>
+  </div>
+
+  <!-- Forex Chart Modal -->
+  <div id="chartModal" class="modal-overlay">
+    <div class="sheet-content" style="max-height: 90vh;">
+      <div class="sheet-header">
+        <h3>Live Forex Chart</h3>
+        <button class="icon-btn" onclick="closeModal('chartModal')">&times;</button>
+      </div>
+      <div style="height: 300px; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <p style="color: #38bdf8;">[TradingView XAUUSD / BTCUSD Widget Live]</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weather Modal -->
+  <div id="weatherModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Weather Search</h3>
+        <button class="icon-btn" onclick="closeModal('weatherModal')">&times;</button>
+      </div>
+      <input type="text" id="weatherInput" placeholder="City or Country name...">
+      <button class="action-submit-btn" onclick="checkWeather()">Search Weather</button>
+      <div id="weatherResult" style="margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <!-- Messages / Chat Modal -->
+  <div id="chatModal" class="modal-overlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3>Direct Messages</h3>
+        <button class="icon-btn" onclick="closeModal('chatModal')">&times;</button>
+      </div>
+      <div style="height: 180px; background: #1e293b; padding: 10px; border-radius: 8px; overflow-y: auto;" id="chatBox">
+        <p style="font-size: 12px; color: #94a3b8;">Welcome to Chat!</p>
+      </div>
+      <input type="text" id="chatMsg" placeholder="Type message..." style="margin-top: 10px;">
+      <button class="action-submit-btn" onclick="sendChat()">Send</button>
     </div>
   </div>
 
   <script>
-    // State Management
-    let appState = {
-      user: "@Umar_Developer",
-      likes: 0,
-      subs: 0,
-      postsCount: 0,
-      currentVideoUrl: null
-    };
+    // State Handlers
+    let isLiked = false;
+    let isSubscribed = false;
+    let currentLikes = 10;
+    let totalSubs = 1;
 
+    // Strict 1-Like Toggle
+    function toggleLike() {
+      const likeBtn = document.getElementById('likeBtn');
+      const likeCountElem = document.getElementById('likeCount');
+      const profLikes = document.getElementById('profLikes');
+
+      if (!isLiked) {
+        isLiked = true;
+        currentLikes++;
+        likeBtn.classList.add('liked');
+      } else {
+        isLiked = false;
+        currentLikes--;
+        likeBtn.classList.remove('liked');
+      }
+      likeCountElem.innerText = currentLikes;
+      profLikes.innerText = currentLikes;
+    }
+
+    // Strict 1-Subscribe Toggle
+    function toggleSubscribe() {
+      const subBtn = document.getElementById('subBtn');
+      const profSubs = document.getElementById('profSubs');
+
+      if (!isSubscribed) {
+        isSubscribed = true;
+        totalSubs++;
+        subBtn.innerText = "Subscribed";
+        subBtn.classList.add('subscribed');
+      } else {
+        isSubscribed = false;
+        totalSubs--;
+        subBtn.innerText = "Subscribe";
+        subBtn.classList.remove('subscribed');
+      }
+      profSubs.innerText = totalSubs;
+    }
+
+    // Unlimited Comments
+    function postComment() {
+      const input = document.getElementById('commentInput');
+      if (input.value.trim() !== "") {
+        const list = document.getElementById('commentsList');
+        const p = document.createElement('p');
+        p.style.cssText = "font-size: 13px; margin-bottom: 6px;";
+        p.innerHTML = `<b>@Umar:</b> ${input.value}`;
+        list.appendChild(p);
+        input.value = "";
+      }
+    }
+
+    // Sound Stop Manager on Tab Navigation
+    function stopAllAudio() {
+      const videos = document.querySelectorAll('video');
+      videos.forEach(v => {
+        v.pause();
+        v.currentTime = 0;
+      });
+    }
+
+    // Navigation Switcher
+    function switchTab(tabId, btnElem) {
+      stopAllAudio(); // Tab switch hote hi awaz band
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).style.display = 'block';
+      btnElem.classList.add('active');
+
+      if (tabId === 'videosTab') {
+        const vid = document.querySelector('.reel-video');
+        if(vid) vid.play();
+      }
+    }
+
+    // Real API Translation
+    async function runTranslation() {
+      const text = document.getElementById('transInput').value;
+      const target = document.getElementById('langTarget').value;
+      const out = document.getElementById('transOutput');
+
+      if (!text) return;
+      out.innerText = "Translating...";
+
+      try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`);
+        const data = await res.json();
+        out.innerText = "Result: " + data.responseData.translatedText;
+      } catch (err) {
+        out.innerText = "Translation Error!";
+      }
+    }
+
+    // Smart Execution Code Engine
+    function runCodeEngine() {
+      const code = document.getElementById('codeInput').value;
+      const resContainer = document.getElementById('codeResult');
+      resContainer.innerHTML = "";
+
+      try {
+        if (code.includes('<') && code.includes('>')) {
+          // UI Preview Engine
+          resContainer.innerHTML = `<iframe style="width:100%; border:none; background:#fff;" srcdoc="${code}"></iframe>`;
+        } else {
+          // JS / Console Engine
+          let logs = [];
+          const customConsole = { log: (...a) => logs.push(a.join(' ')) };
+          const run = new Function('console', code);
+          run(customConsole);
+          resContainer.innerText = logs.length > 0 ? logs.join('\n') : "Code executed successfully with no output.";
+        }
+      } catch (err) {
+        resContainer.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
+      }
+    }
+
+    // Weather Search
+    async function checkWeather() {
+      const city = document.getElementById('weatherInput').value;
+      const resElem = document.getElementById('weatherResult');
+      if (!city) return;
+
+      try {
+        const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
+        const data = await res.json();
+        const temp = data.current_condition[0].temp_C;
+        const desc = data.current_condition[0].weatherDesc[0].value;
+        resElem.innerHTML = `<h3 style="color:#38bdf8">${city.toUpperCase()}</h3><h2>${temp}°C</h2><p>${desc}</p>`;
+      } catch(e) {
+        resElem.innerHTML = "<p style='color:red;'>City not found!</p>";
+      }
+    }
+
+    // Chat Message
+    function sendChat() {
+      const input = document.getElementById('chatMsg');
+      if (input.value.trim() !== '') {
+        const box = document.getElementById('chatBox');
+        box.innerHTML += `<p style="font-size:12px; margin-top:4px;"><b>You:</b> ${input.value}</p>`;
+        input.value = '';
+      }
+    }
+
+    // Share Options
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied!");
+    }
+
+    function shareSocial(platform) {
+      alert("Sharing to " + platform);
+    }
+
+    // Modals Controller
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    function switchTab(viewName, element) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById(`view-${viewName}`).classList.add('active');
-      element.classList.add('active');
-    }
-
-    /* Video Player & Reels */
-    function togglePlayVideo() {
-      const v = document.getElementById('active-video');
-      const icon = document.getElementById('play-icon');
-      if (!v.src) return;
-      if (v.paused) {
-        v.play();
-        icon.style.display = 'none';
-      } else {
-        v.pause();
-        icon.style.display = 'block';
-      }
-    }
-
-    function likeVideo(e) {
-      e.stopPropagation();
-      appState.likes++;
-      document.getElementById('video-like-count').innerText = appState.likes;
-      document.getElementById('stat-likes').innerText = appState.likes;
-      document.getElementById('like-btn').classList.add('active');
-    }
-
-    function toggleSubscribe(e) {
-      e.stopPropagation();
-      const btn = document.getElementById('sub-btn');
-      if (btn.innerText === "Subscribe") {
-        btn.innerText = "Subscribed";
-        btn.style.background = "#2a3854";
-        appState.subs++;
-      } else {
-        btn.innerText = "Subscribe";
-        btn.style.background = "var(--accent-blue)";
-        appState.subs--;
-      }
-      document.getElementById('stat-subs').innerText = appState.subs;
-    }
-
-    function openComments(e) {
-      e.stopPropagation();
-      openModal('modal-comments');
-    }
-
-    function addComment() {
-      const input = document.getElementById('comment-input');
-      if (!input.value.trim()) return;
-      const box = document.getElementById('comments-box');
-      const item = document.createElement('div');
-      item.className = 'comment-item';
-      item.innerHTML = `<div class="author">${appState.user}</div>${input.value}`;
-      box.appendChild(item);
-      input.value = '';
-    }
-
-    function shareVideo(e) {
-      e.stopPropagation();
-      if (navigator.share) {
-        navigator.share({ title: 'Super App Video', url: window.location.href });
-      } else {
-        alert("Link copied: " + window.location.href);
-      }
-    }
-
-    /* Creating Posts / Video Uploads */
-    function togglePostInput() {
-      const type = document.getElementById('post-type').value;
-      document.getElementById('file-input-box').style.display = (type === 'reel') ? 'block' : 'none';
-    }
-
-    function publishPost() {
-      const type = document.getElementById('post-type').value;
-      const caption = document.getElementById('post-caption').value;
-      const fileInput = document.getElementById('post-file');
-
-      if (type === 'reel') {
-        if (fileInput.files.length === 0) return alert('Select a video file first!');
-        const file = fileInput.files[0];
-        appState.currentVideoUrl = URL.createObjectURL(file);
-        
-        const video = document.getElementById('active-video');
-        video.src = appState.currentVideoUrl;
-        document.getElementById('video-desc').innerText = caption;
-        document.getElementById('video-author').innerText = appState.user;
-        video.play();
-        switchTab('reels', document.querySelectorAll('.nav-item')[0]);
-      } else {
-        if (!caption.trim()) return alert('Enter post text!');
-        const feed = document.getElementById('text-feed-list');
-        const postCard = document.createElement('div');
-        postCard.className = 'post-card';
-        postCard.innerHTML = `
-          <div class="post-header">
-            <div class="avatar">${appState.user[1] || 'U'}</div>
-            <div><strong>${appState.user}</strong></div>
-          </div>
-          <p>${caption}</p>
-        `;
-        feed.prepend(postCard);
-        switchTab('feed', document.querySelectorAll('.nav-item')[1]);
-      }
-
-      appState.postsCount++;
-      document.getElementById('stat-posts').innerText = appState.postsCount;
-      closeModal('modal-create');
-      document.getElementById('post-caption').value = '';
-    }
-
-    /* Tool Integrations */
-    function getWeather() {
-      const query = document.getElementById('weather-search').value;
-      if (!query) return;
-      document.getElementById('weather-result').style.display = 'block';
-      document.getElementById('w-city').innerText = query.toUpperCase();
-      document.getElementById('w-temp').innerText = "32°C";
-      document.getElementById('w-cond').innerText = "Clear Sky / Hot conditions";
-    }
-
-    function runTranslate() {
-      const txt = document.getElementById('trans-input').value;
-      document.getElementById('trans-output').innerText = txt ? `Translated: [${txt}]` : "Please enter text.";
-    }
-
-    function runCode() {
-      const code = document.getElementById('code-input').value;
-      const out = document.getElementById('code-output');
-      try {
-        let logs = [];
-        const originalLog = console.log;
-        console.log = (...args) => logs.push(args.join(' '));
-        eval(code);
-        console.log = originalLog;
-        out.innerText = logs.length ? logs.join('\n') : "Code executed successfully with no output.";
-      } catch (err) {
-        out.innerText = "Error: " + err.message;
-      }
-    }
-
-    function saveUser() {
-      const val = document.getElementById('auth-username').value;
-      if (val) {
-        appState.user = val.startsWith('@') ? val : '@' + val;
-        document.getElementById('profile-name').innerText = appState.user;
-        document.getElementById('profile-avatar').innerText = appState.user[1].toUpperCase();
-        closeModal('modal-auth');
-      }
-    }
   </script>
 </body>
 </html>
