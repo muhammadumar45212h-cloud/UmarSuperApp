@@ -2,445 +2,531 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super App</title>
-  <!-- FontAwesome & CDN Libraries -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SUPER APP</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0b1120; color: #ffffff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-    /* Top Header */
-    .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background-color: #0b1120; border-bottom: 1px solid #1e293b; z-index: 100; }
-    .logo { color: #38bdf8; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
-    .header-actions { display: flex; gap: 12px; }
-    .icon-btn { background: #1e293b; border: none; color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
-
-    /* Secondary Action Bar (Chart, Weather, Chat) */
-    .sub-bar { display: flex; justify-content: space-around; background: #0f172a; padding: 8px 10px; border-bottom: 1px solid #1e293b; }
-    .sub-bar-btn { background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-    /* Main View Area */
-    .main-container { flex: 1; overflow-y: auto; position: relative; scroll-snap-type: y mandatory; }
-
-    /* Video Reels Section */
-    .reel-card { width: 100%; height: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-    .reel-video { width: 100%; height: 100%; object-fit: cover; }
-    .reel-overlay { position: absolute; bottom: 20px; left: 16px; right: 70px; z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-    .reel-sidebar { position: absolute; right: 12px; bottom: 40px; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
-    .side-btn { background: rgba(0,0,0,0.4); border: none; color: #fff; display: flex; flex-direction: column; align-items: center; font-size: 20px; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .side-btn.liked i { color: #ef4444; }
-    .side-btn.subscribed { color: #22c55e; font-size: 12px; font-weight: bold; }
-    .side-btn span { font-size: 11px; margin-top: 4px; }
-
-    /* Text Feed Section */
-    .feed-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .post-card { background: #1e293b; padding: 14px; border-radius: 12px; border: 1px solid #334155; }
-    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .avatar { width: 36px; height: 36px; background: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-    /* Bottom Navigation Bar */
-    .bottom-nav { display: flex; justify-content: space-around; align-items: center; background: #0b1120; border-top: 1px solid #1e293b; padding: 8px 0; z-index: 100; }
-    .nav-btn { background: none; border: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 11px; cursor: pointer; gap: 3px; }
-    .nav-btn.active { color: #38bdf8; }
-    .create-btn-circle { background: #0284c7; color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: none; }
-
-    /* Modals & Bottom Sheets */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
-    .modal-overlay.active { display: flex; }
-    .sheet-content { background: #0f172a; width: 100%; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; overflow-y: auto; border-top: 1px solid #334155; }
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #050b14; color: #ffffff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     
-    /* Inputs & Buttons */
-    input, textarea, select { width: 100%; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-    .action-submit-btn { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-    .share-item { background: #1e293b; border: none; color: #fff; padding: 12px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+    /* Header */
+    .header { height: 50px; background: #0b1426; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #1e293b; z-index: 10; }
+    .logo { font-weight: 800; font-size: 18px; letter-spacing: 1px; color: #38bdf8; }
+    .header-actions { display: flex; gap: 12px; }
+    .icon-btn { background: #1e293b; border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
 
-    /* Profile Stats */
-    .profile-header { text-align: center; padding: 20px 0; }
-    .profile-avatar { width: 70px; height: 70px; background: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 10px; }
-    .stats-card { display: flex; justify-content: space-around; background: #1e293b; padding: 14px; border-radius: 12px; margin: 15px 0; }
-    .stat-box { text-align: center; }
-    .stat-num { font-weight: bold; font-size: 16px; color: #38bdf8; }
-    .stat-label { font-size: 11px; color: #94a3b8; }
+    /* Top Sub-Bar Pills */
+    .sub-bar { background: #08101e; padding: 8px 12px; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #1e293b; white-space: nowrap; }
+    .pill-btn { background: #132238; border: 1px solid #1e293b; color: #94a3b8; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .pill-btn.active { background: #0284c7; color: #fff; border-color: #0384c7; }
+
+    /* Main Container Views */
+    .main-view { flex: 1; position: relative; overflow: hidden; }
+    .page-view { position: absolute; inset: 0; display: none; flex-direction: column; background: #050b14; }
+    .page-view.active { display: flex; }
+
+    /* Bottom Navigation */
+    .bottom-nav { height: 60px; background: #0b1426; display: flex; border-top: 1px solid #1e293b; z-index: 10; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; background: none; border: none; cursor: pointer; font-size: 10px; gap: 4px; }
+    .nav-item.active { color: #38bdf8; }
+    .nav-item span { font-size: 18px; }
+
+    /* Video Feed Container */
+    .video-container { height: 100%; overflow-y: snap-strict; scroll-snap-type: y mandatory; overflow-y: scroll; }
+    .video-card { height: 100%; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+    .video-card video { width: 100%; height: 100%; object-fit: cover; }
+    .video-overlay { position: absolute; bottom: 16px; left: 16px; right: 70px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .action-sidebar { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 2; }
+    .action-btn { background: rgba(15,23,42,0.6); border: none; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; backdrop-filter: blur(4px); }
+    .action-btn span { font-size: 10px; margin-top: 2px; }
+
+    /* Text Feed Container */
+    .feed-container { padding: 12px; overflow-y: auto; height: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .post-card { background: #0b1426; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; }
+    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .avatar { width: 36px; height: 36px; background: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .post-actions { display: flex; justify-content: space-between; border-top: 1px solid #1e293b; margin-top: 12px; padding-top: 10px; color: #94a3b8; font-size: 13px; }
+    .post-action-btn { background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+    /* Modals & Overlays */
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; z-index: 100; backdrop-filter: blur(2px); }
+    .sheet-overlay.active { display: flex; }
+    .bottom-sheet { background: #0b1426; border-radius: 16px 16px 0 0; width: 100%; max-height: 85vh; padding: 18px; overflow-y: auto; border-top: 1px solid #1e293b; animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    /* Form Elements */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    .form-control { width: 100%; background: #132238; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; color: #fff; outline: none; font-size: 14px; }
+    .btn-primary { width: 100%; background: #0284c7; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-secondary { background: #1e293b; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
-  <div class="top-header">
+  <!-- Top Header Bar -->
+  <div class="header">
     <div class="logo">SUPER APP</div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="openModal('translatorModal')"><i class="fa fa-globe"></i></button>
-      <button class="icon-btn" onclick="openModal('codeRunnerModal')"><i class="fa fa-code"></i></button>
+      <button class="icon-btn" onclick="openModal('translateModal')">🌐</button>
+      <button class="icon-btn" onclick="openModal('codeModal')">💻</button>
     </div>
   </div>
 
-  <!-- Secondary Bar (Sub Bar) -->
+  <!-- Sub-Bar Quick Options -->
   <div class="sub-bar">
-    <button class="sub-bar-btn" onclick="openModal('chartModal')"><i class="fa fa-line-chart"></i> Forex Chart</button>
-    <button class="sub-bar-btn" onclick="openModal('weatherModal')"><i class="fa fa-cloud-sun"></i> Weather</button>
-    <button class="sub-bar-btn" onclick="openModal('chatModal')"><i class="fa fa-comments"></i> Messages</button>
+    <button class="pill-btn" onclick="openModal('weatherModal')">🌤️ Weather</button>
+    <button class="pill-btn" onclick="openModal('chatModal')">💬 Messages & Channels</button>
   </div>
 
-  <!-- Main Container Tabs -->
-  <div class="main-container" id="mainContainer">
-    <!-- Default Reels Section -->
-    <div id="videosTab" class="tab-content" style="height: 100%;">
-      <div class="reel-card">
-        <video class="reel-video" loop playsinline src="https://assets.mixkit.co/videos/preview/mixkit-vertical-animation-of-a-futuristic-city-43184-large.mp4"></video>
-        <div class="reel-overlay">
-          <h3>@Umar_Developer</h3>
-          <p>Welcome to Super App Reels!</p>
-        </div>
-        <div class="reel-sidebar">
-          <button class="side-btn" id="likeBtn" onclick="toggleLike()"><i class="fa fa-heart"></i><span id="likeCount">10</span></button>
-          <button class="side-btn" onclick="openModal('commentsModal')"><i class="fa fa-comment"></i><span>Comment</span></button>
-          <button class="side-btn" onclick="openModal('shareModal')"><i class="fa fa-share"></i><span>Share</span></button>
-          <button class="side-btn" id="subBtn" onclick="toggleSubscribe()"><span>Subscribe</span></button>
+  <!-- Main Multi-View Screen Area -->
+  <div class="main-view">
+    
+    <!-- 1. Video Shorts Feed Page -->
+    <div id="videoPage" class="page-view active">
+      <div class="video-container" id="videoList">
+        <!-- Sample Video Item -->
+        <div class="video-card">
+          <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" loop playsinline></video>
+          <div class="video-overlay">
+            <h3>@Umar</h3>
+            <p>Welcome to Super App Video Feed!</p>
+          </div>
+          <div class="action-sidebar">
+            <button class="action-btn" onclick="toggleLike(this)">❤️ <span class="like-count">10</span></button>
+            <button class="action-btn" onclick="openModal('commentModal')">💬 <span>2</span></button>
+            <button class="action-btn" onclick="openModal('shareModal')">🔗 <span>Share</span></button>
+            <button class="action-btn" onclick="toggleSubscribe(this)">➕ <span>Sub</span></button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Text Feed Section -->
-    <div id="feedTab" class="tab-content" style="display: none;">
-      <div class="feed-container">
+    <!-- 2. Text Posts Feed Page -->
+    <div id="feedPage" class="page-view">
+      <div class="feed-container" id="textPostList">
         <div class="post-card">
           <div class="post-header">
             <div class="avatar">U</div>
-            <div><strong>@Umar</strong></div>
+            <div>
+              <strong>@Umar</strong>
+              <div style="font-size:10px; color:#64748b;">Just now</div>
+            </div>
           </div>
-          <p>Hello guys welcome to super app</p>
+          <p>Hello guys! Welcome to Super App Feed.</p>
+          <div class="post-actions">
+            <button class="post-action-btn" onclick="toggleTextLike(this)">❤️ <span class="t-likes">5</span> Likes</button>
+            <button class="post-action-btn" onclick="openModal('commentModal')">💬 Comment</button>
+            <button class="post-action-btn" onclick="openModal('shareModal')">🔗 Share</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Profile View Tab -->
-    <div id="profileTab" class="tab-content" style="display: none; padding: 16px;">
-      <div class="profile-header">
-        <div class="profile-avatar">U</div>
-        <h2>@Umar</h2>
-        <p style="font-size: 12px; color: #94a3b8;">Verified Creator Profile</p>
+    <!-- 3. FULL PAGE Trading Page -->
+    <div id="tradingPage" class="page-view">
+      <div style="padding: 10px; background: #0b1426; border-bottom: 1px solid #1e293b; font-weight: bold; color: #38bdf8;">
+        📈 Live Forex & Trading Chart
       </div>
-
-      <div class="stats-card">
-        <div class="stat-box">
-          <div class="stat-num" id="profLikes">10</div>
-          <div class="stat-label">Total Likes</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num" id="profSubs">1</div>
-          <div class="stat-label">Subscribers</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-num" id="profPosts">3</div>
-          <div class="stat-label">Total Posts</div>
-        </div>
+      <div style="flex:1; width:100%; height:100%;" id="tradingview_widget">
+        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" style="width: 100%; height: 100%; border: none;"></iframe>
       </div>
+    </div>
 
-      <h4 style="margin-bottom: 10px;">My Text Posts</h4>
-      <div class="post-card" style="margin-bottom: 10px;">
-        <p>Hello guys welcome to super app</p>
+    <!-- 4. Profile Page -->
+    <div id="profilePage" class="page-view" style="padding:20px; align-items:center;">
+      <div class="avatar" style="width:70px; height:70px; font-size:28px;">U</div>
+      <h2 style="margin-top:10px;">@Umar</h2>
+      <p style="color:#64748b; font-size:12px;">Verified Creator Profile</p>
+      
+      <div style="display:flex; gap:20px; margin:20px 0; text-align:center;">
+        <div><strong id="profileLikes">15</strong><br><small style="color:#64748b;">Likes</small></div>
+        <div><strong id="profileSubs">1</strong><br><small style="color:#64748b;">Subscribers</small></div>
+        <div><strong id="profilePosts">2</strong><br><small style="color:#64748b;">Posts</small></div>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navigation Bar -->
   <div class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('videosTab', this)"><i class="fa fa-play-circle" style="font-size: 18px;"></i>Videos</button>
-    <button class="nav-btn" onclick="switchTab('feedTab', this)"><i class="fa fa-list" style="font-size: 18px;"></i>Feed</button>
-    <button class="create-btn-circle" onclick="openModal('createModal')"><i class="fa fa-plus"></i></button>
-    <button class="nav-btn" onclick="switchTab('profileTab', this)"><i class="fa fa-user" style="font-size: 18px;"></i>Profile</button>
+    <button class="nav-item active" onclick="switchPage('videoPage', this)">
+      <span>🎥</span> Videos
+    </button>
+    <button class="nav-item" onclick="switchPage('feedPage', this)">
+      <span>📰</span> Feed
+    </button>
+    <button class="nav-item" onclick="openModal('createPostModal')">
+      <span style="font-size:24px; color:#38bdf8;">➕</span> Create
+    </button>
+    <button class="nav-item" onclick="switchPage('tradingPage', this)">
+      <span>📈</span> Trading
+    </button>
+    <button class="nav-item" onclick="switchPage('profilePage', this)">
+      <span>👤</span> Profile
+    </button>
   </div>
 
-  <!-- MODALS & SHEETS -->
+  <!-- OVERLAY MODALS -->
 
-  <!-- Share Sheet -->
-  <div id="shareModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Share To</h3>
-        <button class="icon-btn" onclick="closeModal('shareModal')">&times;</button>
+  <!-- Create Content Modal (Supports Local Gallery Video Upload) -->
+  <div id="createPostModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Create New Content</h3>
+        <button class="btn-secondary" onclick="closeModal('createPostModal')">✕</button>
       </div>
-      <div class="share-grid">
-        <button class="share-item" onclick="copyLink()"><i class="fa fa-copy"></i>Copy Link</button>
-        <button class="share-item" onclick="shareSocial('WhatsApp')"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>
-        <button class="share-item" onclick="shareSocial('Telegram')"><i class="fa-brands fa-telegram"></i>Telegram</button>
+      <div class="form-group">
+        <label>Post Type</label>
+        <select class="form-control" id="postTypeSelect" onchange="togglePostTypeInput()">
+          <option value="text">Text Post</option>
+          <option value="video">Video Post (From Gallery)</option>
+        </select>
+      </div>
+      <div class="form-group" id="videoFileInputGroup" style="display:none;">
+        <label>Select Video File from Gallery</label>
+        <input type="file" id="videoFileInput" accept="video/*" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Caption / Text</label>
+        <textarea id="postCaptionInput" class="form-control" rows="3" placeholder="Write something..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="publishPost()">Publish</button>
+    </div>
+  </div>
+
+  <!-- Multi-Language Translator Modal -->
+  <div id="translateModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Live Multi-Language Translator</h3>
+        <button class="btn-secondary" onclick="closeModal('translateModal')">✕</button>
+      </div>
+      <div style="display:flex; gap:10px;" class="form-group">
+        <select class="form-control" id="transFrom">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+        </select>
+        <select class="form-control" id="transTo">
+          <option value="ur">Urdu</option>
+          <option value="en">English</option>
+          <option value="zh">Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ar">Arabic</option>
+          <option value="es">Spanish</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <textarea id="transInput" class="form-control" rows="2" placeholder="Type text here..."></textarea>
+      </div>
+      <button class="btn-primary" onclick="executeTranslation()">Translate Now</button>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Translation Result:</label>
+        <div id="transOutput" style="background:#132238; padding:10px; border-radius:8px; min-height:40px; border:1px solid #1e293b; color:#38bdf8;">---</div>
+      </div>
+      <button class="btn-secondary" style="width:100%;" onclick="copyTranslation()">📋 Copy Translation</button>
+    </div>
+  </div>
+
+  <!-- Messages & Channels Chat Modal -->
+  <div id="chatModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Direct Messages & Channels</h3>
+        <button class="btn-secondary" onclick="closeModal('chatModal')">✕</button>
+      </div>
+      
+      <!-- Channels Tabs -->
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <button class="btn-secondary" style="flex:1;" onclick="showChatTab('dm')">Direct Chat</button>
+        <button class="btn-secondary" style="flex:1;" onclick="showChatTab('channel')">Channels</button>
+      </div>
+
+      <!-- DM Container -->
+      <div id="dmChatArea">
+        <div id="chatBox" style="height:150px; background:#132238; padding:10px; border-radius:8px; overflow-y:auto; margin-bottom:10px; font-size:13px;">
+          <div><strong>System:</strong> Welcome to Global Chat!</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="chatMsgInput" class="form-control" placeholder="Type message...">
+          <button class="btn-primary" style="width:80px;" onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+
+      <!-- Channel Container -->
+      <div id="channelArea" style="display:none;">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <input type="text" id="channelNameInput" class="form-control" placeholder="New Channel Name...">
+          <button class="btn-primary" style="width:120px;" onclick="createChannel()">Create (Owner)</button>
+        </div>
+        <div id="channelList" style="font-size:12px; color:#94a3b8;">
+          <p>No active channel joined yet.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Translator Modal -->
-  <div id="translatorModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Live Translator</h3>
-        <button class="icon-btn" onclick="closeModal('translatorModal')">&times;</button>
+  <!-- Code Engine Modal -->
+  <div id="codeModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Smart Code Engine</h3>
+        <button class="btn-secondary" onclick="closeModal('codeModal')">✕</button>
       </div>
-      <select id="langTarget">
-        <option value="ur">Urdu</option>
-        <option value="en">English</option>
-        <option value="ar">Arabic</option>
-        <option value="es">Spanish</option>
-      </select>
-      <textarea id="transInput" placeholder="Enter text to translate..."></textarea>
-      <button class="action-submit-btn" onclick="runTranslation()">Translate Now</button>
-      <p id="transOutput" style="margin-top: 15px; color: #38bdf8; font-weight: bold;"></p>
+      <textarea id="codeSource" class="form-control" rows="4" placeholder="Enter HTML/JS snippet..."></textarea>
+      <button class="btn-primary" style="margin-top:10px;" onclick="runCode()">Run Code</button>
+      <div id="codeResult" style="margin-top:10px; background:#132238; padding:10px; border-radius:8px; font-size:12px; font-family:monospace;">Output will render here...</div>
     </div>
   </div>
 
-  <!-- Code Engine / Runner Modal -->
-  <div id="codeRunnerModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Code Execution Output</h3>
-        <button class="icon-btn" onclick="closeModal('codeRunnerModal')">&times;</button>
+  <!-- Weather Search Modal -->
+  <div id="weatherModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Weather Search</h3>
+        <button class="btn-secondary" onclick="closeModal('weatherModal')">✕</button>
       </div>
-      <textarea id="codeInput" style="height: 120px; font-family: monospace;">console.log("Hello Umar Developer!");</textarea>
-      <button class="action-submit-btn" onclick="runCodeEngine()">Run Code</button>
-      <div style="margin-top: 12px;">
-        <strong>Execution Results:</strong>
-        <div id="codeResult" style="background: #1e293b; padding: 10px; border-radius: 8px; margin-top: 6px; font-family: monospace; min-height: 50px;"></div>
-      </div>
+      <input type="text" id="weatherCity" class="form-control" placeholder="Enter City Name (e.g. Karachi)" style="margin-bottom:10px;">
+      <button class="btn-primary" onclick="fetchWeather()">Search Weather</button>
+      <div id="weatherDisplay" style="margin-top:12px; text-align:center;">---</div>
     </div>
   </div>
 
   <!-- Comments Sheet -->
-  <div id="commentsModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
+  <div id="commentModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
         <h3>Comments</h3>
-        <button class="icon-btn" onclick="closeModal('commentsModal')">&times;</button>
+        <button class="btn-secondary" onclick="closeModal('commentModal')">✕</button>
       </div>
-      <div id="commentsList" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
-        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 6px;"><b>@User1:</b> Amazing video!</p>
+      <div id="commentList" style="height:120px; overflow-y:auto; margin-bottom:10px; font-size:13px;">
+        <div><strong>@User1:</strong> Nice post! 🔥</div>
       </div>
-      <input type="text" id="commentInput" placeholder="Write unlimited comments...">
-      <button class="action-submit-btn" onclick="postComment()">Post Comment</button>
-    </div>
-  </div>
-
-  <!-- Create Content Modal -->
-  <div id="createModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Create New Content</h3>
-        <button class="icon-btn" onclick="closeModal('createModal')">&times;</button>
-      </div>
-      <select id="postType">
-        <option value="text">Text Post</option>
-        <option value="video">Video Post</option>
-      </select>
-      <textarea placeholder="Caption/Description..."></textarea>
-      <button class="action-submit-btn" onclick="closeModal('createModal')">Publish</button>
-    </div>
-  </div>
-
-  <!-- Forex Chart Modal -->
-  <div id="chartModal" class="modal-overlay">
-    <div class="sheet-content" style="max-height: 90vh;">
-      <div class="sheet-header">
-        <h3>Live Forex Chart</h3>
-        <button class="icon-btn" onclick="closeModal('chartModal')">&times;</button>
-      </div>
-      <div style="height: 300px; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-        <p style="color: #38bdf8;">[TradingView XAUUSD / BTCUSD Widget Live]</p>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="commentInput" class="form-control" placeholder="Write a comment...">
+        <button class="btn-primary" style="width:80px;" onclick="addComment()">Post</button>
       </div>
     </div>
   </div>
 
-  <!-- Weather Modal -->
-  <div id="weatherModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Weather Search</h3>
-        <button class="icon-btn" onclick="closeModal('weatherModal')">&times;</button>
+  <!-- Share Sheet -->
+  <div id="shareModal" class="sheet-overlay">
+    <div class="bottom-sheet">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <h3>Share Post</h3>
+        <button class="btn-secondary" onclick="closeModal('shareModal')">✕</button>
       </div>
-      <input type="text" id="weatherInput" placeholder="City or Country name...">
-      <button class="action-submit-btn" onclick="checkWeather()">Search Weather</button>
-      <div id="weatherResult" style="margin-top: 15px;"></div>
-    </div>
-  </div>
-
-  <!-- Messages / Chat Modal -->
-  <div id="chatModal" class="modal-overlay">
-    <div class="sheet-content">
-      <div class="sheet-header">
-        <h3>Direct Messages</h3>
-        <button class="icon-btn" onclick="closeModal('chatModal')">&times;</button>
-      </div>
-      <div style="height: 180px; background: #1e293b; padding: 10px; border-radius: 8px; overflow-y: auto;" id="chatBox">
-        <p style="font-size: 12px; color: #94a3b8;">Welcome to Chat!</p>
-      </div>
-      <input type="text" id="chatMsg" placeholder="Type message..." style="margin-top: 10px;">
-      <button class="action-submit-btn" onclick="sendChat()">Send</button>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="alert('Link Copied!')">📋 Copy Share Link</button>
+      <button class="btn-secondary" style="width:100%; margin-bottom:8px;" onclick="alert('Opening WhatsApp...')">📲 Share to WhatsApp</button>
     </div>
   </div>
 
   <script>
-    // State Handlers
-    let isLiked = false;
-    let isSubscribed = false;
-    let currentLikes = 10;
-    let totalSubs = 1;
+    // Navigation Control & Sound Muting
+    function switchPage(pageId, btn) {
+      document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      btn.classList.add('active');
 
-    // Strict 1-Like Toggle
-    function toggleLike() {
-      const likeBtn = document.getElementById('likeBtn');
-      const likeCountElem = document.getElementById('likeCount');
-      const profLikes = document.getElementById('profLikes');
+      // Instant Audio Stop on Nav Switch
+      stopAllAudio();
 
-      if (!isLiked) {
-        isLiked = true;
-        currentLikes++;
-        likeBtn.classList.add('liked');
-      } else {
-        isLiked = false;
-        currentLikes--;
-        likeBtn.classList.remove('liked');
-      }
-      likeCountElem.innerText = currentLikes;
-      profLikes.innerText = currentLikes;
-    }
-
-    // Strict 1-Subscribe Toggle
-    function toggleSubscribe() {
-      const subBtn = document.getElementById('subBtn');
-      const profSubs = document.getElementById('profSubs');
-
-      if (!isSubscribed) {
-        isSubscribed = true;
-        totalSubs++;
-        subBtn.innerText = "Subscribed";
-        subBtn.classList.add('subscribed');
-      } else {
-        isSubscribed = false;
-        totalSubs--;
-        subBtn.innerText = "Subscribe";
-        subBtn.classList.remove('subscribed');
-      }
-      profSubs.innerText = totalSubs;
-    }
-
-    // Unlimited Comments
-    function postComment() {
-      const input = document.getElementById('commentInput');
-      if (input.value.trim() !== "") {
-        const list = document.getElementById('commentsList');
-        const p = document.createElement('p');
-        p.style.cssText = "font-size: 13px; margin-bottom: 6px;";
-        p.innerHTML = `<b>@Umar:</b> ${input.value}`;
-        list.appendChild(p);
-        input.value = "";
+      if(pageId === 'videoPage') {
+        const firstVid = document.querySelector('#videoList video');
+        if(firstVid) firstVid.play().catch(()=>{});
       }
     }
 
-    // Sound Stop Manager on Tab Navigation
     function stopAllAudio() {
-      const videos = document.querySelectorAll('video');
-      videos.forEach(v => {
+      document.querySelectorAll('video').forEach(v => {
         v.pause();
-        v.currentTime = 0;
       });
     }
 
-    // Navigation Switcher
-    function switchTab(tabId, btnElem) {
-      stopAllAudio(); // Tab switch hote hi awaz band
-      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById(tabId).style.display = 'block';
-      btnElem.classList.add('active');
+    // Modal Control
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-      if (tabId === 'videosTab') {
-        const vid = document.querySelector('.reel-video');
-        if(vid) vid.play();
+    // Toggle Post Type Input in Create Modal
+    function togglePostTypeInput() {
+      const type = document.getElementById('postTypeSelect').value;
+      document.getElementById('videoFileInputGroup').style.display = (type === 'video') ? 'block' : 'none';
+    }
+
+    // Publish Content (Text or Gallery Video)
+    function publishPost() {
+      const type = document.getElementById('postTypeSelect').value;
+      const text = document.getElementById('postCaptionInput').value;
+
+      if(type === 'video') {
+        const fileInput = document.getElementById('videoFileInput');
+        if(fileInput.files && fileInput.files[0]) {
+          const videoURL = URL.createObjectURL(fileInput.files[0]);
+          const videoList = document.getElementById('videoList');
+          
+          const newCard = document.createElement('div');
+          newCard.className = 'video-card';
+          newCard.innerHTML = `
+            <video src="${videoURL}" loop playsinline></video>
+            <div class="video-overlay">
+              <h3>@Umar</h3>
+              <p>${text}</p>
+            </div>
+            <div class="action-sidebar">
+              <button class="action-btn" onclick="toggleLike(this)">❤️ <span class="like-count">0</span></button>
+              <button class="action-btn" onclick="openModal('commentModal')">💬 <span>0</span></button>
+              <button class="action-btn" onclick="openModal('shareModal')">🔗 <span>Share</span></button>
+              <button class="action-btn" onclick="toggleSubscribe(this)">➕ <span>Sub</span></button>
+            </div>
+          `;
+          videoList.prepend(newCard);
+          switchPage('videoPage', document.querySelectorAll('.nav-item')[0]);
+        } else {
+          alert('Please select a video file from your gallery!');
+          return;
+        }
+      } else {
+        const textList = document.getElementById('textPostList');
+        const newPost = document.createElement('div');
+        newPost.className = 'post-card';
+        newPost.innerHTML = `
+          <div class="post-header">
+            <div class="avatar">U</div>
+            <div>
+              <strong>@Umar</strong>
+              <div style="font-size:10px; color:#64748b;">Just now</div>
+            </div>
+          </div>
+          <p>${text}</p>
+          <div class="post-actions">
+            <button class="post-action-btn" onclick="toggleTextLike(this)">❤️ <span class="t-likes">0</span> Likes</button>
+            <button class="post-action-btn" onclick="openModal('commentModal')">💬 Comment</button>
+            <button class="post-action-btn" onclick="openModal('shareModal')">🔗 Share</button>
+          </div>
+        `;
+        textList.prepend(newPost);
+        switchPage('feedPage', document.querySelectorAll('.nav-item')[1]);
+      }
+      closeModal('createPostModal');
+      document.getElementById('postCaptionInput').value = '';
+    }
+
+    // Likes & Subscribe Single Tap Enforcement
+    function toggleLike(btn) {
+      let countSpan = btn.querySelector('.like-count');
+      let count = parseInt(countSpan.innerText);
+      if(!btn.classList.contains('liked')) {
+        btn.classList.add('liked');
+        btn.style.color = '#ef4444';
+        countSpan.innerText = count + 1;
+      } else {
+        btn.classList.remove('liked');
+        btn.style.color = '#ffffff';
+        countSpan.innerText = count - 1;
+      }
+    }
+
+    function toggleTextLike(btn) {
+      let countSpan = btn.querySelector('.t-likes');
+      let count = parseInt(countSpan.innerText);
+      if(!btn.classList.contains('liked')) {
+        btn.classList.add('liked');
+        btn.style.color = '#ef4444';
+        countSpan.innerText = count + 1;
+      } else {
+        btn.classList.remove('liked');
+        btn.style.color = '#94a3b8';
+        countSpan.innerText = count - 1;
+      }
+    }
+
+    function toggleSubscribe(btn) {
+      let span = btn.querySelector('span');
+      if(span.innerText === 'Sub') {
+        span.innerText = 'Subbed';
+        btn.style.background = '#0284c7';
+      } else {
+        span.innerText = 'Sub';
+        btn.style.background = 'rgba(15,23,42,0.6)';
       }
     }
 
     // Real API Translation
-    async function runTranslation() {
+    async function executeTranslation() {
       const text = document.getElementById('transInput').value;
-      const target = document.getElementById('langTarget').value;
+      const from = document.getElementById('transFrom').value;
+      const to = document.getElementById('transTo').value;
       const out = document.getElementById('transOutput');
 
-      if (!text) return;
+      if(!text) return;
       out.innerText = "Translating...";
 
       try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${target}`);
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
         const data = await res.json();
-        out.innerText = "Result: " + data.responseData.translatedText;
-      } catch (err) {
-        out.innerText = "Translation Error!";
-      }
-    }
-
-    // Smart Execution Code Engine
-    function runCodeEngine() {
-      const code = document.getElementById('codeInput').value;
-      const resContainer = document.getElementById('codeResult');
-      resContainer.innerHTML = "";
-
-      try {
-        if (code.includes('<') && code.includes('>')) {
-          // UI Preview Engine
-          resContainer.innerHTML = `<iframe style="width:100%; border:none; background:#fff;" srcdoc="${code}"></iframe>`;
-        } else {
-          // JS / Console Engine
-          let logs = [];
-          const customConsole = { log: (...a) => logs.push(a.join(' ')) };
-          const run = new Function('console', code);
-          run(customConsole);
-          resContainer.innerText = logs.length > 0 ? logs.join('\n') : "Code executed successfully with no output.";
-        }
-      } catch (err) {
-        resContainer.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
-      }
-    }
-
-    // Weather Search
-    async function checkWeather() {
-      const city = document.getElementById('weatherInput').value;
-      const resElem = document.getElementById('weatherResult');
-      if (!city) return;
-
-      try {
-        const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-        const data = await res.json();
-        const temp = data.current_condition[0].temp_C;
-        const desc = data.current_condition[0].weatherDesc[0].value;
-        resElem.innerHTML = `<h3 style="color:#38bdf8">${city.toUpperCase()}</h3><h2>${temp}°C</h2><p>${desc}</p>`;
+        out.innerText = data.responseData.translatedText;
       } catch(e) {
-        resElem.innerHTML = "<p style='color:red;'>City not found!</p>";
+        out.innerText = "Translation Error! Check Connection.";
       }
     }
 
-    // Chat Message
-    function sendChat() {
-      const input = document.getElementById('chatMsg');
-      if (input.value.trim() !== '') {
-        const box = document.getElementById('chatBox');
-        box.innerHTML += `<p style="font-size:12px; margin-top:4px;"><b>You:</b> ${input.value}</p>`;
-        input.value = '';
+    function copyTranslation() {
+      const text = document.getElementById('transOutput').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Translation Copied!');
+    }
+
+    // Messages & Channels Controls
+    function showChatTab(tab) {
+      document.getElementById('dmChatArea').style.display = (tab === 'dm') ? 'block' : 'none';
+      document.getElementById('channelArea').style.display = (tab === 'channel') ? 'block' : 'none';
+    }
+
+    function sendChatMessage() {
+      const inp = document.getElementById('chatMsgInput');
+      if(!inp.value) return;
+      const box = document.getElementById('chatBox');
+      box.innerHTML += `<div><strong>You:</strong> ${inp.value}</div>`;
+      inp.value = '';
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function createChannel() {
+      const name = document.getElementById('channelNameInput').value;
+      if(!name) return;
+      const list = document.getElementById('channelList');
+      list.innerHTML += `<div style="background:#132238; padding:8px; border-radius:6px; margin-top:6px; display:flex; justify-space-between;">
+        <span>📢 <strong>${name}</strong> (Owner: @Umar)</span>
+        <button class="btn-secondary" style="font-size:10px;" onclick="alert('Joined Channel!')">Join Channel</button>
+      </div>`;
+      document.getElementById('channelNameInput').value = '';
+    }
+
+    // Code & Weather Helpers
+    function runCode() {
+      const code = document.getElementById('codeSource').value;
+      document.getElementById('codeResult').innerHTML = code;
+    }
+
+    async function fetchWeather() {
+      const city = document.getElementById('weatherCity').value || 'Karachi';
+      const disp = document.getElementById('weatherDisplay');
+      disp.innerText = "Fetching...";
+      try {
+        const res = await fetch(`https://wttr.in/${city}?format=%C+%t`);
+        const text = await res.text();
+        disp.innerText = `${city.toUpperCase()}: ${text}`;
+      } catch(e) {
+        disp.innerText = "Weather fetch failed.";
       }
     }
 
-    // Share Options
-    function copyLink() {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied!");
+    function addComment() {
+      const inp = document.getElementById('commentInput');
+      if(!inp.value) return;
+      const list = document.getElementById('commentList');
+      list.innerHTML += `<div><strong>@Umar:</strong> ${inp.value}</div>`;
+      inp.value = '';
     }
-
-    function shareSocial(platform) {
-      alert("Sharing to " + platform);
-    }
-
-    // Modals Controller
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
   </script>
 </body>
 </html>
