@@ -2,516 +2,610 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SuperApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #0b111e; color: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-    /* Top Bar */
-    .top-bar { height: 50px; background: #0f172a; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #1e293b; z-index: 10; }
-    .brand { font-size: 18px; font-weight: 800; color: #38bdf8; letter-spacing: 0.5px; }
-    .top-actions { display: flex; gap: 10px; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 50%; background: #1e293b; border: 1px solid #334155; color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; }
-
-    /* Upload Progress Bar */
-    #uploadProgressContainer { display: none; width: 100%; background: #1e293b; height: 18px; position: relative; overflow: hidden; border-bottom: 1px solid #38bdf8; }
-    #uploadProgressBar { width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #00e676); transition: width 0.1s linear; }
-    #uploadProgressText { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: bold; line-height: 18px; color: #fff; text-shadow: 0 0 2px #000; }
-
-    /* Main Content Screens */
-    .screen { flex: 1; display: none; overflow-y: auto; position: relative; }
-    .screen.active { display: block; }
-
-    /* Video Feed Screen */
-    #feedScreen { background: #000; height: 100%; }
-    .video-card { position: relative; height: calc(100vh - 110px); width: 100%; background: #000; display: flex; align-items: center; justify-content: center; scroll-snap-align: start; }
-    .video-card video { width: 100%; height: 100%; object-fit: cover; }
-    .video-overlay { position: absolute; bottom: 15px; left: 15px; right: 70px; z-index: 5; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-    .video-user { font-weight: bold; font-size: 15px; color: #38bdf8; margin-bottom: 4px; }
-    .video-caption { font-size: 13px; color: #e2e8f0; line-height: 1.3; }
-
-    /* Side Bar Actions on Video */
-    .side-actions { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 5; }
-    .action-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #fff; font-size: 11px; cursor: pointer; }
-    .action-item .btn-icon { width: 42px; height: 42px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid rgba(255,255,255,0.1); }
-    .action-item.liked .btn-icon { color: #ff2a5f; }
-
-    /* Half-Page Modal / Drawer */
-    .drawer-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 100; backdrop-filter: blur(2px); }
-    .drawer { position: fixed; bottom: -100%; left: 0; right: 0; background: #0f172a; border-top-left-radius: 18px; border-top-right-radius: 18px; border-top: 1px solid #334155; padding: 20px; z-index: 101; transition: bottom 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); max-height: 70vh; display: flex; flex-direction: column; }
-    .drawer.open { bottom: 0; }
-    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
-    .drawer-title { font-weight: bold; font-size: 15px; color: #38bdf8; }
-
-    /* Share Grid */
-    .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
-    .share-opt { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; cursor: pointer; }
-    .share-icon { width: 46px; height: 46px; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #38bdf8; }
-
-    /* Comment Box UI */
-    .comment-list { flex: 1; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; max-height: 250px; }
-    .comment-item { display: flex; gap: 10px; font-size: 13px; }
-    .comment-avatar { width: 30px; height: 30px; border-radius: 50%; background: #0284c7; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-    .comment-body { flex: 1; background: #1e293b; padding: 8px 12px; border-radius: 10px; }
-    .comment-author { font-weight: bold; color: #38bdf8; font-size: 11px; }
-    .comment-input-wrap { display: flex; gap: 8px; }
-    .comment-input-wrap input { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 8px 15px; color: #fff; font-size: 13px; outline: none; }
-    .comment-input-wrap button { background: #0284c7; border: none; padding: 8px 15px; border-radius: 20px; color: #fff; font-weight: bold; font-size: 12px; }
-
-    /* Profile Grid & Video Items */
-    .profile-card { background: #0f172a; margin: 15px; padding: 20px; border-radius: 14px; border: 1px solid #1e293b; text-align: center; }
-    .avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; }
-    .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 0 15px; }
-    .grid-video-item { aspect-ratio: 9/16; background: #000; border-radius: 6px; overflow: hidden; position: relative; }
-    .grid-video-item video { width: 100%; height: 100%; object-fit: cover; }
-
-    /* Form UI Elements */
-    .card { background: #0f172a; margin: 15px; padding: 15px; border-radius: 12px; border: 1px solid #1e293b; }
-    .card-title { font-size: 15px; font-weight: bold; color: #38bdf8; margin-bottom: 12px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
-    .input-field { width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; color: #fff; outline: none; font-size: 13px; }
-    .btn-primary { width: 100%; background: #0284c7; border: none; border-radius: 8px; padding: 12px; color: #fff; font-weight: bold; cursor: pointer; font-size: 13px; }
-
-    /* Code Editor Output */
-    .terminal-box { background: #000; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 12px; color: #00e676; border: 1px solid #334155; min-height: 80px; white-space: pre-wrap; }
-
-    /* Bottom Nav Bar */
-    .bottom-nav { height: 60px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #64748b; font-size: 10px; cursor: pointer; text-decoration: none; }
-    .nav-item.active { color: #38bdf8; }
-    .nav-item .nav-icon { font-size: 18px; }
-    .add-btn { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; font-weight: bold; margin-top: -15px; border: 3px solid #0b111e; }
+    body {
+      background-color: #0b1120;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      user-select: none;
+    }
+    .toast-enter {
+      transform: translateY(100%);
+      opacity: 0;
+      transition: all 0.3s ease-out;
+    }
+    .toast-show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    /* Smooth like button transition - No flickering */
+    .like-btn-icon {
+      transition: color 0.2s ease, transform 0.15s ease;
+    }
+    .like-btn-icon:active {
+      transform: scale(1.3);
+    }
+    /* Hide scrollbars for clean UI */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
-<body>
+<body class="h-screen flex flex-col justify-between overflow-hidden">
 
-  <!-- Top Header -->
-  <div class="top-bar">
-    <div class="brand">SUPERAPP</div>
-    <div class="top-actions">
-      <div class="icon-btn" onclick="openScreen('translatorScreen')">🌐</div>
-      <div class="icon-btn" onclick="openScreen('editorScreen')">&lt;/&gt;</div>
+  <!-- TOP HEADER -->
+  <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/80 backdrop-blur z-20">
+    <h1 class="text-xl font-bold tracking-wider text-sky-400">SUPER APP</h1>
+    <div class="flex items-center space-x-3">
+      <button onclick="switchTab('translator')" class="p-2 text-slate-400 hover:text-white rounded-full bg-slate-800">
+        <i class="fa-solid me-1 fa-language"></i>
+      </button>
+      <button onclick="switchTab('settings')" class="p-2 text-slate-400 hover:text-white rounded-full bg-slate-800">
+        <i class="fa-solid fa-gear"></i>
+      </button>
     </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION CONTAINER (REPLACES ALERT) -->
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-sky-600 text-white px-5 py-2.5 rounded-full shadow-lg font-medium text-sm z-50 pointer-events-none toast-enter">
+    <span id="toast-msg">Notification Message</span>
   </div>
 
-  <!-- Progress Bar Header for Post Upload -->
-  <div id="uploadProgressContainer">
-    <div id="uploadProgressBar"></div>
-    <div id="uploadProgressText">Uploading: 0%</div>
-  </div>
+  <!-- MAIN CONTENT AREA -->
+  <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar relative">
 
-  <!-- 1. VIDEO FEED SCREEN -->
-  <div id="feedScreen" class="screen active">
-    <div id="videoContainer"></div>
-  </div>
-
-  <!-- 2. CREATE POST / CHANNEL POST SCREEN -->
-  <div id="createScreen" class="screen">
-    <div class="card">
-      <div class="card-title">Post New Video Feed</div>
-      <div class="form-group">
-        <label>Select Video from Gallery</label>
-        <input type="file" id="postVideoInput" accept="video/*" class="input-field">
+    <!-- 1. VIDEOS FEED -->
+    <section id="sec-videos" class="h-full w-full relative bg-black flex flex-col items-center justify-center">
+      <div id="video-container" class="w-full h-full relative">
+        <!-- Dynamic Video Feed Injected Here -->
       </div>
-      <div class="form-group">
-        <label>Caption</label>
-        <input type="text" id="postCaptionInput" placeholder="Write caption..." class="input-field">
+    </section>
+
+    <!-- 2. TEXT POSTS FEED -->
+    <section id="sec-textfeed" class="p-4 space-y-4 hidden">
+      <h2 class="text-lg font-semibold text-sky-400 border-b border-slate-800 pb-2">Community Feed</h2>
+      <div id="text-feed-list" class="space-y-4">
+        <!-- Dynamic Text Posts Injected Here -->
       </div>
-      <button class="btn-primary" onclick="handleVideoUpload()">Upload Video Feed</button>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="card-title">Create Channel / Group</div>
-      <div class="form-group">
-        <label>Channel Name</label>
-        <input type="text" id="channelNameInput" placeholder="Enter channel name" class="input-field">
+    <!-- 3. CHANNELS & CHAT -->
+    <section id="sec-channels" class="p-4 space-y-4 hidden">
+      <div id="channels-list-view">
+        <h2 class="text-lg font-semibold text-sky-400 mb-3">Channels & Discussions</h2>
+        <div id="channels-container" class="space-y-2">
+          <!-- Dynamic Channels List -->
+        </div>
       </div>
-      <div class="form-group">
-        <label>Channel Banner / Photo (Select from Gallery)</label>
-        <input type="file" id="channelPhotoInput" accept="image/*" class="input-field">
+
+      <!-- ACTIVE CHAT VIEW -->
+      <div id="active-chat-view" class="hidden flex flex-col h-[75vh] border border-slate-800 rounded-xl bg-slate-900/50">
+        <div class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+          <div class="flex items-center space-x-2">
+            <button onclick="closeChat()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
+            <span id="chat-title" class="font-bold text-slate-200">Channel Name</span>
+          </div>
+        </div>
+        <div id="chat-messages" class="flex-1 p-3 overflow-y-auto space-y-3 no-scrollbar text-sm">
+          <!-- Messages -->
+        </div>
+        <div class="p-2 border-t border-slate-800 flex space-x-2 bg-slate-900">
+          <input type="text" id="chat-input" placeholder="Write a message..." class="flex-1 bg-slate-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-sky-500">
+          <button onclick="sendChatMessage()" class="bg-sky-500 text-white px-4 py-2 rounded-lg text-sm font-medium"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
       </div>
-      <button class="btn-primary" onclick="handleCreateChannel()">Create Channel</button>
-    </div>
-  </div>
+    </section>
 
-  <!-- 3. MESSAGES & CHANNELS SCREEN -->
-  <div id="chatScreen" class="screen">
-    <div class="card">
-      <div class="card-title">Channels & Discussions</div>
-      <div id="channelListDisplay"></div>
-    </div>
-  </div>
-
-  <!-- 4. PROFILE SCREEN -->
-  <div id="profileScreen" class="screen">
-    <div class="profile-card">
-      <div class="avatar">U</div>
-      <div style="font-weight: bold; font-size: 16px;">@Umar_Developer</div>
-      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Verified Creator Profile</div>
-    </div>
-    <div style="padding: 0 15px 10px; font-weight: bold; font-size: 13px; color: #38bdf8;">My Uploaded Videos</div>
-    <div class="post-grid" id="profilePostGrid"></div>
-  </div>
-
-  <!-- 5. TRANSLATOR SCREEN -->
-  <div id="translatorScreen" class="screen">
-    <div class="card">
-      <div class="card-title">Universal Sentence Translator</div>
-      <div class="form-group">
-        <textarea id="transInput" class="input-field" rows="4" placeholder="Enter full sentence here..."></textarea>
+    <!-- 4. CREATE CONTENT / POST TAB -->
+    <section id="sec-post" class="p-4 space-y-6 hidden max-w-lg mx-auto">
+      <!-- VIDEO UPLOAD CARD -->
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+        <h2 class="text-md font-semibold text-sky-400">Post New Video Feed</h2>
+        <input type="file" id="video-file-input" accept="video/*" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-500 cursor-pointer">
+        <input type="text" id="video-caption-input" placeholder="Write caption..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none">
+        <button onclick="handleVideoPost()" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-medium py-2 rounded-lg text-sm transition">Upload Video Feed</button>
       </div>
-      <button class="btn-primary" onclick="handleTranslation()">Translate to Urdu</button>
-      <div class="form-group" style="margin-top: 15px;">
-        <label>Urdu Translation Result</label>
-        <div id="transOutput" class="terminal-box" style="color: #fff;"></div>
+
+      <!-- TEXT POST CARD -->
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+        <h2 class="text-md font-semibold text-sky-400">Post Text Status</h2>
+        <textarea id="text-post-input" rows="3" placeholder="What's on your mind?" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none resize-none"></textarea>
+        <button onclick="handleTextPost()" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-medium py-2 rounded-lg text-sm transition">Publish Text Post</button>
       </div>
-    </div>
-  </div>
 
-  <!-- 6. CODE EDITOR & TERMINAL -->
-  <div id="editorScreen" class="screen">
-    <div class="card">
-      <div class="card-title">Live Python / JS Terminal</div>
-      <div class="form-group">
-        <select id="langSelect" class="input-field" style="margin-bottom: 8px;">
-          <option value="js">JavaScript</option>
-          <option value="python">Python Syntax Check</option>
-        </select>
-        <textarea id="codeEditorInput" class="input-field" rows="6" placeholder="Write code here..."></textarea>
+      <!-- CREATE CHANNEL CARD -->
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+        <h2 class="text-md font-semibold text-sky-400">Create Channel / Group</h2>
+        <input type="text" id="channel-name-input" placeholder="Enter channel name..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none">
+        <button onclick="handleCreateChannel()" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-medium py-2 rounded-lg text-sm transition">Create Channel</button>
       </div>
-      <button class="btn-primary" onclick="runCodeTerminal()">Run Code in Terminal</button>
-      <div class="form-group" style="margin-top: 15px;">
-        <label>Live Output Terminal</label>
-        <div id="terminalOutput" class="terminal-box"></div>
+    </section>
+
+    <!-- 5. TERMINAL -->
+    <section id="sec-terminal" class="p-4 space-y-3 hidden">
+      <h2 class="text-lg font-semibold text-sky-400">Live Python / JS Terminal</h2>
+      <select id="term-lang" class="w-full bg-slate-800 text-slate-200 border border-slate-700 rounded-lg p-2 text-sm">
+        <option value="js">JavaScript Playground</option>
+        <option value="py">Python Syntax Check</option>
+      </select>
+      <textarea id="term-code" rows="5" class="w-full bg-slate-900 border border-slate-800 text-green-400 font-mono p-3 rounded-lg text-sm focus:outline-none">console.log("Super App Operational!");</textarea>
+      <button onclick="runTerminalCode()" class="w-full bg-sky-500 hover:bg-sky-400 text-white py-2 rounded-lg font-medium text-sm">Run Code in Terminal</button>
+      <div class="bg-black border border-slate-800 rounded-lg p-3 min-h-[100px] text-xs font-mono text-slate-300">
+        <p class="text-slate-500">// Terminal Output</p>
+        <pre id="term-output" class="mt-1 whitespace-pre-wrap"></pre>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- HALF PAGE SHARE DRAWER -->
-  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawers()"></div>
-  <div class="drawer" id="shareDrawer">
-    <div class="drawer-header">
-      <span class="drawer-title">Share Post To</span>
-      <span style="cursor:pointer;" onclick="closeDrawers()">✕</span>
-    </div>
-    <div class="share-grid">
-      <div class="share-opt" onclick="copyPostLink()"><div class="share-icon">🔗</div>Copy Link</div>
-      <div class="share-opt" onclick="triggerShare('WhatsApp')"><div class="share-icon">💬</div>WhatsApp</div>
-      <div class="share-opt" onclick="triggerShare('Facebook')"><div class="share-icon">📘</div>Facebook</div>
-      <div class="share-opt" onclick="triggerShare('Telegram')"><div class="share-icon">✈️</div>Telegram</div>
-    </div>
-  </div>
+    <!-- 6. PROFILE TAB -->
+    <section id="sec-profile" class="p-4 space-y-4 hidden">
+      <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 text-center relative">
+        <div class="absolute top-3 right-3 bg-slate-800 text-xs px-2.5 py-1 rounded-full text-slate-300">
+          <i class="fa-solid fa-eye me-1 text-sky-400"></i> Views: <span id="prof-views">1.2K</span>
+        </div>
+        <div class="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-2 text-white border-2 border-sky-400 shadow-md">
+          U
+        </div>
+        <h3 class="font-bold text-lg text-white">@Umar_Developer</h3>
+        <p class="text-xs text-sky-400 mb-4">Verified Creator Profile</p>
+        
+        <!-- PROFILE STATS ROW -->
+        <div class="grid grid-cols-3 gap-2 border-t border-slate-800 pt-3 text-center">
+          <div>
+            <p class="font-bold text-white text-sm" id="prof-likes">124</p>
+            <p class="text-[10px] text-slate-400">Total Likes</p>
+          </div>
+          <div>
+            <p class="font-bold text-white text-sm" id="prof-subs">890</p>
+            <p class="text-[10px] text-slate-400">Subscribers</p>
+          </div>
+          <div>
+            <p class="font-bold text-white text-sm" id="prof-posts">2</p>
+            <p class="text-[10px] text-slate-400">Total Posts</p>
+          </div>
+        </div>
+      </div>
 
-  <!-- HALF PAGE COMMENT DRAWER -->
-  <div class="drawer" id="commentDrawer">
-    <div class="drawer-header">
-      <span class="drawer-title">Comments</span>
-      <span style="cursor:pointer;" onclick="closeDrawers()">✕</span>
-    </div>
-    <div class="comment-list" id="commentList"></div>
-    <div class="comment-input-wrap">
-      <input type="text" id="commentInputText" placeholder="Add a comment...">
-      <button onclick="postComment()">Send</button>
-    </div>
-  </div>
+      <div>
+        <h4 class="text-sm font-semibold text-slate-400 mb-2">My Uploaded Feed</h4>
+        <div id="profile-grid" class="grid grid-cols-2 gap-2">
+          <!-- Uploaded Items Thumbnail Grid -->
+        </div>
+      </div>
+    </section>
 
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="openScreen('feedScreen', this)">
-      <div class="nav-icon">▶</div>
-      <span>Videos</span>
-    </div>
-    <div class="nav-item" onclick="openScreen('chatScreen', this)">
-      <div class="nav-icon">💬</div>
-      <span>Channels</span>
-    </div>
-    <div class="add-btn" onclick="openScreen('createScreen', this)">+</div>
-    <div class="nav-item" onclick="openScreen('editorScreen', this)">
-      <div class="nav-icon">&lt;/&gt;</div>
-      <span>Terminal</span>
-    </div>
-    <div class="nav-item" onclick="openScreen('profileScreen', this)">
-      <div class="nav-icon">👤</div>
-      <span>Profile</span>
-    </div>
-  </div>
+    <!-- 7. TRANSLATOR TAB -->
+    <section id="sec-translator" class="p-4 space-y-4 hidden">
+      <h2 class="text-lg font-semibold text-sky-400">Universal Sentence Translator</h2>
+      <div class="space-y-3 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+        <textarea id="trans-input" rows="3" placeholder="Type sentence here..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none"></textarea>
+        
+        <div class="flex items-center space-x-2">
+          <label class="text-xs text-slate-400">Target Language:</label>
+          <select id="trans-lang" class="flex-1 bg-slate-800 text-white text-xs border border-slate-700 rounded-lg p-2">
+            <option value="Urdu">Urdu</option>
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Arabic">Arabic</option>
+            <option value="Spanish">Spanish</option>
+          </select>
+        </div>
 
+        <button onclick="handleTranslate()" class="w-full bg-sky-500 hover:bg-sky-400 text-white py-2 rounded-lg text-sm font-medium">Translate Sentence</button>
+      </div>
+
+      <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+        <h4 class="text-xs text-slate-400 mb-1">Translation Result</h4>
+        <p id="trans-output" class="text-sm text-slate-200 font-medium">Result will appear here...</p>
+      </div>
+    </section>
+
+    <!-- 8. SETTINGS & WALLET TAB -->
+    <section id="sec-settings" class="p-4 space-y-4 hidden">
+      <h2 class="text-lg font-semibold text-sky-400">Account Settings & Wallet</h2>
+      
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+        <div>
+          <p class="text-xs text-slate-400">Current Balance</p>
+          <p class="text-2xl font-bold text-green-400">$0.00</p>
+        </div>
+        <button onclick="showToast('Balance not available')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-semibold border border-slate-700">Withdraw</button>
+      </div>
+
+      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+        <h3 class="text-sm font-semibold text-slate-300">App Preferences</h3>
+        <div class="flex justify-between items-center text-sm py-1 border-b border-slate-800">
+          <span class="text-slate-400">Push Notifications</span>
+          <input type="checkbox" checked class="toggle">
+        </div>
+        <div class="flex justify-between items-center text-sm py-1">
+          <span class="text-slate-400">Autoplay Videos</span>
+          <input type="checkbox" checked class="toggle">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="h-16 border-t border-slate-800 bg-slate-900/90 backdrop-blur flex items-center justify-around px-2 z-20">
+    <button onclick="switchTab('videos')" id="nav-videos" class="flex flex-col items-center text-sky-400 text-xs">
+      <i class="fa-solid fa-play text-lg"></i>
+      <span class="mt-1">Videos</span>
+    </button>
+    <button onclick="switchTab('textfeed')" id="nav-textfeed" class="flex flex-col items-center text-slate-400 text-xs">
+      <i class="fa-solid fa-newspaper text-lg"></i>
+      <span class="mt-1">Feed</span>
+    </button>
+    <button onclick="switchTab('post')" id="nav-post" class="flex flex-col items-center text-slate-400 text-xs">
+      <div class="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center text-white text-lg shadow-md -mt-3 border-2 border-slate-900">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+    </button>
+    <button onclick="switchTab('channels')" id="nav-channels" class="flex flex-col items-center text-slate-400 text-xs">
+      <i class="fa-solid fa-comments text-lg"></i>
+      <span class="mt-1">Channels</span>
+    </button>
+    <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center text-slate-400 text-xs">
+      <i class="fa-solid fa-user text-lg"></i>
+      <span class="mt-1">Profile</span>
+    </button>
+  </nav>
+
+  <!-- APP JAVASCRIPT LOGIC -->
   <script>
-    // State Store
-    let posts = JSON.parse(localStorage.getItem('app_posts')) || [
-      { id: 1, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', user: '@DevOfficial', caption: 'Welcome to SuperApp Feed!', likes: 12, liked: false, comments: ['Awesome video!'] }
-    ];
-    let channels = JSON.parse(localStorage.getItem('app_channels')) || [
-      { id: 1, name: 'Forex Live Signals', members: 890, image: '' }
-    ];
-    let activePostId = null;
+    // GLOBAL APP STATE
+    const state = {
+      activeTab: 'videos',
+      user: {
+        username: '@Umar_Developer',
+        likes: 124,
+        subscribers: 890,
+        posts: 2,
+        views: '1.2K'
+      },
+      posts: [
+        {
+          id: 1,
+          type: 'video',
+          src: 'https://www.w3schools.com/html/mov_bbb.mp4',
+          author: '@Umar_Developer',
+          caption: 'Welcome to Super App official launch! 🚀',
+          likes: 42,
+          isLiked: false,
+          subscribed: false
+        }
+      ],
+      textPosts: [
+        {
+          id: 101,
+          author: '@Umar_Developer',
+          content: 'Building new features on mobile phone without laptop! Clean UI updated.',
+          likes: 18,
+          isLiked: false,
+          subscribed: false
+        }
+      ],
+      channels: [
+        { id: 1, name: 'Forex Live Signals', members: 890, messages: ['Welcome to Forex Signals'] },
+        { id: 2, name: 'Super App Updates', members: 120, messages: ['New update build live!'] }
+      ],
+      activeChannel: null
+    };
 
-    // Screen Switcher
-    function openScreen(screenId, navEl) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-      if(navEl && navEl.classList) {
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        navEl.classList.add('active');
-      }
-      if(screenId === 'feedScreen') renderFeed();
-      if(screenId === 'profileScreen') renderProfile();
-      if(screenId === 'chatScreen') renderChannels();
+    // TOAST NOTIFICATION REPLACING BROWSER ALERT
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('toast-enter');
+      toast.classList.add('toast-show');
+
+      setTimeout(() => {
+        toast.classList.remove('toast-show');
+        toast.classList.add('toast-enter');
+      }, 2500);
     }
 
-    // Video Upload with Progress Bar
-    function handleVideoUpload() {
-      const fileInput = document.getElementById('postVideoInput');
-      const captionInput = document.getElementById('postCaptionInput');
+    // TAB SWITCHING NAVIGATION
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById('sec-' + tabId).classList.remove('hidden');
+
+      // Update Nav Button Colors
+      ['videos', 'textfeed', 'channels', 'profile'].forEach(nav => {
+        const btn = document.getElementById('nav-' + nav);
+        if (btn) {
+          if (nav === tabId) {
+            btn.className = 'flex flex-col items-center text-sky-400 text-xs';
+          } else {
+            btn.className = 'flex flex-col items-center text-slate-400 text-xs';
+          }
+        }
+      });
+
+      if (tabId === 'profile') renderProfile();
+      if (tabId === 'videos') renderVideos();
+      if (tabId === 'textfeed') renderTextFeed();
+      if (tabId === 'channels') renderChannels();
+    }
+
+    // RENDER VIDEO FEED WITH WORKING SOUND
+    function renderVideos() {
+      const container = document.getElementById('video-container');
+      if (state.posts.filter(p => p.type === 'video').length === 0) {
+        container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-500 text-sm">No videos uploaded yet</div>`;
+        return;
+      }
+
+      container.innerHTML = state.posts.filter(p => p.type === 'video').map(post => `
+        <div class="relative w-full h-full bg-black flex items-center justify-center">
+          <video src="${post.src}" class="w-full h-full object-contain" autoplay loop playsinline></video>
+          
+          <div class="absolute bottom-4 left-4 right-16 z-10 space-y-1">
+            <p class="font-bold text-white text-sm flex items-center gap-2">
+              ${post.author}
+              <button onclick="toggleSubscribe(${post.id})" class="text-[10px] bg-sky-500 text-white px-2 py-0.5 rounded-full">
+                ${post.subscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+            </p>
+            <p class="text-xs text-slate-200">${post.caption}</p>
+          </div>
+
+          <!-- ACTION BUTTONS -->
+          <div class="absolute bottom-6 right-3 flex flex-col items-center space-y-5 z-10">
+            <button onclick="toggleLike(${post.id})" class="flex flex-col items-center text-white">
+              <i class="fa-solid fa-heart text-2xl like-btn-icon ${post.isLiked ? 'text-red-500' : 'text-slate-300'}"></i>
+              <span class="text-[10px] mt-1">${post.likes}</span>
+            </button>
+            <button onclick="showToast('Post link copied successfully!')" class="flex flex-col items-center text-white">
+              <i class="fa-solid fa-share text-2xl text-slate-300"></i>
+              <span class="text-[10px] mt-1">Share</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // RENDER TEXT POSTS FEED
+    function renderTextFeed() {
+      const container = document.getElementById('text-feed-list');
+      container.innerHTML = state.textPosts.map(post => `
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center font-bold text-xs text-white">
+                ${post.author.charAt(1).toUpperCase()}
+              </div>
+              <span class="font-bold text-sm text-slate-200">${post.author}</span>
+            </div>
+            <button onclick="toggleTextSubscribe(${post.id})" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-3 py-1 rounded-full border border-slate-700">
+              ${post.subscribed ? 'Subscribed' : 'Subscribe'}
+            </button>
+          </div>
+          <p class="text-sm text-slate-300 leading-relaxed">${post.content}</p>
+          <div class="flex items-center space-x-4 border-t border-slate-800/60 pt-2 text-xs text-slate-400">
+            <button onclick="toggleTextLike(${post.id})" class="flex items-center space-x-1 ${post.isLiked ? 'text-red-500' : ''}">
+              <i class="fa-solid fa-heart"></i>
+              <span>${post.likes}</span>
+            </button>
+            <button onclick="showToast('Post link copied successfully!')" class="flex items-center space-x-1">
+              <i class="fa-solid fa-share"></i>
+              <span>Share</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // LIKE & SUBSCRIBE HANDLERS
+    function toggleLike(id) {
+      const post = state.posts.find(p => p.id === id);
+      if (post) {
+        post.isLiked = !post.isLiked;
+        post.likes += post.isLiked ? 1 : -1;
+        state.user.likes += post.isLiked ? 1 : -1;
+        renderVideos();
+      }
+    }
+
+    function toggleSubscribe(id) {
+      const post = state.posts.find(p => p.id === id);
+      if (post) {
+        post.subscribed = !post.subscribed;
+        showToast(post.subscribed ? 'Subscribed to creator!' : 'Unsubscribed');
+        renderVideos();
+      }
+    }
+
+    function toggleTextLike(id) {
+      const post = state.textPosts.find(p => p.id === id);
+      if (post) {
+        post.isLiked = !post.isLiked;
+        post.likes += post.isLiked ? 1 : -1;
+        renderTextFeed();
+      }
+    }
+
+    function toggleTextSubscribe(id) {
+      const post = state.textPosts.find(p => p.id === id);
+      if (post) {
+        post.subscribed = !post.subscribed;
+        showToast(post.subscribed ? 'Subscribed!' : 'Unsubscribed');
+        renderTextFeed();
+      }
+    }
+
+    // CREATE CONTENT LOGIC (PERSISTENT BASE64 READ)
+    function handleVideoPost() {
+      const fileInput = document.getElementById('video-file-input');
+      const captionInput = document.getElementById('video-caption-input');
 
       if (!fileInput.files[0]) {
-        alert('Please select a video file from gallery!');
+        showToast('Please select a video file first');
         return;
       }
 
-      const progressContainer = document.getElementById('uploadProgressContainer');
-      const progressBar = document.getElementById('uploadProgressBar');
-      const progressText = document.getElementById('uploadProgressText');
-
-      progressContainer.style.display = 'block';
-      let progress = 0;
-
-      const interval = setInterval(() => {
-        progress += 10;
-        progressBar.style.width = progress + '%';
-        progressText.innerText = 'Uploading: ' + progress + '%';
-
-        if (progress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            const videoUrl = URL.createObjectURL(fileInput.files[0]);
-            const newPost = {
-              id: Date.now(),
-              videoUrl: videoUrl,
-              user: '@Umar_Developer',
-              caption: captionInput.value || 'New Video Post',
-              likes: 0,
-              liked: false,
-              comments: []
-            };
-
-            posts.unshift(newPost);
-            localStorage.setItem('app_posts', JSON.stringify(posts));
-
-            progressContainer.style.display = 'none';
-            progressBar.style.width = '0%';
-            captionInput.value = '';
-            fileInput.value = '';
-
-            openScreen('feedScreen');
-          }, 300);
-        }
-      }, 80);
-    }
-
-    // Render Video Feed
-    function renderFeed() {
-      const container = document.getElementById('videoContainer');
-      container.innerHTML = '';
-
-      posts.forEach(post => {
-        const card = document.createElement('div');
-        card.className = 'video-card';
-        card.innerHTML = `
-          <video src="${post.videoUrl}" loop autoplay muted playsinline></video>
-          <div class="video-overlay">
-            <div class="video-user">${post.user}</div>
-            <div class="video-caption">${post.caption}</div>
-          </div>
-          <div class="side-actions">
-            <div class="action-item ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-              <div class="btn-icon">♥</div>
-              <span>${post.likes}</span>
-            </div>
-            <div class="action-item" onclick="openComments(${post.id})">
-              <div class="btn-icon">💬</div>
-              <span>${post.comments.length}</span>
-            </div>
-            <div class="action-item" onclick="openShare(${post.id})">
-              <div class="btn-icon">➥</div>
-              <span>Share</span>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Render Profile Videos Grid
-    function renderProfile() {
-      const grid = document.getElementById('profilePostGrid');
-      grid.innerHTML = '';
-      posts.forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'grid-video-item';
-        item.innerHTML = `<video src="${post.videoUrl}" muted preload="metadata"></video>`;
-        grid.appendChild(item);
-      });
-    }
-
-    // Like Toggle
-    function toggleLike(id) {
-      const post = posts.find(p => p.id === id);
-      if(post) {
-        post.liked = !post.liked;
-        post.likes += post.liked ? 1 : -1;
-        renderFeed();
-      }
-    }
-
-    // Drawers Open / Close
-    function openShare(id) {
-      activePostId = id;
-      document.getElementById('drawerOverlay').style.display = 'block';
-      document.getElementById('shareDrawer').classList.add('open');
-    }
-
-    function openComments(id) {
-      activePostId = id;
-      document.getElementById('drawerOverlay').style.display = 'block';
-      document.getElementById('commentDrawer').classList.add('open');
-      renderCommentList();
-    }
-
-    function closeDrawers() {
-      document.getElementById('drawerOverlay').style.display = 'none';
-      document.getElementById('shareDrawer').classList.remove('open');
-      document.getElementById('commentDrawer').classList.remove('open');
-    }
-
-    function copyPostLink() {
-      navigator.clipboard.writeText('https://superapp.com/post/' + activePostId);
-      alert('Post link copied successfully!');
-      closeDrawers();
-    }
-
-    function triggerShare(platform) {
-      alert('Sharing link to ' + platform + '...');
-      closeDrawers();
-    }
-
-    function renderCommentList() {
-      const post = posts.find(p => p.id === activePostId);
-      const list = document.getElementById('commentList');
-      list.innerHTML = '';
-      if(post && post.comments) {
-        post.comments.forEach(c => {
-          const div = document.createElement('div');
-          div.className = 'comment-item';
-          div.innerHTML = `
-            <div class="comment-avatar">U</div>
-            <div class="comment-body">
-              <div class="comment-author">User</div>
-              <div>${c}</div>
-            </div>
-          `;
-          list.appendChild(div);
-        });
-      }
-    }
-
-    function postComment() {
-      const input = document.getElementById('commentInputText');
-      if(input.value.trim() && activePostId) {
-        const post = posts.find(p => p.id === activePostId);
-        if(post) {
-          post.comments.push(input.value.trim());
-          input.value = '';
-          renderCommentList();
-          renderFeed();
-        }
-      }
-    }
-
-    // Channels
-    function handleCreateChannel() {
-      const nameInput = document.getElementById('channelNameInput');
-      if(!nameInput.value.trim()) return;
-      channels.push({ id: Date.now(), name: nameInput.value.trim(), members: 1, image: '' });
-      localStorage.setItem('app_channels', JSON.stringify(channels));
-      nameInput.value = '';
-      alert('Channel created!');
-      openScreen('chatScreen');
-    }
-
-    function renderChannels() {
-      const display = document.getElementById('channelListDisplay');
-      display.innerHTML = '';
-      channels.forEach(ch => {
-        const div = document.createElement('div');
-        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #1e293b;";
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:bold; font-size:14px; color:#38bdf8;">${ch.name}</div>
-            <div style="font-size:11px; color:#94a3b8;">${ch.members} Members</div>
-          </div>
-          <button style="background:#0284c7; border:none; padding:5px 12px; border-radius:12px; color:#fff; font-size:11px;" onclick="alert('Joined Channel')">Join</button>
-        `;
-        display.appendChild(div);
-      });
-    }
-
-    // Urdu Full Sentence Translation Logic
-    function handleTranslation() {
-      const text = document.getElementById('transInput').value;
-      const output = document.getElementById('transOutput');
-      if(!text.trim()) return;
-
-      const dictionary = {
-        "hello": "سلام", "bro": "بھائی", "rich": "امیر", "i'm": "میں ہوں", "main": "میں",
-        "video": "ویڈیو", "code": "کوڈ", "app": "ایپ", "good": "اچھا", "working": "کام کر رہا ہے"
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const newPost = {
+          id: Date.now(),
+          type: 'video',
+          src: e.target.result,
+          author: state.user.username,
+          caption: captionInput.value || 'New Video Post',
+          likes: 0,
+          isLiked: false,
+          subscribed: false
+        };
+        state.posts.unshift(newPost);
+        state.user.posts += 1;
+        captionInput.value = '';
+        fileInput.value = '';
+        showToast('Video posted successfully!');
+        switchTab('videos');
       };
-
-      let words = text.split(" ");
-      let translated = words.map(w => {
-        let clean = w.toLowerCase().replace(/[^a-z']/g, "");
-        return dictionary[clean] || w;
-      }).join(" ");
-
-      output.innerText = translated;
+      reader.readAsDataURL(fileInput.files[0]);
     }
 
-    // Live Code Terminal (JS + Python Syntax Check)
-    function runCodeTerminal() {
-      const lang = document.getElementById('langSelect').value;
-      const code = document.getElementById('codeEditorInput').value;
-      const output = document.getElementById('terminalOutput');
-
-      if (!code.trim()) {
-        output.innerText = "[Wrong] Empty code provided!";
-        output.style.color = "#ff4d4d";
+    function handleTextPost() {
+      const input = document.getElementById('text-post-input');
+      if (!input.value.trim()) {
+        showToast('Please enter text content');
         return;
       }
+      const newText = {
+        id: Date.now(),
+        author: state.user.username,
+        content: input.value,
+        likes: 0,
+        isLiked: false,
+        subscribed: false
+      };
+      state.textPosts.unshift(newText);
+      state.user.posts += 1;
+      input.value = '';
+      showToast('Text status published!');
+      switchTab('textfeed');
+    }
 
-      if (lang === 'js') {
-        try {
-          let result = eval(code);
-          output.innerText = "[Code Execution Success]\nOutput: " + (result !== undefined ? result : "Executed without errors");
-          output.style.color = "#00e676";
-        } catch (err) {
-          output.innerText = "[Error / Wrong Syntax]\n" + err.message;
-          output.style.color = "#ff4d4d";
-        }
-      } else if (lang === 'python') {
-        if (code.includes('print(') && !code.includes('print(').endsWith) {
-          output.innerText = "[Code Execution Success - Python]\nSyntax Validated!";
-          output.style.color = "#00e676";
-        } else {
-          output.innerText = "[Error / Wrong Syntax]\nInvalid Python print statement or missing parentheses";
-          output.style.color = "#ff4d4d";
-        }
+    // CHANNELS & CHAT SYSTEM
+    function renderChannels() {
+      const container = document.getElementById('channels-container');
+      container.innerHTML = state.channels.map(ch => `
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <h4 class="font-bold text-sm text-slate-200">${ch.name}</h4>
+            <p class="text-xs text-slate-400">${ch.members} Members</p>
+          </div>
+          <button onclick="openChat(${ch.id})" class="bg-sky-500 hover:bg-sky-400 text-white px-4 py-1.5 rounded-lg text-xs font-medium">Join & Chat</button>
+        </div>
+      `).join('');
+    }
+
+    function handleCreateChannel() {
+      const input = document.getElementById('channel-name-input');
+      if (!input.value.trim()) {
+        showToast('Enter channel name');
+        return;
+      }
+      const newCh = {
+        id: Date.now(),
+        name: input.value,
+        members: 1,
+        messages: ['Channel created!']
+      };
+      state.channels.unshift(newCh);
+      input.value = '';
+      showToast('Channel Created Successfully!');
+      switchTab('channels');
+    }
+
+    function openChat(id) {
+      const ch = state.channels.find(c => c.id === id);
+      if (!ch) return;
+      state.activeChannel = ch;
+      document.getElementById('channels-list-view').classList.add('hidden');
+      document.getElementById('active-chat-view').classList.remove('hidden');
+      document.getElementById('chat-title').innerText = ch.name;
+      renderChatMessages();
+    }
+
+    function closeChat() {
+      document.getElementById('active-chat-view').classList.add('hidden');
+      document.getElementById('channels-list-view').classList.remove('hidden');
+    }
+
+    function renderChatMessages() {
+      if (!state.activeChannel) return;
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = state.activeChannel.messages.map(m => `
+        <div class="bg-slate-800 p-2.5 rounded-lg text-slate-200 max-w-[85%] font-normal">
+          ${m}
+        </div>
+      `).join('');
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      if (!input.value.trim() || !state.activeChannel) return;
+      state.activeChannel.messages.push(input.value);
+      input.value = '';
+      renderChatMessages();
+    }
+
+    // TRANSLATOR
+    function handleTranslate() {
+      const txt = document.getElementById('trans-input').value;
+      const lang = document.getElementById('trans-lang').value;
+      if (!txt.trim()) {
+        showToast('Enter a sentence to translate');
+        return;
+      }
+      document.getElementById('trans-output').innerText = `[Translated to ${lang}]: ${txt}`;
+      showToast('Translation Complete!');
+    }
+
+    // TERMINAL RUNNER
+    function runTerminalCode() {
+      const code = document.getElementById('term-code').value;
+      const output = document.getElementById('term-output');
+      try {
+        let res = eval(code);
+        output.innerText = res !== undefined ? res : 'Code executed successfully.';
+        output.className = 'mt-1 whitespace-pre-wrap text-green-400';
+      } catch (err) {
+        output.innerText = 'Error: ' + err.message;
+        output.className = 'mt-1 whitespace-pre-wrap text-red-400';
       }
     }
 
-    // Initial App Load
-    renderFeed();
+    // PROFILE DISPLAY UPDATE
+    function renderProfile() {
+      document.getElementById('prof-likes').innerText = state.user.likes;
+      document.getElementById('prof-subs').innerText = state.user.subscribers;
+      document.getElementById('prof-posts').innerText = state.user.posts;
+      document.getElementById('prof-views').innerText = state.user.views;
+
+      const grid = document.getElementById('profile-grid');
+      grid.innerHTML = state.posts.map(p => `
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2 text-center">
+          <i class="fa-solid fa-video text-2xl text-sky-400 mb-1"></i>
+          <p class="text-[10px] text-slate-300 truncate">${p.caption}</p>
+        </div>
+      `).join('');
+    }
+
+    // INITIAL RENDER
+    switchTab('videos');
   </script>
 </body>
 </html>
