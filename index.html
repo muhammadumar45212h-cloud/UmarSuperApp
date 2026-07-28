@@ -9,15 +9,15 @@
     body { background-color: #050b14; color: #ffffff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
     
     /* Header */
-    .header { height: 50px; background: #0b1426; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #1e293b; z-index: 10; }
+    .header { height: 52px; background: #0b1426; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #1e293b; z-index: 10; }
     .logo { font-weight: 800; font-size: 18px; letter-spacing: 1px; color: #38bdf8; }
-    .header-actions { display: flex; gap: 12px; }
-    .icon-btn { background: #1e293b; border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
+    .header-actions { display: flex; gap: 10px; }
+    .icon-btn-svg { background: #1e293b; border: 1px solid #334155; color: #38bdf8; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+    .icon-btn-svg:active { transform: scale(0.95); background: #38bdf8; color: #fff; }
 
     /* Top Sub-Bar Pills */
     .sub-bar { background: #08101e; padding: 8px 12px; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #1e293b; white-space: nowrap; }
     .pill-btn { background: #132238; border: 1px solid #1e293b; color: #94a3b8; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .pill-btn.active { background: #0284c7; color: #fff; border-color: #0384c7; }
 
     /* Main Container Views */
     .main-view { flex: 1; position: relative; overflow: hidden; }
@@ -28,18 +28,17 @@
     .bottom-nav { height: 60px; background: #0b1426; display: flex; border-top: 1px solid #1e293b; z-index: 10; }
     .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; background: none; border: none; cursor: pointer; font-size: 10px; gap: 4px; }
     .nav-item.active { color: #38bdf8; }
-    .nav-item span { font-size: 18px; }
 
     /* Video Feed Container */
     .video-container { height: 100%; overflow-y: snap-strict; scroll-snap-type: y mandatory; overflow-y: scroll; }
     .video-card { height: 100%; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
     .video-card video { width: 100%; height: 100%; object-fit: cover; }
-    .video-overlay { position: absolute; bottom: 16px; left: 16px; right: 70px; z-index: 2; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .video-overlay { position: absolute; bottom: 20px; left: 16px; right: 70px; z-index: 2; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
     .action-sidebar { position: absolute; right: 12px; bottom: 30px; display: flex; flex-direction: column; gap: 18px; align-items: center; z-index: 2; }
-    .action-btn { background: rgba(15,23,42,0.6); border: none; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; backdrop-filter: blur(4px); }
+    .action-btn { background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; backdrop-filter: blur(4px); }
     .action-btn span { font-size: 10px; margin-top: 2px; }
 
-    /* Text Feed Container */
+    /* Feed Container */
     .feed-container { padding: 12px; overflow-y: auto; height: 100%; display: flex; flex-direction: column; gap: 12px; }
     .post-card { background: #0b1426; border: 1px solid #1e293b; border-radius: 12px; padding: 14px; }
     .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -47,13 +46,18 @@
     .post-actions { display: flex; justify-content: space-between; border-top: 1px solid #1e293b; margin-top: 12px; padding-top: 10px; color: #94a3b8; font-size: 13px; }
     .post-action-btn { background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 
+    /* Custom Toast Notification */
+    #toastContainer { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 999; display: flex; flex-direction: column; gap: 8px; width: 90%; max-width: 380px; pointer-events: none; }
+    .toast-msg { background: #0284c7; color: #fff; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 1px solid #38bdf8; animation: fadeInOut 3s forwards; }
+    @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-10px); } 10% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+
     /* Modals & Overlays */
-    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; z-index: 100; backdrop-filter: blur(2px); }
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: flex-end; z-index: 100; backdrop-filter: blur(4px); }
     .sheet-overlay.active { display: flex; }
-    .bottom-sheet { background: #0b1426; border-radius: 16px 16px 0 0; width: 100%; max-height: 85vh; padding: 18px; overflow-y: auto; border-top: 1px solid #1e293b; animation: slideUp 0.25s ease-out; }
+    .bottom-sheet { background: #0b1426; border-radius: 16px 16px 0 0; width: 100%; max-height: 85vh; padding: 18px; overflow-y: auto; border-top: 1px solid #1e293b; animation: slideUp 0.2s ease-out; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-    /* Form Elements */
+    /* Forms */
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     .form-control { width: 100%; background: #132238; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; color: #fff; outline: none; font-size: 14px; }
@@ -63,16 +67,25 @@
 </head>
 <body>
 
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
   <!-- Top Header Bar -->
   <div class="header">
     <div class="logo">SUPER APP</div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="openModal('translateModal')">🌐</button>
-      <button class="icon-btn" onclick="openModal('codeModal')">💻</button>
+      <!-- Clean SVG Globe Icon -->
+      <button class="icon-btn-svg" onclick="openModal('translateModal')" title="Translate">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"></path></svg>
+      </button>
+      <!-- Clean SVG Code Icon -->
+      <button class="icon-btn-svg" onclick="openModal('codeModal')" title="Code Playground">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg>
+      </button>
     </div>
   </div>
 
-  <!-- Sub-Bar Quick Options -->
+  <!-- Sub-Bar Pills -->
   <div class="sub-bar">
     <button class="pill-btn" onclick="openModal('weatherModal')">🌤️ Weather</button>
     <button class="pill-btn" onclick="openModal('chatModal')">💬 Messages & Channels</button>
@@ -86,10 +99,10 @@
       <div class="video-container" id="videoList">
         <!-- Sample Video Item -->
         <div class="video-card">
-          <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" loop playsinline></video>
+          <video src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" loop playsinline muted></video>
           <div class="video-overlay">
             <h3>@Umar</h3>
-            <p>Welcome to Super App Video Feed!</p>
+            <p>Welcome to Super App Shorts!</p>
           </div>
           <div class="action-sidebar">
             <button class="action-btn" onclick="toggleLike(this)">❤️ <span class="like-count">10</span></button>
@@ -149,25 +162,30 @@
   <!-- Bottom Navigation Bar -->
   <div class="bottom-nav">
     <button class="nav-item active" onclick="switchPage('videoPage', this)">
-      <span>🎥</span> Videos
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 6l-4-2.5v5l4-2.5z"/></svg>
+      Videos
     </button>
     <button class="nav-item" onclick="switchPage('feedPage', this)">
-      <span>📰</span> Feed
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      Feed
     </button>
     <button class="nav-item" onclick="openModal('createPostModal')">
-      <span style="font-size:24px; color:#38bdf8;">➕</span> Create
+      <svg width="28" height="28" fill="#38bdf8" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 11h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H8a1 1 0 110-2h3V8a1 1 0 112 0v3z"/></svg>
+      Create
     </button>
     <button class="nav-item" onclick="switchPage('tradingPage', this)">
-      <span>📈</span> Trading
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+      Trading
     </button>
     <button class="nav-item" onclick="switchPage('profilePage', this)">
-      <span>👤</span> Profile
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Profile
     </button>
   </div>
 
   <!-- OVERLAY MODALS -->
 
-  <!-- Create Content Modal (Supports Local Gallery Video Upload) -->
+  <!-- Create Post Modal -->
   <div id="createPostModal" class="sheet-overlay">
     <div class="bottom-sheet">
       <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
@@ -193,7 +211,7 @@
     </div>
   </div>
 
-  <!-- Multi-Language Translator Modal -->
+  <!-- Translator Modal (Limit 1000 Chars) -->
   <div id="translateModal" class="sheet-overlay">
     <div class="bottom-sheet">
       <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
@@ -215,32 +233,28 @@
         </select>
       </div>
       <div class="form-group">
-        <textarea id="transInput" class="form-control" rows="2" placeholder="Type text here..."></textarea>
+        <textarea id="transInput" class="form-control" rows="3" maxlength="1000" placeholder="Type text here (Max 1000 chars)..."></textarea>
       </div>
       <button class="btn-primary" onclick="executeTranslation()">Translate Now</button>
       <div class="form-group" style="margin-top:12px;">
         <label>Translation Result:</label>
-        <div id="transOutput" style="background:#132238; padding:10px; border-radius:8px; min-height:40px; border:1px solid #1e293b; color:#38bdf8;">---</div>
+        <div id="transOutput" style="background:#132238; padding:10px; border-radius:8px; min-height:50px; border:1px solid #1e293b; color:#38bdf8; max-height:150px; overflow-y:auto; word-break:break-word;">---</div>
       </div>
       <button class="btn-secondary" style="width:100%;" onclick="copyTranslation()">📋 Copy Translation</button>
     </div>
   </div>
 
-  <!-- Messages & Channels Chat Modal -->
+  <!-- Messages & Channels Modal -->
   <div id="chatModal" class="sheet-overlay">
     <div class="bottom-sheet">
       <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
         <h3>Direct Messages & Channels</h3>
         <button class="btn-secondary" onclick="closeModal('chatModal')">✕</button>
       </div>
-      
-      <!-- Channels Tabs -->
       <div style="display:flex; gap:10px; margin-bottom:10px;">
         <button class="btn-secondary" style="flex:1;" onclick="showChatTab('dm')">Direct Chat</button>
         <button class="btn-secondary" style="flex:1;" onclick="showChatTab('channel')">Channels</button>
       </div>
-
-      <!-- DM Container -->
       <div id="dmChatArea">
         <div id="chatBox" style="height:150px; background:#132238; padding:10px; border-radius:8px; overflow-y:auto; margin-bottom:10px; font-size:13px;">
           <div><strong>System:</strong> Welcome to Global Chat!</div>
@@ -250,12 +264,10 @@
           <button class="btn-primary" style="width:80px;" onclick="sendChatMessage()">Send</button>
         </div>
       </div>
-
-      <!-- Channel Container -->
       <div id="channelArea" style="display:none;">
         <div style="display:flex; gap:8px; margin-bottom:10px;">
           <input type="text" id="channelNameInput" class="form-control" placeholder="New Channel Name...">
-          <button class="btn-primary" style="width:120px;" onclick="createChannel()">Create (Owner)</button>
+          <button class="btn-primary" style="width:120px;" onclick="createChannel()">Create</button>
         </div>
         <div id="channelList" style="font-size:12px; color:#94a3b8;">
           <p>No active channel joined yet.</p>
@@ -264,20 +276,22 @@
     </div>
   </div>
 
-  <!-- Code Engine Modal -->
+  <!-- Fixed Smart Code Engine -->
   <div id="codeModal" class="sheet-overlay">
     <div class="bottom-sheet">
       <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-        <h3>Smart Code Engine</h3>
+        <h3>Smart Code Engine Playground</h3>
         <button class="btn-secondary" onclick="closeModal('codeModal')">✕</button>
       </div>
-      <textarea id="codeSource" class="form-control" rows="4" placeholder="Enter HTML/JS snippet..."></textarea>
-      <button class="btn-primary" style="margin-top:10px;" onclick="runCode()">Run Code</button>
-      <div id="codeResult" style="margin-top:10px; background:#132238; padding:10px; border-radius:8px; font-size:12px; font-family:monospace;">Output will render here...</div>
+      <textarea id="codeSource" class="form-control" rows="4" style="font-family:monospace; font-size:12px;" placeholder="Write HTML/JS code here... e.g. <h1 style='color:cyan;'>Hello Umar</h1>"></textarea>
+      <button class="btn-primary" style="margin-top:10px;" onclick="runCode()">Run Code Live</button>
+      <div style="margin-top:10px; border:1px solid #1e293b; border-radius:8px; overflow:hidden; background:#fff; height:120px;">
+        <iframe id="codeResultFrame" style="width:100%; height:100%; border:none;"></iframe>
+      </div>
     </div>
   </div>
 
-  <!-- Weather Search Modal -->
+  <!-- Weather Modal -->
   <div id="weatherModal" class="sheet-overlay">
     <div class="bottom-sheet">
       <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
@@ -286,7 +300,7 @@
       </div>
       <input type="text" id="weatherCity" class="form-control" placeholder="Enter City Name (e.g. Karachi)" style="margin-bottom:10px;">
       <button class="btn-primary" onclick="fetchWeather()">Search Weather</button>
-      <div id="weatherDisplay" style="margin-top:12px; text-align:center;">---</div>
+      <div id="weatherDisplay" style="margin-top:12px; text-align:center; font-weight:bold; color:#38bdf8;">---</div>
     </div>
   </div>
 
@@ -298,7 +312,7 @@
         <button class="btn-secondary" onclick="closeModal('commentModal')">✕</button>
       </div>
       <div id="commentList" style="height:120px; overflow-y:auto; margin-bottom:10px; font-size:13px;">
-        <div><strong>@User1:</strong> Nice post! 🔥</div>
+        <div><strong>@User1:</strong> Great content! 🔥</div>
       </div>
       <div style="display:flex; gap:6px;">
         <input type="text" id="commentInput" class="form-control" placeholder="Write a comment...">
@@ -314,45 +328,68 @@
         <h3>Share Post</h3>
         <button class="btn-secondary" onclick="closeModal('shareModal')">✕</button>
       </div>
-      <button class="btn-primary" style="margin-bottom:8px;" onclick="alert('Link Copied!')">📋 Copy Share Link</button>
-      <button class="btn-secondary" style="width:100%; margin-bottom:8px;" onclick="alert('Opening WhatsApp...')">📲 Share to WhatsApp</button>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="copyShareLink()">📋 Copy Share Link</button>
     </div>
   </div>
 
   <script>
-    // Navigation Control & Sound Muting
+    // Toast Notification Replacements for alert()
+    function showNotification(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Scroll & Video Autoplay / Auto-Pause Observer
+    let videoObserver;
+    function initVideoObserver() {
+      if(videoObserver) videoObserver.disconnect();
+      videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          if(entry.isIntersecting) {
+            video.play().catch(()=>{});
+            video.muted = false;
+          } else {
+            video.pause();
+            video.currentTime = 0;
+          }
+        });
+      }, { threshold: 0.6 });
+
+      document.querySelectorAll('#videoList video').forEach(v => videoObserver.observe(v));
+    }
+
+    window.onload = () => { initVideoObserver(); };
+
+    // Navigation Switch
     function switchPage(pageId, btn) {
       document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
       btn.classList.add('active');
 
-      // Instant Audio Stop on Nav Switch
-      stopAllAudio();
-
-      if(pageId === 'videoPage') {
+      if(pageId !== 'videoPage') {
+        document.querySelectorAll('#videoList video').forEach(v => v.pause());
+      } else {
         const firstVid = document.querySelector('#videoList video');
         if(firstVid) firstVid.play().catch(()=>{});
       }
     }
 
-    function stopAllAudio() {
-      document.querySelectorAll('video').forEach(v => {
-        v.pause();
-      });
-    }
-
-    // Modal Control
+    // Modal Controls
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-    // Toggle Post Type Input in Create Modal
     function togglePostTypeInput() {
       const type = document.getElementById('postTypeSelect').value;
       document.getElementById('videoFileInputGroup').style.display = (type === 'video') ? 'block' : 'none';
     }
 
-    // Publish Content (Text or Gallery Video)
+    // Publish New Post
     function publishPost() {
       const type = document.getElementById('postTypeSelect').value;
       const text = document.getElementById('postCaptionInput').value;
@@ -379,9 +416,11 @@
             </div>
           `;
           videoList.prepend(newCard);
+          initVideoObserver();
           switchPage('videoPage', document.querySelectorAll('.nav-item')[0]);
+          showNotification('Video Published Successfully!');
         } else {
-          alert('Please select a video file from your gallery!');
+          showNotification('Please select a video file first!');
           return;
         }
       } else {
@@ -405,12 +444,13 @@
         `;
         textList.prepend(newPost);
         switchPage('feedPage', document.querySelectorAll('.nav-item')[1]);
+        showNotification('Post Published Successfully!');
       }
       closeModal('createPostModal');
       document.getElementById('postCaptionInput').value = '';
     }
 
-    // Likes & Subscribe Single Tap Enforcement
+    // Likes & Sub
     function toggleLike(btn) {
       let countSpan = btn.querySelector('.like-count');
       let count = parseInt(countSpan.innerText);
@@ -444,13 +484,14 @@
       if(span.innerText === 'Sub') {
         span.innerText = 'Subbed';
         btn.style.background = '#0284c7';
+        showNotification('Subscribed to @Umar');
       } else {
         span.innerText = 'Sub';
         btn.style.background = 'rgba(15,23,42,0.6)';
       }
     }
 
-    // Real API Translation
+    // Multi-Chunk Real Translation (Supports 1000 Chars limit)
     async function executeTranslation() {
       const text = document.getElementById('transInput').value;
       const from = document.getElementById('transFrom').value;
@@ -458,12 +499,23 @@
       const out = document.getElementById('transOutput');
 
       if(!text) return;
+      if(text.length > 1000) {
+        showNotification('Text length exceeds 1000 characters limit!');
+        return;
+      }
       out.innerText = "Translating...";
 
+      // Splitting text into 400 char chunks to bypass API limits
+      const chunks = text.match(/.{1,400}/g) || [];
+      let translatedText = "";
+
       try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
-        const data = await res.json();
-        out.innerText = data.responseData.translatedText;
+        for(let chunk of chunks) {
+          const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${from}|${to}`);
+          const data = await res.json();
+          translatedText += (data.responseData.translatedText + " ");
+        }
+        out.innerText = translatedText.trim();
       } catch(e) {
         out.innerText = "Translation Error! Check Connection.";
       }
@@ -472,10 +524,32 @@
     function copyTranslation() {
       const text = document.getElementById('transOutput').innerText;
       navigator.clipboard.writeText(text);
-      alert('Translation Copied!');
+      showNotification('Translation Copied!');
     }
 
-    // Messages & Channels Controls
+    // Code Engine Fix
+    function runCode() {
+      const code = document.getElementById('codeSource').value;
+      const iframe = document.getElementById('codeResultFrame');
+      iframe.srcdoc = code;
+      showNotification('Code Executed Live!');
+    }
+
+    // Weather Search
+    async function fetchWeather() {
+      const city = document.getElementById('weatherCity').value || 'Karachi';
+      const disp = document.getElementById('weatherDisplay');
+      disp.innerText = "Fetching...";
+      try {
+        const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=3`);
+        const text = await res.text();
+        disp.innerText = text.includes('<html') ? 'City Not Found!' : text;
+      } catch(e) {
+        disp.innerText = "Weather fetch failed.";
+      }
+    }
+
+    // Messages
     function showChatTab(tab) {
       document.getElementById('dmChatArea').style.display = (tab === 'dm') ? 'block' : 'none';
       document.getElementById('channelArea').style.display = (tab === 'channel') ? 'block' : 'none';
@@ -494,30 +568,12 @@
       const name = document.getElementById('channelNameInput').value;
       if(!name) return;
       const list = document.getElementById('channelList');
-      list.innerHTML += `<div style="background:#132238; padding:8px; border-radius:6px; margin-top:6px; display:flex; justify-space-between;">
-        <span>📢 <strong>${name}</strong> (Owner: @Umar)</span>
-        <button class="btn-secondary" style="font-size:10px;" onclick="alert('Joined Channel!')">Join Channel</button>
+      list.innerHTML += `<div style="background:#132238; padding:8px; border-radius:6px; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+        <span>📢 <strong>${name}</strong> (Owner)</span>
+        <button class="btn-secondary" style="font-size:10px;" onclick="showNotification('Joined Channel!')">Join</button>
       </div>`;
       document.getElementById('channelNameInput').value = '';
-    }
-
-    // Code & Weather Helpers
-    function runCode() {
-      const code = document.getElementById('codeSource').value;
-      document.getElementById('codeResult').innerHTML = code;
-    }
-
-    async function fetchWeather() {
-      const city = document.getElementById('weatherCity').value || 'Karachi';
-      const disp = document.getElementById('weatherDisplay');
-      disp.innerText = "Fetching...";
-      try {
-        const res = await fetch(`https://wttr.in/${city}?format=%C+%t`);
-        const text = await res.text();
-        disp.innerText = `${city.toUpperCase()}: ${text}`;
-      } catch(e) {
-        disp.innerText = "Weather fetch failed.";
-      }
+      showNotification('Channel Created!');
     }
 
     function addComment() {
@@ -526,6 +582,13 @@
       const list = document.getElementById('commentList');
       list.innerHTML += `<div><strong>@Umar:</strong> ${inp.value}</div>`;
       inp.value = '';
+      showNotification('Comment Posted!');
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href);
+      showNotification('Post Link Copied!');
+      closeModal('shareModal');
     }
   </script>
 </body>
