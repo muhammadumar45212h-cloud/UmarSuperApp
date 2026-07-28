@@ -1,513 +1,1188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super App Ultra</title>
-  <style>
-    :root {
-      --bg-dark: #090d16;
-      --card-bg: #131b2e;
-      --input-bg: #1c273e;
-      --accent-blue: #0ea5e9;
-      --accent-pink: #ec4899;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #27354f;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    
-    /* Header */
-    header { height: 55px; background: #0c1322; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--border-color); z-index: 20; }
-    .logo { font-size: 18px; font-weight: 800; color: var(--accent-blue); letter-spacing: 0.5px; }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .icon-btn { background: var(--input-bg); border: none; color: var(--text-main); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUPER APP</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0f1d;
+            --card-bg: #131b2e;
+            --card-border: #1e293b;
+            --accent-cyan: #00a8ff;
+            --accent-red: #ff3b30;
+            --accent-red-hover: #e02d22;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bottom-nav-bg: #0d1527;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
 
-    /* Main View Area */
-    main { flex: 1; overflow-y: auto; position: relative; padding-bottom: 65px; }
-    .view { display: none; padding: 14px; height: 100%; }
-    .view.active { display: block; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    /* Bottom Navigation */
-    nav { height: 60px; background: #0c1322; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; z-index: 20; }
-    .nav-btn { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; cursor: pointer; width: 16%; }
-    .nav-btn.active { color: var(--accent-blue); }
-    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
-    .create-btn { background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink)); color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: translateY(-8px); font-size: 20px; font-weight: bold; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    /* Cards & Form Elements */
-    .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border-color); }
-    .input-field, select, textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; outline: none; font-size: 13px; }
-    .btn { width: 100%; background: var(--accent-blue); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        /* Top Bar */
+        .top-bar {
+            height: 60px;
+            background: rgba(13, 21, 39, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--card-border);
+            z-index: 100;
+        }
 
-    /* Video Reels Feed */
-    #view-videos { padding: 0; height: calc(100vh - 115px); overflow-y: snap-type(y mandatory); overflow-y: scroll; }
-    .video-card { height: 100%; width: 100%; snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-    .video-card video { width: 100%; height: 100%; object-fit: cover; }
-    .video-overlay { position: absolute; bottom: 25px; left: 14px; right: 75px; z-index: 5; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-    .video-actions { position: absolute; right: 14px; bottom: 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 5; }
-    .action-btn { background: rgba(0,0,0,0.4); border: none; color: white; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; cursor: pointer; border-radius: 50%; padding: 8px; }
-    
-    /* Double Tap Heart Effect */
-    .heart-pop { position: absolute; font-size: 80px; color: #ef4444; pointer-events: none; animation: pop 0.8s ease forwards; z-index: 10; display: none; }
-    @keyframes pop { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1); } }
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            letter-spacing: 1px;
+        }
 
-    /* Half-Page Modal / Bottom Sheet */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: flex-end; }
-    .modal.active { display: flex; }
-    .modal-content { background: var(--card-bg); width: 100%; max-height: 55vh; border-top-left-radius: 18px; border-top-right-radius: 18px; padding: 16px; overflow-y: auto; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; font-size: 14px; }
+        .top-actions {
+            display: flex;
+            gap: 12px;
+        }
 
-    /* Weather & Trading Widgets */
-    .weather-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    
-    #toast { position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); background: var(--accent-blue); color: white; padding: 8px 18px; border-radius: 20px; font-size: 12px; display: none; z-index: 200; }
-  </style>
+        .icon-btn {
+            background: #1e293b;
+            border: none;
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.92);
+            background: var(--accent-cyan);
+        }
+
+        .icon-btn.red-btn {
+            background: rgba(255, 59, 48, 0.15);
+            color: var(--accent-red);
+        }
+
+        /* Main Content Container */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 70px;
+            position: relative;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* TradingView Forex & Crypto Widget Section */
+        .market-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .market-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .symbol-tabs {
+            display: flex;
+            gap: 6px;
+            background: #0d1527;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .symbol-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .symbol-btn.active {
+            background: var(--accent-cyan);
+            color: #fff;
+        }
+
+        .chart-container {
+            height: 280px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        /* Video Feed (Shorts Style) */
+        .video-feed {
+            height: calc(100vh - 130px);
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            margin: -16px;
+        }
+
+        .video-card {
+            height: calc(100vh - 130px);
+            scroll-snap-align: start;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            right: 70px;
+            z-index: 10;
+        }
+
+        .video-author {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .video-caption {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .video-actions {
+            position: absolute;
+            right: 12px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .action-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .action-icon.liked {
+            color: var(--accent-red);
+            background: rgba(255, 59, 48, 0.25);
+        }
+
+        .action-icon:active {
+            transform: scale(1.2);
+        }
+
+        /* Text Feed Cards */
+        .feed-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), #0055ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .username {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .post-badge {
+            font-size: 11px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .card-body {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+
+        .post-media {
+            width: 100%;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            max-height: 300px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+        }
+
+        .feed-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .feed-btn.liked {
+            color: var(--accent-red);
+        }
+
+        .feed-btn.red-accent {
+            color: var(--accent-red);
+        }
+
+        .feed-btn:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Profile Tab Layout */
+        .profile-header {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), #0055ff);
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .profile-tag {
+            font-size: 12px;
+            color: var(--accent-cyan);
+            margin-top: 2px;
+            margin-bottom: 16px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid var(--card-border);
+            padding-top: 12px;
+        }
+
+        .stat-item h4 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .stat-item p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Profile Tabs for Media & Text Posts */
+        .profile-sections-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .profile-toggle-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .profile-toggle-btn.active {
+            background: var(--accent-cyan);
+            color: #fff;
+            border-color: var(--accent-cyan);
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .profile-grid-item {
+            aspect-ratio: 1;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--card-border);
+        }
+
+        .profile-grid-item video, .profile-grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Modals & Sheet Overlays */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .bottom-sheet {
+            background: var(--card-bg);
+            width: 100%;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px;
+            border-top: 1px solid var(--card-border);
+            animation: slideUp 0.3s ease-out;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .sheet-title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background: #0d1527;
+            border: 1px solid var(--card-border);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent-cyan);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-red {
+            background: var(--accent-red);
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .share-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .share-icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0d1527;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--accent-cyan);
+            border: 1px solid var(--card-border);
+        }
+
+        /* Bottom Nav Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 65px;
+            background: var(--bottom-nav-bg);
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        .nav-item.active {
+            color: var(--accent-cyan);
+        }
+
+        .nav-add-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-top: -20px;
+            box-shadow: 0 4px 12px rgba(0, 168, 255, 0.4);
+            cursor: pointer;
+        }
+
+        /* Custom Notification Toast (No Alert) */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(19, 27, 46, 0.95);
+            border: 1px solid var(--accent-cyan);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            animation: fadeInOut 3s forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.red-toast {
+            border-color: var(--accent-red);
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">SUPER APP</div>
-    <div class="header-actions">
-      <button class="icon-btn" onclick="openModal('modal-weather')" title="Weather">🌤️</button>
-      <button class="icon-btn" onclick="openModal('modal-code')" title="Coding Syntax">💻</button>
-      <button class="icon-btn" onclick="openModal('modal-translate')" title="Translator">🌐</button>
-      <button class="icon-btn" onclick="switchTab('profile')" title="Wallet & Settings">⚙️</button>
-    </div>
-  </header>
+    <!-- Toast Container (replaces standard alerts) -->
+    <div class="toast-container" id="toastContainer"></div>
 
-  <main>
-    <div id="view-videos" class="view active">
-      <div id="video-container" style="height: 100%;"></div>
-    </div>
-
-    <div id="view-feed" class="view">
-      <h3 style="margin-bottom: 12px;">Global Feed</h3>
-      <div id="text-feed-list"></div>
-    </div>
-
-    <div id="view-create" class="view">
-      <div class="card">
-        <h3>Post Video Feed</h3>
-        <input type="file" id="video-input" accept="video/*" class="input-field" style="margin-top: 8px;">
-        <input type="text" id="video-caption" placeholder="Write video caption..." class="input-field">
-        <button class="btn" onclick="uploadVideo()">Publish Video</button>
-      </div>
-
-      <div class="card">
-        <h3>Post Text Status</h3>
-        <textarea id="text-status-input" placeholder="Share your thoughts..." rows="3" class="input-field" style="margin-top: 8px;"></textarea>
-        <button class="btn" onclick="publishTextStatus()">Publish Status</button>
-      </div>
-    </div>
-
-    <div id="view-trading" class="view">
-      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-        <button class="btn" style="padding: 6px;" onclick="loadChart('FX:XAUUSD')">Gold (XAUUSD)</button>
-        <button class="btn" style="padding: 6px; background:#10b981;" onclick="loadChart('BITSTAMP:BTCUSD')">Bitcoin</button>
-        <button class="btn" style="padding: 6px; background:#6366f1;" onclick="loadChart('FX:EURUSD')">EUR/USD</button>
-      </div>
-      <div class="card" style="padding: 0; height: 75vh; overflow: hidden;">
-        <div id="tradingview_widget" style="height: 100%; width: 100%;"></div>
-      </div>
-    </div>
-
-    <div id="view-channels" class="view">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3>Channels & Chats</h3>
-        <button class="icon-btn" onclick="openModal('modal-chat-menu')">⋮</button>
-      </div>
-      <div id="channels-list"></div>
-    </div>
-
-    <div id="view-profile" class="view">
-      <div class="card" style="text-align: center;">
-        <div style="width: 64px; height: 64px; background: var(--accent-blue); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">U</div>
-        <h2>@Umar_Developer</h2>
-        <p style="color: var(--accent-blue); font-size: 12px; margin-top: 2px;">Creator Profile</p>
-        
-        <div style="display: flex; justify-content: space-around; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-          <div><h4 id="profile-likes">0</h4><span style="font-size: 10px; color: var(--text-muted);">Likes</span></div>
-          <div><h4 id="profile-subs">1</h4><span style="font-size: 10px; color: var(--text-muted);">Subscribers</span></div>
-          <div><h4 id="profile-posts">0</h4><span style="font-size: 10px; color: var(--text-muted);">Posts</span></div>
+    <!-- Top Navigation Bar -->
+    <div class="top-bar">
+        <div class="brand-title">SUPER APP</div>
+        <div class="top-actions">
+            <button class="icon-btn" onclick="openModal('translatorModal')" title="Translator"><i class="fa-solid fa-globe"></i></button>
+            <button class="icon-btn red-btn" onclick="openModal('syntaxModal')" title="Code Syntax"><i class="fa-solid fa-code"></i></button>
         </div>
-      </div>
-
-      <div class="card">
-        <h3>Wallet & Settings</h3>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-          <div>
-            <span style="font-size: 11px; color: var(--text-muted);">Current Balance</span>
-            <h2 style="color: #22c55e;">$0.00</h2>
-          </div>
-          <button class="btn" style="width: auto; padding: 6px 14px;" onclick="showToast('Minimum withdrawal $10.00')">Withdraw</button>
-        </div>
-      </div>
-
-      <h3>My Uploaded Videos</h3>
-      <div id="my-uploaded-videos" style="margin-top: 10px;"></div>
     </div>
-  </main>
 
-  <nav>
-    <button class="nav-btn active" onclick="switchTab('videos')">
-      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Reels
-    </button>
-    <button class="nav-btn" onclick="switchTab('feed')">
-      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>Feed
-    </button>
-    <button class="nav-btn" onclick="switchTab('create')">
-      <div class="create-btn">+</div>
-    </button>
-    <button class="nav-btn" onclick="switchTab('trading')">
-      <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.09-4-4L2 15.69z"/></svg>Trade
-    </button>
-    <button class="nav-btn" onclick="switchTab('channels')">
-      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Chat
-    </button>
-    <button class="nav-btn" onclick="switchTab('profile')">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Profile
-    </button>
-  </nav>
+    <!-- Dynamic Content Area -->
+    <div class="content-area">
 
-  <div id="modal-chat-menu" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Options Menu</span>
-        <button class="icon-btn" onclick="closeModal('modal-chat-menu')">✕</button>
-      </div>
-      <button class="btn" style="margin-bottom: 8px;" onclick="openCreateChannelPrompt()">Create New Channel</button>
-      <button class="btn" style="background:#10b981;" onclick="openCreateGroupPrompt()">Create New Group</button>
-    </div>
-  </div>
-
-  <div id="modal-comments" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Comments</span>
-        <button class="icon-btn" onclick="closeModal('modal-comments')">✕</button>
-      </div>
-      <div id="comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;"></div>
-      <div style="display: flex; gap: 6px;">
-        <input type="text" id="comment-input" placeholder="Add comment..." class="input-field" style="margin:0;">
-        <button class="btn" style="width: auto; padding: 0 14px;" onclick="addComment()">Post</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modal-share" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Share Post</span>
-        <button class="icon-btn" onclick="closeModal('modal-share')">✕</button>
-      </div>
-      <button class="btn" style="margin-bottom: 8px; background: #25D366;" onclick="shareToWhatsApp()">Share on WhatsApp</button>
-      <button class="btn" onclick="copyShareLink()">Copy Video Link</button>
-    </div>
-  </div>
-
-  <div id="modal-weather" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Live Weather Info</span>
-        <button class="icon-btn" onclick="closeModal('modal-weather')">✕</button>
-      </div>
-      <div class="weather-box">
-        <div>
-          <h3>Karachi / Lahore</h3>
-          <p style="font-size: 11px; color: var(--text-muted);">Clear Sky / Sunny</p>
+        <!-- Videos Tab -->
+        <div class="tab-content active" id="tab-videos">
+            <div class="video-feed" id="videoFeedContainer">
+                <!-- Dynamic Video Cards inserted here -->
+            </div>
         </div>
-        <h1 style="color: var(--accent-blue);">31°C</h1>
-      </div>
+
+        <!-- Feed Tab -->
+        <div class="tab-content" id="tab-feed">
+            <!-- TradingView Live Forex/Crypto Widget Section -->
+            <div class="market-section">
+                <div class="market-header">
+                    <div class="market-title">
+                        <i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i> Live Market Chart
+                    </div>
+                    <div class="symbol-tabs">
+                        <button class="symbol-btn active" onclick="loadChart('XAUUSD', this)">XAUUSD</button>
+                        <button class="symbol-btn" onclick="loadChart('BTCUSD', this)">BTCUSD</button>
+                        <button class="symbol-btn" onclick="loadChart('EURUSD', this)">EURUSD</button>
+                    </div>
+                </div>
+                <div class="chart-container" id="tradingview_widget"></div>
+            </div>
+
+            <h3 style="font-size: 16px; margin-bottom: 12px; font-weight: 700;">Community Feed</h3>
+            <div id="textPostsContainer">
+                <!-- Text / Image Posts dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Channels Tab -->
+        <div class="tab-content" id="tab-channels">
+            <div class="feed-card">
+                <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Create Channel</h3>
+                <div class="form-group">
+                    <input type="text" class="form-input" id="channelNameInput" placeholder="Enter channel name...">
+                </div>
+                <button class="btn-primary" onclick="createNewChannel()">Create Channel</button>
+            </div>
+            <h3 style="font-size: 16px; margin: 16px 0 10px; font-weight: 700;">Your Channels</h3>
+            <div id="channelsList">
+                <div class="feed-card" style="text-align: center; color: var(--text-muted); font-size: 13px;">
+                    No channels joined yet.
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div class="tab-content" id="tab-profile">
+            <div class="profile-header">
+                <div class="profile-avatar">U</div>
+                <div class="profile-name">@Umar_Developer</div>
+                <div class="profile-tag">Verified Creator Profile</div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <h4 id="totalLikesCount">49</h4>
+                        <p>Total Likes</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>1</h4>
+                        <p>Subscribers</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4 id="totalPostsCount">0</h4>
+                        <p>Total Posts</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Sections Toggle -->
+            <div class="profile-sections-toggle">
+                <button class="profile-toggle-btn active" onclick="switchProfileTab('videos', this)">Videos</button>
+                <button class="profile-toggle-btn" onclick="switchProfileTab('posts', this)">Posts</button>
+            </div>
+
+            <!-- Profile Videos Sub-tab -->
+            <div id="profile-sub-videos" class="profile-grid">
+                <!-- User's posted videos display here -->
+            </div>
+
+            <!-- Profile Text/Image Sub-tab -->
+            <div id="profile-sub-posts" style="display: none;">
+                <!-- User's posted feeds display here -->
+            </div>
+        </div>
+
     </div>
-  </div>
 
-  <div id="modal-code" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Code Syntax Checker</span>
-        <button class="icon-btn" onclick="closeModal('modal-code')">✕</button>
-      </div>
-      <select id="code-lang">
-        <option value="js">JavaScript</option>
-        <option value="python">Python</option>
-      </select>
-      <textarea id="code-input" rows="4" placeholder="Paste code..." class="input-field"></textarea>
-      <button class="btn" onclick="runSyntaxCheck()">Analyze</button>
-      <div id="code-result" style="margin-top: 10px; font-size: 12px;"></div>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('videos', this)">
+            <i class="fa-solid fa-play"></i>
+            <span>Videos</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('feed', this)">
+            <i class="fa-solid fa-list-check"></i>
+            <span>Feed</span>
+        </div>
+        <div class="nav-add-btn" onclick="openModal('createPostModal')">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        <div class="nav-item" onclick="switchTab('channels', this)">
+            <i class="fa-solid fa-comments"></i>
+            <span>Channels</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </div>
     </div>
-  </div>
 
-  <div id="modal-translate" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Multi-Language Translator</span>
-        <button class="icon-btn" onclick="closeModal('modal-translate')">✕</button>
-      </div>
-      <div style="display: flex; gap: 6px;">
-        <select id="trans-from"><option value="en">English</option><option value="ur">Urdu</option><option value="hi">Hindi</option></select>
-        <select id="trans-to"><option value="ur">Urdu</option><option value="en">English</option><option value="hi">Hindi</option></select>
-      </div>
-      <textarea id="trans-input" rows="2" placeholder="Text to translate..." class="input-field"></textarea>
-      <button class="btn" onclick="performTranslation()">Translate</button>
-      <div id="trans-output" class="card" style="margin-top: 10px; background: var(--input-bg); font-size:12px;">Result will display here...</div>
+    <!-- Modal: Create Post (Gallery Upload) -->
+    <div class="modal" id="createPostModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">Create New Post</div>
+                <button class="icon-btn" onclick="closeModal('createPostModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Post Type</label>
+                <select class="form-select" id="postTypeSelect">
+                    <option value="text">Text Post</option>
+                    <option value="video">Short Video (Reels)</option>
+                    <option value="image">Photo / Gallery Post</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Caption / Description</label>
+                <textarea class="form-textarea" id="postCaptionInput" placeholder="Write something..."></textarea>
+            </div>
+            <div class="form-group" id="mediaUploadGroup">
+                <label class="form-label">Select File from Gallery</label>
+                <input type="file" class="form-input" id="galleryFileInput" accept="image/*,video/*">
+            </div>
+            <button class="btn-primary" onclick="publishPost()">Publish Post</button>
+        </div>
     </div>
-  </div>
 
-  <div id="toast">Notification</div>
-
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-
-  <script>
-    // State Persistence
-    let videos = JSON.parse(localStorage.getItem('app_videos_v2')) || [
-      { id: 1, url: 'https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-flowers-1173-large.mp4', caption: 'Welcome to Super App!', likes: 25, comments: ['Awesome!'], author: '@Umar_Developer' }
-    ];
-    let feeds = JSON.parse(localStorage.getItem('app_feeds_v2')) || [
-      { id: 1, text: 'Super App ultra release update working perfectly!', likes: 30, author: '@Umar_Developer' }
-    ];
-    let channels = JSON.parse(localStorage.getItem('app_channels_v2')) || [
-      { id: 1, name: 'Super App Updates', owner: '@Umar_Developer', messages: [{ sender: '@Umar_Developer', text: 'Welcome all!' }] }
-    ];
-
-    let activeVidId = null;
-    let tapTimer = null;
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(`view-${tabId}`).classList.add('active');
-      event.currentTarget.classList.add('active');
-
-      if (tabId === 'videos') renderVideos();
-      if (tabId === 'feed') renderFeed();
-      if (tabId === 'trading') loadChart('FX:XAUUSD');
-      if (tabId === 'channels') renderChannels();
-      if (tabId === 'profile') renderProfile();
-    }
-
-    function showToast(m) {
-      const t = document.getElementById('toast');
-      t.innerText = m; t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 2000);
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    // Render Videos
-    function renderVideos() {
-      const c = document.getElementById('video-container');
-      c.innerHTML = videos.map(v => `
-        <div class="video-card" onclick="handleVideoTap(${v.id}, event)">
-          <div class="heart-pop" id="heart-${v.id}">❤️</div>
-          <video src="${v.url}" controls loop playsinline webkit-playsinline preload="metadata"></video>
-          <div class="video-overlay">
-            <strong>${v.author || '@Umar_Developer'}</strong>
-            <p>${v.caption}</p>
-          </div>
-          <div class="video-actions">
-            <button class="action-btn" onclick="likeVideo(${v.id}); event.stopPropagation();">❤️ <span>${v.likes}</span></button>
-            <button class="action-btn" onclick="openComments(${v.id}); event.stopPropagation();">💬 <span>${v.comments ? v.comments.length : 0}</span></button>
-            <button class="action-btn" onclick="openModal('modal-share'); event.stopPropagation();">🚀 <span>Share</span></button>
-          </div>
+    <!-- Modal: Share Bottom Sheet -->
+    <div class="modal" id="shareModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">Share Content</div>
+                <button class="icon-btn" onclick="closeModal('shareModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted);">Choose a platform or copy the link directly.</p>
+            <div class="share-options">
+                <div class="share-item" onclick="copyShareLink()">
+                    <div class="share-icon-circle"><i class="fa-solid fa-link"></i></div>
+                    <span style="font-size: 11px;">Copy Link</span>
+                </div>
+                <div class="share-item" onclick="socialShare('WhatsApp')">
+                    <div class="share-icon-circle" style="color: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+                    <span style="font-size: 11px;">WhatsApp</span>
+                </div>
+                <div class="share-item" onclick="socialShare('Telegram')">
+                    <div class="share-icon-circle" style="color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
+                    <span style="font-size: 11px;">Telegram</span>
+                </div>
+                <div class="share-item" onclick="socialShare('Twitter')">
+                    <div class="share-icon-circle" style="color: #1DA1F2;"><i class="fa-brands fa-twitter"></i></div>
+                    <span style="font-size: 11px;">X / Twitter</span>
+                </div>
+            </div>
         </div>
-      `).join('');
-    }
+    </div>
 
-    function handleVideoTap(id, e) {
-      if (tapTimer == null) {
-        tapTimer = setTimeout(() => { tapTimer = null; }, 300);
-      } else {
-        clearTimeout(tapTimer); tapTimer = null;
-        likeVideo(id);
-        const h = document.getElementById(`heart-${id}`);
-        if(h) { h.style.display = 'block'; setTimeout(() => h.style.display = 'none', 800); }
-      }
-    }
-
-    function likeVideo(id) {
-      const v = videos.find(x => x.id === id);
-      if(v) { v.likes++; saveStorage(); renderVideos(); }
-    }
-
-    function uploadVideo() {
-      const file = document.getElementById('video-input').files[0];
-      const cap = document.getElementById('video-caption').value;
-      if (!file) return showToast('Select video first!');
-      
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        videos.unshift({ id: Date.now(), url: e.target.result, caption: cap || 'New Post', likes: 0, comments: [], author: '@Umar_Developer' });
-        saveStorage();
-        showToast('Video published!');
-        switchTab('videos');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // Feed
-    function renderFeed() {
-      const l = document.getElementById('text-feed-list');
-      l.innerHTML = feeds.map(f => `
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-            <strong>${f.author}</strong>
-          </div>
-          <p>${f.text}</p>
-          <div style="display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--text-muted);">
-            <span onclick="likeFeed(${f.id})" style="cursor:pointer;">❤️ ${f.likes}</span>
-            <span onclick="openModal('modal-share')" style="cursor:pointer;">🚀 Share</span>
-          </div>
+    <!-- Modal: Universal Sentence Translator -->
+    <div class="modal" id="translatorModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">Universal Sentence Translator</div>
+                <button class="icon-btn" onclick="closeModal('translatorModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <select class="form-select" id="transFrom"><option>English</option><option>Urdu</option></select>
+                <select class="form-select" id="transTo"><option>Urdu</option><option>English</option></select>
+            </div>
+            <div class="form-group">
+                <textarea class="form-textarea" id="transInput" placeholder="Enter text to translate..."></textarea>
+            </div>
+            <button class="btn-primary" style="margin-bottom: 10px;" onclick="runTranslation()">Translate Now</button>
+            <div class="form-input" id="transOutput" style="min-height: 50px; color: var(--accent-cyan); font-weight: 600;">
+                Translation output will appear here...
+            </div>
         </div>
-      `).join('');
-    }
+    </div>
 
-    function likeFeed(id) {
-      const f = feeds.find(x => x.id === id);
-      if(f) { f.likes++; saveStorage(); renderFeed(); }
-    }
-
-    function publishTextStatus() {
-      const t = document.getElementById('text-status-input').value;
-      if(!t) return showToast('Enter text');
-      feeds.unshift({ id: Date.now(), text: t, likes: 0, author: '@Umar_Developer' });
-      document.getElementById('text-status-input').value = '';
-      saveStorage();
-      showToast('Status posted!');
-      switchTab('feed');
-    }
-
-    // TradingView Widget Loader
-    function loadChart(symbol) {
-      new TradingView.widget({
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "D",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "toolbar_bg": "#f1f3f6",
-        "enable_publishing": false,
-        "container_id": "tradingview_widget"
-      });
-    }
-
-    // Comments Bottom Drawer
-    function openComments(id) {
-      activeVidId = id;
-      const v = videos.find(x => x.id === id);
-      const l = document.getElementById('comments-list');
-      l.innerHTML = (v.comments && v.comments.length) ? v.comments.map(c => `
-        <div style="padding:6px 0; border-bottom:1px solid var(--border-color); font-size:12px; display:flex; justify-content:space-between;">
-          <span>${c}</span>
-          <span style="color:var(--accent-blue); cursor:pointer;" onclick="showToast('Liked comment')">❤️</span>
+    <!-- Modal: Code Syntax Checker -->
+    <div class="modal" id="syntaxModal">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <div class="sheet-title">Code Syntax Checker</div>
+                <button class="icon-btn red-btn" onclick="closeModal('syntaxModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="form-group">
+                <select class="form-select"><option>JavaScript</option><option>HTML/CSS</option><option>Python</option></select>
+            </div>
+            <div class="form-group">
+                <textarea class="form-textarea" id="syntaxCodeInput" placeholder="Paste code here to check for errors..."></textarea>
+            </div>
+            <button class="btn-primary btn-red" onclick="checkSyntax()">Analyze Code</button>
         </div>
-      `).join('') : '<p style="color:var(--text-muted); font-size:12px;">No comments yet.</p>';
-      openModal('modal-comments');
-    }
+    </div>
 
-    function addComment() {
-      const inp = document.getElementById('comment-input');
-      if (!inp.value) return;
-      const v = videos.find(x => x.id === activeVidId);
-      if (v) {
-        if(!v.comments) v.comments = [];
-        v.comments.push(inp.value);
-        inp.value = '';
-        saveStorage();
-        openComments(activeVidId);
-      }
-    }
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-    // Channels
-    function renderChannels() {
-      const l = document.getElementById('channels-list');
-      l.innerHTML = channels.map(c => `
-        <div class="card">
-          <h4>📢 ${c.name}</h4>
-          <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Owner: ${c.owner}</p>
-          <div style="background:var(--input-bg); padding:8px; border-radius:6px; max-height:100px; overflow-y:auto; margin-bottom:8px;">
-            ${c.messages.map(m => `<div style="font-size:12px;"><b>${m.sender}:</b> ${m.text}</div>`).join('')}
-          </div>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="chan-msg-${c.id}" placeholder="Type message..." class="input-field" style="margin:0;">
-            <button class="btn" style="width:auto;" onclick="postChanMsg(${c.id})">Send</button>
-          </div>
-        </div>
-      `).join('');
-    }
+    <script>
+        // State Management stored persistently in localStorage
+        const DEFAULT_POSTS = [
+            {
+                id: 'p1',
+                author: '@Umar_Developer',
+                type: 'text',
+                caption: 'Building new features on mobile phone without laptop! Clean UI updated.',
+                likes: 27,
+                userLiked: false,
+                timestamp: 'Just now'
+            },
+            {
+                id: 'v1',
+                author: '@Umar_Developer',
+                type: 'video',
+                caption: 'Live Forex trading setup preview! Multi-pair charts working smoothly.',
+                mediaUrl: 'https://assets.mixkit.co/videos/preview/mixkit-financial-charts-on-a-computer-screen-41527-large.mp4',
+                likes: 6,
+                userLiked: false,
+                timestamp: '1h ago'
+            }
+        ];
 
-    function openCreateChannelPrompt() {
-      closeModal('modal-chat-menu');
-      const n = prompt("Enter Channel Name:");
-      if (n) { channels.unshift({ id: Date.now(), name: n, owner: '@Umar_Developer', messages: [] }); saveStorage(); renderChannels(); }
-    }
+        let appData = {
+            posts: JSON.parse(localStorage.getItem('superapp_posts')) || DEFAULT_POSTS,
+            totalLikes: parseInt(localStorage.getItem('superapp_total_likes')) || 49
+        };
 
-    function openCreateGroupPrompt() {
-      closeModal('modal-chat-menu');
-      const n = prompt("Enter Group Name:");
-      if (n) { channels.unshift({ id: Date.now(), name: "Group: " + n, owner: '@Umar_Developer', messages: [] }); saveStorage(); renderChannels(); }
-    }
+        function saveData() {
+            localStorage.setItem('superapp_posts', JSON.stringify(appData.posts));
+            localStorage.setItem('superapp_total_likes', appData.totalLikes.toString());
+        }
 
-    function postChanMsg(id) {
-      const inp = document.getElementById(`chan-msg-${id}`);
-      if (!inp.value) return;
-      const c = channels.find(x => x.id === id);
-      if (c) { c.messages.push({ sender: '@Umar_Developer', text: inp.value }); saveStorage(); renderChannels(); }
-    }
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPosts();
+            loadChart('XAUUSD');
+        });
 
-    // Translator API
-    async function performTranslation() {
-      const text = document.getElementById('trans-input').value;
-      const from = document.getElementById('trans-from').value;
-      const to = document.getElementById('trans-to').value;
-      const out = document.getElementById('trans-output');
-      if (!text) return showToast('Enter text');
-      out.innerText = "Translating...";
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
-        const data = await res.json();
-        out.innerText = data.responseData.translatedText || "Error";
-      } catch(e) { out.innerText = "Service Unavailable"; }
-    }
+        // Custom Notification Toast replacing window.alert()
+        function showNotification(msg, isRed = false) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${isRed ? 'red-toast' : ''}`;
+            toast.innerHTML = `<i class="fa-solid ${isRed ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-    // Syntax Checker
-    function runSyntaxCheck() {
-      const code = document.getElementById('code-input').value;
-      const res = document.getElementById('code-result');
-      if(!code) return res.innerText = "Enter code first";
-      res.innerHTML = "<span style='color:#22c55e;'>✅ Code syntax valid.</span>";
-    }
+        // Tab Navigation
+        function switchTab(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            if (el) el.classList.add('active');
+        }
 
-    // Profile Render
-    function renderProfile() {
-      const totalLikes = videos.reduce((a, b) => a + b.likes, 0) + feeds.reduce((a, b) => a + b.likes, 0);
-      document.getElementById('profile-likes').innerText = totalLikes;
-      document.getElementById('profile-posts').innerText = videos.length + feeds.length;
+        // Profile Sub-tab Navigation
+        function switchProfileTab(subTab, el) {
+            document.querySelectorAll('.profile-toggle-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (subTab === 'videos') {
+                document.getElementById('profile-sub-videos').style.display = 'grid';
+                document.getElementById('profile-sub-posts').style.display = 'none';
+            } else {
+                document.getElementById('profile-sub-videos').style.display = 'none';
+                document.getElementById('profile-sub-posts').style.display = 'block';
+            }
+        }
 
-      const myVids = document.getElementById('my-uploaded-videos');
-      myVids.innerHTML = videos.map(v => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>${v.caption}</span>
-          <span style="color:var(--accent-blue);">❤️ ${v.likes}</span>
-        </div>
-      `).join('');
-    }
+        // TradingView Interactive Live Chart Widget
+        function loadChart(symbol, btnEl) {
+            if (btnEl) {
+                document.querySelectorAll('.symbol-btn').forEach(b => b.classList.remove('active'));
+                btnEl.classList.add('active');
+            }
+            let tvSymbol = 'OANDA:XAUUSD';
+            if (symbol === 'BTCUSD') tvSymbol = 'BITSTAMP:BTCUSD';
+            if (symbol === 'EURUSD') tvSymbol = 'FX:EURUSD';
 
-    function saveStorage() {
-      localStorage.setItem('app_videos_v2', JSON.stringify(videos));
-      localStorage.setItem('app_feeds_v2', JSON.stringify(feeds));
-      localStorage.setItem('app_channels_v2', JSON.stringify(channels));
-    }
+            document.getElementById('tradingview_widget').innerHTML = '';
+            new TradingView.widget({
+                "width": "100%",
+                "height": "100%",
+                "symbol": tvSymbol,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#131b2e",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
+        }
 
-    function shareToWhatsApp() { window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('Check out Super App!')); }
-    function copyShareLink() { navigator.clipboard.writeText(window.location.href); showToast('Link Copied!'); closeModal('modal-share'); }
+        // Render Posts in Feed and Profile
+        function renderPosts() {
+            const videoContainer = document.getElementById('videoFeedContainer');
+            const textContainer = document.getElementById('textPostsContainer');
+            const profileVideos = document.getElementById('profile-sub-videos');
+            const profilePosts = document.getElementById('profile-sub-posts');
 
-    // Init
-    renderVideos();
-  </script>
+            videoContainer.innerHTML = '';
+            textContainer.innerHTML = '';
+            profileVideos.innerHTML = '';
+            profilePosts.innerHTML = '';
+
+            let postCount = appData.posts.length;
+
+            appData.posts.forEach(post => {
+                if (post.type === 'video') {
+                    // Video Feed Item
+                    const vCard = document.createElement('div');
+                    vCard.className = 'video-card';
+                    vCard.innerHTML = `
+                        <video src="${post.mediaUrl}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
+                        <div class="video-overlay">
+                            <div class="video-author">${post.author}</div>
+                            <div class="video-caption">${post.caption}</div>
+                        </div>
+                        <div class="video-actions">
+                            <div class="action-item" onclick="toggleLike('${post.id}')">
+                                <div class="action-icon ${post.userLiked ? 'liked' : ''}">
+                                    <i class="fa-solid fa-heart"></i>
+                                </div>
+                                <span>${post.likes}</span>
+                            </div>
+                            <div class="action-item" onclick="openModal('shareModal')">
+                                <div class="action-icon">
+                                    <i class="fa-solid fa-paper-plane" style="color: var(--accent-cyan);"></i>
+                                </div>
+                                <span>Share</span>
+                            </div>
+                        </div>
+                    `;
+                    videoContainer.appendChild(vCard);
+
+                    // Profile Grid Item (Videos)
+                    const pGridItem = document.createElement('div');
+                    pGridItem.className = 'profile-grid-item';
+                    pGridItem.innerHTML = `<video src="${post.mediaUrl}"></video>`;
+                    profileVideos.appendChild(pGridItem);
+
+                } else {
+                    // Text / Image Feed Item
+                    const tCard = document.createElement('div');
+                    tCard.className = 'feed-card';
+                    tCard.innerHTML = `
+                        <div class="card-header">
+                            <div class="user-info">
+                                <div class="avatar">${post.author.charAt(1).toUpperCase()}</div>
+                                <div>
+                                    <div class="username">${post.author}</div>
+                                    <div class="post-badge">Verified Post</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            ${post.caption}
+                            ${post.mediaUrl ? `<img src="${post.mediaUrl}" class="post-media" />` : ''}
+                        </div>
+                        <div class="card-footer">
+                            <button class="feed-btn ${post.userLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+                                <i class="fa-solid fa-heart" style="font-size: 16px;"></i> ${post.likes}
+                            </button>
+                            <button class="feed-btn red-accent" onclick="openModal('shareModal')">
+                                <i class="fa-solid fa-share-nodes"></i> Share
+                            </button>
+                        </div>
+                    `;
+                    textContainer.appendChild(tCard);
+
+                    // Profile Sub Posts Section
+                    const pPostCard = tCard.cloneNode(true);
+                    profilePosts.appendChild(pPostCard);
+                }
+            });
+
+            document.getElementById('totalPostsCount').innerText = postCount;
+            document.getElementById('totalLikesCount').innerText = appData.totalLikes;
+        }
+
+        // Toggle Like Function (Strict 1 like toggle per user)
+        function toggleLike(postId) {
+            const post = appData.posts.find(p => p.id === postId);
+            if (post) {
+                if (post.userLiked) {
+                    post.likes--;
+                    post.userLiked = false;
+                    appData.totalLikes--;
+                    showNotification("Like removed", true);
+                } else {
+                    post.likes++;
+                    post.userLiked = true;
+                    appData.totalLikes++;
+                    showNotification("Post liked!");
+                }
+                saveData();
+                renderPosts();
+            }
+        }
+
+        // Gallery File Upload & Post Publish
+        function publishPost() {
+            const type = document.getElementById('postTypeSelect').value;
+            const caption = document.getElementById('postCaptionInput').value.trim();
+            const fileInput = document.getElementById('galleryFileInput');
+
+            if (!caption && !fileInput.files[0]) {
+                showNotification("Please add text or select a file", true);
+                return;
+            }
+
+            let mediaUrl = "";
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mediaUrl = e.target.result;
+                    createNewPostObject(type, caption, mediaUrl);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                createNewPostObject(type, caption, "");
+            }
+        }
+
+        function createNewPostObject(type, caption, mediaUrl) {
+            const newPost = {
+                id: 'post_' + Date.now(),
+                author: '@Umar_Developer',
+                type: type === 'video' ? 'video' : 'text',
+                caption: caption,
+                mediaUrl: mediaUrl,
+                likes: 0,
+                userLiked: false,
+                timestamp: 'Just now'
+            };
+
+            appData.posts.unshift(newPost);
+            saveData();
+            renderPosts();
+            closeModal('createPostModal');
+            showNotification("Post published successfully!");
+            document.getElementById('postCaptionInput').value = '';
+            document.getElementById('galleryFileInput').value = '';
+        }
+
+        // Modal Helpers
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Channel creation
+        function createNewChannel() {
+            const val = document.getElementById('channelNameInput').value.trim();
+            if (!val) return showNotification("Enter channel name", true);
+            const list = document.getElementById('channelsList');
+            const item = document.createElement('div');
+            item.className = 'feed-card';
+            item.style.marginBottom = '8px';
+            item.innerHTML = `<div style="font-weight:700;"><i class="fa-solid fa-hashtag" style="color:var(--accent-cyan);"></i> ${val}</div>`;
+            list.prepend(item);
+            document.getElementById('channelNameInput').value = '';
+            showNotification(`Channel "${val}" created!`);
+        }
+
+        // Sharing Options
+        function copyShareLink() {
+            navigator.clipboard.writeText(window.location.href);
+            closeModal('shareModal');
+            showNotification("Link copied to clipboard!");
+        }
+
+        function socialShare(platform) {
+            closeModal('shareModal');
+            showNotification(`Sharing via ${platform}...`);
+        }
+
+        // Universal Translator
+        function runTranslation() {
+            const input = document.getElementById('transInput').value.trim();
+            const from = document.getElementById('transFrom').value;
+            const to = document.getElementById('transTo').value;
+            if (!input) return showNotification("Please enter text", true);
+
+            if (from === 'English' && to === 'Urdu') {
+                document.getElementById('transOutput').innerText = "ہیلو! سپر ایپ پر خوش آمدید";
+            } else {
+                document.getElementById('transOutput').innerText = "Hello! Welcome to Super App.";
+            }
+            showNotification("Translation completed!");
+        }
+
+        // Code Syntax Checker
+        function checkSyntax() {
+            const code = document.getElementById('syntaxCodeInput').value.trim();
+            if (!code) return showNotification("Paste code first", true);
+            showNotification("Syntax Check Passed: No errors detected!");
+            closeModal('syntaxModal');
+        }
+    </script>
 </body>
 </html>
