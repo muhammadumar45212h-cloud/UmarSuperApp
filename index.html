@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SuperApp - Universal All-in-One Platform</title>
+  <title>SuperApp - Universal Platform</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -17,9 +17,25 @@
     .animate-slide-up {
       animation: slideUp 0.3s ease-out forwards;
     }
+    /* Hide scrollbars for seamless reels view */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20 select-none">
+
+  <div id="notification-toast" class="fixed top-4 right-4 left-4 z-50 max-w-sm mx-auto bg-cyan-600/90 text-white px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md border border-cyan-400/30 flex items-center justify-between transition-all duration-300 transform -translate-y-20 opacity-0 pointer-events-none">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-bell text-lg"></i>
+      <span id="notification-msg" class="text-xs font-semibold">Message here...</span>
+    </div>
+    <button onclick="hideNotification()" class="text-xs font-bold opacity-80 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+  </div>
 
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 px-4 py-3 flex justify-between items-center max-w-md mx-auto">
     <h1 class="text-xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -32,29 +48,44 @@
       <button onclick="switchTab('translator')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 text-cyan-400">
         <i class="fa-solid fa-language"></i>
       </button>
+      <button onclick="switchTab('coding')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 text-emerald-400">
+        <i class="fa-solid fa-code"></i>
+      </button>
     </div>
   </header>
 
-  <main class="max-w-md mx-auto p-3">
+  <main class="max-w-md mx-auto">
 
-    <section id="tab-feed" class="tab-content space-y-4">
-      <div id="posts-container" class="space-y-4">
+    <section id="tab-video-feed" class="tab-content relative h-[80vh] bg-black overflow-hidden">
+      <div id="video-reels-container" class="h-full w-full overflow-y-snap no-scrollbar scroll-smooth">
+        </div>
+      
+      <button onclick="toggleSideTextFeed()" class="absolute top-4 right-4 z-20 bg-slate-900/80 backdrop-blur border border-slate-700 text-cyan-400 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg">
+        <i class="fa-solid fa-align-left"></i> Text Posts
+      </button>
+    </section>
+
+    <section id="tab-text-feed" class="tab-content hidden p-3 space-y-4">
+      <h2 class="text-base font-bold text-cyan-400 flex items-center gap-2">
+        <i class="fa-solid fa-square-rss"></i> Public Text Discussions
+      </h2>
+      <div id="text-posts-container" class="space-y-4">
         </div>
     </section>
 
-    <section id="tab-forex" class="tab-content hidden">
+    <section id="tab-forex" class="tab-content hidden p-3">
       <h2 class="text-lg font-bold mb-3 text-cyan-400">FOREX Live Market Charts</h2>
-      <div class="w-full h-[500px] bg-slate-900 rounded-xl overflow-hidden shadow-lg border border-slate-800">
+      <div class="w-full h-[480px] bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-800">
         <div id="tradingview_widget" class="w-full h-full"></div>
       </div>
     </section>
 
-    <section id="tab-create" class="tab-content hidden">
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+    <section id="tab-create" class="tab-content hidden p-3">
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
         <h2 class="text-lg font-bold mb-4 text-cyan-400">Create New Post</h2>
         <form onsubmit="handleCreatePost(event)" class="space-y-4">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Post Type</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Select Post Type</label>
             <div class="flex gap-2">
               <button type="button" id="btn-type-text" onclick="setPostType('text')" class="flex-1 py-2 text-xs rounded-xl font-semibold border bg-cyan-600 border-cyan-500 text-white">
                 Text Post
@@ -66,69 +97,98 @@
           </div>
 
           <div>
-            <textarea id="post-text-input" rows="4" placeholder="What's on your mind? (Explicit/XXX content is strictly blocked)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-500"></textarea>
+            <textarea id="post-text-input" rows="4" placeholder="Write something... (NSFW/XXX content is automatically filtered)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-cyan-500"></textarea>
           </div>
 
           <div id="video-upload-box" class="hidden">
-            <label class="block text-xs font-medium text-slate-400 mb-1">Upload Video File</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Select Video File</label>
             <input type="file" id="post-file-input" accept="video/*" class="w-full text-xs text-slate-400 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
           </div>
 
-          <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-3 rounded-xl transition">
+          <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-90 text-white font-semibold py-3 rounded-xl transition shadow-lg">
             Publish Post
           </button>
         </form>
       </div>
     </section>
 
-    <section id="tab-chats" class="tab-content hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-        <h2 class="text-lg font-bold text-cyan-400 mb-3">Messages, Channels & Groups</h2>
-        <div class="space-y-3">
-          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-            <div>
-              <h4 class="text-sm font-semibold text-white">SuperApp Official Channel</h4>
-              <p class="text-xs text-slate-400">Welcome to the future of trading & social connect...</p>
-            </div>
-            <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full font-bold">Channel</span>
-          </div>
-          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-            <div>
-              <h4 class="text-sm font-semibold text-white">Forex Traders Group</h4>
-              <p class="text-xs text-slate-400">Alex: EUR/USD looking strong today!</p>
-            </div>
-            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full font-bold">Group</span>
-          </div>
+    <section id="tab-chats" class="tab-content hidden p-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <h2 class="text-lg font-bold text-cyan-400">Messages & Channels</h2>
+          <button onclick="openCreateChannelModal()" class="bg-cyan-600 text-white text-xs px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> New Channel/Group
+          </button>
         </div>
+
+        <div id="channels-list" class="space-y-3">
+          </div>
       </div>
     </section>
 
-    <section id="tab-profile" class="tab-content hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center">
-        <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white mb-3">
-          C
+    <section id="tab-coding" class="tab-content hidden p-3 space-y-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h2 class="text-base font-bold text-emerald-400 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-terminal"></i> Live Code Editor & Terminal
+        </h2>
+        <textarea id="code-input" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-emerald-400 focus:outline-none" placeholder="<h1>Hello World</h1>&#10;<script>console.log('Running...');</script>"></textarea>
+        <button onclick="runCodeTerminal()" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 font-bold text-xs py-2.5 rounded-xl text-slate-950">
+          Run Code in Terminal
+        </button>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h3 class="text-xs font-semibold text-slate-400 mb-2">Live Output Terminal</h3>
+        <div id="code-output" class="bg-white text-black p-3 rounded-xl min-h-[120px] text-xs"></div>
+      </div>
+    </section>
+
+    <section id="tab-profile" class="tab-content hidden p-3 space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center shadow-lg">
+        <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white mb-3 shadow-md">
+          U
         </div>
-        <h2 class="text-lg font-bold">@creator_pro</h2>
-        <p class="text-xs text-slate-400 mb-4">Official Creator Profile</p>
+        <h2 class="text-lg font-bold">@current_user</h2>
+        <p class="text-xs text-slate-400 mb-4">Official Verified Profile</p>
 
         <div class="grid grid-cols-3 gap-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
           <div>
-            <span id="stat-posts" class="block text-lg font-black text-cyan-400">1</span>
-            <span class="text-[10px] text-slate-400 uppercase">Posts</span>
+            <span id="stat-posts" class="block text-lg font-black text-cyan-400">0</span>
+            <span class="text-[10px] text-slate-400 uppercase">Total Posts</span>
           </div>
           <div>
-            <span id="stat-likes" class="block text-lg font-black text-pink-500">124</span>
-            <span class="text-[10px] text-slate-400 uppercase">Likes</span>
+            <span id="stat-likes" class="block text-lg font-black text-pink-500">0</span>
+            <span class="text-[10px] text-slate-400 uppercase">Total Likes</span>
           </div>
           <div>
-            <span id="stat-subscribers" class="block text-lg font-black text-emerald-400">89</span>
+            <span id="stat-subscribers" class="block text-lg font-black text-emerald-400">142</span>
             <span class="text-[10px] text-slate-400 uppercase">Subscribers</span>
           </div>
         </div>
       </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h3 class="text-sm font-bold text-cyan-400 mb-3">My Posts & Uploaded Videos</h3>
+        <div id="my-profile-posts" class="space-y-3">
+          </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h3 class="text-sm font-bold text-slate-300 border-b border-slate-800 pb-2"><i class="fa-solid fa-gear"></i> App Settings</h3>
+        <div class="flex justify-between items-center text-xs text-slate-300">
+          <span>In-App Notifications</span>
+          <input type="checkbox" checked class="accent-cyan-500">
+        </div>
+        <div class="flex justify-between items-center text-xs text-slate-300">
+          <span>Auto NSFW Moderation Filter</span>
+          <input type="checkbox" checked class="accent-cyan-500">
+        </div>
+        <button onclick="clearAppData()" class="w-full bg-red-500/20 text-red-400 border border-red-500/30 text-xs py-2 rounded-xl font-semibold">
+          Reset App Data & Clear Storage
+        </button>
+      </div>
     </section>
 
-    <section id="tab-translator" class="tab-content hidden">
+    <section id="tab-translator" class="tab-content hidden p-3">
       <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
         <h2 class="text-lg font-bold mb-4 text-cyan-400">Universal Language Translator</h2>
         
@@ -139,16 +199,46 @@
             <option value="hi">Hindi (हिंदी)</option>
             <option value="ar">Arabic (العربية)</option>
             <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ru">Russian</option>
+            <option value="tr">Turkish</option>
+            <option value="fa">Persian</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+            <option value="ko">Korean</option>
+            <option value="mr">Marathi</option>
+            <option value="bn">Bengali</option>
+            <option value="pa">Punjabi</option>
+            <option value="ta">Tamil</option>
           </select>
+
           <button onclick="swapLanguages()" class="p-2 bg-slate-800 rounded-full border border-slate-700 text-cyan-400">
             <i class="fa-solid fa-arrow-right-arrow-left"></i>
           </button>
+
           <select id="trans-to" class="bg-slate-800 text-white px-3 py-2 rounded-lg border border-slate-700 text-xs w-full">
             <option value="ur">Urdu (اردو)</option>
             <option value="en">English</option>
             <option value="hi">Hindi (हिंदी)</option>
             <option value="ar">Arabic (العربية)</option>
             <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ru">Russian</option>
+            <option value="tr">Turkish</option>
+            <option value="fa">Persian</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+            <option value="ko">Korean</option>
+            <option value="mr">Marathi</option>
+            <option value="bn">Bengali</option>
+            <option value="pa">Punjabi</option>
+            <option value="ta">Tamil</option>
           </select>
         </div>
 
@@ -161,16 +251,16 @@
         <div id="trans-output-box" class="hidden relative bg-slate-950 border border-slate-800 rounded-xl p-4">
           <p id="trans-output-text" class="text-slate-200 text-sm leading-relaxed"></p>
           <button onclick="copyTranslation()" class="mt-3 flex items-center gap-1 text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 text-cyan-400">
-            <i class="fa-regular fa-copy"></i> Copy Text
+            <i class="fa-regular fa-copy"></i> Copy Translated Text
           </button>
         </div>
       </div>
     </section>
 
-    <section id="tab-weather" class="tab-content hidden">
+    <section id="tab-weather" class="tab-content hidden p-3">
       <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 text-center">
         <h2 class="text-lg font-bold text-amber-400 mb-2">Global Weather</h2>
-        <input type="text" id="weather-city" placeholder="Enter city or country..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white mb-3 text-center">
+        <input type="text" id="weather-city" placeholder="Enter city name..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white mb-3 text-center">
         <button onclick="checkWeather()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2 rounded-xl text-sm">Check Weather</button>
         <div id="weather-result" class="mt-4 text-sm text-slate-300"></div>
       </div>
@@ -178,13 +268,13 @@
   </main>
 
   <nav class="fixed bottom-0 inset-x-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 z-40 px-4 py-2 flex justify-between items-center max-w-md mx-auto">
-    <button onclick="switchTab('feed')" class="nav-btn flex flex-col items-center text-xs text-cyan-400 font-bold">
-      <i class="fa-solid fa-house text-lg"></i>
-      <span>Home</span>
+    <button onclick="switchTab('video-feed')" class="nav-btn flex flex-col items-center text-xs text-cyan-400 font-bold">
+      <i class="fa-solid fa-play text-lg"></i>
+      <span>Videos</span>
     </button>
-    <button onclick="switchTab('forex')" class="nav-btn flex flex-col items-center text-xs text-slate-400">
-      <i class="fa-solid fa-chart-line text-lg"></i>
-      <span>Forex</span>
+    <button onclick="switchTab('text-feed')" class="nav-btn flex flex-col items-center text-xs text-slate-400">
+      <i class="fa-solid fa-file-lines text-lg"></i>
+      <span>Text</span>
     </button>
     <button onclick="switchTab('create')" class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:scale-105 transition -mt-5 border-4 border-slate-950">
       <i class="fa-solid fa-plus text-xl"></i>
@@ -199,74 +289,126 @@
     </button>
   </nav>
 
-  <div id="comment-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-end hidden">
-    <div class="bg-slate-900 border-t border-slate-800 w-full max-w-md h-[65vh] rounded-t-3xl p-4 text-white flex flex-col animate-slide-up">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-        <h3 class="font-bold text-base">Comments</h3>
-        <button onclick="closeCommentModal()" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+  <div id="side-text-modal" class="fixed inset-0 z-50 bg-black/80 flex justify-end hidden">
+    <div class="bg-slate-900 border-l border-slate-800 w-4/5 max-w-xs h-full p-4 overflow-y-auto animate-slide-up">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-3">
+        <h3 class="font-bold text-sm text-cyan-400">Side Text Posts</h3>
+        <button onclick="toggleSideTextFeed()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="comments-list" class="flex-1 overflow-y-auto py-3 space-y-3"></div>
-      <form onsubmit="submitComment(event)" class="pt-2 border-t border-slate-800 flex gap-2">
-        <input type="text" id="comment-input" placeholder="Add a comment..." class="flex-1 bg-slate-950 border border-slate-800 rounded-full px-4 py-2 text-sm text-white focus:outline-none">
-        <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 p-2.5 rounded-full text-white"><i class="fa-solid fa-paper-plane"></i></button>
-      </form>
+      <div id="side-text-list" class="space-y-3"></div>
     </div>
   </div>
 
-  <div id="share-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-end hidden">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl p-5 text-white animate-slide-up">
+  <div id="channel-view-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-end hidden">
+    <div class="bg-slate-900 border-t border-slate-800 w-full max-w-md h-[55vh] rounded-t-3xl p-5 text-white flex flex-col animate-slide-up">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div id="ch-modal-img" class="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-white">C</div>
+          <div>
+            <h3 id="ch-modal-title" class="font-bold text-sm">Channel Title</h3>
+            <span id="ch-modal-username" class="text-xs text-cyan-400">@username</span>
+          </div>
+        </div>
+        <button onclick="closeChannelModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="my-4 bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+        <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Total Subscriber Base</span>
+        <span id="ch-modal-members" class="text-2xl font-black text-emerald-400">1,250 Members</span>
+        <p class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-lock"></i> Member identities are kept private for security.</p>
+      </div>
+
+      <button onclick="showNotification('Subscribed to channel successfully!')" class="w-full bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-xl text-xs font-bold shadow-lg">
+        Join / Subscribe Channel
+      </button>
+    </div>
+  </div>
+
+  <div id="create-channel-modal" class="fixed inset-0 z-50 bg-black/70 flex justify-center items-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 text-white">
       <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
-        <h3 class="font-bold text-lg flex items-center gap-2 text-cyan-400"><i class="fa-solid fa-share-nodes"></i> Share Video / Post</h3>
-        <button onclick="closeShareModal()" class="p-1 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="font-bold text-sm text-cyan-400">Create Channel / Group</h3>
+        <button onclick="closeCreateChannelModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-2 mb-4">
-        <span id="share-url-text" class="text-xs text-slate-400 truncate">https://superapp.com/@creator_pro/post/1</span>
-        <button onclick="copyShareUrl()" class="bg-cyan-600 hover:bg-cyan-500 text-xs px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1">
-          <i class="fa-regular fa-copy"></i> Copy
+      <form onsubmit="submitNewChannel(event)" class="space-y-3">
+        <input type="text" id="ch-input-name" placeholder="Your Name" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+        <input type="tel" id="ch-input-phone" placeholder="Phone Number" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+        <input type="text" id="ch-input-title" placeholder="Channel/Group Title" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+        <input type="text" id="ch-input-username" placeholder="@channel_username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+        <input type="text" id="ch-input-photo" placeholder="Photo URL (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white">
+        
+        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 font-bold py-2.5 rounded-xl text-xs shadow-lg">
+          Create Channel
         </button>
-      </div>
-      <div class="grid grid-cols-3 gap-3 text-center my-2">
-        <button onclick="copyShareUrl()" class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-brands fa-whatsapp text-lg block mb-1"></i> WhatsApp</button>
-        <button onclick="copyShareUrl()" class="bg-sky-600/20 text-sky-400 border border-sky-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-brands fa-telegram text-lg block mb-1"></i> Telegram</button>
-        <button onclick="copyShareUrl()" class="bg-purple-600/20 text-purple-400 border border-purple-500/30 p-3 rounded-2xl text-xs font-medium"><i class="fa-solid fa-link text-lg block mb-1"></i> Direct Link</button>
-      </div>
+      </form>
     </div>
   </div>
 
   <script src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
-    // App State
+    // State Variables
     let currentPostType = 'text';
-    let activePostForModal = null;
 
-    const userProfile = {
-      username: 'creator_pro',
-      totalPosts: 1,
-      totalLikes: 124,
-      subscribers: 89
-    };
-
-    let posts = [
-      {
-        id: 1,
-        user: 'SuperDev',
-        isDeveloper: true,
-        text: '🚀 Welcome to SuperApp! Forex Live Charts, Messenger, Multi-Language Translation aur Moderated Video Feeds live hain.',
-        mediaUrl: null,
-        type: 'text',
-        likes: 124,
-        isLiked: false,
-        isSubscribed: false,
-        comments: [
-          { user: 'alex_trader', text: 'Forex TradingView chart is working great!' }
-        ]
-      }
-    ];
-
-    // Banned Words Filter (Smart Moderation)
+    // Banned Words Moderation
     const BANNED_KEYWORDS = ['xxx', 'porn', 'adult', 'sex', 'nude', 'nsfw', 'naked', 'explicit'];
 
+    // In-App Notification Toast (No Native Alert)
+    function showNotification(msg) {
+      const toast = document.getElementById('notification-toast');
+      document.getElementById('notification-msg').innerText = msg;
+      toast.classList.remove('-translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(hideNotification, 3500);
+    }
+
+    function hideNotification() {
+      const toast = document.getElementById('notification-toast');
+      toast.classList.add('-translate-y-20', 'opacity-0', 'pointer-events-none');
+    }
+
+    // Storage Management (Base64 Video & Data Storage)
+    function getStoredData(key, fallback) {
+      const val = localStorage.getItem(key);
+      return val ? JSON.parse(val) : fallback;
+    }
+
+    function setStoredData(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    // Initial Default Seed Data
+    let posts = getStoredData('superapp_posts', [
+      {
+        id: 1,
+        user: 'DevOfficial',
+        isDeveloper: true,
+        text: '🔥 Welcome to SuperApp! Explore Full-Screen Reel Videos, TradingView Charts, Live Code Editor & 25+ Translation options.',
+        mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        type: 'video',
+        likes: 312,
+        isLiked: false,
+        comments: []
+      }
+    ]);
+
+    let channels = getStoredData('superapp_channels', [
+      {
+        id: 1,
+        title: 'SuperApp Official Channel',
+        username: '@superapp_news',
+        membersCount: 1450,
+        photo: ''
+      },
+      {
+        id: 2,
+        title: 'Forex Live Trading Signals',
+        username: '@forex_signals',
+        membersCount: 890,
+        photo: ''
+      }
+    ]);
+
+    // Content Safety Filter
     function checkContentSafety(text, file) {
       const lower = text.toLowerCase();
       if (BANNED_KEYWORDS.some(w => lower.includes(w))) return false;
@@ -274,15 +416,16 @@
       return true;
     }
 
-    // Switch Tabs
+    // Navigation Switcher
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
       if (tabId === 'forex') loadTradingView();
+      if (tabId === 'profile') renderProfileData();
     }
 
-    // Load TradingView Chart
+    // Load TradingView Widget
     function loadTradingView() {
       const widgetContainer = document.getElementById('tradingview_widget');
       widgetContainer.innerHTML = '';
@@ -295,13 +438,12 @@
           theme: "dark",
           style: "1",
           locale: "en",
-          toolbar_bg: "#f1f3f6",
           container_id: "tradingview_widget"
         });
       }
     }
 
-    // Post Type Switcher
+    // Post Type Selector
     function setPostType(type) {
       currentPostType = type;
       const btnText = document.getElementById('btn-type-text');
@@ -319,165 +461,227 @@
       }
     }
 
-    // Create New Post
+    // Create & Upload Post (Base64 Permanent Storage)
     function handleCreatePost(e) {
       e.preventDefault();
       const textInput = document.getElementById('post-text-input').value;
       const fileInput = document.getElementById('post-file-input').files[0];
 
       if (!checkContentSafety(textInput, fileInput)) {
-        alert('⚠️ Post Blocked: Inappropriate or restricted content detected!');
+        showNotification('⚠️ Post Blocked: Restricted/NSFW content detected!');
         return;
       }
 
-      let mediaUrl = null;
       if (currentPostType === 'video' && fileInput) {
-        mediaUrl = URL.createObjectURL(fileInput);
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          saveAndPublishPost(textInput, evt.target.result, 'video');
+        };
+        reader.readAsDataURL(fileInput);
+      } else {
+        saveAndPublishPost(textInput, null, 'text');
       }
+    }
 
+    function saveAndPublishPost(text, mediaUrl, type) {
       const newPost = {
         id: Date.now(),
-        user: userProfile.username,
+        user: 'current_user',
         isDeveloper: false,
-        text: textInput,
+        text: text,
         mediaUrl: mediaUrl,
-        type: currentPostType,
+        type: type,
         likes: 0,
         isLiked: false,
-        isSubscribed: false,
         comments: []
       };
 
       posts.unshift(newPost);
-      userProfile.totalPosts += 1;
-      updateProfileStats();
+      setStoredData('superapp_posts', posts);
 
       document.getElementById('post-text-input').value = '';
-      renderPosts();
-      alert('Post published successfully!');
-      switchTab('feed');
+      renderVideoFeed();
+      renderTextFeed();
+      showNotification('Post published successfully!');
+      switchTab(type === 'video' ? 'video-feed' : 'text-feed');
     }
 
-    // Render Feed Posts
-    function renderPosts() {
-      const container = document.getElementById('posts-container');
-      container.innerHTML = posts.map(post => `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-          <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-2">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-sm">
-                ${post.user[0].toUpperCase()}
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="font-semibold text-sm">@${post.user}</span>
-                ${post.isDeveloper ? `<span class="bg-cyan-500/20 text-cyan-400 text-[10px] px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">DEV</span>` : ''}
-              </div>
-            </div>
-            <button onclick="toggleSubscribe(${post.id})" class="px-3 py-1 rounded-full text-xs font-semibold ${post.isSubscribed ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-cyan-600 text-white'}">
-              ${post.isSubscribed ? 'Subscribed' : 'Subscribe'}
-            </button>
+    // Render Full-Screen Video Feed
+    function renderVideoFeed() {
+      const container = document.getElementById('video-reels-container');
+      const videoPosts = posts.filter(p => p.type === 'video');
+
+      if (videoPosts.length === 0) {
+        container.innerHTML = `<div class="h-full flex items-center justify-center text-slate-500 text-xs">No video posts uploaded yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = videoPosts.map(post => `
+        <div class="h-full w-full relative flex items-center justify-center bg-black border-b border-slate-900">
+          <video src="${post.mediaUrl}" controls loop class="w-full h-full object-cover"></video>
+          
+          <div class="absolute bottom-6 left-4 right-16 z-10 text-white">
+            <h4 class="font-bold text-sm text-cyan-400 mb-1">@${post.user}</h4>
+            <p class="text-xs text-slate-200 line-clamp-2">${post.text}</p>
           </div>
 
-          ${post.text ? `<p class="text-sm text-slate-200 mb-3 leading-relaxed">${post.text}</p>` : ''}
-
-          ${post.mediaUrl ? `
-            <div class="mb-3 rounded-xl overflow-hidden bg-black border border-slate-800">
-              ${post.type === 'video' 
-                ? `<video src="${post.mediaUrl}" controls class="w-full max-h-80 object-cover"></video>`
-                : `<img src="${post.mediaUrl}" class="w-full max-h-80 object-cover" />`
-              }
-            </div>
-          ` : ''}
-
-          <div class="flex justify-between items-center border-t border-slate-800/80 pt-2.5 text-slate-400">
-            <button onclick="toggleLike(${post.id})" class="flex items-center gap-1.5 text-xs font-medium ${post.isLiked ? 'text-pink-500' : 'hover:text-white'}">
-              <i class="fa-solid fa-heart"></i> ${post.likes}
+          <div class="absolute bottom-8 right-3 z-10 flex flex-col gap-4 items-center text-white">
+            <button onclick="toggleLike(${post.id})" class="flex flex-col items-center text-xs">
+              <i class="fa-solid fa-heart text-2xl ${post.isLiked ? 'text-pink-500' : 'text-white'}"></i>
+              <span>${post.likes}</span>
             </button>
-            <button onclick="openCommentModal(${post.id})" class="flex items-center gap-1.5 text-xs font-medium hover:text-white">
-              <i class="fa-solid fa-comment"></i> ${post.comments.length}
-            </button>
-            <button onclick="openShareModal(${post.id})" class="flex items-center gap-1.5 text-xs font-medium hover:text-white">
-              <i class="fa-solid fa-share"></i> Share
+            <button onclick="showNotification('Link copied: https://superapp.com/@${post.user}/post/${post.id}')" class="flex flex-col items-center text-xs">
+              <i class="fa-solid fa-share text-xl text-white"></i>
+              <span>Share</span>
             </button>
           </div>
         </div>
       `).join('');
     }
 
-    // Likes & Subscriptions
+    // Render Text Feed
+    function renderTextFeed() {
+      const container = document.getElementById('text-posts-container');
+      const sideList = document.getElementById('side-text-list');
+      const textPosts = posts.filter(p => p.type === 'text');
+
+      const htmlContent = textPosts.map(post => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs">
+              ${post.user[0].toUpperCase()}
+            </div>
+            <span class="font-semibold text-xs text-cyan-400">@${post.user}</span>
+          </div>
+          <p class="text-xs text-slate-200 leading-relaxed mb-3">${post.text}</p>
+          <div class="flex justify-between items-center text-slate-400 text-xs border-t border-slate-800/60 pt-2">
+            <button onclick="toggleLike(${post.id})" class="${post.isLiked ? 'text-pink-500' : ''}">
+              <i class="fa-solid fa-heart"></i> ${post.likes}
+            </button>
+            <button onclick="showNotification('Link copied!')"><i class="fa-solid fa-share"></i> Share</button>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = htmlContent || `<p class="text-xs text-slate-500">No text posts available.</p>`;
+      sideList.innerHTML = htmlContent || `<p class="text-xs text-slate-500">No text posts.</p>`;
+    }
+
     function toggleLike(id) {
       const p = posts.find(item => item.id === id);
       if (p) {
         p.isLiked = !p.isLiked;
         p.likes += p.isLiked ? 1 : -1;
-        if (p.user === userProfile.username) userProfile.totalLikes += p.isLiked ? 1 : -1;
-        updateProfileStats();
-        renderPosts();
+        setStoredData('superapp_posts', posts);
+        renderVideoFeed();
+        renderTextFeed();
+        renderProfileData();
       }
     }
 
-    function toggleSubscribe(id) {
-      const p = posts.find(item => item.id === id);
-      if (p) {
-        p.isSubscribed = !p.isSubscribed;
-        renderPosts();
-      }
+    function toggleSideTextFeed() {
+      document.getElementById('side-text-modal').classList.toggle('hidden');
     }
 
-    function updateProfileStats() {
-      document.getElementById('stat-posts').innerText = userProfile.totalPosts;
-      document.getElementById('stat-likes').innerText = userProfile.totalLikes;
-      document.getElementById('stat-subscribers').innerText = userProfile.subscribers;
-    }
-
-    // Comments Modal
-    function openCommentModal(id) {
-      activePostForModal = posts.find(p => p.id === id);
-      if (!activePostForModal) return;
-      
-      const list = document.getElementById('comments-list');
-      list.innerHTML = activePostForModal.comments.map(c => `
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-          <span class="text-xs font-semibold text-cyan-400">@${c.user}</span>
-          <p class="text-sm text-slate-200">${c.text}</p>
+    // Render Channels List
+    function renderChannels() {
+      const container = document.getElementById('channels-list');
+      container.innerHTML = channels.map(ch => `
+        <div onclick="openChannelModal(${ch.id})" class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer hover:border-slate-700">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-white text-sm">
+              ${ch.title[0]}
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">${ch.title}</h4>
+              <p class="text-[10px] text-cyan-400">${ch.username}</p>
+            </div>
+          </div>
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">
+            ${ch.membersCount} Members
+          </span>
         </div>
       `).join('');
-
-      document.getElementById('comment-modal').classList.remove('hidden');
     }
 
-    function closeCommentModal() {
-      document.getElementById('comment-modal').classList.add('hidden');
+    function openChannelModal(id) {
+      const ch = channels.find(c => c.id === id);
+      if (!ch) return;
+
+      document.getElementById('ch-modal-title').innerText = ch.title;
+      document.getElementById('ch-modal-username').innerText = ch.username;
+      document.getElementById('ch-modal-members').innerText = `${ch.membersCount.toLocaleString()} Members`;
+      document.getElementById('channel-view-modal').classList.remove('hidden');
     }
 
-    function submitComment(e) {
+    function closeChannelModal() {
+      document.getElementById('channel-view-modal').classList.add('hidden');
+    }
+
+    function openCreateChannelModal() {
+      document.getElementById('create-channel-modal').classList.remove('hidden');
+    }
+
+    function closeCreateChannelModal() {
+      document.getElementById('create-channel-modal').classList.add('hidden');
+    }
+
+    function submitNewChannel(e) {
       e.preventDefault();
-      const input = document.getElementById('comment-input');
-      if (!input.value.trim() || !activePostForModal) return;
+      const title = document.getElementById('ch-input-title').value;
+      const username = document.getElementById('ch-input-username').value;
 
-      activePostForModal.comments.push({ user: userProfile.username, text: input.value });
-      input.value = '';
-      openCommentModal(activePostForModal.id);
-      renderPosts();
+      const newCh = {
+        id: Date.now(),
+        title: title,
+        username: username.startsWith('@') ? username : `@${username}`,
+        membersCount: 1,
+        photo: ''
+      };
+
+      channels.unshift(newCh);
+      setStoredData('superapp_channels', channels);
+      renderChannels();
+      closeCreateChannelModal();
+      showNotification('New Channel created successfully!');
     }
 
-    // Share Modal
-    function openShareModal(id) {
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-      const shareUrl = `https://superapp.com/@${post.user}/post/${post.id}`;
-      document.getElementById('share-url-text').innerText = shareUrl;
-      document.getElementById('share-modal').classList.remove('hidden');
+    // Profile Data Render
+    function renderProfileData() {
+      const myPosts = posts.filter(p => p.user === 'current_user');
+      const totalLikes = myPosts.reduce((acc, curr) => acc + curr.likes, 0);
+
+      document.getElementById('stat-posts').innerText = myPosts.length;
+      document.getElementById('stat-likes').innerText = totalLikes;
+
+      const profilePostsBox = document.getElementById('my-profile-posts');
+      if (myPosts.length === 0) {
+        profilePostsBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-2">No uploaded posts or videos yet.</p>`;
+      } else {
+        profilePostsBox.innerHTML = myPosts.map(p => `
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              ${p.type === 'video' 
+                ? `<video src="${p.mediaUrl}" class="w-12 h-12 object-cover rounded-lg bg-black"></video>` 
+                : `<div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center text-xs"><i class="fa-solid fa-file-lines text-cyan-400"></i></div>`
+              }
+              <div>
+                <p class="text-xs text-white line-clamp-1 font-medium">${p.text || 'Video Post'}</p>
+                <span class="text-[10px] text-slate-400 uppercase">${p.type} Post</span>
+              </div>
+            </div>
+            <span class="text-xs text-pink-500 font-bold"><i class="fa-solid fa-heart"></i> ${p.likes}</span>
+          </div>
+        `).join('');
+      }
     }
 
-    function closeShareModal() {
-      document.getElementById('share-modal').classList.add('hidden');
-    }
-
-    function copyShareUrl() {
-      const url = document.getElementById('share-url-text').innerText;
-      navigator.clipboard.writeText(url);
-      alert('Deep Link Copied: ' + url);
+    // Live Code Terminal Execution
+    function runCodeTerminal() {
+      const code = document.getElementById('code-input').value;
+      const outputFrame = document.getElementById('code-output');
+      outputFrame.innerHTML = code;
+      showNotification('Code Executed in Terminal!');
     }
 
     // Translator
@@ -493,7 +697,7 @@
         document.getElementById('trans-output-text').innerText = data.responseData.translatedText;
         document.getElementById('trans-output-box').classList.remove('hidden');
       } catch (err) {
-        alert('Translation failed!');
+        showNotification('Translation failed! Check connection.');
       }
     }
 
@@ -508,21 +712,28 @@
     function copyTranslation() {
       const text = document.getElementById('trans-output-text').innerText;
       navigator.clipboard.writeText(text);
-      alert('Translated text copied!');
+      showNotification('Translated text copied!');
     }
 
-    // Weather
+    // Weather Check
     async function checkWeather() {
       const city = document.getElementById('weather-city').value || 'London';
-      document.getElementById('weather-result').innerText = `Checking weather for ${city}...`;
+      document.getElementById('weather-result').innerText = `Fetching weather for ${city}...`;
       setTimeout(() => {
-        document.getElementById('weather-result').innerText = `☀️ ${city}: 28°C, Clear Sky`;
-      }, 1000);
+        document.getElementById('weather-result').innerText = `☀️ ${city}: 29°C, Clear Sky`;
+      }, 800);
     }
 
-    // Initial Load
-    renderPosts();
-    updateProfileStats();
+    function clearAppData() {
+      localStorage.clear();
+      showNotification('App storage cleared! Reloading...');
+      setTimeout(() => location.reload(), 1500);
+    }
+
+    // Initialize App
+    renderVideoFeed();
+    renderTextFeed();
+    renderChannels();
   </script>
 </body>
 </html>
