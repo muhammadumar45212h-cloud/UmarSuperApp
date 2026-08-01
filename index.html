@@ -43,6 +43,15 @@
     .btn-gradient {
       background: linear-gradient(135deg, #0088cc, #ff0055);
     }
+    /* Reels Smooth Vertical Snap Scrolling */
+    .reel-container {
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+    }
+    .reel-item {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
     /* Hide scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -71,9 +80,9 @@
   <!-- MAIN CONTENT CONTAINER -->
   <main id="app-viewport" class="flex-1 relative overflow-y-auto no-scrollbar">
 
-    <!-- TAB 1: VIDEOS / SHORTS FEED -->
-    <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col justify-center items-center">
-      <div id="video-feed-container" class="w-full h-full flex flex-col items-center justify-center">
+    <!-- TAB 1: VIDEOS / SHORTS FEED (Fixed with smooth reel snapping) -->
+    <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
+      <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
         <!-- Dynamic Videos Rendered Here -->
       </div>
     </section>
@@ -567,6 +576,7 @@
       document.getElementById('post-caption').value = '';
       document.getElementById('post-video-file').value = '';
       closeModal('createModal');
+      switchTab('videos'); // Automatically switch to videos tab after posting!
       renderPosts();
     }
 
@@ -601,15 +611,15 @@
           `;
         }
 
-        // Render Video Posts
+        // Render Video Posts (With Fullscreen Reel Layout & Snapping)
         if(post.type === 'video' && post.videoUrl) {
           videoCount++;
           videoContainer.innerHTML += `
-            <div class="relative w-full h-full flex items-center justify-center bg-black">
-              <video src="${post.videoUrl}" controls autoplay loop class="max-h-full max-w-full object-contain"></video>
-              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/40 p-2 rounded backdrop-blur-sm">
+            <div class="reel-item relative w-full h-full flex-shrink-0 flex items-center justify-center bg-black">
+              <video src="${post.videoUrl}" controls autoplay loop class="w-full h-full object-cover"></video>
+              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/40 p-3 rounded-lg backdrop-blur-md border border-white/10">
                 <p class="font-bold text-cyan-400 text-sm">${post.author}</p>
-                <p class="text-xs text-gray-200">${post.caption}</p>
+                <p class="text-xs text-gray-200 mt-1">${post.caption}</p>
                 ${reactionsHtml}
               </div>
             </div>
@@ -624,7 +634,7 @@
       });
 
       if(videoCount === 0) {
-        videoContainer.innerHTML = `<p class="text-gray-500 text-sm">No Videos Uploaded Yet. Click + to post!</p>`;
+        videoContainer.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-center p-6"><p class="text-gray-500 text-sm">No Videos Uploaded Yet. Click the + button at the bottom to post your short video!</p></div>`;
       }
 
       document.getElementById('profile-posts-count').innerText = posts.length;
