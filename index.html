@@ -148,7 +148,7 @@
   <!-- 1. FULLSCREEN CHAT & CHANNELS MODAL -->
   <div id="chatModal" class="fullscreen-modal hidden">
     <div class="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
-      <h2 class="text-lg font-bold text-cyan-400">Direct Messages & Channels</h2>
+      <h2 class="text-lg font-bold text-cyan-400" id="chat-header-title">Direct Messages & Channels</h2>
       <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     
@@ -157,9 +157,9 @@
       <button onclick="switchChatTab('channel')" class="flex-1 py-3 text-center font-semibold text-gray-400" id="btn-channel-tab">Channels</button>
     </div>
 
-    <!-- Chat View -->
+    <!-- Direct Chat View -->
     <div id="chat-view" class="flex-1 flex flex-col p-4">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2 p-2 bg-gray-950 rounded border border-gray-800 mb-3 text-sm">
+      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3 text-sm">
         <div class="text-gray-500 text-xs">System: Welcome to Global Chat!</div>
       </div>
       <div class="flex gap-2">
@@ -168,16 +168,50 @@
       </div>
     </div>
 
-    <!-- Channel View -->
-    <div id="channel-view" class="flex-1 flex flex-col p-4 hidden space-y-4">
-      <div class="flex gap-2">
-        <input type="text" id="channel-name-input" placeholder="New Channel Name..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white">
-        <button onclick="createChannel()" class="px-4 py-2 bg-red-600 rounded text-sm font-bold">Create</button>
+    <!-- Channels Navigation & Detailed History View -->
+    <div id="channel-view" class="flex-1 flex flex-col p-4 hidden space-y-4 overflow-y-auto">
+      
+      <!-- List View -->
+      <div id="channels-list-container" class="space-y-4">
+        <div class="flex gap-2">
+          <input type="text" id="channel-name-input" placeholder="New Channel Name..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
+          <button onclick="createChannel()" class="px-4 py-2 bg-red-600 rounded text-sm font-bold">Create</button>
+        </div>
+        <h3 class="text-xs font-bold text-gray-400 uppercase">Available Channels</h3>
+        <div id="channels-list" class="space-y-2">
+          <!-- Channels dynamically added -->
+        </div>
       </div>
-      <h3 class="text-xs font-bold text-gray-400 uppercase">Available Channels</h3>
-      <div id="channels-list" class="flex-1 overflow-y-auto space-y-2">
-        <!-- Channels dynamically added -->
+
+      <!-- Active Channel View Room (Telegram/LINE style history) -->
+      <div id="channel-room-container" class="hidden flex-1 flex flex-col h-full">
+        <div class="flex justify-between items-center bg-gray-900 p-2 rounded border border-gray-800 mb-2">
+          <button onclick="backToChannelsList()" class="text-xs text-cyan-400 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-arrow-left"></i> All Channels
+          </button>
+          <span id="active-channel-title" class="font-bold text-sm text-white"></span>
+        </div>
+
+        <!-- History Container -->
+        <div id="channel-history" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3">
+          <!-- History posts loaded dynamically -->
+        </div>
+
+        <!-- Upload to Channel Control -->
+        <div class="bg-gray-900 p-3 rounded border border-gray-800 space-y-2">
+          <textarea id="channel-msg-text" placeholder="Write a post or message..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white focus:outline-none"></textarea>
+          
+          <div class="flex justify-between items-center">
+            <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-xs px-3 py-1.5 rounded border border-cyan-500/30 text-cyan-400 flex items-center gap-1">
+              <i class="fa-solid fa-image"></i> Gallery Media
+              <input type="file" id="channel-media-file" accept="image/*,video/*" class="hidden" onchange="previewChannelMedia(this)">
+            </label>
+            <button onclick="postToActiveChannel()" class="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded text-xs font-bold">Post</button>
+          </div>
+          <div id="channel-media-preview-tag" class="text-xs text-green-400 hidden">Media attached from gallery</div>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -225,16 +259,19 @@
         <label class="text-xs text-gray-400 block mb-1">Post Type</label>
         <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white">
           <option value="text">Text Post</option>
-          <option value="video">Short Video URL</option>
+          <option value="video">Gallery Short Video</option>
         </select>
       </div>
-      <div id="video-url-field" class="hidden">
-        <label class="text-xs text-gray-400 block mb-1">Direct MP4 Video URL</label>
-        <input type="text" id="post-video-url" placeholder="https://example.com/video.mp4" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white">
+
+      <!-- DIRECT GALLERY VIDEO PICKER -->
+      <div id="video-file-field" class="hidden">
+        <label class="text-xs text-gray-400 block mb-1">Choose Video from Mobile Gallery</label>
+        <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
       </div>
+
       <div>
         <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white h-28" placeholder="Write something..."></textarea>
+        <textarea id="post-caption" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white h-28 focus:outline-none" placeholder="Write something..."></textarea>
       </div>
       <button onclick="publishPost()" class="w-full btn-gradient py-3 rounded font-bold text-white">Publish Post</button>
     </div>
@@ -245,11 +282,17 @@
     // State Persistence
     let posts = JSON.parse(localStorage.getItem('super_app_posts')) || [];
     let channels = JSON.parse(localStorage.getItem('super_app_channels')) || ['General', 'Crypto Trading'];
+    let directMessages = JSON.parse(localStorage.getItem('super_app_dms')) || [];
+    let channelPosts = JSON.parse(localStorage.getItem('super_app_channel_posts')) || {};
+    
+    let activeChannel = null;
+    let currentChannelMediaBase64 = null;
 
     // Initialize App
     window.onload = () => {
       renderPosts();
       renderChannels();
+      renderDirectMessages();
     };
 
     // Tab Navigation
@@ -283,18 +326,47 @@
     function sendMessage() {
       const input = document.getElementById('chat-input');
       if(!input.value.trim()) return;
-      const box = document.getElementById('chat-messages');
-      box.innerHTML += `<div class="text-right text-cyan-300 mb-1"><span class="bg-blue-900/40 p-1.5 rounded inline-block">@Umar: ${input.value}</span></div>`;
+      
+      const newMsg = {
+        id: Date.now(),
+        sender: '@Umar',
+        text: input.value,
+        reactions: {}
+      };
+
+      directMessages.push(newMsg);
+      localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
       input.value = '';
+      renderDirectMessages();
+    }
+
+    function renderDirectMessages() {
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = `<div class="text-gray-500 text-xs">System: Welcome to Global Chat!</div>`;
+      
+      directMessages.forEach(msg => {
+        const reactionsHtml = renderReactionsHtml(msg.id, 'dm', msg.reactions);
+        box.innerHTML += `
+          <div class="text-right text-cyan-300 mb-2">
+            <span class="bg-blue-900/40 p-2 rounded inline-block text-left border border-blue-800/40 max-w-[85%]">
+              <div class="font-bold text-[10px] text-cyan-400">${msg.sender}</div>
+              <div>${msg.text}</div>
+              ${reactionsHtml}
+            </span>
+          </div>`;
+      });
       box.scrollTop = box.scrollHeight;
     }
 
-    // Channels logic
+    // Channels & Channel Feed Logic
     function createChannel() {
       const input = document.getElementById('channel-name-input');
-      if(!input.value.trim()) return;
-      channels.push(input.value.trim());
-      localStorage.setItem('super_app_channels', JSON.stringify(channels));
+      const name = input.value.trim();
+      if(!name) return;
+      if(!channels.includes(name)) {
+        channels.push(name);
+        localStorage.setItem('super_app_channels', JSON.stringify(channels));
+      }
       input.value = '';
       renderChannels();
     }
@@ -302,40 +374,198 @@
     function renderChannels() {
       const list = document.getElementById('channels-list');
       list.innerHTML = channels.map(c => `
-        <div class="flex justify-between items-center p-3 bg-gray-900 border border-gray-800 rounded">
+        <div onclick="openChannelRoom('${c}')" class="flex justify-between items-center p-3 bg-gray-900 border border-gray-800 rounded cursor-pointer hover:bg-gray-800 transition">
           <span class="text-sm font-semibold text-gray-200">📢 ${c}</span>
-          <button class="text-xs bg-cyan-600 px-3 py-1 rounded font-bold">Join</button>
+          <button class="text-xs bg-cyan-600 px-3 py-1 rounded font-bold">Open Chat</button>
         </div>
       `).join('');
     }
 
-    // Content Creation & Persistence
+    function openChannelRoom(channelName) {
+      activeChannel = channelName;
+      document.getElementById('channels-list-container').classList.add('hidden');
+      document.getElementById('channel-room-container').classList.remove('hidden');
+      document.getElementById('active-channel-title').innerText = `📢 ${channelName}`;
+      renderChannelHistory();
+    }
+
+    function backToChannelsList() {
+      activeChannel = null;
+      document.getElementById('channel-room-container').classList.add('hidden');
+      document.getElementById('channels-list-container').classList.remove('hidden');
+    }
+
+    function previewChannelMedia(input) {
+      const file = input.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentChannelMediaBase64 = {
+          data: e.target.result,
+          type: file.type.startsWith('video') ? 'video' : 'image'
+        };
+        document.getElementById('channel-media-preview-tag').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function postToActiveChannel() {
+      const textInput = document.getElementById('channel-msg-text');
+      const caption = textInput.value.trim();
+      
+      if(!caption && !currentChannelMediaBase64) return;
+
+      if(!channelPosts[activeChannel]) channelPosts[activeChannel] = [];
+
+      const newPost = {
+        id: Date.now(),
+        author: '@Umar',
+        text: caption,
+        media: currentChannelMediaBase64,
+        reactions: {}
+      };
+
+      channelPosts[activeChannel].push(newPost);
+      localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
+
+      textInput.value = '';
+      currentChannelMediaBase64 = null;
+      document.getElementById('channel-media-preview-tag').classList.add('hidden');
+      document.getElementById('channel-media-file').value = '';
+      renderChannelHistory();
+    }
+
+    function renderChannelHistory() {
+      const container = document.getElementById('channel-history');
+      container.innerHTML = '';
+
+      const history = channelPosts[activeChannel] || [];
+
+      if(history.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts in this channel yet. Post photos, videos, or messages below!</p>`;
+        return;
+      }
+
+      history.forEach(item => {
+        let mediaTag = '';
+        if(item.media) {
+          if(item.media.type === 'video') {
+            mediaTag = `<video src="${item.media.data}" controls class="w-full rounded mt-2 max-h-60 object-cover"></video>`;
+          } else {
+            mediaTag = `<img src="${item.media.data}" class="w-full rounded mt-2 max-h-60 object-cover" />`;
+          }
+        }
+
+        const reactionsHtml = renderReactionsHtml(item.id, 'channel', item.reactions);
+
+        container.innerHTML += `
+          <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg text-xs space-y-1">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-cyan-400">${item.author}</span>
+              <span class="text-[10px] text-gray-500">${new Date(item.id).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            ${item.text ? `<p class="text-gray-200 text-sm mt-1">${item.text}</p>` : ''}
+            ${mediaTag}
+            ${reactionsHtml}
+          </div>
+        `;
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Emoji Reactions System
+    function renderReactionsHtml(id, context, reactions = {}) {
+      const emojis = ['👍', '❤️', '🔥', '😂', '🚀'];
+      const buttons = emojis.map(e => `
+        <button onclick="addEmojiReaction(${id}, '${context}', '${e}')" class="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded border border-gray-700 text-[11px] flex items-center gap-1">
+          <span>${e}</span>
+          <span class="text-gray-400">${reactions[e] || 0}</span>
+        </button>
+      `).join('');
+
+      return `<div class="flex gap-1.5 flex-wrap mt-2 pt-1 border-t border-gray-800/60">${buttons}</div>`;
+    }
+
+    function addEmojiReaction(id, context, emoji) {
+      if(context === 'dm') {
+        directMessages = directMessages.map(m => {
+          if(m.id === id) {
+            const rx = m.reactions || {};
+            rx[emoji] = (rx[emoji] || 0) + 1;
+            return {...m, reactions: rx};
+          }
+          return m;
+        });
+        localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
+        renderDirectMessages();
+      } else if(context === 'channel') {
+        const history = channelPosts[activeChannel] || [];
+        channelPosts[activeChannel] = history.map(item => {
+          if(item.id === id) {
+            const rx = item.reactions || {};
+            rx[emoji] = (rx[emoji] || 0) + 1;
+            return {...item, reactions: rx};
+          }
+          return item;
+        });
+        localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
+        renderChannelHistory();
+      } else if(context === 'post') {
+        posts = posts.map(p => {
+          if(p.id === id) {
+            const rx = p.reactions || {};
+            rx[emoji] = (rx[emoji] || 0) + 1;
+            return {...p, reactions: rx};
+          }
+          return p;
+        });
+        localStorage.setItem('super_app_posts', JSON.stringify(posts));
+        renderPosts();
+      }
+    }
+
+    // Content Creation & Local Gallery Persistence
     function togglePostType() {
       const type = document.getElementById('post-type').value;
-      document.getElementById('video-url-field').classList.toggle('hidden', type !== 'video');
+      document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
     }
 
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value;
-      const videoUrl = document.getElementById('post-video-url').value;
+      const fileInput = document.getElementById('post-video-file');
 
-      if(!caption && !videoUrl) return;
+      if(type === 'video' && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          savePostObject(type, caption, e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        savePostObject(type, caption, null);
+      }
+    }
+
+    function savePostObject(type, caption, videoBase64) {
+      if(!caption && !videoBase64) return;
 
       const newPost = {
         id: Date.now(),
         type,
         caption,
-        videoUrl: type === 'video' ? videoUrl : null,
+        videoUrl: videoBase64,
         likes: 0,
-        author: '@Umar'
+        author: '@Umar',
+        reactions: {}
       };
 
       posts.unshift(newPost);
       localStorage.setItem('super_app_posts', JSON.stringify(posts));
       
       document.getElementById('post-caption').value = '';
-      document.getElementById('post-video-url').value = '';
+      document.getElementById('post-video-file').value = '';
       closeModal('createModal');
       renderPosts();
     }
@@ -352,6 +582,8 @@
       let videoCount = 0;
 
       posts.forEach(post => {
+        const reactionsHtml = renderReactionsHtml(post.id, 'post', post.reactions);
+
         // Render Feed Posts
         if(post.type === 'text') {
           feedContainer.innerHTML += `
@@ -361,9 +593,10 @@
                 <span class="font-bold text-sm">${post.author}</span>
               </div>
               <p class="text-sm text-gray-200">${post.caption}</p>
-              <div class="flex gap-4 text-xs text-gray-400 pt-2 border-t border-gray-800">
-                <button onclick="likePost(${post.id})" class="text-red-500">❤️ ${post.likes} Likes</button>
+              <div class="flex gap-4 text-xs text-gray-400 pt-2 border-t border-gray-800 items-center">
+                <button onclick="likePost(${post.id})" class="text-red-500 font-bold">❤️ ${post.likes} Likes</button>
               </div>
+              ${reactionsHtml}
             </div>
           `;
         }
@@ -374,9 +607,10 @@
           videoContainer.innerHTML += `
             <div class="relative w-full h-full flex items-center justify-center bg-black">
               <video src="${post.videoUrl}" controls autoplay loop class="max-h-full max-w-full object-contain"></video>
-              <div class="absolute bottom-6 left-4 right-16 z-10">
-                <p class="font-bold text-white text-sm">${post.author}</p>
-                <p class="text-xs text-gray-300">${post.caption}</p>
+              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/40 p-2 rounded backdrop-blur-sm">
+                <p class="font-bold text-cyan-400 text-sm">${post.author}</p>
+                <p class="text-xs text-gray-200">${post.caption}</p>
+                ${reactionsHtml}
               </div>
             </div>
           `;
@@ -394,6 +628,9 @@
       }
 
       document.getElementById('profile-posts-count').innerText = posts.length;
+      
+      let totalLikes = posts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
+      document.getElementById('profile-likes').innerText = totalLikes;
     }
 
     function likePost(id) {
