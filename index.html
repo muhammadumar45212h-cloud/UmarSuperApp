@@ -65,6 +65,10 @@
       SUPER APP
     </h1>
     <div class="flex gap-2">
+      <!-- Translate Button Added in Header -->
+      <button onclick="openModal('translateModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-green-500/30 text-green-400 flex items-center gap-1">
+        <i class="fa-solid fa-language"></i> Translate
+      </button>
       <button onclick="openModal('weatherModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-cyan-500/30 flex items-center gap-1">
         ☀️ Weather
       </button>
@@ -80,7 +84,7 @@
   <!-- MAIN CONTENT CONTAINER -->
   <main id="app-viewport" class="flex-1 relative overflow-y-auto no-scrollbar">
 
-    <!-- TAB 1: VIDEOS / SHORTS FEED (Fixed with smooth reel snapping) -->
+    <!-- TAB 1: VIDEOS / SHORTS FEED -->
     <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
       <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
         <!-- Dynamic Videos Rendered Here -->
@@ -94,7 +98,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: TRADING / FOREX CHART -->
+    <!-- TAB 3: TRADING / FOREX CHART (Go wala section - untouched & safe) -->
     <section id="tab-trading" class="h-full w-full hidden flex-col">
       <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between">
         <span>📈 Live Forex & Trading Chart</span>
@@ -154,6 +158,59 @@
 
   <!-- ==================== MODALS & POPUPS ==================== -->
 
+  <!-- NEW: TRANSLATE MODAL (All Languages Support + Copy Icon) -->
+  <div id="translateModal" class="fullscreen-modal hidden p-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-bold text-green-400"><i class="fa-solid fa-language"></i> All Languages Translator</h2>
+      <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div class="space-y-3 flex-1 flex flex-col">
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Enter Text to Translate</label>
+        <textarea id="source-text" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-sm text-white focus:outline-none" placeholder="Yahan text likhein..."></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label class="text-xs text-gray-400 block mb-1">Target Language</label>
+          <select id="target-lang" class="w-full bg-gray-800 text-xs text-green-400 p-2.5 rounded border border-gray-700">
+            <option value="ur">Urdu (اردو)</option>
+            <option value="en">English</option>
+            <option value="ar">Arabic (العربية)</option>
+            <option value="hi">Hindi (हिन्दी)</option>
+            <option value="es">Spanish (Español)</option>
+            <option value="fr">French (Français)</option>
+            <option value="de">German (Deutsch)</option>
+            <option value="zh">Chinese (中文)</option>
+            <option value="ru">Russian (Русский)</option>
+            <option value="ja">Japanese (日本語)</option>
+            <option value="ko">Korean (한국어)</option>
+            <option value="tr">Turkish (Türkçe)</option>
+            <option value="fa">Persian (فارسی)</option>
+            <option value="it">Italian (Italiano)</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button onclick="translateText()" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 rounded text-sm font-bold text-white h-[41px]">Translate</button>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col mt-2 relative">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-xs text-gray-400">Translated Result:</span>
+          <!-- Copy Icon Button -->
+          <button onclick="copyTranslation()" class="text-xs text-green-400 hover:text-green-300 flex items-center gap-1 bg-gray-800 px-2 py-1 rounded border border-gray-700">
+            <i class="fa-regular fa-copy"></i> Copy Text
+          </button>
+        </div>
+        <div id="translated-output" class="w-full flex-1 bg-gray-950 border border-gray-800 p-3 rounded text-sm text-gray-200 overflow-y-auto select-all">
+          Translation yahan show hogi...
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 1. FULLSCREEN CHAT & CHANNELS MODAL -->
   <div id="chatModal" class="fullscreen-modal hidden">
     <div class="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
@@ -179,20 +236,15 @@
 
     <!-- Channels Navigation & Detailed History View -->
     <div id="channel-view" class="flex-1 flex flex-col p-4 hidden space-y-4 overflow-y-auto">
-      
-      <!-- List View -->
       <div id="channels-list-container" class="space-y-4">
         <div class="flex gap-2">
           <input type="text" id="channel-name-input" placeholder="New Channel Name..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
           <button onclick="createChannel()" class="px-4 py-2 bg-red-600 rounded text-sm font-bold">Create</button>
         </div>
         <h3 class="text-xs font-bold text-gray-400 uppercase">Available Channels</h3>
-        <div id="channels-list" class="space-y-2">
-          <!-- Channels dynamically added -->
-        </div>
+        <div id="channels-list" class="space-y-2"></div>
       </div>
 
-      <!-- Active Channel View Room (Telegram/LINE style history) -->
       <div id="channel-room-container" class="hidden flex-1 flex flex-col h-full">
         <div class="flex justify-between items-center bg-gray-900 p-2 rounded border border-gray-800 mb-2">
           <button onclick="backToChannelsList()" class="text-xs text-cyan-400 font-bold flex items-center gap-1">
@@ -201,15 +253,10 @@
           <span id="active-channel-title" class="font-bold text-sm text-white"></span>
         </div>
 
-        <!-- History Container -->
-        <div id="channel-history" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3">
-          <!-- History posts loaded dynamically -->
-        </div>
+        <div id="channel-history" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3"></div>
 
-        <!-- Upload to Channel Control -->
         <div class="bg-gray-900 p-3 rounded border border-gray-800 space-y-2">
           <textarea id="channel-msg-text" placeholder="Write a post or message..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white focus:outline-none"></textarea>
-          
           <div class="flex justify-between items-center">
             <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-xs px-3 py-1.5 rounded border border-cyan-500/30 text-cyan-400 flex items-center gap-1">
               <i class="fa-solid fa-image"></i> Gallery Media
@@ -220,7 +267,6 @@
           <div id="channel-media-preview-tag" class="text-xs text-green-400 hidden">Media attached from gallery</div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -239,7 +285,7 @@
     </div>
   </div>
 
-  <!-- 3. SMART CODE ENGINE (PYTHON & JS) -->
+  <!-- 3. SMART CODE ENGINE -->
   <div id="codeModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-2">
       <h2 class="text-lg font-bold text-cyan-400">Python & JS Code Runner</h2>
@@ -272,7 +318,6 @@
         </select>
       </div>
 
-      <!-- DIRECT GALLERY VIDEO PICKER -->
       <div id="video-file-field" class="hidden">
         <label class="text-xs text-gray-400 block mb-1">Choose Video from Mobile Gallery</label>
         <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
@@ -288,7 +333,6 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    // State Persistence
     let posts = JSON.parse(localStorage.getItem('super_app_posts')) || [];
     let channels = JSON.parse(localStorage.getItem('super_app_channels')) || ['General', 'Crypto Trading'];
     let directMessages = JSON.parse(localStorage.getItem('super_app_dms')) || [];
@@ -297,14 +341,12 @@
     let activeChannel = null;
     let currentChannelMediaBase64 = null;
 
-    // Initialize App
     window.onload = () => {
       renderPosts();
       renderChannels();
       renderDirectMessages();
     };
 
-    // Tab Navigation
     function switchTab(tab) {
       ['videos', 'feed', 'trading', 'profile'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -312,9 +354,52 @@
       document.getElementById(`tab-${tab}`).classList.remove('hidden');
     }
 
-    // Modal Control
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // --- Google Translate Functionality (All Languages + Copy) ---
+    async function translateText() {
+      const text = document.getElementById('source-text').value.trim();
+      const targetLang = document.getElementById('target-lang').value;
+      const outputBox = document.getElementById('translated-output');
+
+      if (!text) {
+        outputBox.innerText = "Please enter some text to translate.";
+        return;
+      }
+
+      outputBox.innerText = "Translating...";
+
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        let translatedString = "";
+        if (data && data[0]) {
+          data[0].forEach(item => {
+            if (item[0]) translatedString += item[0];
+          });
+        }
+
+        outputBox.innerText = translatedString || "Translation failed.";
+      } catch (error) {
+        outputBox.innerText = "Error connecting to translation service.";
+      }
+    }
+
+    function copyTranslation() {
+      const outputText = document.getElementById('translated-output').innerText;
+      if (!outputText || outputText === "Translation yahan show hogi..." || outputText === "Translating...") {
+        alert("Nothing to copy!");
+        return;
+      }
+      navigator.clipboard.writeText(outputText).then(() => {
+        alert("Translation copied to clipboard!");
+      }).catch(err => {
+        alert("Failed to copy text.");
+      });
+    }
 
     // Chat Tab Toggle
     function switchChatTab(type) {
@@ -331,7 +416,6 @@
       }
     }
 
-    // Direct Messages logic
     function sendMessage() {
       const input = document.getElementById('chat-input');
       if(!input.value.trim()) return;
@@ -367,7 +451,6 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // Channels & Channel Feed Logic
     function createChannel() {
       const input = document.getElementById('channel-name-input');
       const name = input.value.trim();
@@ -423,7 +506,6 @@
       const caption = textInput.value.trim();
       
       if(!caption && !currentChannelMediaBase64) return;
-
       if(!channelPosts[activeChannel]) channelPosts[activeChannel] = [];
 
       const newPost = {
@@ -447,11 +529,10 @@
     function renderChannelHistory() {
       const container = document.getElementById('channel-history');
       container.innerHTML = '';
-
       const history = channelPosts[activeChannel] || [];
 
       if(history.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts in this channel yet. Post photos, videos, or messages below!</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts in this channel yet.</p>`;
         return;
       }
 
@@ -464,9 +545,7 @@
             mediaTag = `<img src="${item.media.data}" class="w-full rounded mt-2 max-h-60 object-cover" />`;
           }
         }
-
         const reactionsHtml = renderReactionsHtml(item.id, 'channel', item.reactions);
-
         container.innerHTML += `
           <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg text-xs space-y-1">
             <div class="flex justify-between items-center">
@@ -479,11 +558,9 @@
           </div>
         `;
       });
-
       container.scrollTop = container.scrollHeight;
     }
 
-    // Emoji Reactions System
     function renderReactionsHtml(id, context, reactions = {}) {
       const emojis = ['👍', '❤️', '🔥', '😂', '🚀'];
       const buttons = emojis.map(e => `
@@ -492,7 +569,6 @@
           <span class="text-gray-400">${reactions[e] || 0}</span>
         </button>
       `).join('');
-
       return `<div class="flex gap-1.5 flex-wrap mt-2 pt-1 border-t border-gray-800/60">${buttons}</div>`;
     }
 
@@ -534,7 +610,6 @@
       }
     }
 
-    // Content Creation & Local Gallery Persistence
     function togglePostType() {
       const type = document.getElementById('post-type').value;
       document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
@@ -548,9 +623,7 @@
       if(type === 'video' && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
-        reader.onload = (e) => {
-          savePostObject(type, caption, e.target.result);
-        };
+        reader.onload = (e) => { savePostObject(type, caption, e.target.result); };
         reader.readAsDataURL(file);
       } else {
         savePostObject(type, caption, null);
@@ -559,7 +632,6 @@
 
     function savePostObject(type, caption, videoBase64) {
       if(!caption && !videoBase64) return;
-
       const newPost = {
         id: Date.now(),
         type,
@@ -572,11 +644,10 @@
 
       posts.unshift(newPost);
       localStorage.setItem('super_app_posts', JSON.stringify(posts));
-      
       document.getElementById('post-caption').value = '';
       document.getElementById('post-video-file').value = '';
       closeModal('createModal');
-      switchTab('videos'); // Automatically switch to videos tab after posting!
+      switchTab('videos');
       renderPosts();
     }
 
@@ -588,13 +659,10 @@
       feedContainer.innerHTML = '';
       videoContainer.innerHTML = '';
       profileGrid.innerHTML = '';
-
       let videoCount = 0;
 
       posts.forEach(post => {
         const reactionsHtml = renderReactionsHtml(post.id, 'post', post.reactions);
-
-        // Render Feed Posts
         if(post.type === 'text') {
           feedContainer.innerHTML += `
             <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl space-y-2">
@@ -610,8 +678,6 @@
             </div>
           `;
         }
-
-        // Render Video Posts (With Fullscreen Reel Layout & Snapping)
         if(post.type === 'video' && post.videoUrl) {
           videoCount++;
           videoContainer.innerHTML += `
@@ -624,7 +690,6 @@
               </div>
             </div>
           `;
-
           profileGrid.innerHTML += `
             <div class="aspect-square bg-gray-900 border border-gray-800 rounded overflow-hidden relative">
               <video src="${post.videoUrl}" class="w-full h-full object-cover"></video>
@@ -634,13 +699,10 @@
       });
 
       if(videoCount === 0) {
-        videoContainer.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-center p-6"><p class="text-gray-500 text-sm">No Videos Uploaded Yet. Click the + button at the bottom to post your short video!</p></div>`;
+        videoContainer.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-center p-6"><p class="text-gray-500 text-sm">No Videos Uploaded Yet.</p></div>`;
       }
-
       document.getElementById('profile-posts-count').innerText = posts.length;
-      
-      let totalLikes = posts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
-      document.getElementById('profile-likes').innerText = totalLikes;
+      document.getElementById('profile-likes').innerText = posts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
     }
 
     function likePost(id) {
@@ -649,46 +711,35 @@
       renderPosts();
     }
 
-    // Weather Search via Open-Meteo API
     async function fetchWeather() {
       const city = document.getElementById('weather-city').value.trim();
       const resContainer = document.getElementById('weather-result');
       if(!city) return;
-
       resContainer.innerHTML = `<p class="text-cyan-400 text-sm">Searching...</p>`;
-
       try {
         const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
         const geoData = await geoRes.json();
-
         if(!geoData.results || geoData.results.length === 0) {
           resContainer.innerHTML = `<p class="text-red-500 text-sm font-bold">City Not Found!</p>`;
           return;
         }
-
         const { latitude, longitude, name, country } = geoData.results[0];
         const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
         const weatherData = await weatherRes.json();
-
-        const temp = weatherData.current_weather.temperature;
-        const wind = weatherData.current_weather.windspeed;
-
         resContainer.innerHTML = `
           <h3 class="text-lg font-bold text-white">${name}, ${country}</h3>
-          <p class="text-3xl font-extrabold text-cyan-400 my-2">${temp}°C</p>
-          <p class="text-xs text-gray-400">Wind Speed: ${wind} km/h</p>
+          <p class="text-3xl font-extrabold text-cyan-400 my-2">${weatherData.current_weather.temperature}°C</p>
+          <p class="text-xs text-gray-400">Wind Speed: ${weatherData.current_weather.windspeed} km/h</p>
         `;
       } catch(err) {
         resContainer.innerHTML = `<p class="text-red-500 text-sm">Error fetching weather data.</p>`;
       }
     }
 
-    // Code Execution Engine (Python + JavaScript Error Display)
     function runCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
       const outputBox = document.getElementById('code-output');
-
       outputBox.innerText = "";
       outputBox.style.color = "#ffffff";
 
@@ -700,7 +751,7 @@
           runFn(customConsole);
           outputBox.innerText = logs.join('\n') || "Code executed successfully with no output.";
         } catch(err) {
-          outputBox.style.color = "#ff0055"; // Red error
+          outputBox.style.color = "#ff0055";
           outputBox.innerText = `JavaScript Error: ${err.message}`;
         }
       } else if(lang === 'python') {
@@ -712,11 +763,10 @@
             return Sk.builtinFiles["files"][x];
           }
         });
-
         Sk.misceval.asyncToPromise(() => {
           return Sk.importMainWithBody("<stdin>", false, code, true);
         }).then(() => {}, (err) => {
-          outputBox.style.color = "#ff0055"; // Red error for Python Syntax/Runtime errors
+          outputBox.style.color = "#ff0055";
           outputBox.innerText = `Python Error: ${err.toString()}`;
         });
       }
