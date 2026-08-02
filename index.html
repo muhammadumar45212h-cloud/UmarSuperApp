@@ -143,12 +143,16 @@
 
     <!-- TAB 3: TRADING / FOREX CHART -->
     <section id="tab-trading" class="h-full w-full hidden flex-col">
-      <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between">
-        <span>📈 Live Forex & Trading Chart</span>
-        <span class="text-red-400">XAUUSD / BTCUSD</span>
+      <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between items-center">
+        <span>📈 Live Market Real-time Chart</span>
+        <div class="flex gap-1">
+          <button onclick="changeSymbol('FX:XAUUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-amber-400 text-[10px] font-bold">XAUUSD</button>
+          <button onclick="changeSymbol('BITSTAMP:BTCUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
+          <button onclick="changeSymbol('FX:EURUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-cyan-400 text-[10px] font-bold">EURUSD</button>
+        </div>
       </div>
       <div class="flex-1 w-full h-full">
-        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="w-full h-full border-0"></iframe>
+        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&theme=dark&style=1&timezone=Etc%2FUTC" class="w-full h-full border-0"></iframe>
       </div>
     </section>
 
@@ -397,6 +401,12 @@
       setupGlobalSecurityHandlers();
     };
 
+    // Live Trading Chart Switcher (XAUUSD, BTCUSD, EURUSD)
+    function changeSymbol(symbol) {
+      const iframe = document.getElementById('trading-frame');
+      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&theme=dark&style=1&timezone=Etc%2FUTC`;
+    }
+
     // Non-Intrusive Floating Notification
     function showToast(message, isError = false) {
       const toast = document.getElementById('toast-notification');
@@ -479,7 +489,7 @@
         id: Date.now(),
         sender: CURRENT_USER,
         text: input.value,
-        reactions: {} // format: { emoji: [username1, username2] }
+        reactions: {}
       };
 
       directMessages.push(newMsg);
@@ -673,18 +683,15 @@
 
       if (!item.reactions) item.reactions = {};
 
-      // If user already reacted with this emoji, remove it (toggle off)
       let currentEmojiUsers = item.reactions[emoji] || [];
       const userIndex = currentEmojiUsers.indexOf(CURRENT_USER);
 
-      // Clear any other emoji reaction by this user first (Only 1 Reaction per User allowed)
       Object.keys(item.reactions).forEach(e => {
         item.reactions[e] = (item.reactions[e] || []).filter(u => u !== CURRENT_USER);
         if (item.reactions[e].length === 0) delete item.reactions[e];
       });
 
       if (userIndex === -1) {
-        // User hasn't reacted with this emoji yet -> Add it
         if (!item.reactions[emoji]) item.reactions[emoji] = [];
         item.reactions[emoji].push(CURRENT_USER);
         showToast(`Reacted with ${emoji}`);
@@ -692,7 +699,6 @@
         showToast(`Reaction removed`);
       }
 
-      // Persist & Re-render
       if (context === 'dm') {
         localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
         renderDirectMessages();
@@ -730,7 +736,7 @@
       selectedTargetItem = { id, context };
       longPressTimer = setTimeout(() => {
         openLongPressMenu();
-      }, 2000); // 2 Seconds hold
+      }, 2000);
     }
 
     function cancelLongPress() {
@@ -771,7 +777,6 @@
       }
 
       if(action === 'copy') {
-        // Check protection if in active channel
         if(context === 'channel') {
           const chan = channels.find(c => c.id === activeChannelId);
           if(chan && chan.protection) {
@@ -818,7 +823,7 @@
         type,
         caption,
         videoUrl: videoBase64,
-        likes: [], // Store Array of usernames who liked (Strict 1 Like per User)
+        likes: [],
         author: CURRENT_USER,
         reactions: {}
       };
@@ -849,7 +854,6 @@
         const likeList = Array.isArray(post.likes) ? post.likes : [];
         const hasLiked = likeList.includes(CURRENT_USER);
 
-        // Text Post Layout
         if(post.type === 'text') {
           feedContainer.innerHTML += `
             <div class="p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-3">
@@ -864,7 +868,6 @@
               </div>
               <p class="text-sm text-gray-200 allow-select">${post.caption}</p>
               
-              <!-- Bottom Toolbar Buttons (Like, Comment, Share, DM) -->
               <div class="flex justify-between text-xs border-t border-gray-800 pt-3 text-gray-400">
                 <button onclick="toggleSingleLike(${post.id})" class="flex items-center gap-1.5 ${hasLiked ? 'text-red-500 font-bold' : ''}">
                   <i class="fa-${hasLiked ? 'solid' : 'regular'} fa-heart"></i> ${likeList.length} Likes
@@ -884,14 +887,12 @@
           `;
         }
 
-        // Gallery Video Shorts Layout
         if(post.type === 'video' && post.videoUrl) {
           videoCount++;
           videoContainer.innerHTML += `
             <div class="reel-item relative w-full h-full flex-shrink-0 flex items-center justify-center bg-black">
               <video src="${post.videoUrl}" controls autoplay loop class="w-full h-full object-cover"></video>
               
-              <!-- Overlay Actions Bar -->
               <div class="absolute right-3 bottom-24 flex flex-col gap-4 text-center z-10">
                 <button onclick="toggleSingleLike(${post.id})" class="flex flex-col items-center">
                   <div class="w-10 h-10 rounded-full bg-gray-900/60 backdrop-blur-md flex items-center justify-center text-lg ${hasLiked ? 'text-red-500' : 'text-white'}">
@@ -931,7 +932,6 @@
       document.getElementById('profile-subscribers').innerText = subscriptions.length;
     }
 
-    // Single Like Handler
     function toggleSingleLike(id) {
       posts = posts.map(p => {
         if(p.id === id) {
@@ -1026,7 +1026,7 @@
       }
     }
 
-    // --- Global Privacy Security Handlers (Prevent Copy/Screenshot in Channel Protection) ---
+    // --- Global Security Handlers ---
     function setupGlobalSecurityHandlers() {
       document.addEventListener('copy', (e) => {
         if(activeChannelId) {
@@ -1038,7 +1038,6 @@
         }
       });
 
-      // Keyboard Shortcut Blocking (PrintScreen, Ctrl+C)
       document.addEventListener('keydown', (e) => {
         if(activeChannelId) {
           const chan = channels.find(c => c.id === activeChannelId);
