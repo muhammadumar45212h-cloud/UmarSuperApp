@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Super App</title>
   
   <!-- Tailwind CSS -->
@@ -24,8 +24,13 @@
       background-color: var(--bg-dark);
       color: #ffffff;
       font-family: system-ui, -apple-system, sans-serif;
+      user-select: none; /* Privacy & Copy Control */
+      -webkit-user-select: none;
     }
-    /* Fullscreen Modal Styling */
+    .allow-select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+    }
     .fullscreen-modal {
       position: fixed;
       inset: 0;
@@ -36,14 +41,9 @@
       width: 100vw;
       height: 100vh;
     }
-    /* Red-Blue Gradient Borders & Accent elements */
-    .border-accent {
-      border-image: linear-gradient(to right, var(--accent-blue), var(--accent-red)) 1;
-    }
     .btn-gradient {
       background: linear-gradient(135deg, #0088cc, #ff0055);
     }
-    /* Reels Smooth Vertical Snap Scrolling */
     .reel-container {
       scroll-snap-type: y mandatory;
       overflow-y: scroll;
@@ -52,12 +52,56 @@
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
-    /* Hide scrollbar */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Custom Non-Intrusive Toast Notification */
+    #toast-notification {
+      transition: all 0.3s ease-in-out;
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    #toast-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden">
+
+  <!-- AUTO-DISMISS FLOATING TOAST (NO ALERTS) -->
+  <div id="toast-notification" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-cyan-400 border border-cyan-500/40 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 pointer-events-none">
+    <i class="fa-solid fa-circle-info" id="toast-icon"></i>
+    <span id="toast-message">Notification Message</span>
+  </div>
+
+  <!-- LONG PRESS CONTEXT ACTION MODAL -->
+  <div id="longPressMenu" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end justify-center p-4" onclick="closeLongPressMenu()">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-4 space-y-3" onclick="event.stopPropagation()">
+      <div class="text-xs font-bold text-gray-400 text-center pb-2 border-b border-gray-800">Message Options</div>
+      
+      <!-- Quick Reactions -->
+      <div class="flex justify-around text-2xl py-2 bg-gray-950 rounded-xl border border-gray-800">
+        <button onclick="applyQuickReaction('👍')">👍</button>
+        <button onclick="applyQuickReaction('❤️')">❤️</button>
+        <button onclick="applyQuickReaction('🔥')">🔥</button>
+        <button onclick="applyQuickReaction('😂')">😂</button>
+        <button onclick="applyQuickReaction('🚀')">🚀</button>
+      </div>
+
+      <div class="space-y-1 pt-1">
+        <button onclick="executeAction('copy')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-cyan-400">
+          <i class="fa-regular fa-copy"></i> Copy Text
+        </button>
+        <button onclick="executeAction('forward')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-green-400">
+          <i class="fa-solid fa-share"></i> Forward Message
+        </button>
+        <button onclick="executeAction('report')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-red-400">
+          <i class="fa-solid fa-flag"></i> Report Content
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- TOP HEADER -->
   <header class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center z-10">
@@ -65,7 +109,6 @@
       SUPER APP
     </h1>
     <div class="flex gap-2">
-      <!-- Translate Button Added in Header -->
       <button onclick="openModal('translateModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-green-500/30 text-green-400 flex items-center gap-1">
         <i class="fa-solid fa-language"></i> Translate
       </button>
@@ -98,7 +141,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: TRADING / FOREX CHART (Go wala section - untouched & safe) -->
+    <!-- TAB 3: TRADING / FOREX CHART -->
     <section id="tab-trading" class="h-full w-full hidden flex-col">
       <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between">
         <span>📈 Live Forex & Trading Chart</span>
@@ -113,25 +156,21 @@
     <section id="tab-profile" class="p-4 hidden space-y-6">
       <div class="flex flex-col items-center">
         <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
-          <div class="w-full h-full bg-gray-900 rounded-full flex items-center justify-center text-3xl font-bold text-white">
-            U
-          </div>
+          <img id="user-avatar-img" src="https://via.placeholder.com/150/090d16/00f2fe?text=Umar" class="w-full h-full rounded-full object-cover">
         </div>
-        <h2 class="text-xl font-bold">@Umar</h2>
+        <h2 class="text-xl font-bold" id="profile-display-name">@Umar</h2>
         <p class="text-xs text-gray-400">Verified Creator Profile</p>
         
         <div class="flex gap-6 mt-4 text-center">
           <div><p class="font-bold text-lg" id="profile-likes">0</p><p class="text-xs text-gray-400">Likes</p></div>
-          <div><p class="font-bold text-lg">1</p><p class="text-xs text-gray-400">Subscribers</p></div>
+          <div><p class="font-bold text-lg" id="profile-subscribers">1</p><p class="text-xs text-gray-400">Subscribers</p></div>
           <div><p class="font-bold text-lg" id="profile-posts-count">0</p><p class="text-xs text-gray-400">Posts</p></div>
         </div>
       </div>
 
       <div class="border-t border-gray-800 pt-4">
         <h3 class="text-sm font-semibold mb-3 text-cyan-400">My Videos & Uploads</h3>
-        <div id="profile-grid" class="grid grid-cols-3 gap-2">
-          <!-- Profile Grid Items -->
-        </div>
+        <div id="profile-grid" class="grid grid-cols-3 gap-2"></div>
       </div>
     </section>
 
@@ -158,19 +197,17 @@
 
   <!-- ==================== MODALS & POPUPS ==================== -->
 
-  <!-- NEW: TRANSLATE MODAL (All Languages Support + Copy Icon) -->
+  <!-- TRANSLATE MODAL -->
   <div id="translateModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-bold text-green-400"><i class="fa-solid fa-language"></i> All Languages Translator</h2>
       <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    
     <div class="space-y-3 flex-1 flex flex-col">
       <div>
         <label class="text-xs text-gray-400 block mb-1">Enter Text to Translate</label>
-        <textarea id="source-text" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-sm text-white focus:outline-none" placeholder="Yahan text likhein..."></textarea>
+        <textarea id="source-text" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-sm text-white focus:outline-none allow-select" placeholder="Yahan text likhein..."></textarea>
       </div>
-
       <div class="flex gap-2">
         <div class="flex-1">
           <label class="text-xs text-gray-400 block mb-1">Target Language</label>
@@ -182,36 +219,27 @@
             <option value="es">Spanish (Español)</option>
             <option value="fr">French (Français)</option>
             <option value="de">German (Deutsch)</option>
-            <option value="zh">Chinese (中文)</option>
-            <option value="ru">Russian (Русский)</option>
-            <option value="ja">Japanese (日本語)</option>
-            <option value="ko">Korean (한국어)</option>
-            <option value="tr">Turkish (Türkçe)</option>
-            <option value="fa">Persian (فارسی)</option>
-            <option value="it">Italian (Italiano)</option>
           </select>
         </div>
         <div class="flex items-end">
           <button onclick="translateText()" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 rounded text-sm font-bold text-white h-[41px]">Translate</button>
         </div>
       </div>
-
       <div class="flex-1 flex flex-col mt-2 relative">
         <div class="flex justify-between items-center mb-1">
           <span class="text-xs text-gray-400">Translated Result:</span>
-          <!-- Copy Icon Button -->
           <button onclick="copyTranslation()" class="text-xs text-green-400 hover:text-green-300 flex items-center gap-1 bg-gray-800 px-2 py-1 rounded border border-gray-700">
             <i class="fa-regular fa-copy"></i> Copy Text
           </button>
         </div>
-        <div id="translated-output" class="w-full flex-1 bg-gray-950 border border-gray-800 p-3 rounded text-sm text-gray-200 overflow-y-auto select-all">
+        <div id="translated-output" class="w-full flex-1 bg-gray-950 border border-gray-800 p-3 rounded text-sm text-gray-200 overflow-y-auto allow-select">
           Translation yahan show hogi...
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 1. FULLSCREEN CHAT & CHANNELS MODAL -->
+  <!-- CHAT & CHANNELS MODAL -->
   <div id="chatModal" class="fullscreen-modal hidden">
     <div class="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
       <h2 class="text-lg font-bold text-cyan-400" id="chat-header-title">Direct Messages & Channels</h2>
@@ -225,70 +253,82 @@
 
     <!-- Direct Chat View -->
     <div id="chat-view" class="flex-1 flex flex-col p-4">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3 text-sm">
-        <div class="text-gray-500 text-xs">System: Welcome to Global Chat!</div>
-      </div>
+      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3 text-sm"></div>
       <div class="flex gap-2">
-        <input type="text" id="chat-input" placeholder="Type message..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
+        <input type="text" id="chat-input" placeholder="Type message..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none allow-select">
         <button onclick="sendMessage()" class="px-4 py-2 bg-cyan-600 rounded text-sm font-bold">Send</button>
       </div>
     </div>
 
-    <!-- Channels Navigation & Detailed History View -->
+    <!-- Channels Navigation & Settings View -->
     <div id="channel-view" class="flex-1 flex flex-col p-4 hidden space-y-4 overflow-y-auto">
+      
+      <!-- Create & List Channels -->
       <div id="channels-list-container" class="space-y-4">
-        <div class="flex gap-2">
-          <input type="text" id="channel-name-input" placeholder="New Channel Name..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none">
-          <button onclick="createChannel()" class="px-4 py-2 bg-red-600 rounded text-sm font-bold">Create</button>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-2">
+          <h3 class="text-xs font-bold text-red-400 uppercase">Create Protected Channel</h3>
+          <input type="text" id="channel-name-input" placeholder="Channel Name..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
+          <div class="flex gap-2">
+            <input type="text" id="channel-user-input" placeholder="Admin Username" class="w-1/2 bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
+            <input type="password" id="channel-pass-input" placeholder="Password Key" class="w-1/2 bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
+          </div>
+          <button onclick="createChannel()" class="w-full py-2 bg-red-600 hover:bg-red-500 rounded text-xs font-bold text-white">Create Channel</button>
         </div>
+
         <h3 class="text-xs font-bold text-gray-400 uppercase">Available Channels</h3>
         <div id="channels-list" class="space-y-2"></div>
       </div>
 
+      <!-- Active Channel View -->
       <div id="channel-room-container" class="hidden flex-1 flex flex-col h-full">
-        <div class="flex justify-between items-center bg-gray-900 p-2 rounded border border-gray-800 mb-2">
+        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded border border-gray-800 mb-2">
           <button onclick="backToChannelsList()" class="text-xs text-cyan-400 font-bold flex items-center gap-1">
-            <i class="fa-solid fa-arrow-left"></i> All Channels
+            <i class="fa-solid fa-arrow-left"></i> Channels
           </button>
           <span id="active-channel-title" class="font-bold text-sm text-white"></span>
+          
+          <!-- Channel Security Setting Switcher -->
+          <button id="channel-security-btn" onclick="toggleChannelProtection()" class="px-2.5 py-1 bg-red-950 text-red-400 border border-red-800 rounded-full text-[10px] font-bold flex items-center gap-1">
+            <i class="fa-solid fa-shield-halved"></i> Protection OFF
+          </button>
         </div>
 
         <div id="channel-history" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3"></div>
 
         <div class="bg-gray-900 p-3 rounded border border-gray-800 space-y-2">
-          <textarea id="channel-msg-text" placeholder="Write a post or message..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white focus:outline-none"></textarea>
+          <textarea id="channel-msg-text" placeholder="Write channel post..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white focus:outline-none allow-select"></textarea>
           <div class="flex justify-between items-center">
             <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-xs px-3 py-1.5 rounded border border-cyan-500/30 text-cyan-400 flex items-center gap-1">
-              <i class="fa-solid fa-image"></i> Gallery Media
+              <i class="fa-solid fa-image"></i> Media
               <input type="file" id="channel-media-file" accept="image/*,video/*" class="hidden" onchange="previewChannelMedia(this)">
             </label>
             <button onclick="postToActiveChannel()" class="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded text-xs font-bold">Post</button>
           </div>
-          <div id="channel-media-preview-tag" class="text-xs text-green-400 hidden">Media attached from gallery</div>
+          <div id="channel-media-preview-tag" class="text-xs text-green-400 hidden">Media attached</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. WEATHER MODAL -->
+  <!-- WEATHER MODAL -->
   <div id="weatherModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-bold text-cyan-400">Weather Search</h2>
       <button onclick="closeModal('weatherModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="flex gap-2 mb-4">
-      <input type="text" id="weather-city" placeholder="Search City (e.g. Karachi)..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white">
+      <input type="text" id="weather-city" placeholder="Search City..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white allow-select">
       <button onclick="fetchWeather()" class="px-4 py-2 bg-cyan-600 rounded text-sm font-bold">Search</button>
     </div>
     <div id="weather-result" class="p-4 bg-gray-900 rounded border border-gray-800 text-center">
-      <p class="text-gray-400 text-sm">Enter a city name to get live weather.</p>
+      <p class="text-gray-400 text-sm">Enter city name.</p>
     </div>
   </div>
 
-  <!-- 3. SMART CODE ENGINE -->
+  <!-- CODE RUNNER MODAL -->
   <div id="codeModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-2">
-      <h2 class="text-lg font-bold text-cyan-400">Python & JS Code Runner</h2>
+      <h2 class="text-lg font-bold text-cyan-400">Code Runner</h2>
       <button onclick="closeModal('codeModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="flex gap-2 mb-2">
@@ -296,17 +336,16 @@
         <option value="python">Python 3</option>
         <option value="javascript">JavaScript</option>
       </select>
-      <button onclick="runCode()" class="flex-1 bg-gradient-to-r from-blue-600 to-red-600 py-2 rounded text-sm font-bold">Run Code Live</button>
+      <button onclick="runCode()" class="flex-1 bg-gradient-to-r from-blue-600 to-red-600 py-2 rounded text-sm font-bold">Run Code</button>
     </div>
-    <textarea id="code-input" class="w-full h-48 bg-gray-950 border border-gray-800 p-3 rounded text-sm font-mono text-green-400 focus:outline-none mb-2" placeholder="Write Python or JS code here..."></textarea>
-    <div class="text-xs text-gray-400 mb-1">Console Output / Error Log:</div>
-    <pre id="code-output" class="flex-1 bg-black border border-gray-800 p-3 rounded text-xs font-mono text-white overflow-y-auto"></pre>
+    <textarea id="code-input" class="w-full h-48 bg-gray-950 border border-gray-800 p-3 rounded text-sm font-mono text-green-400 focus:outline-none mb-2 allow-select" placeholder="Write code..."></textarea>
+    <pre id="code-output" class="flex-1 bg-black border border-gray-800 p-3 rounded text-xs font-mono text-white overflow-y-auto allow-select"></pre>
   </div>
 
-  <!-- 4. CREATE CONTENT MODAL -->
+  <!-- CREATE CONTENT MODAL -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-cyan-400">Create New Content</h2>
+      <h2 class="text-lg font-bold text-cyan-400">Create New Post</h2>
       <button onclick="closeModal('createModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="space-y-4">
@@ -314,38 +353,62 @@
         <label class="text-xs text-gray-400 block mb-1">Post Type</label>
         <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white">
           <option value="text">Text Post</option>
-          <option value="video">Gallery Short Video</option>
+          <option value="video">Gallery Video</option>
         </select>
       </div>
 
       <div id="video-file-field" class="hidden">
-        <label class="text-xs text-gray-400 block mb-1">Choose Video from Mobile Gallery</label>
+        <label class="text-xs text-gray-400 block mb-1">Select Video from Gallery</label>
         <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
       </div>
 
       <div>
         <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white h-28 focus:outline-none" placeholder="Write something..."></textarea>
+        <textarea id="post-caption" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white h-28 focus:outline-none allow-select" placeholder="Write something..."></textarea>
       </div>
-      <button onclick="publishPost()" class="w-full btn-gradient py-3 rounded font-bold text-white">Publish Post</button>
+      <button onclick="publishPost()" class="w-full btn-gradient py-3 rounded font-bold text-white">Publish</button>
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT APP LOGIC -->
   <script>
+    // Current User Session Info
+    const CURRENT_USER = "@Umar";
+
     let posts = JSON.parse(localStorage.getItem('super_app_posts')) || [];
-    let channels = JSON.parse(localStorage.getItem('super_app_channels')) || ['General', 'Crypto Trading'];
+    let channels = JSON.parse(localStorage.getItem('super_app_channels')) || [
+      { id: 'c1', name: 'General Space', admin: '@Umar', protection: false }
+    ];
     let directMessages = JSON.parse(localStorage.getItem('super_app_dms')) || [];
     let channelPosts = JSON.parse(localStorage.getItem('super_app_channel_posts')) || {};
-    
-    let activeChannel = null;
+    let subscriptions = JSON.parse(localStorage.getItem('super_app_subs')) || [];
+
+    let activeChannelId = null;
     let currentChannelMediaBase64 = null;
+
+    // Long Press Handler Storage
+    let longPressTimer = null;
+    let selectedTargetItem = null; // { id, context }
 
     window.onload = () => {
       renderPosts();
       renderChannels();
       renderDirectMessages();
+      setupGlobalSecurityHandlers();
     };
+
+    // Non-Intrusive Floating Notification
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast-notification');
+      const msg = document.getElementById('toast-message');
+      const icon = document.getElementById('toast-icon');
+
+      msg.innerText = message;
+      icon.className = isError ? "fa-solid fa-triangle-exclamation text-red-400" : "fa-solid fa-circle-check text-green-400";
+      
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2500);
+    }
 
     function switchTab(tab) {
       ['videos', 'feed', 'trading', 'profile'].forEach(t => {
@@ -357,17 +420,16 @@
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // --- Google Translate Functionality (All Languages + Copy) ---
+    // --- Google Translator ---
     async function translateText() {
       const text = document.getElementById('source-text').value.trim();
       const targetLang = document.getElementById('target-lang').value;
       const outputBox = document.getElementById('translated-output');
 
       if (!text) {
-        outputBox.innerText = "Please enter some text to translate.";
+        outputBox.innerText = "Please enter text to translate.";
         return;
       }
-
       outputBox.innerText = "Translating...";
 
       try {
@@ -377,31 +439,23 @@
         
         let translatedString = "";
         if (data && data[0]) {
-          data[0].forEach(item => {
-            if (item[0]) translatedString += item[0];
-          });
+          data[0].forEach(item => { if (item[0]) translatedString += item[0]; });
         }
-
         outputBox.innerText = translatedString || "Translation failed.";
       } catch (error) {
-        outputBox.innerText = "Error connecting to translation service.";
+        outputBox.innerText = "Error connecting to service.";
       }
     }
 
     function copyTranslation() {
-      const outputText = document.getElementById('translated-output').innerText;
-      if (!outputText || outputText === "Translation yahan show hogi..." || outputText === "Translating...") {
-        alert("Nothing to copy!");
-        return;
+      const text = document.getElementById('translated-output').innerText;
+      if (text && text !== "Translation yahan show hogi...") {
+        navigator.clipboard.writeText(text);
+        showToast("Translation copied!");
       }
-      navigator.clipboard.writeText(outputText).then(() => {
-        alert("Translation copied to clipboard!");
-      }).catch(err => {
-        alert("Failed to copy text.");
-      });
     }
 
-    // Chat Tab Toggle
+    // --- Chat Tab Toggle ---
     function switchChatTab(type) {
       if(type === 'chat') {
         document.getElementById('chat-view').classList.remove('hidden');
@@ -416,15 +470,16 @@
       }
     }
 
+    // --- Direct Messages ---
     function sendMessage() {
       const input = document.getElementById('chat-input');
       if(!input.value.trim()) return;
       
       const newMsg = {
         id: Date.now(),
-        sender: '@Umar',
+        sender: CURRENT_USER,
         text: input.value,
-        reactions: {}
+        reactions: {} // format: { emoji: [username1, username2] }
       };
 
       directMessages.push(newMsg);
@@ -435,56 +490,99 @@
 
     function renderDirectMessages() {
       const box = document.getElementById('chat-messages');
-      box.innerHTML = `<div class="text-gray-500 text-xs">System: Welcome to Global Chat!</div>`;
+      box.innerHTML = `<div class="text-gray-500 text-xs text-center py-1">Direct Chat Conversation</div>`;
       
       directMessages.forEach(msg => {
-        const reactionsHtml = renderReactionsHtml(msg.id, 'dm', msg.reactions);
+        const rxHtml = renderReactionsBar(msg.id, 'dm', msg.reactions);
         box.innerHTML += `
           <div class="text-right text-cyan-300 mb-2">
-            <span class="bg-blue-900/40 p-2 rounded inline-block text-left border border-blue-800/40 max-w-[85%]">
+            <div class="bg-blue-900/40 p-2 rounded-xl inline-block text-left border border-blue-800/40 max-w-[85%]"
+                 onmousedown="startLongPress(${msg.id}, 'dm')" onmouseup="cancelLongPress()"
+                 ontouchstart="startLongPress(${msg.id}, 'dm')" ontouchend="cancelLongPress()">
               <div class="font-bold text-[10px] text-cyan-400">${msg.sender}</div>
-              <div>${msg.text}</div>
-              ${reactionsHtml}
-            </span>
+              <div class="text-white text-xs mt-0.5">${msg.text}</div>
+              ${rxHtml}
+            </div>
           </div>`;
       });
       box.scrollTop = box.scrollHeight;
     }
 
+    // --- Channel System ---
     function createChannel() {
-      const input = document.getElementById('channel-name-input');
-      const name = input.value.trim();
-      if(!name) return;
-      if(!channels.includes(name)) {
-        channels.push(name);
-        localStorage.setItem('super_app_channels', JSON.stringify(channels));
-      }
-      input.value = '';
+      const name = document.getElementById('channel-name-input').value.trim();
+      const user = document.getElementById('channel-user-input').value.trim() || CURRENT_USER;
+      const pass = document.getElementById('channel-pass-input').value.trim();
+
+      if(!name) { showToast("Enter channel name!", true); return; }
+
+      const newChan = {
+        id: 'c_' + Date.now(),
+        name,
+        admin: user,
+        passKey: pass,
+        protection: false
+      };
+
+      channels.push(newChan);
+      localStorage.setItem('super_app_channels', JSON.stringify(channels));
+      document.getElementById('channel-name-input').value = '';
+      document.getElementById('channel-pass-input').value = '';
+      showToast("Channel created!");
       renderChannels();
     }
 
     function renderChannels() {
       const list = document.getElementById('channels-list');
       list.innerHTML = channels.map(c => `
-        <div onclick="openChannelRoom('${c}')" class="flex justify-between items-center p-3 bg-gray-900 border border-gray-800 rounded cursor-pointer hover:bg-gray-800 transition">
-          <span class="text-sm font-semibold text-gray-200">📢 ${c}</span>
-          <button class="text-xs bg-cyan-600 px-3 py-1 rounded font-bold">Open Chat</button>
+        <div onclick="openChannelRoom('${c.id}')" class="flex justify-between items-center p-3 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:bg-gray-800">
+          <div>
+            <span class="text-sm font-semibold text-gray-200 block">📢 ${c.name}</span>
+            <span class="text-[10px] text-gray-500">Owner: ${c.admin} ${c.protection ? '• 🔒 Protected' : ''}</span>
+          </div>
+          <button class="text-xs bg-cyan-600 px-3 py-1 rounded-full font-bold">Enter</button>
         </div>
       `).join('');
     }
 
-    function openChannelRoom(channelName) {
-      activeChannel = channelName;
+    function openChannelRoom(id) {
+      const chan = channels.find(c => c.id === id);
+      if(!chan) return;
+      activeChannelId = id;
+      
       document.getElementById('channels-list-container').classList.add('hidden');
       document.getElementById('channel-room-container').classList.remove('hidden');
-      document.getElementById('active-channel-title').innerText = `📢 ${channelName}`;
+      document.getElementById('active-channel-title').innerText = `📢 ${chan.name}`;
+
+      updateProtectionUI(chan.protection);
       renderChannelHistory();
     }
 
     function backToChannelsList() {
-      activeChannel = null;
+      activeChannelId = null;
       document.getElementById('channel-room-container').classList.add('hidden');
       document.getElementById('channels-list-container').classList.remove('hidden');
+    }
+
+    function toggleChannelProtection() {
+      const chan = channels.find(c => c.id === activeChannelId);
+      if(!chan) return;
+
+      chan.protection = !chan.protection;
+      localStorage.setItem('super_app_channels', JSON.stringify(channels));
+      updateProtectionUI(chan.protection);
+      showToast(chan.protection ? "Protection Activated!" : "Protection Deactivated!");
+    }
+
+    function updateProtectionUI(isProtected) {
+      const btn = document.getElementById('channel-security-btn');
+      if(isProtected) {
+        btn.className = "px-2.5 py-1 bg-red-600 text-white rounded-full text-[10px] font-bold flex items-center gap-1";
+        btn.innerHTML = `<i class="fa-solid fa-lock"></i> Protection ON`;
+      } else {
+        btn.className = "px-2.5 py-1 bg-gray-800 text-gray-400 border border-gray-700 rounded-full text-[10px] font-bold flex items-center gap-1";
+        btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Protection OFF`;
+      }
     }
 
     function previewChannelMedia(input) {
@@ -506,17 +604,17 @@
       const caption = textInput.value.trim();
       
       if(!caption && !currentChannelMediaBase64) return;
-      if(!channelPosts[activeChannel]) channelPosts[activeChannel] = [];
+      if(!channelPosts[activeChannelId]) channelPosts[activeChannelId] = [];
 
       const newPost = {
         id: Date.now(),
-        author: '@Umar',
+        author: CURRENT_USER,
         text: caption,
         media: currentChannelMediaBase64,
         reactions: {}
       };
 
-      channelPosts[activeChannel].push(newPost);
+      channelPosts[activeChannelId].push(newPost);
       localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
 
       textInput.value = '';
@@ -529,10 +627,10 @@
     function renderChannelHistory() {
       const container = document.getElementById('channel-history');
       container.innerHTML = '';
-      const history = channelPosts[activeChannel] || [];
+      const history = channelPosts[activeChannelId] || [];
 
       if(history.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts in this channel yet.</p>`;
+        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No channel messages yet.</p>`;
         return;
       }
 
@@ -545,71 +643,154 @@
             mediaTag = `<img src="${item.media.data}" class="w-full rounded mt-2 max-h-60 object-cover" />`;
           }
         }
-        const reactionsHtml = renderReactionsHtml(item.id, 'channel', item.reactions);
+        const rxHtml = renderReactionsBar(item.id, 'channel', item.reactions);
         container.innerHTML += `
-          <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg text-xs space-y-1">
+          <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg text-xs space-y-1"
+               onmousedown="startLongPress(${item.id}, 'channel')" onmouseup="cancelLongPress()"
+               ontouchstart="startLongPress(${item.id}, 'channel')" ontouchend="cancelLongPress()">
             <div class="flex justify-between items-center">
               <span class="font-bold text-cyan-400">${item.author}</span>
               <span class="text-[10px] text-gray-500">${new Date(item.id).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </div>
             ${item.text ? `<p class="text-gray-200 text-sm mt-1">${item.text}</p>` : ''}
             ${mediaTag}
-            ${reactionsHtml}
+            ${rxHtml}
           </div>
         `;
       });
       container.scrollTop = container.scrollHeight;
     }
 
-    function renderReactionsHtml(id, context, reactions = {}) {
-      const emojis = ['👍', '❤️', '🔥', '😂', '🚀'];
-      const buttons = emojis.map(e => `
-        <button onclick="addEmojiReaction(${id}, '${context}', '${e}')" class="bg-gray-800 hover:bg-gray-700 px-2 py-0.5 rounded border border-gray-700 text-[11px] flex items-center gap-1">
-          <span>${e}</span>
-          <span class="text-gray-400">${reactions[e] || 0}</span>
-        </button>
-      `).join('');
-      return `<div class="flex gap-1.5 flex-wrap mt-2 pt-1 border-t border-gray-800/60">${buttons}</div>`;
-    }
+    // --- Strict 1-User 1-Reaction & 1-Like Policy Engine ---
+    function toggleSingleReaction(id, context, emoji) {
+      let dataTarget;
+      if (context === 'dm') dataTarget = directMessages;
+      else if (context === 'channel') dataTarget = channelPosts[activeChannelId] || [];
+      else if (context === 'post') dataTarget = posts;
 
-    function addEmojiReaction(id, context, emoji) {
-      if(context === 'dm') {
-        directMessages = directMessages.map(m => {
-          if(m.id === id) {
-            const rx = m.reactions || {};
-            rx[emoji] = (rx[emoji] || 0) + 1;
-            return {...m, reactions: rx};
-          }
-          return m;
-        });
+      const item = dataTarget.find(x => x.id === id);
+      if (!item) return;
+
+      if (!item.reactions) item.reactions = {};
+
+      // If user already reacted with this emoji, remove it (toggle off)
+      let currentEmojiUsers = item.reactions[emoji] || [];
+      const userIndex = currentEmojiUsers.indexOf(CURRENT_USER);
+
+      // Clear any other emoji reaction by this user first (Only 1 Reaction per User allowed)
+      Object.keys(item.reactions).forEach(e => {
+        item.reactions[e] = (item.reactions[e] || []).filter(u => u !== CURRENT_USER);
+        if (item.reactions[e].length === 0) delete item.reactions[e];
+      });
+
+      if (userIndex === -1) {
+        // User hasn't reacted with this emoji yet -> Add it
+        if (!item.reactions[emoji]) item.reactions[emoji] = [];
+        item.reactions[emoji].push(CURRENT_USER);
+        showToast(`Reacted with ${emoji}`);
+      } else {
+        showToast(`Reaction removed`);
+      }
+
+      // Persist & Re-render
+      if (context === 'dm') {
         localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
         renderDirectMessages();
-      } else if(context === 'channel') {
-        const history = channelPosts[activeChannel] || [];
-        channelPosts[activeChannel] = history.map(item => {
-          if(item.id === id) {
-            const rx = item.reactions || {};
-            rx[emoji] = (rx[emoji] || 0) + 1;
-            return {...item, reactions: rx};
-          }
-          return item;
-        });
+      } else if (context === 'channel') {
         localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
         renderChannelHistory();
-      } else if(context === 'post') {
-        posts = posts.map(p => {
-          if(p.id === id) {
-            const rx = p.reactions || {};
-            rx[emoji] = (rx[emoji] || 0) + 1;
-            return {...p, reactions: rx};
-          }
-          return p;
-        });
+      } else if (context === 'post') {
         localStorage.setItem('super_app_posts', JSON.stringify(posts));
         renderPosts();
       }
     }
 
+    function renderReactionsBar(id, context, reactions = {}) {
+      const emojis = ['👍', '❤️', '🔥', '😂', '🚀'];
+      const buttons = emojis.map(e => {
+        const userList = reactions[e] || [];
+        const count = userList.length;
+        const hasReacted = userList.includes(CURRENT_USER);
+        const activeClass = hasReacted ? 'border-cyan-400 text-cyan-400 bg-cyan-950' : 'border-gray-700 text-gray-400 bg-gray-800';
+
+        return `
+          <button onclick="event.stopPropagation(); toggleSingleReaction(${id}, '${context}', '${e}')" 
+                  class="${activeClass} px-2 py-0.5 rounded border text-[11px] flex items-center gap-1 transition">
+            <span>${e}</span>
+            <span>${count}</span>
+          </button>
+        `;
+      }).join('');
+      return `<div class="flex gap-1.5 flex-wrap mt-2 pt-1 border-t border-gray-800/60">${buttons}</div>`;
+    }
+
+    // --- 2 Second Long Press Trigger Engine ---
+    function startLongPress(id, context) {
+      cancelLongPress();
+      selectedTargetItem = { id, context };
+      longPressTimer = setTimeout(() => {
+        openLongPressMenu();
+      }, 2000); // 2 Seconds hold
+    }
+
+    function cancelLongPress() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    function openLongPressMenu() {
+      document.getElementById('longPressMenu').classList.remove('hidden');
+    }
+
+    function closeLongPressMenu() {
+      document.getElementById('longPressMenu').classList.add('hidden');
+      selectedTargetItem = null;
+    }
+
+    function applyQuickReaction(emoji) {
+      if(selectedTargetItem) {
+        toggleSingleReaction(selectedTargetItem.id, selectedTargetItem.context, emoji);
+      }
+      closeLongPressMenu();
+    }
+
+    function executeAction(action) {
+      if(!selectedTargetItem) return;
+      const { id, context } = selectedTargetItem;
+      let textToUse = "";
+
+      if(context === 'dm') {
+        const msg = directMessages.find(m => m.id === id);
+        if(msg) textToUse = msg.text;
+      } else if(context === 'channel') {
+        const list = channelPosts[activeChannelId] || [];
+        const item = list.find(i => i.id === id);
+        if(item) textToUse = item.text;
+      }
+
+      if(action === 'copy') {
+        // Check protection if in active channel
+        if(context === 'channel') {
+          const chan = channels.find(c => c.id === activeChannelId);
+          if(chan && chan.protection) {
+            showToast("Copy restricted on protected channel!", true);
+            closeLongPressMenu();
+            return;
+          }
+        }
+        navigator.clipboard.writeText(textToUse);
+        showToast("Copied to clipboard!");
+      } else if(action === 'forward') {
+        showToast("Message forwarded!");
+      } else if(action === 'report') {
+        showToast("Message reported to admin.");
+      }
+      closeLongPressMenu();
+    }
+
+    // --- Post Creator & Feed Engine ---
     function togglePostType() {
       const type = document.getElementById('post-type').value;
       document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
@@ -637,8 +818,8 @@
         type,
         caption,
         videoUrl: videoBase64,
-        likes: 0,
-        author: '@Umar',
+        likes: [], // Store Array of usernames who liked (Strict 1 Like per User)
+        author: CURRENT_USER,
         reactions: {}
       };
 
@@ -647,10 +828,12 @@
       document.getElementById('post-caption').value = '';
       document.getElementById('post-video-file').value = '';
       closeModal('createModal');
-      switchTab('videos');
+      showToast("Post published!");
+      switchTab(type === 'video' ? 'videos' : 'feed');
       renderPosts();
     }
 
+    // --- Rendering Posts & Video Reel Stream ---
     function renderPosts() {
       const feedContainer = document.getElementById('posts-container');
       const videoContainer = document.getElementById('video-feed-container');
@@ -662,34 +845,76 @@
       let videoCount = 0;
 
       posts.forEach(post => {
-        const reactionsHtml = renderReactionsHtml(post.id, 'post', post.reactions);
+        const rxHtml = renderReactionsBar(post.id, 'post', post.reactions);
+        const likeList = Array.isArray(post.likes) ? post.likes : [];
+        const hasLiked = likeList.includes(CURRENT_USER);
+
+        // Text Post Layout
         if(post.type === 'text') {
           feedContainer.innerHTML += `
-            <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl space-y-2">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs">U</div>
-                <span class="font-bold text-sm">${post.author}</span>
+            <div class="p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-3">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs">U</div>
+                  <span class="font-bold text-sm">${post.author}</span>
+                </div>
+                <button onclick="toggleSubscribe('${post.author}')" class="text-xs ${subscriptions.includes(post.author) ? 'text-gray-400' : 'text-cyan-400 font-bold'}">
+                  ${subscriptions.includes(post.author) ? 'Subscribed' : '+ Subscribe'}
+                </button>
               </div>
-              <p class="text-sm text-gray-200">${post.caption}</p>
-              <div class="flex gap-4 text-xs text-gray-400 pt-2 border-t border-gray-800 items-center">
-                <button onclick="likePost(${post.id})" class="text-red-500 font-bold">❤️ ${post.likes} Likes</button>
+              <p class="text-sm text-gray-200 allow-select">${post.caption}</p>
+              
+              <!-- Bottom Toolbar Buttons (Like, Comment, Share, DM) -->
+              <div class="flex justify-between text-xs border-t border-gray-800 pt-3 text-gray-400">
+                <button onclick="toggleSingleLike(${post.id})" class="flex items-center gap-1.5 ${hasLiked ? 'text-red-500 font-bold' : ''}">
+                  <i class="fa-${hasLiked ? 'solid' : 'regular'} fa-heart"></i> ${likeList.length} Likes
+                </button>
+                <button onclick="showToast('Comment opened')" class="flex items-center gap-1.5">
+                  <i class="fa-regular fa-comment"></i> Comment
+                </button>
+                <button onclick="showToast('Link copied')" class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-share"></i> Share
+                </button>
+                <button onclick="openModal('chatModal'); switchChatTab('chat');" class="flex items-center gap-1.5 text-cyan-400">
+                  <i class="fa-regular fa-paper-plane"></i> DM
+                </button>
               </div>
-              ${reactionsHtml}
+              ${rxHtml}
             </div>
           `;
         }
+
+        // Gallery Video Shorts Layout
         if(post.type === 'video' && post.videoUrl) {
           videoCount++;
           videoContainer.innerHTML += `
             <div class="reel-item relative w-full h-full flex-shrink-0 flex items-center justify-center bg-black">
               <video src="${post.videoUrl}" controls autoplay loop class="w-full h-full object-cover"></video>
-              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/40 p-3 rounded-lg backdrop-blur-md border border-white/10">
+              
+              <!-- Overlay Actions Bar -->
+              <div class="absolute right-3 bottom-24 flex flex-col gap-4 text-center z-10">
+                <button onclick="toggleSingleLike(${post.id})" class="flex flex-col items-center">
+                  <div class="w-10 h-10 rounded-full bg-gray-900/60 backdrop-blur-md flex items-center justify-center text-lg ${hasLiked ? 'text-red-500' : 'text-white'}">
+                    <i class="fa-solid fa-heart"></i>
+                  </div>
+                  <span class="text-[10px] text-white mt-1 font-bold">${likeList.length}</span>
+                </button>
+                
+                <button onclick="toggleSubscribe('${post.author}')" class="flex flex-col items-center">
+                  <div class="w-10 h-10 rounded-full bg-cyan-600/80 flex items-center justify-center text-white text-xs">
+                    <i class="fa-solid ${subscriptions.includes(post.author) ? 'fa-check' : 'fa-plus'}"></i>
+                  </div>
+                </button>
+              </div>
+
+              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/50 p-3 rounded-xl backdrop-blur-md border border-white/10">
                 <p class="font-bold text-cyan-400 text-sm">${post.author}</p>
                 <p class="text-xs text-gray-200 mt-1">${post.caption}</p>
-                ${reactionsHtml}
+                ${rxHtml}
               </div>
             </div>
           `;
+
           profileGrid.innerHTML += `
             <div class="aspect-square bg-gray-900 border border-gray-800 rounded overflow-hidden relative">
               <video src="${post.videoUrl}" class="w-full h-full object-cover"></video>
@@ -702,15 +927,43 @@
         videoContainer.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-center p-6"><p class="text-gray-500 text-sm">No Videos Uploaded Yet.</p></div>`;
       }
       document.getElementById('profile-posts-count').innerText = posts.length;
-      document.getElementById('profile-likes').innerText = posts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
+      document.getElementById('profile-likes').innerText = posts.reduce((acc, curr) => acc + (Array.isArray(curr.likes) ? curr.likes.length : 0), 0);
+      document.getElementById('profile-subscribers').innerText = subscriptions.length;
     }
 
-    function likePost(id) {
-      posts = posts.map(p => p.id === id ? {...p, likes: p.likes + 1} : p);
+    // Single Like Handler
+    function toggleSingleLike(id) {
+      posts = posts.map(p => {
+        if(p.id === id) {
+          let likeList = Array.isArray(p.likes) ? p.likes : [];
+          if(likeList.includes(CURRENT_USER)) {
+            likeList = likeList.filter(u => u !== CURRENT_USER);
+            showToast("Like removed");
+          } else {
+            likeList.push(CURRENT_USER);
+            showToast("Post liked!");
+          }
+          return { ...p, likes: likeList };
+        }
+        return p;
+      });
       localStorage.setItem('super_app_posts', JSON.stringify(posts));
       renderPosts();
     }
 
+    function toggleSubscribe(author) {
+      if(subscriptions.includes(author)) {
+        subscriptions = subscriptions.filter(a => a !== author);
+        showToast(`Unsubscribed from ${author}`);
+      } else {
+        subscriptions.push(author);
+        showToast(`Subscribed to ${author}!`);
+      }
+      localStorage.setItem('super_app_subs', JSON.stringify(subscriptions));
+      renderPosts();
+    }
+
+    // --- Weather Fetch Engine ---
     async function fetchWeather() {
       const city = document.getElementById('weather-city').value.trim();
       const resContainer = document.getElementById('weather-result');
@@ -732,10 +985,11 @@
           <p class="text-xs text-gray-400">Wind Speed: ${weatherData.current_weather.windspeed} km/h</p>
         `;
       } catch(err) {
-        resContainer.innerHTML = `<p class="text-red-500 text-sm">Error fetching weather data.</p>`;
+        resContainer.innerHTML = `<p class="text-red-500 text-sm">Error fetching weather.</p>`;
       }
     }
 
+    // --- Code Runner Engine ---
     function runCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
@@ -749,10 +1003,10 @@
           const customConsole = { log: (...args) => logs.push(args.join(' ')) };
           const runFn = new Function('console', code);
           runFn(customConsole);
-          outputBox.innerText = logs.join('\n') || "Code executed successfully with no output.";
+          outputBox.innerText = logs.join('\n') || "Executed with no console output.";
         } catch(err) {
           outputBox.style.color = "#ff0055";
-          outputBox.innerText = `JavaScript Error: ${err.message}`;
+          outputBox.innerText = `JS Error: ${err.message}`;
         }
       } else if(lang === 'python') {
         Sk.configure({
@@ -770,6 +1024,31 @@
           outputBox.innerText = `Python Error: ${err.toString()}`;
         });
       }
+    }
+
+    // --- Global Privacy Security Handlers (Prevent Copy/Screenshot in Channel Protection) ---
+    function setupGlobalSecurityHandlers() {
+      document.addEventListener('copy', (e) => {
+        if(activeChannelId) {
+          const chan = channels.find(c => c.id === activeChannelId);
+          if(chan && chan.protection) {
+            e.preventDefault();
+            showToast("Copying blocked by channel admin!", true);
+          }
+        }
+      });
+
+      // Keyboard Shortcut Blocking (PrintScreen, Ctrl+C)
+      document.addEventListener('keydown', (e) => {
+        if(activeChannelId) {
+          const chan = channels.find(c => c.id === activeChannelId);
+          if(chan && chan.protection) {
+            if (e.key === "PrintScreen" || (e.ctrlKey && e.key === 'c')) {
+              showToast("Action restricted by channel settings!", true);
+            }
+          }
+        }
+      });
     }
   </script>
 </body>
