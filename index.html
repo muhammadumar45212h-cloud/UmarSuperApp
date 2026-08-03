@@ -1,874 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super App</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Skulpt Engine for Python Execution -->
-  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
-
-  <style>
-    :root {
-      --bg-dark: #090d16;
-      --card-bg: #111827;
-      --accent-blue: #00f2fe;
-      --accent-red: #ff0055;
-    }
-    body {
-      background-color: var(--bg-dark);
-      color: #ffffff;
-      font-family: system-ui, -apple-system, sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .allow-select { user-select: text !important; -webkit-user-select: text !important; }
-    .fullscreen-modal {
-      position: fixed; inset: 0; z-index: 50; background-color: var(--bg-dark);
-      display: flex; flex-direction: column; width: 100vw; height: 100vh;
-    }
-    .btn-gradient { background: linear-gradient(135deg, #0088cc, #ff0055); }
-    .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; }
-    .reel-item { scroll-snap-align: start; scroll-snap-stop: always; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    #toast-notification {
-      transition: all 0.3s ease-in-out; transform: translateY(-100%); opacity: 0;
-    }
-    #toast-notification.show { transform: translateY(0); opacity: 1; }
-    
-    .drawer-bottom {
-      transition: transform 0.3s ease-out;
-      transform: translateY(100%);
-    }
-    .drawer-bottom.open {
-      transform: translateY(0);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Super App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar hiding for smooth horizontal scrolling widgets */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
-<body class="h-screen flex flex-col justify-between overflow-hidden">
-
-  <!-- AUTH / LOGIN / SIGNUP SCREEN -->
-  <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex flex-col justify-center items-center p-6">
-    <div class="w-full max-w-sm bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl space-y-5">
-      <div class="text-center">
-        <h1 class="text-2xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
-          SUPER APP
-        </h1>
-        <p class="text-xs text-gray-400 mt-1" id="auth-subtitle">Login or Create an Account to continue</p>
-      </div>
-
-      <!-- FORM TOGGLE -->
-      <div class="flex bg-gray-800 p-1 rounded-xl text-xs font-semibold">
-        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all">Login</button>
-        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 rounded-lg text-gray-400 transition-all">Sign Up</button>
-      </div>
-
-      <!-- FORM FIELDS -->
-      <div class="space-y-3">
-        <div>
-          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Username / Handle</label>
-          <input type="text" id="auth-username" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 allow-select" placeholder="e.g. Umar">
-        </div>
-        <div>
-          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Password</label>
-          <input type="password" id="auth-password" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 allow-select" placeholder="••••••••">
-        </div>
-      </div>
-
-      <button id="auth-submit-btn" onclick="handleAuthSubmit()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg">
-        Login Now
-      </button>
-    </div>
-  </div>
-
-  <!-- AUTO-DISMISS FLOATING TOAST -->
-  <div id="toast-notification" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-cyan-400 border border-cyan-500/40 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 pointer-events-none">
-    <i class="fa-solid fa-circle-info" id="toast-icon"></i>
-    <span id="toast-message">Notification Message</span>
-  </div>
-
-  <!-- COMPACT TOP HEADER -->
-  <header class="p-2.5 bg-gray-900 border-b border-gray-800 flex justify-between items-center z-10">
-    <h1 class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
-      SUPER APP
-    </h1>
-    <div class="flex gap-1.5 items-center">
-      <button onclick="openModal('translateModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-green-500/30 text-green-400 flex items-center gap-1 cursor-pointer">
-        <i class="fa-solid fa-language text-[10px]"></i> Translate
-      </button>
-      <button onclick="openModal('weatherModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-cyan-500/30 text-cyan-300 flex items-center gap-1 cursor-pointer">
-        ☀️ Weather
-      </button>
-      <button onclick="openModal('chatModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 text-red-400 flex items-center gap-1 cursor-pointer">
-        💬 DMs
-      </button>
-      <button onclick="openModal('codeModal')" class="w-7 h-7 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30 cursor-pointer" title="Code Runner">
-        <i class="fa-solid fa-code"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN VIEWPORT -->
-  <main id="app-viewport" class="flex-1 relative overflow-y-auto no-scrollbar">
-
-    <!-- VIDEOS FEED -->
-    <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
-      <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
-        <!-- Dynamic Reels Load Here -->
-      </div>
-    </section>
-
-    <!-- TEXT FEED -->
-    <section id="tab-feed" class="p-4 space-y-4 hidden">
-      <div id="posts-container" class="space-y-4 max-w-md mx-auto">
-        <!-- Dynamic Text Posts Load Here -->
-      </div>
-    </section>
-
-    <!-- TRADING CHART -->
-    <section id="tab-trading" class="h-full w-full hidden flex-col">
-      <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between items-center">
-        <span>📈 Live Market Real-time Chart</span>
-        <div class="flex gap-1">
-          <button onclick="changeSymbol('FX:XAUUSD')" class="px-2 py-1 bg-gray-800 rounded text-amber-400 text-[10px] font-bold">XAUUSD</button>
-          <button onclick="changeSymbol('BITSTAMP:BTCUSD')" class="px-2 py-1 bg-gray-800 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
-          <button onclick="changeSymbol('FX:EURUSD')" class="px-2 py-1 bg-gray-800 rounded text-cyan-400 text-[10px] font-bold">EURUSD</button>
-        </div>
-      </div>
-      <div class="flex-1 w-full h-full">
-        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&theme=dark" class="w-full h-full border-0"></iframe>
-      </div>
-    </section>
-
-    <!-- USER PROFILE & SETTINGS -->
-    <section id="tab-profile" class="p-4 hidden space-y-5">
-      <div class="flex flex-col items-center">
-        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
-          <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-full h-full rounded-full object-cover bg-gray-800">
-        </div>
-        <h2 class="text-lg font-bold" id="profile-display-name">@Umar</h2>
-        <p class="text-[11px] text-gray-400">Verified Creator Profile</p>
-        
-        <div class="flex gap-6 mt-3 text-center">
-          <div><p class="font-bold text-base" id="profile-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
-          <div><p class="font-bold text-base" id="profile-subscribers">1</p><p class="text-[10px] text-gray-400">Subscribers</p></div>
-          <div><p class="font-bold text-base" id="profile-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
-        </div>
-      </div>
-
-      <!-- WALLET & SETTINGS SECTION -->
-      <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-          <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1"></i> Wallet Balance</span>
-          <span class="text-sm font-bold text-green-400">$0.00</span>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="triggerWalletWithdraw()" class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded text-xs font-bold border border-cyan-500/30">
-            Withdraw / Transfer Funds
-          </button>
-          <button onclick="logoutUser()" class="py-1.5 px-3 bg-red-950/60 hover:bg-red-900 text-red-400 rounded text-xs font-bold border border-red-500/30">
-            Logout
-          </button>
-        </div>
-      </div>
-
-      <div class="border-t border-gray-800 pt-3">
-        <h3 class="text-xs font-semibold mb-3 text-cyan-400">My Uploads & Videos</h3>
-        <div id="profile-grid" class="grid grid-cols-3 gap-2"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="bg-gray-900 border-t border-gray-800 p-2 flex justify-around items-center z-10">
-    <button onclick="switchTab('videos')" class="nav-btn text-cyan-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-play text-base mb-0.5"></i>Videos
-    </button>
-    <button onclick="switchTab('feed')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-newspaper text-base mb-0.5"></i>Feed
-    </button>
-    <button onclick="openModal('createModal')" class="w-11 h-11 btn-gradient rounded-full flex items-center justify-center text-white text-lg shadow-lg transform -translate-y-2 border-2 border-gray-900">
-      <i class="fa-solid fa-plus"></i>
-    </button>
-    <button onclick="switchTab('trading')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-chart-line text-base mb-0.5"></i>Trading
-    </button>
-    <button onclick="switchTab('profile')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-user text-base mb-0.5"></i>Profile
-    </button>
-  </nav>
-
-  <!-- MODAL: TRANSLATE -->
-  <div id="translateModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-green-400"><i class="fa-solid fa-language"></i> Multi-Language Translator</h2>
-      <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3">
-      <select id="trans-lang" onchange="runTranslation()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
-        <option value="ur">Urdu (اردو)</option>
-        <option value="en">English</option>
-        <option value="es">Spanish</option>
-        <option value="ar">Arabic (العربية)</option>
-        <option value="hi">Hindi</option>
-      </select>
-      <textarea id="trans-input" oninput="runTranslation()" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select focus:outline-none" placeholder="Enter text to translate..."></textarea>
-      <div id="trans-output" class="p-3 bg-gray-900 border border-gray-800 rounded text-xs text-cyan-300 min-h-[80px] allow-select">Translation will appear here...</div>
-    </div>
-  </div>
-
-  <!-- MODAL: WEATHER WITH LIVE SEARCH -->
-  <div id="weatherModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400">☀️ Real-Time Weather</h2>
-      <button onclick="closeModal('weatherModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    
-    <div class="space-y-4">
-      <div class="flex gap-2">
-        <input type="text" id="weather-search-input" class="flex-1 bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter City or Country (e.g. Lahore, Dubai)">
-        <button onclick="searchWeather()" class="px-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-      </div>
-
-      <div id="weather-display-box" class="bg-gray-900 p-6 rounded-2xl border border-gray-800 text-center">
-        <p class="text-gray-400 text-xs">Current Location</p>
-        <h3 id="weather-location" class="text-xl font-bold text-white mt-1">Karachi, PK</h3>
-        <h1 id="weather-temp" class="text-4xl font-extrabold text-cyan-400 my-3">32°C</h1>
-        <p id="weather-desc" class="text-xs text-gray-300">Clear Sky • Humidity 65%</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: DMs & CHAT CHANNELS -->
-  <div id="chatModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-red-400">💬 Community Channels & DMs</h2>
-      <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="flex-1 flex flex-col justify-between overflow-hidden">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar">
-        <!-- Chat Messages -->
-      </div>
-      <div class="flex gap-2 pt-2 border-t border-gray-800">
-        <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Send a message...">
-        <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: CODE RUNNER -->
-  <div id="codeModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-code"></i> Live Code Runner</h2>
-      <button onclick="closeModal('codeModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3 flex-1 flex flex-col">
-      <div class="flex justify-between items-center">
-        <select id="code-lang" class="bg-gray-800 border border-gray-700 p-1.5 rounded text-xs text-white">
-          <option value="python">Python 3</option>
-          <option value="javascript">JavaScript (JS)</option>
-        </select>
-        <button onclick="executeCode()" class="px-4 py-1.5 bg-cyan-600 rounded text-xs font-bold text-white"><i class="fa-solid fa-play mr-1"></i> Run</button>
-      </div>
-      <textarea id="code-input" class="w-full flex-1 bg-gray-900 border border-gray-800 p-3 rounded font-mono text-xs text-green-400 allow-select focus:outline-none" placeholder="print('Hello Super App!')"></textarea>
-      <div class="h-28 bg-black border border-gray-800 p-3 rounded font-mono text-xs text-cyan-300 overflow-y-auto" id="code-output">
-        Console Output will appear here...
-      </div>
-    </div>
-  </div>
-
-  <!-- HALF-SCREEN COMMENTS & SHARE DRAWER -->
-  <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
-    <div class="p-3 border-b border-gray-800 flex justify-between items-center">
-      <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
-      <button onclick="closeCommentDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar">
-      <!-- Dynamic Comments or Share List -->
-    </div>
-    <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
-      <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Write a comment...">
-      <button onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
-    </div>
-  </div>
-
-  <!-- CREATE POST MODAL -->
-  <div id="createModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
-      <button onclick="closeModal('createModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-4">
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Post Type</label>
-        <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
-          <option value="text">Text Post</option>
-          <option value="video">Gallery Video</option>
-        </select>
-      </div>
-
-      <div id="video-file-field" class="hidden">
-        <label class="text-xs text-gray-400 block mb-1">Select Video from Gallery</label>
-        <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
-      </div>
-
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
-      </div>
-
-      <button onclick="publishPost()" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
-    </div>
-  </div>
-
-  <script>
-    // AUTHENTICATION & MULTI-USER SYSTEM
-    let currentUser = null;
-    let authMode = 'login'; // 'login' or 'signup'
-
-    function switchAuthTab(mode) {
-      authMode = mode;
-      const loginBtn = document.getElementById('tab-login-btn');
-      const signupBtn = document.getElementById('tab-signup-btn');
-      const submitBtn = document.getElementById('auth-submit-btn');
-      const subtitle = document.getElementById('auth-subtitle');
-
-      if (mode === 'login') {
-        loginBtn.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all";
-        signupBtn.className = "flex-1 py-1.5 rounded-lg text-gray-400 transition-all";
-        submitBtn.innerText = "Login Now";
-        subtitle.innerText = "Login to access your account";
-      } else {
-        signupBtn.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all";
-        loginBtn.className = "flex-1 py-1.5 rounded-lg text-gray-400 transition-all";
-        submitBtn.innerText = "Sign Up Free";
-        subtitle.innerText = "Create a new profile on Super App";
-      }
-    }
-
-    function handleAuthSubmit() {
-      const usernameInput = document.getElementById('auth-username').value.trim();
-      const passwordInput = document.getElementById('auth-password').value.trim();
-
-      if (!usernameInput || !passwordInput) {
-        showToast('Please fill in both Username and Password!');
-        return;
-      }
-
-      const users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      const formattedUsername = '@' + usernameInput.replace(/^@/, '');
-
-      if (authMode === 'signup') {
-        if (users[formattedUsername]) {
-          showToast('User already exists! Please Login.');
-          return;
-        }
-        users[formattedUsername] = { password: passwordInput };
-        localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-        showToast('Account Created Successfully!');
-      } else {
-        if (!users[formattedUsername] || users[formattedUsername].password !== passwordInput) {
-          showToast('Invalid Username or Password!');
-          return;
-        }
-      }
-
-      // SET CURRENT SESSION
-      currentUser = formattedUsername;
-      localStorage.setItem('SUPER_APP_CURRENT_USER', currentUser);
-      document.getElementById('auth-overlay').classList.add('hidden');
-      showToast('Welcome ' + currentUser + '!');
-      
-      initApp();
-    }
-
-    function checkAuthSession() {
-      const savedUser = localStorage.getItem('SUPER_APP_CURRENT_USER');
-      if (savedUser) {
-        currentUser = savedUser;
-        document.getElementById('auth-overlay').classList.add('hidden');
-        initApp();
-      } else {
-        document.getElementById('auth-overlay').classList.remove('hidden');
-      }
-    }
-
-    function logoutUser() {
-      localStorage.removeItem('SUPER_APP_CURRENT_USER');
-      currentUser = null;
-      document.getElementById('auth-overlay').classList.remove('hidden');
-      showToast('Logged out successfully.');
-    }
-
-    // APP DATA STORAGE & STATE
-    let posts = [];
-    let chatMessages = [];
-    let activePostId = null;
-
-    function loadAppData() {
-      try {
-        const savedPosts = localStorage.getItem('SUPER_APP_POSTS');
-        posts = savedPosts ? JSON.parse(savedPosts) : [
-          { id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, likedBy: [], comments: [{ author: '@Admin', text: 'Great to have you!' }] }
-        ];
-
-        const savedChats = localStorage.getItem('SUPER_APP_CHATS');
-        chatMessages = savedChats ? JSON.parse(savedChats) : [
-          { id: 1, author: 'Official Channel (@Umar)', text: 'Welcome to Super App Channel! Join our official network for updates.' }
-        ];
-      } catch (e) {
-        posts = [{ id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, likedBy: [], comments: [] }];
-        chatMessages = [];
-      }
-    }
-
-    function savePosts() {
-      try {
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(posts));
-      } catch (err) {
-        showToast('Storage Limit Reached for Videos!');
-      }
-    }
-
-    function saveChats() {
-      try {
-        localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chatMessages));
-      } catch (err) {}
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast-notification');
-      document.getElementById('toast-message').innerText = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2500);
-    }
-
-    function switchTab(tab) {
-      ['videos', 'feed', 'trading', 'profile'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-      });
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
-      if (tab === 'profile') renderProfile();
-      if (tab === 'videos') renderVideos();
-      if (tab === 'feed') renderPosts();
-    }
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    function togglePostType() {
-      const type = document.getElementById('post-type').value;
-      document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
-    }
-
-    // TRANSLATE API (FREE LINGVA ENGINE)
-    async function runTranslation() {
-      const text = document.getElementById('trans-input').value.trim();
-      const targetLang = document.getElementById('trans-lang').value;
-      const outputDiv = document.getElementById('trans-output');
-
-      if (!text) {
-        outputDiv.innerText = 'Translation will appear here...';
-        return;
-      }
-
-      outputDiv.innerText = 'Translating...';
-
-      try {
-        const res = await fetch(`https://lingva.ml/api/v1/auto/${targetLang}/${encodeURIComponent(text)}`);
-        const data = await res.json();
-        if (data.translation) {
-          outputDiv.innerText = data.translation;
-        } else {
-          outputDiv.innerText = 'Error processing translation.';
-        }
-      } catch (err) {
-        outputDiv.innerText = 'Translation server busy. Please try again.';
-      }
-    }
-
-    // REAL-TIME WEATHER SEARCH
-    async function searchWeather() {
-      const query = document.getElementById('weather-search-input').value.trim();
-      if (!query) return;
-
-      document.getElementById('weather-location').innerText = "Searching...";
-
-      try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-        const geoData = await geoRes.json();
-
-        if (!geoData || geoData.length === 0) {
-          document.getElementById('weather-location').innerText = "City Not Found";
-          return;
-        }
-
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-        const name = geoData[0].display_name.split(',')[0];
-
-        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-        const wData = await wRes.json();
-
-        if (wData.current_weather) {
-          document.getElementById('weather-location').innerText = name;
-          document.getElementById('weather-temp').innerText = `${Math.round(wData.current_weather.temperature)}°C`;
-          document.getElementById('weather-desc').innerText = `Windspeed: ${wData.current_weather.windspeed} km/h`;
-        }
-      } catch (e) {
-        document.getElementById('weather-location').innerText = "Error fetching weather";
-      }
-    }
-
-    // POST PUBLISHING & VIDEO HANDLING
-    function publishPost() {
-      const type = document.getElementById('post-type').value;
-      const caption = document.getElementById('post-caption').value;
-      const videoInput = document.getElementById('post-video-file');
-
-      if (type === 'video') {
-        if (!videoInput.files || !videoInput.files[0]) {
-          showToast('Please select a video file!');
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const newPost = {
-            id: Date.now(),
-            type: 'video',
-            author: currentUser || '@Umar',
-            content: caption,
-            videoUrl: e.target.result,
-            likes: 0,
-            likedBy: [],
-            comments: []
-          };
-          posts.unshift(newPost);
-          savePosts();
-          closeModal('createModal');
-          document.getElementById('post-caption').value = '';
-          showToast('Video Published Successfully!');
-          renderVideos();
-          renderPosts();
-          renderProfile();
-        };
-        reader.readAsDataURL(videoInput.files[0]);
-      } else {
-        if (!caption.trim()) {
-          showToast('Please write something to post!');
-          return;
-        }
-        const newPost = {
-          id: Date.now(),
-          type: 'text',
-          author: currentUser || '@Umar',
-          content: caption,
-          likes: 0,
-          likedBy: [],
-          comments: []
-        };
-        posts.unshift(newPost);
-        savePosts();
-        closeModal('createModal');
-        document.getElementById('post-caption').value = '';
-        showToast('Text Post Published!');
-        renderVideos();
-        renderPosts();
-        renderProfile();
-      }
-    }
-
-    // SMOOTH LIKE TOGGLE
-    function toggleLike(postId) {
-      const p = posts.find(item => item.id === postId);
-      if (p) {
-        if (!p.likedBy) p.likedBy = [];
-        const index = p.likedBy.indexOf(currentUser);
-
-        if (index > -1) {
-          p.likedBy.splice(index, 1);
-          p.likes = Math.max(0, p.likes - 1);
-        } else {
-          p.likedBy.push(currentUser);
-          p.likes += 1;
-        }
-        savePosts();
-        updateLikeUI(postId);
-      }
-    }
-
-    function updateLikeUI(postId) {
-      const p = posts.find(item => item.id === postId);
-      if (!p) return;
-      const isLiked = p.likedBy && p.likedBy.includes(currentUser);
-
-      const countElems = document.querySelectorAll(`.like-count-${postId}`);
-      const iconElems = document.querySelectorAll(`.like-icon-${postId}`);
-
-      countElems.forEach(el => el.innerText = p.likes);
-      iconElems.forEach(el => {
-        if (isLiked) {
-          el.className = `fa-solid fa-heart text-red-500 like-icon-${postId}`;
-        } else {
-          el.className = `fa-regular fa-heart like-icon-${postId}`;
-        }
-      });
-
-      if (!document.getElementById('tab-profile').classList.contains('hidden')) {
-        renderProfile();
-      }
-    }
-
-    // RENDER REELS & VIDEOS (WITH WORKING SOUND)
-    function renderVideos() {
-      const container = document.getElementById('video-feed-container');
-      const videoPosts = posts.filter(p => p.type === 'video');
-
-      if (videoPosts.length === 0) {
-        container.innerHTML = `
-          <div class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
-            <i class="fa-solid fa-video text-4xl mb-3 text-cyan-500/50"></i>
-            <p class="text-xs">No Videos Uploaded Yet!</p>
-            <p class="text-[10px] text-gray-600 mt-1">Tap the + button below to post a video.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = videoPosts.map(p => {
-        const isLiked = p.likedBy && p.likedBy.includes(currentUser);
-        return `
-          <div class="reel-item h-full w-full relative flex items-center justify-center bg-black">
-            <video src="${p.videoUrl}" class="w-full h-full object-contain" playsinline loop onclick="this.paused?this.play():this.pause()"></video>
-            
-            <div class="absolute bottom-6 left-4 right-16 text-white space-y-1.5 pointer-events-none">
-              <span class="font-bold text-xs text-cyan-400 bg-black/40 px-2 py-0.5 rounded-full pointer-events-auto">${p.author}</span>
-              <p class="text-xs text-gray-200 allow-select drop-shadow-md pointer-events-auto">${p.content}</p>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased transition-colors duration-300 flex justify-center items-center min-h-screen">
+
+    <!-- Mobile Device Container -->
+    <div id="app-container" class="w-full max-w-md h-[92vh] max-h-[850px] bg-slate-50 dark:bg-slate-950 rounded-[40px] shadow-2xl border-8 border-slate-800 dark:border-slate-800 flex flex-col overflow-hidden relative">
+
+        <!-- Top Dynamic Island / Status Bar -->
+        <div class="w-full bg-slate-50 dark:bg-slate-950 px-6 py-3 flex justify-between items-center z-30 select-none">
+            <span class="text-xs font-bold tracking-tight text-slate-700 dark:text-slate-300" id="current-time">9:41</span>
+            <!-- Dynamic Island -->
+            <div class="w-24 h-5 bg-slate-900 rounded-full flex items-center justify-between px-2 text-[10px] text-white">
+                <i class="fa-solid fa-circle text-brand-500 animate-pulse text-[8px]"></i>
+                <span class="tracking-tighter font-medium">Nexus Active</span>
             </div>
+            <div class="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full text-brand-500"></i>
+            </div>
+        </div>
 
-            <div class="absolute right-3 bottom-12 flex flex-col items-center gap-5 text-white">
-              <button onclick="toggleLike(${p.id})" class="flex flex-col items-center gap-1 text-xs">
-                <div class="w-10 h-10 bg-gray-900/60 rounded-full flex items-center justify-center backdrop-blur">
-                  <i class="${isLiked ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart text-lg like-icon-${p.id}"></i>
+        <!-- MAIN APP VIEWS CONTAINER -->
+        <div class="flex-1 overflow-y-auto relative no-scrollbar" id="view-scroll-area">
+
+            <!-- VIEW 1: HOME DASHBOARD -->
+            <section id="view-home" class="p-5 space-y-6 pb-24">
+                <!-- Header / Greeting -->
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Welcome back,</p>
+                        <h1 class="text-xl font-extrabold tracking-tight">Alex Rivera</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                            <i class="fa-solid fa-moon dark:hidden"></i>
+                            <i class="fa-solid fa-sun hidden dark:block text-yellow-400"></i>
+                        </button>
+                        <div class="relative">
+                            <button onclick="showNotification('You have 3 unread security alerts.')" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <i class="fa-regular fa-bell"></i>
+                            </button>
+                            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </div>
+                    </div>
                 </div>
-                <span class="text-[10px] font-bold like-count-${p.id}">${p.likes}</span>
-              </button>
 
-              <button onclick="openCommentsDrawer(${p.id})" class="flex flex-col items-center gap-1 text-xs">
-                <div class="w-10 h-10 bg-gray-900/60 rounded-full flex items-center justify-center backdrop-blur">
-                  <i class="fa-regular fa-comment text-lg"></i>
+                <!-- Wallet / Balance Card -->
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-emerald-100 font-medium uppercase tracking-wider">Total Balance</p>
+                            <h2 class="text-3xl font-black mt-1">$24,850.40</h2>
+                        </div>
+                        <span class="bg-white/20 text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-md">Nexus Pay</span>
+                    </div>
+                    <div class="mt-6 flex space-x-3">
+                        <button onclick="switchTab('wallet')" class="flex-1 bg-white text-emerald-800 font-bold py-2 px-4 rounded-xl text-xs shadow hover:bg-emerald-50 transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>Send</span>
+                        </button>
+                        <button onclick="switchTab('wallet')" class="flex-1 bg-emerald-800/50 hover:bg-emerald-800 text-white font-bold py-2 px-4 rounded-xl text-xs backdrop-blur-md border border-white/20 transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Top Up</span>
+                        </button>
+                    </div>
                 </div>
-                <span class="text-[10px] font-bold">${p.comments ? p.comments.length : 0}</span>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
 
-    // RENDER TEXT POSTS FEED
-    function renderPosts() {
-      const container = document.getElementById('posts-container');
-      const textPosts = posts.filter(p => p.type === 'text');
+                <!-- Quick Services Grid (Mini Apps) -->
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Quick Services</h3>
+                        <span class="text-xs font-semibold text-brand-600 dark:text-brand-500 cursor-pointer">See All</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-4 text-center">
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-brand-600 dark:text-brand-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-car text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Ride</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-utensils text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Food</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-bag-shopping text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Mart</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-ticket text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Movies</span>
+                        </div>
+                        <div onclick="switchTab('wallet')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-bolt text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Bills</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center text-rose-600 dark:text-rose-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-plane text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Travel</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-100 dark:border-cyan-900/50 flex items-center justify-center text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-pills text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Health</span>
+                        </div>
+                        <div onclick="switchTab('services')" class="flex flex-col items-center space-y-1.5 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition">
+                                <i class="fa-solid fa-ellipsis text-xl"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">More</span>
+                        </div>
+                    </div>
+                </div>
 
-      if (textPosts.length === 0) {
-        container.innerHTML = `<div class="text-center text-xs text-gray-500 py-10">No text posts yet. Be the first to post!</div>`;
-        return;
-      }
+                <!-- Promo Banner Carousel -->
+                <div class="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow relative overflow-hidden flex items-center justify-between">
+                    <div>
+                        <span class="bg-white/20 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Special Offer</span>
+                        <h4 class="font-extrabold text-base mt-1">Get 50% Off Your First Ride</h4>
+                        <p class="text-xs text-violet-100 mt-0.5">Use code: <span class="font-bold underline">NEXUS50</span></p>
+                    </div>
+                    <i class="fa-solid fa-tags text-4xl text-white/20 mr-2"></i>
+                </div>
 
-      container.innerHTML = textPosts.map(p => {
-        const isLiked = p.likedBy && p.likedBy.includes(currentUser);
-        return `
-          <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-md">
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.author}" class="w-7 h-7 rounded-full bg-gray-800">
-                <span class="text-xs font-bold text-cyan-400">${p.author}</span>
-              </div>
-              <i class="fa-solid fa-ellipsis-vertical text-gray-500 text-xs"></i>
-            </div>
-            
-            <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.content}</p>
+                <!-- Recent Activity Feed -->
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Recent Transactions</h3>
+                        <span onclick="switchTab('wallet')" class="text-xs font-semibold text-brand-600 dark:text-brand-500 cursor-pointer">History</span>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-3 border border-slate-200 dark:border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/50 text-orange-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-utensils text-sm"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-900 dark:text-white">Green Leaf Cafe</h5>
+                                    <p class="text-[10px] text-slate-500">Food Delivery • Today, 12:30 PM</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-slate-900 dark:text-white">-$18.50</span>
+                        </div>
+                        <hr class="border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-arrow-down text-sm"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-900 dark:text-white">Salary Deposit</h5>
+                                    <p class="text-[10px] text-slate-500">Nexus Bank • Yesterday</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-600">+$3,200.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <div class="flex gap-4 pt-2 border-t border-gray-800/80 text-xs text-gray-400">
-              <button onclick="toggleLike(${p.id})" class="flex items-center gap-1 hover:text-red-400">
-                <i class="${isLiked ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart like-icon-${p.id}"></i>
-                <span class="like-count-${p.id}">${p.likes}</span>
-              </button>
-              <button onclick="openCommentsDrawer(${p.id})" class="flex items-center gap-1 hover:text-cyan-400">
-                <i class="fa-regular fa-comment"></i>
-                <span>${p.comments ? p.comments.length : 0}</span>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+            <!-- VIEW 2: SERVICES / MINI APPS -->
+            <section id="view-services" class="p-5 space-y-5 pb-24 hidden">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-xl font-extrabold tracking-tight">Super Services</h1>
+                    <div class="relative w-48">
+                        <input type="text" placeholder="Search service..." class="w-full bg-white dark:bg-slate-900 text-xs rounded-xl px-3 py-1.5 pl-8 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-brand-500">
+                        <i class="fa-solid fa-search absolute left-2.5 top-2 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
 
-    // COMMENTS & DRAWER SYSTEM
-    function openCommentsDrawer(postId) {
-      activePostId = postId;
-      const drawer = document.getElementById('commentDrawer');
-      const content = document.getElementById('drawer-content-area');
-      
-      const post = posts.find(p => p.id === postId);
-      if (!post) return;
+                <!-- Transport / Ride Module -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-600 flex items-center justify-center">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm">Nexus Ride & Mobility</h3>
+                            <p class="text-xs text-slate-500">Book cars, bikes, or scheduled rides</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 pt-1">
+                        <div class="flex items-center bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <i class="fa-solid fa-location-dot text-brand-500 mr-2.5"></i>
+                            <input type="text" placeholder="Current Location" value="742 Evergreen Terrace" class="bg-transparent w-full focus:outline-none">
+                        </div>
+                        <div class="flex items-center bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                            <i class="fa-solid fa-square text-orange-500 mr-2.5"></i>
+                            <input type="text" placeholder="Where to?" class="bg-transparent w-full focus:outline-none">
+                        </div>
+                    </div>
+                    <button onclick="showAlert('Searching for nearby drivers...')" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow">
+                        Find Ride
+                    </button>
+                </div>
 
-      document.getElementById('drawer-title').innerText = "Comments";
-      
-      if (!post.comments || post.comments.length === 0) {
-        content.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">No comments yet. Start the conversation!</p>`;
-      } else {
-        content.innerHTML = post.comments.map(c => `
-          <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50">
-            <span class="text-[10px] font-bold text-cyan-400 block">${c.author}</span>
-            <p class="text-xs text-gray-200 mt-0.5">${c.text}</p>
-          </div>
-        `).join('');
-      }
+                <!-- Food Delivery Module -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950 text-orange-600 flex items-center justify-center">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm">Nexus Foods</h3>
+                                <p class="text-xs text-slate-500">Trending restaurants near you</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold text-brand-600 cursor-pointer">View Menu</span>
+                    </div>
+                    <div class="flex space-x-3 overflow-x-auto no-scrollbar pb-1">
+                        <div onclick="showAlert('Opening Burger House menu...')" class="min-w-[130px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+                            <div class="w-full h-20 bg-slate-200 dark:bg-slate-700 rounded-lg mb-2 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-burger text-2xl"></i>
+                            </div>
+                            <h5 class="text-xs font-bold truncate">Burger House</h5>
+                            <p class="text-[10px] text-slate-500">⭐ 4.8 • 15 min</p>
+                        </div>
+                        <div onclick="showAlert('Opening Pizza Hub menu...')" class="min-w-[130px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+                            <div class="w-full h-20 bg-slate-200 dark:bg-slate-700 rounded-lg mb-2 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-pizza-slice text-2xl"></i>
+                            </div>
+                            <h5 class="text-xs font-bold truncate">Pizza Hub</h5>
+                            <p class="text-[10px] text-slate-500">⭐ 4.9 • 25 min</p>
+                        </div>
+                        <div onclick="showAlert('Opening Sushi Zen menu...')" class="min-w-[130px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+                            <div class="w-full h-20 bg-slate-200 dark:bg-slate-700 rounded-lg mb-2 flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-fish text-2xl"></i>
+                            </div>
+                            <h5 class="text-xs font-bold truncate">Sushi Zen</h5>
+                            <p class="text-[10px] text-slate-500">⭐ 4.7 • 30 min</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      drawer.classList.add('open');
-    }
+            <!-- VIEW 3: WALLET & FINANCE -->
+            <section id="view-wallet" class="p-5 space-y-5 pb-24 hidden">
+                <h1 class="text-xl font-extrabold tracking-tight">Nexus Wallet</h1>
 
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
-    }
+                <!-- Card Display -->
+                <div class="bg-gradient-to-tr from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-xl border border-slate-700 space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold tracking-widest text-slate-400 uppercase">Virtual Debit Card</span>
+                        <i class="fa-brands fa-cc-visa text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-mono tracking-widest">•••• •••• •••• 4892</p>
+                    </div>
+                    <div class="flex justify-between items-end text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">CARD HOLDER</span>
+                            <span class="font-semibold">ALEX RIVERA</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">EXPIRES</span>
+                            <span class="font-semibold">09/28</span>
+                        </div>
+                    </div>
+                </div>
 
-    function addCommentSubmit() {
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text || !activePostId) return;
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <button onclick="showAlert('Transfer modal opened')" class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center space-y-1 hover:border-brand-500 transition">
+                        <i class="fa-solid fa-paper-plane text-brand-600"></i>
+                        <span class="text-xs font-medium">Transfer</span>
+                    </button>
+                    <button onclick="showAlert('Top-up options loaded')" class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center space-y-1 hover:border-brand-500 transition">
+                        <i class="fa-solid fa-plus text-brand-600"></i>
+                        <span class="text-xs font-medium">Top Up</span>
+                    </button>
+                    <button onclick="showAlert('Bill payment gateway active')" class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center space-y-1 hover:border-brand-500 transition">
+                        <i class="fa-solid fa-file-invoice-dollar text-brand-600"></i>
+                        <span class="text-xs font-medium">Bills</span>
+                    </button>
+                </div>
 
-      const post = posts.find(p => p.id === activePostId);
-      if (post) {
-        if (!post.comments) post.comments = [];
-        post.comments.push({ author: currentUser || '@User', text: text });
-        savePosts();
-        input.value = '';
-        openCommentsDrawer(activePostId);
-        renderPosts();
-        renderVideos();
-      }
-    }
+                <!-- Full Transaction Ledger -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <h3 class="font-bold text-sm mb-2">All Transactions</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-utensils"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold">Green Leaf Cafe</h5>
+                                    <p class="text-[10px] text-slate-500">Today</p>
+                                </div>
+                            </div>
+                            <span class="font-bold">-$18.50</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold">City Power & Light</h5>
+                                    <p class="text-[10px] text-slate-500">2 days ago</p>
+                                </div>
+                            </div>
+                            <span class="font-bold">-$74.20</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold">Salary Deposit</h5>
+                                    <p class="text-[10px] text-slate-500">3 days ago</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-emerald-600">+$3,200.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    // RENDER PROFILE
-    function renderProfile() {
-      const displayName = document.getElementById('profile-display-name');
-      const avatarImg = document.getElementById('user-avatar-img');
-      const likesElem = document.getElementById('profile-likes');
-      const postsCountElem = document.getElementById('profile-posts-count');
-      const grid = document.getElementById('profile-grid');
+            <!-- VIEW 4: PROFILE & SETTINGS -->
+            <section id="view-profile" class="p-5 space-y-5 pb-24 hidden">
+                <h1 class="text-xl font-extrabold tracking-tight">Account & Settings</h1>
 
-      displayName.innerText = currentUser || '@Umar';
-      avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser || 'Umar'}`;
+                <!-- Profile Card -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-brand-600 text-white font-bold text-xl flex items-center justify-center shadow">
+                        AR
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">Alex Rivera</h3>
+                        <p class="text-xs text-slate-500">alex.rivera@nexusmail.com</p>
+                        <span class="inline-block mt-1 bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-brand-200 dark:border-brand-900">Verified User</span>
+                    </div>
+                </div>
 
-      const myPosts = posts.filter(p => p.author === currentUser);
-      const totalLikes = myPosts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
+                <!-- Settings List -->
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    <div onclick="showAlert('Opening Security Settings')" class="p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-shield-halved text-brand-600 w-4"></i>
+                            <span class="font-medium">Security & Biometrics</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                    </div>
+                    <div onclick="showAlert('Opening Payment Methods')" class="p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-credit-card text-brand-600 w-4"></i>
+                            <span class="font-medium">Payment Methods</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                    </div>
+                    <div onclick="showAlert('Opening Notification Preferences')" class="p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-bell text-brand-600 w-4"></i>
+                            <span class="font-medium">Notifications</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                    </div>
+                    <div onclick="toggleDarkMode()" class="p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-moon text-brand-600 w-4"></i>
+                            <span class="font-medium">Dark Mode</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-semibold">Toggle</span>
+                    </div>
+                    <div onclick="showAlert('Logged out successfully')" class="p-3.5 flex justify-between items-center cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-arrow-right-from-bracket w-4"></i>
+                            <span class="font-medium">Log Out</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      likesElem.innerText = totalLikes;
-      postsCountElem.innerText = myPosts.length;
-
-      if (myPosts.length === 0) {
-        grid.innerHTML = `<p class="col-span-3 text-center text-xs text-gray-500 py-4">You haven't posted anything yet.</p>`;
-        return;
-      }
-
-      grid.innerHTML = myPosts.map(p => `
-        <div class="aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative flex items-center justify-center p-1 text-center">
-          ${p.type === 'video' ? `<video src="${p.videoUrl}" class="w-full h-full object-cover"></video>` : `<p class="text-[10px] text-gray-300 line-clamp-3">${p.content}</p>`}
         </div>
-      `).join('');
-    }
 
-    // DMs & CHAT SYSTEM
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      chatMessages.push({ id: Date.now(), author: currentUser || '@User', text: text });
-      saveChats();
-      input.value = '';
-      renderChats();
-    }
-
-    function renderChats() {
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = chatMessages.map(m => `
-        <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700 ${m.author === currentUser ? 'ml-auto border-cyan-500/40' : ''}">
-          <p class="text-[10px] text-cyan-400 font-bold">${m.author}</p>
-          <p class="text-xs text-gray-200 mt-0.5">${m.text}</p>
+        <!-- BOTTOM NAVIGATION BAR -->
+        <div class="absolute bottom-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-around items-center px-4 z-40">
+            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center space-y-1 text-brand-600 dark:text-brand-500 transition">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+            <button onclick="switchTab('services')" id="nav-services" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                <i class="fa-solid fa-grip text-base"></i>
+                <span class="text-[10px] font-medium">Services</span>
+            </button>
+            <button onclick="switchTab('wallet')" id="nav-wallet" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                <i class="fa-solid fa-wallet text-base"></i>
+                <span class="text-[10px] font-medium">Wallet</span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                <i class="fa-solid fa-user text-base"></i>
+                <span class="text-[10px] font-medium">Profile</span>
+            </button>
         </div>
-      `).join('');
-      container.scrollTop = container.scrollHeight;
-    }
 
-    // TRADING VIEW SYMBOL SWITCH
-    function changeSymbol(symbol) {
-      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&theme=dark`;
-    }
+        <!-- Toast Alert Modal / Overlay -->
+        <div id="toast" class="absolute top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-medium px-4 py-2 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2">
+            <i class="fa-solid fa-circle-info text-brand-400"></i>
+            <span id="toast-message">Notification message</span>
+        </div>
 
-    // CODE RUNNER
-    function executeCode() {
-      const lang = document.getElementById('code-lang').value;
-      const code = document.getElementById('code-input').value;
-      const output = document.getElementById('code-output');
+    </div>
 
-      output.innerText = "Running...";
-
-      if (lang === 'javascript') {
-        try {
-          let logs = [];
-          const oldLog = console.log;
-          console.log = (...args) => logs.push(args.join(' '));
-          eval(code);
-          console.log = oldLog;
-          output.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully (No output)";
-        } catch (e) {
-          output.innerText = "JS Error: " + e.message;
+    <!-- JavaScript Controller -->
+    <script>
+        // Update Time Live
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('current-time').innerText = `${hours}:${minutes}`;
         }
-      } else if (lang === 'python') {
-        Sk.configure({
-          output: function(text) { output.innerText += text; },
-          read: function(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-              throw "File not found: '" + x + "'";
-            return Sk.builtinFiles["files"][x];
-          }
-        });
-        output.innerText = "";
-        Sk.misceval.asyncToPromise(function() {
-          return Sk.importMainWithBody("<stdin>", false, code, true);
-        }).catch(function(err) {
-          output.innerText = err.toString();
-        });
-      }
-    }
+        setInterval(updateTime, 1000);
+        updateTime();
 
-    function triggerWalletWithdraw() {
-      showToast('Wallet Feature: Minimum balance $10.00 required.');
-    }
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const tabs = ['home', 'services', 'wallet', 'profile'];
+            tabs.forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                navBtn.className = "flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition";
+                navBtn.querySelector('span').className = "text-[10px] font-medium";
+            });
 
-    function initApp() {
-      loadAppData();
-      renderVideos();
-      renderPosts();
-      renderChats();
-      renderProfile();
-    }
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.className = "flex flex-col items-center space-y-1 text-brand-600 dark:text-brand-500 transition";
+            activeBtn.querySelector('span').className = "text-[10px] font-bold";
 
-    // STARTUP
-    window.onload = function() {
-      checkAuthSession();
-    };
-  </script>
+            // Scroll view area back to top
+            document.getElementById('view-scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+        }
+
+        // Toast Notification System
+        function showAlert(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-1');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-1');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function showNotification(msg) {
+            showAlert(msg);
+        }
+    </script>
 </body>
 </html>
