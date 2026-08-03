@@ -54,6 +54,40 @@
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden">
 
+  <!-- AUTH / LOGIN / SIGNUP SCREEN -->
+  <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex flex-col justify-center items-center p-6">
+    <div class="w-full max-w-sm bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl space-y-5">
+      <div class="text-center">
+        <h1 class="text-2xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
+          SUPER APP
+        </h1>
+        <p class="text-xs text-gray-400 mt-1" id="auth-subtitle">Login or Create an Account to continue</p>
+      </div>
+
+      <!-- FORM TOGGLE -->
+      <div class="flex bg-gray-800 p-1 rounded-xl text-xs font-semibold">
+        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all">Login</button>
+        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 rounded-lg text-gray-400 transition-all">Sign Up</button>
+      </div>
+
+      <!-- FORM FIELDS -->
+      <div class="space-y-3">
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Username / Handle</label>
+          <input type="text" id="auth-username" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 allow-select" placeholder="e.g. Umar">
+        </div>
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Password</label>
+          <input type="password" id="auth-password" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 allow-select" placeholder="••••••••">
+        </div>
+      </div>
+
+      <button id="auth-submit-btn" onclick="handleAuthSubmit()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg">
+        Login Now
+      </button>
+    </div>
+  </div>
+
   <!-- AUTO-DISMISS FLOATING TOAST -->
   <div id="toast-notification" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-cyan-400 border border-cyan-500/40 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 pointer-events-none">
     <i class="fa-solid fa-circle-info" id="toast-icon"></i>
@@ -117,7 +151,7 @@
     <section id="tab-profile" class="p-4 hidden space-y-5">
       <div class="flex flex-col items-center">
         <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
-          <img id="user-avatar-img" src="https://via.placeholder.com/150/090d16/00f2fe?text=Umar" class="w-full h-full rounded-full object-cover">
+          <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-full h-full rounded-full object-cover bg-gray-800">
         </div>
         <h2 class="text-lg font-bold" id="profile-display-name">@Umar</h2>
         <p class="text-[11px] text-gray-400">Verified Creator Profile</p>
@@ -135,9 +169,14 @@
           <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1"></i> Wallet Balance</span>
           <span class="text-sm font-bold text-green-400">$0.00</span>
         </div>
-        <button onclick="triggerWalletWithdraw()" class="w-full py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded text-xs font-bold border border-cyan-500/30">
-          Withdraw / Transfer Funds
-        </button>
+        <div class="flex gap-2">
+          <button onclick="triggerWalletWithdraw()" class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded text-xs font-bold border border-cyan-500/30">
+            Withdraw / Transfer Funds
+          </button>
+          <button onclick="logoutUser()" class="py-1.5 px-3 bg-red-950/60 hover:bg-red-900 text-red-400 rounded text-xs font-bold border border-red-500/30">
+            Logout
+          </button>
+        </div>
       </div>
 
       <div class="border-t border-gray-800 pt-3">
@@ -181,23 +220,29 @@
         <option value="ar">Arabic (العربية)</option>
         <option value="hi">Hindi</option>
       </select>
-      <textarea id="trans-input" oninput="runTranslation()" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select" placeholder="Enter text to translate..."></textarea>
+      <textarea id="trans-input" oninput="runTranslation()" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select focus:outline-none" placeholder="Enter text to translate..."></textarea>
       <div id="trans-output" class="p-3 bg-gray-900 border border-gray-800 rounded text-xs text-cyan-300 min-h-[80px] allow-select">Translation will appear here...</div>
     </div>
   </div>
 
-  <!-- MODAL: WEATHER -->
+  <!-- MODAL: WEATHER WITH LIVE SEARCH -->
   <div id="weatherModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-cyan-400">☀️ Real-Time Weather</h2>
       <button onclick="closeModal('weatherModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="space-y-4 text-center">
-      <div class="bg-gray-900 p-6 rounded-xl border border-gray-800">
+    
+    <div class="space-y-4">
+      <div class="flex gap-2">
+        <input type="text" id="weather-search-input" class="flex-1 bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter City or Country (e.g. Lahore, Dubai)">
+        <button onclick="searchWeather()" class="px-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+      </div>
+
+      <div id="weather-display-box" class="bg-gray-900 p-6 rounded-2xl border border-gray-800 text-center">
         <p class="text-gray-400 text-xs">Current Location</p>
-        <h3 class="text-xl font-bold text-white mt-1">Karachi, PK</h3>
-        <h1 class="text-4xl font-extrabold text-cyan-400 my-3">32°C</h1>
-        <p class="text-xs text-gray-300">Clear Sky • Humidity 65%</p>
+        <h3 id="weather-location" class="text-xl font-bold text-white mt-1">Karachi, PK</h3>
+        <h1 id="weather-temp" class="text-4xl font-extrabold text-cyan-400 my-3">32°C</h1>
+        <p id="weather-desc" class="text-xs text-gray-300">Clear Sky • Humidity 65%</p>
       </div>
     </div>
   </div>
@@ -210,17 +255,10 @@
     </div>
     <div class="flex-1 flex flex-col justify-between overflow-hidden">
       <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar">
-        <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700">
-          <p class="text-[10px] text-cyan-400 font-bold">Official Channel (@Umar)</p>
-          <p class="text-xs text-gray-200">Welcome to Super App Channel! Join our official Telegram for updates.</p>
-          <div class="flex gap-2 mt-1 text-[10px] text-gray-400">
-            <button onclick="showToast('Reacted ❤️')" class="hover:text-red-400">❤️ 5</button>
-            <button onclick="showToast('Reacted 🔥')" class="hover:text-amber-400">🔥 12</button>
-          </div>
-        </div>
+        <!-- Chat Messages -->
       </div>
       <div class="flex gap-2 pt-2 border-t border-gray-800">
-        <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select" placeholder="Send a message...">
+        <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Send a message...">
         <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
     </div>
@@ -257,7 +295,7 @@
       <!-- Dynamic Comments or Share List -->
     </div>
     <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
-      <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select" placeholder="Write a comment...">
+      <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Write a comment...">
       <button onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
     </div>
   </div>
@@ -292,26 +330,118 @@
   </div>
 
   <script>
-    // LOCAL STORAGE PERSISTENCE SETUP
-    let posts = [];
-    try {
-      const saved = localStorage.getItem('SUPER_APP_POSTS');
-      posts = saved ? JSON.parse(saved) : [
-        { id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, isLiked: false, comments: [] }
-      ];
-    } catch (e) {
-      posts = [{ id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, isLiked: false, comments: [] }];
+    // AUTHENTICATION & MULTI-USER SYSTEM
+    let currentUser = null;
+    let authMode = 'login'; // 'login' or 'signup'
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      const loginBtn = document.getElementById('tab-login-btn');
+      const signupBtn = document.getElementById('tab-signup-btn');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const subtitle = document.getElementById('auth-subtitle');
+
+      if (mode === 'login') {
+        loginBtn.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all";
+        signupBtn.className = "flex-1 py-1.5 rounded-lg text-gray-400 transition-all";
+        submitBtn.innerText = "Login Now";
+        subtitle.innerText = "Login to access your account";
+      } else {
+        signupBtn.className = "flex-1 py-1.5 rounded-lg bg-cyan-600 text-white transition-all";
+        loginBtn.className = "flex-1 py-1.5 rounded-lg text-gray-400 transition-all";
+        submitBtn.innerText = "Sign Up Free";
+        subtitle.innerText = "Create a new profile on Super App";
+      }
     }
 
-    let activeActivePostId = null;
-    let drawerMode = 'comments'; // 'comments' or 'share'
+    function handleAuthSubmit() {
+      const usernameInput = document.getElementById('auth-username').value.trim();
+      const passwordInput = document.getElementById('auth-password').value.trim();
+
+      if (!usernameInput || !passwordInput) {
+        showToast('Please fill in both Username and Password!');
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      const formattedUsername = '@' + usernameInput.replace(/^@/, '');
+
+      if (authMode === 'signup') {
+        if (users[formattedUsername]) {
+          showToast('User already exists! Please Login.');
+          return;
+        }
+        users[formattedUsername] = { password: passwordInput };
+        localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+        showToast('Account Created Successfully!');
+      } else {
+        if (!users[formattedUsername] || users[formattedUsername].password !== passwordInput) {
+          showToast('Invalid Username or Password!');
+          return;
+        }
+      }
+
+      // SET CURRENT SESSION
+      currentUser = formattedUsername;
+      localStorage.setItem('SUPER_APP_CURRENT_USER', currentUser);
+      document.getElementById('auth-overlay').classList.add('hidden');
+      showToast('Welcome ' + currentUser + '!');
+      
+      initApp();
+    }
+
+    function checkAuthSession() {
+      const savedUser = localStorage.getItem('SUPER_APP_CURRENT_USER');
+      if (savedUser) {
+        currentUser = savedUser;
+        document.getElementById('auth-overlay').classList.add('hidden');
+        initApp();
+      } else {
+        document.getElementById('auth-overlay').classList.remove('hidden');
+      }
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('SUPER_APP_CURRENT_USER');
+      currentUser = null;
+      document.getElementById('auth-overlay').classList.remove('hidden');
+      showToast('Logged out successfully.');
+    }
+
+    // APP DATA STORAGE & STATE
+    let posts = [];
+    let chatMessages = [];
+    let activePostId = null;
+
+    function loadAppData() {
+      try {
+        const savedPosts = localStorage.getItem('SUPER_APP_POSTS');
+        posts = savedPosts ? JSON.parse(savedPosts) : [
+          { id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, likedBy: [], comments: [{ author: '@Admin', text: 'Great to have you!' }] }
+        ];
+
+        const savedChats = localStorage.getItem('SUPER_APP_CHATS');
+        chatMessages = savedChats ? JSON.parse(savedChats) : [
+          { id: 1, author: 'Official Channel (@Umar)', text: 'Welcome to Super App Channel! Join our official network for updates.' }
+        ];
+      } catch (e) {
+        posts = [{ id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, likedBy: [], comments: [] }];
+        chatMessages = [];
+      }
+    }
 
     function savePosts() {
       try {
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(posts));
       } catch (err) {
-        showToast('Storage full! Data could not be saved.');
+        showToast('Storage Limit Reached for Videos!');
       }
+    }
+
+    function saveChats() {
+      try {
+        localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chatMessages));
+      } catch (err) {}
     }
 
     function showToast(msg) {
@@ -339,7 +469,66 @@
       document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
     }
 
-    // BASE64 VIDEO CONVERSION & POST PUBLISHING
+    // TRANSLATE API (FREE LINGVA ENGINE)
+    async function runTranslation() {
+      const text = document.getElementById('trans-input').value.trim();
+      const targetLang = document.getElementById('trans-lang').value;
+      const outputDiv = document.getElementById('trans-output');
+
+      if (!text) {
+        outputDiv.innerText = 'Translation will appear here...';
+        return;
+      }
+
+      outputDiv.innerText = 'Translating...';
+
+      try {
+        const res = await fetch(`https://lingva.ml/api/v1/auto/${targetLang}/${encodeURIComponent(text)}`);
+        const data = await res.json();
+        if (data.translation) {
+          outputDiv.innerText = data.translation;
+        } else {
+          outputDiv.innerText = 'Error processing translation.';
+        }
+      } catch (err) {
+        outputDiv.innerText = 'Translation server busy. Please try again.';
+      }
+    }
+
+    // REAL-TIME WEATHER SEARCH
+    async function searchWeather() {
+      const query = document.getElementById('weather-search-input').value.trim();
+      if (!query) return;
+
+      document.getElementById('weather-location').innerText = "Searching...";
+
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const geoData = await geoRes.json();
+
+        if (!geoData || geoData.length === 0) {
+          document.getElementById('weather-location').innerText = "City Not Found";
+          return;
+        }
+
+        const lat = geoData[0].lat;
+        const lon = geoData[0].lon;
+        const name = geoData[0].display_name.split(',')[0];
+
+        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const wData = await wRes.json();
+
+        if (wData.current_weather) {
+          document.getElementById('weather-location').innerText = name;
+          document.getElementById('weather-temp').innerText = `${Math.round(wData.current_weather.temperature)}°C`;
+          document.getElementById('weather-desc').innerText = `Windspeed: ${wData.current_weather.windspeed} km/h`;
+        }
+      } catch (e) {
+        document.getElementById('weather-location').innerText = "Error fetching weather";
+      }
+    }
+
+    // POST PUBLISHING & VIDEO HANDLING
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value;
@@ -355,31 +544,35 @@
           const newPost = {
             id: Date.now(),
             type: 'video',
-            author: '@Umar',
+            author: currentUser || '@Umar',
             content: caption,
             videoUrl: e.target.result,
             likes: 0,
-            isLiked: false,
+            likedBy: [],
             comments: []
           };
           posts.unshift(newPost);
           savePosts();
           closeModal('createModal');
           document.getElementById('post-caption').value = '';
-          showToast('Video Published & Saved!');
+          showToast('Video Published Successfully!');
           renderVideos();
           renderPosts();
           renderProfile();
         };
         reader.readAsDataURL(videoInput.files[0]);
       } else {
+        if (!caption.trim()) {
+          showToast('Please write something to post!');
+          return;
+        }
         const newPost = {
           id: Date.now(),
           type: 'text',
-          author: '@Umar',
+          author: currentUser || '@Umar',
           content: caption,
           likes: 0,
-          isLiked: false,
+          likedBy: [],
           comments: []
         };
         posts.unshift(newPost);
@@ -393,198 +586,155 @@
       }
     }
 
+    // SMOOTH LIKE TOGGLE
     function toggleLike(postId) {
       const p = posts.find(item => item.id === postId);
       if (p) {
-        if (p.isLiked) {
-          p.likes -= 1;
-          p.isLiked = false;
+        if (!p.likedBy) p.likedBy = [];
+        const index = p.likedBy.indexOf(currentUser);
+
+        if (index > -1) {
+          p.likedBy.splice(index, 1);
+          p.likes = Math.max(0, p.likes - 1);
         } else {
+          p.likedBy.push(currentUser);
           p.likes += 1;
-          p.isLiked = true;
         }
         savePosts();
-        renderVideos();
-        renderPosts();
+        updateLikeUI(postId);
+      }
+    }
+
+    function updateLikeUI(postId) {
+      const p = posts.find(item => item.id === postId);
+      if (!p) return;
+      const isLiked = p.likedBy && p.likedBy.includes(currentUser);
+
+      const countElems = document.querySelectorAll(`.like-count-${postId}`);
+      const iconElems = document.querySelectorAll(`.like-icon-${postId}`);
+
+      countElems.forEach(el => el.innerText = p.likes);
+      iconElems.forEach(el => {
+        if (isLiked) {
+          el.className = `fa-solid fa-heart text-red-500 like-icon-${postId}`;
+        } else {
+          el.className = `fa-regular fa-heart like-icon-${postId}`;
+        }
+      });
+
+      if (!document.getElementById('tab-profile').classList.contains('hidden')) {
         renderProfile();
       }
     }
 
-    // REAL-TIME TRANSLATION WITH SELECTOR SUPPORT
-    async function runTranslation() {
-      const input = document.getElementById('trans-input').value;
-      const targetLang = document.getElementById('trans-lang').value;
-      const outputDiv = document.getElementById('trans-output');
-      
-      if (!input) {
-        outputDiv.innerText = "Translation will appear here...";
-        return;
-      }
-      
-      outputDiv.innerText = "Translating...";
-      try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=en|${targetLang}`);
-        const data = await res.json();
-        if (data && data.responseData) {
-          outputDiv.innerText = data.responseData.translatedText;
-        } else {
-          outputDiv.innerText = "Translation failed.";
-        }
-      } catch (e) {
-        outputDiv.innerText = "Error connecting to translator.";
-      }
-    }
-
-    // RENDER FEED POSTS
-    function renderPosts() {
-      const container = document.getElementById('posts-container');
-      container.innerHTML = '';
-      const textPosts = posts.filter(p => p.type === 'text');
-      if (textPosts.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 text-xs py-10">No text posts yet. Create one!</p>';
-        return;
-      }
-      textPosts.forEach(p => {
-        container.innerHTML += `
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-cyan-400">${p.author}</span>
-              <div class="relative">
-                <button onclick="togglePostMenu(${p.id})" class="text-gray-400 px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                <div id="menu-${p.id}" class="hidden absolute right-0 mt-1 bg-gray-800 border border-gray-700 rounded shadow-lg text-xs z-20 w-28">
-                  <button onclick="deletePost(${p.id})" class="w-full text-left px-3 py-1.5 text-red-400 hover:bg-gray-700">Delete</button>
-                </div>
-              </div>
-            </div>
-            <p class="text-xs text-gray-200 allow-select">${p.content}</p>
-            <div class="flex gap-4 pt-1 border-t border-gray-800 text-xs">
-              <button onclick="toggleLike(${p.id})" class="flex items-center gap-1 ${p.isLiked ? 'text-red-500 font-bold' : 'text-gray-400'}">
-                <i class="fa-solid fa-heart"></i> <span>${p.likes}</span>
-              </button>
-              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="flex items-center gap-1 text-gray-400">
-                <i class="fa-solid fa-comment"></i> <span>${p.comments.length}</span>
-              </button>
-              <button onclick="openCommentDrawer(${p.id}, 'share')" class="flex items-center gap-1 text-gray-400">
-                <i class="fa-solid fa-share"></i> Share
-              </button>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    // RENDER VIDEO REELS FEED
+    // RENDER REELS & VIDEOS (WITH WORKING SOUND)
     function renderVideos() {
       const container = document.getElementById('video-feed-container');
-      container.innerHTML = '';
       const videoPosts = posts.filter(p => p.type === 'video');
+
       if (videoPosts.length === 0) {
-        container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">No video reels available. Upload one!</div>';
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
+            <i class="fa-solid fa-video text-4xl mb-3 text-cyan-500/50"></i>
+            <p class="text-xs">No Videos Uploaded Yet!</p>
+            <p class="text-[10px] text-gray-600 mt-1">Tap the + button below to post a video.</p>
+          </div>
+        `;
         return;
       }
-      videoPosts.forEach(p => {
-        container.innerHTML += `
-          <div class="reel-item w-full h-full relative flex items-center justify-center bg-black">
-            <video src="${p.videoUrl}" class="w-full h-full object-cover" autoplay loop muted playsinline></video>
-            <div class="absolute bottom-16 left-4 right-16 space-y-2 z-20">
-              <span class="text-xs font-bold text-cyan-400 bg-black/50 px-2 py-1 rounded">${p.author}</span>
-              <p class="text-xs text-white bg-black/50 p-2 rounded allow-select">${p.content}</p>
+
+      container.innerHTML = videoPosts.map(p => {
+        const isLiked = p.likedBy && p.likedBy.includes(currentUser);
+        return `
+          <div class="reel-item h-full w-full relative flex items-center justify-center bg-black">
+            <video src="${p.videoUrl}" class="w-full h-full object-contain" playsinline loop onclick="this.paused?this.play():this.pause()"></video>
+            
+            <div class="absolute bottom-6 left-4 right-16 text-white space-y-1.5 pointer-events-none">
+              <span class="font-bold text-xs text-cyan-400 bg-black/40 px-2 py-0.5 rounded-full pointer-events-auto">${p.author}</span>
+              <p class="text-xs text-gray-200 allow-select drop-shadow-md pointer-events-auto">${p.content}</p>
             </div>
-            <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 z-20">
-              <button onclick="toggleLike(${p.id})" class="flex flex-col items-center text-white text-xs">
-                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center ${p.isLiked ? 'text-red-500' : 'text-white'}">
-                  <i class="fa-solid fa-heart text-base"></i>
+
+            <div class="absolute right-3 bottom-12 flex flex-col items-center gap-5 text-white">
+              <button onclick="toggleLike(${p.id})" class="flex flex-col items-center gap-1 text-xs">
+                <div class="w-10 h-10 bg-gray-900/60 rounded-full flex items-center justify-center backdrop-blur">
+                  <i class="${isLiked ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart text-lg like-icon-${p.id}"></i>
                 </div>
-                <span class="mt-1">${p.likes}</span>
+                <span class="text-[10px] font-bold like-count-${p.id}">${p.likes}</span>
               </button>
-              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="flex flex-col items-center text-white text-xs">
-                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
-                  <i class="fa-solid fa-comment text-base"></i>
+
+              <button onclick="openCommentsDrawer(${p.id})" class="flex flex-col items-center gap-1 text-xs">
+                <div class="w-10 h-10 bg-gray-900/60 rounded-full flex items-center justify-center backdrop-blur">
+                  <i class="fa-regular fa-comment text-lg"></i>
                 </div>
-                <span class="mt-1">${p.comments.length}</span>
+                <span class="text-[10px] font-bold">${p.comments ? p.comments.length : 0}</span>
               </button>
-              <button onclick="openCommentDrawer(${p.id}, 'share')" class="flex flex-col items-center text-white text-xs">
-                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
-                  <i class="fa-solid fa-share text-base"></i>
-                </div>
-                <span class="mt-1">Share</span>
-              </button>
-              <div class="relative">
-                <button onclick="togglePostMenu(${p.id})" class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
-                  <i class="fa-solid fa-ellipsis-vertical text-base"></i>
-                </button>
-                <div id="menu-${p.id}" class="hidden absolute right-12 bottom-0 bg-gray-800 border border-gray-700 rounded shadow-lg text-xs z-30 w-28">
-                  <button onclick="deletePost(${p.id})" class="w-full text-left px-3 py-1.5 text-red-400 hover:bg-gray-700">Delete</button>
-                </div>
-              </div>
             </div>
           </div>
         `;
-      });
+      }).join('');
     }
 
-    function togglePostMenu(postId) {
-      const menu = document.getElementById(`menu-${postId}`);
-      if (menu) menu.classList.toggle('hidden');
-    }
+    // RENDER TEXT POSTS FEED
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const textPosts = posts.filter(p => p.type === 'text');
 
-    function deletePost(postId) {
-      posts = posts.filter(p => p.id !== postId);
-      savePosts();
-      renderVideos();
-      renderPosts();
-      renderProfile();
-      showToast('Post deleted');
-    }
-
-    // PROFILE RENDER & MANAGEMENT
-    function renderProfile() {
-      document.getElementById('profile-posts-count').innerText = posts.length;
-      let totalLikes = 0;
-      posts.forEach(p => totalLikes += p.likes);
-      document.getElementById('profile-likes').innerText = totalLikes;
-
-      const grid = document.getElementById('profile-grid');
-      grid.innerHTML = '';
-      if (posts.length === 0) {
-        grid.innerHTML = '<p class="col-span-3 text-center text-gray-500 text-xs py-4">No uploads yet.</p>';
+      if (textPosts.length === 0) {
+        container.innerHTML = `<div class="text-center text-xs text-gray-500 py-10">No text posts yet. Be the first to post!</div>`;
         return;
       }
-      posts.forEach(p => {
-        if (p.type === 'video') {
-          grid.innerHTML += `
-            <div class="aspect-square bg-gray-800 rounded-lg overflow-relative relative">
-              <video src="${p.videoUrl}" class="w-full h-full object-cover"></video>
-              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="absolute inset-0 bg-black/20"></button>
+
+      container.innerHTML = textPosts.map(p => {
+        const isLiked = p.likedBy && p.likedBy.includes(currentUser);
+        return `
+          <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-md">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.author}" class="w-7 h-7 rounded-full bg-gray-800">
+                <span class="text-xs font-bold text-cyan-400">${p.author}</span>
+              </div>
+              <i class="fa-solid fa-ellipsis-vertical text-gray-500 text-xs"></i>
             </div>
-          `;
-        } else {
-          grid.innerHTML += `
-            <div onclick="openCommentDrawer(${p.id}, 'comments')" class="aspect-square bg-gray-800 border border-gray-700 rounded-lg p-2 text-[10px] text-gray-300 overflow-hidden cursor-pointer flex items-center justify-center text-center">
-              ${p.content}
+            
+            <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.content}</p>
+
+            <div class="flex gap-4 pt-2 border-t border-gray-800/80 text-xs text-gray-400">
+              <button onclick="toggleLike(${p.id})" class="flex items-center gap-1 hover:text-red-400">
+                <i class="${isLiked ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart like-icon-${p.id}"></i>
+                <span class="like-count-${p.id}">${p.likes}</span>
+              </button>
+              <button onclick="openCommentsDrawer(${p.id})" class="flex items-center gap-1 hover:text-cyan-400">
+                <i class="fa-regular fa-comment"></i>
+                <span>${p.comments ? p.comments.length : 0}</span>
+              </button>
             </div>
-          `;
-        }
-      });
+          </div>
+        `;
+      }).join('');
     }
 
-    // HALF-SCREEN COMMENTS & SHARE DRAWER HANDLERS WITH DEEP LINKING
-    function openCommentDrawer(postId, mode) {
-      activeActivePostId = postId;
-      drawerMode = mode;
+    // COMMENTS & DRAWER SYSTEM
+    function openCommentsDrawer(postId) {
+      activePostId = postId;
       const drawer = document.getElementById('commentDrawer');
-      const title = document.getElementById('drawer-title');
-      const footer = document.getElementById('drawer-footer-area');
+      const content = document.getElementById('drawer-content-area');
       
-      if (mode === 'comments') {
-        title.innerText = "Comments Section";
-        footer.classList.remove('hidden');
-        renderComments();
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      document.getElementById('drawer-title').innerText = "Comments";
+      
+      if (!post.comments || post.comments.length === 0) {
+        content.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">No comments yet. Start the conversation!</p>`;
       } else {
-        title.innerText = "Share Post & Social Apps";
-        footer.classList.add('hidden');
-        renderShareOptions();
+        content.innerHTML = post.comments.map(c => `
+          <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50">
+            <span class="text-[10px] font-bold text-cyan-400 block">${c.author}</span>
+            <p class="text-xs text-gray-200 mt-0.5">${c.text}</p>
+          </div>
+        `).join('');
       }
+
       drawer.classList.add('open');
     }
 
@@ -592,164 +742,133 @@
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
-    function renderComments() {
-      const p = posts.find(item => item.id === activeActivePostId);
-      const list = document.getElementById('drawer-content-area');
-      list.innerHTML = '';
-      if (!p || !p.comments || !p.comments.length) {
-        list.innerHTML = '<p class="text-gray-500 text-xs text-center py-4">No comments yet. Be the first!</p>';
-        return;
-      }
-      p.comments.forEach((c, idx) => {
-        list.innerHTML += `
-          <div class="bg-gray-800 p-2 rounded text-xs border border-gray-700 flex justify-between items-center">
-            <div><span class="text-cyan-400 font-bold">@Umar:</span> <span class="allow-select text-gray-200">${c}</span></div>
-            <button onclick="deleteComment(${idx})" class="text-red-400 text-[10px] px-1"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        `;
-      });
-    }
-
     function addCommentSubmit() {
       const input = document.getElementById('new-comment-input');
-      const val = input.value.trim();
-      if (!val) return;
-      const p = posts.find(item => item.id === activeActivePostId);
-      if (p) {
-        if (!p.comments) p.comments = [];
-        p.comments.push(val);
+      const text = input.value.trim();
+      if (!text || !activePostId) return;
+
+      const post = posts.find(p => p.id === activePostId);
+      if (post) {
+        if (!post.comments) post.comments = [];
+        post.comments.push({ author: currentUser || '@User', text: text });
         savePosts();
         input.value = '';
-        renderComments();
-        renderVideos();
+        openCommentsDrawer(activePostId);
         renderPosts();
-        showToast('Comment added');
+        renderVideos();
       }
     }
 
-    function deleteComment(idx) {
-      const p = posts.find(item => item.id === activeActivePostId);
-      if (p && p.comments) {
-        p.comments.splice(idx, 1);
-        savePosts();
-        renderComments();
-        renderVideos();
-        renderPosts();
-      }
-    }
+    // RENDER PROFILE
+    function renderProfile() {
+      const displayName = document.getElementById('profile-display-name');
+      const avatarImg = document.getElementById('user-avatar-img');
+      const likesElem = document.getElementById('profile-likes');
+      const postsCountElem = document.getElementById('profile-posts-count');
+      const grid = document.getElementById('profile-grid');
 
-    function renderShareOptions() {
-      const list = document.getElementById('drawer-content-area');
-      // Generate clean deep link format: username + video/post id
-      const deepLink = `https://superapp.official/user/Umar/post/${activeActivePostId}`;
-      
-      list.innerHTML = `
-        <div class="space-y-3">
-          <div class="bg-gray-800 p-2.5 rounded-lg border border-gray-700 flex justify-between items-center">
-            <span class="text-[11px] text-cyan-300 truncate mr-2 allow-select">${deepLink}</span>
-            <button onclick="navigator.clipboard.writeText('${deepLink}'); showToast('Deep link copied!')" class="px-3 py-1 bg-cyan-600 text-white rounded text-xs font-bold shrink-0">Copy</button>
-          </div>
-          <div class="grid grid-cols-4 gap-3 text-center pt-2">
-            <button onclick="showToast('Shared to WhatsApp!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-green-400 text-xs">
-              <i class="fa-brands fa-whatsapp text-xl"></i> WhatsApp
-            </button>
-            <button onclick="showToast('Shared to Telegram!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-cyan-400 text-xs">
-              <i class="fa-brands fa-telegram text-xl"></i> Telegram
-            </button>
-            <button onclick="showToast('Shared to Facebook!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-blue-500 text-xs">
-              <i class="fa-brands fa-facebook text-xl"></i> Facebook
-            </button>
-            <button onclick="showToast('Shared to Twitter!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-white text-xs">
-              <i class="fa-brands fa-x-twitter text-xl"></i> Twitter
-            </button>
-          </div>
+      displayName.innerText = currentUser || '@Umar';
+      avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser || 'Umar'}`;
+
+      const myPosts = posts.filter(p => p.author === currentUser);
+      const totalLikes = myPosts.reduce((acc, curr) => acc + (curr.likes || 0), 0);
+
+      likesElem.innerText = totalLikes;
+      postsCountElem.innerText = myPosts.length;
+
+      if (myPosts.length === 0) {
+        grid.innerHTML = `<p class="col-span-3 text-center text-xs text-gray-500 py-4">You haven't posted anything yet.</p>`;
+        return;
+      }
+
+      grid.innerHTML = myPosts.map(p => `
+        <div class="aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative flex items-center justify-center p-1 text-center">
+          ${p.type === 'video' ? `<video src="${p.videoUrl}" class="w-full h-full object-cover"></video>` : `<p class="text-[10px] text-gray-300 line-clamp-3">${p.content}</p>`}
         </div>
-      `;
+      `).join('');
     }
 
-    // CHAT CHANNELS & DM SENDER
+    // DMs & CHAT SYSTEM
     function sendChatMessage() {
       const input = document.getElementById('chat-input');
-      const msg = input.value.trim();
-      if (!msg) return;
-      const container = document.getElementById('chat-messages');
-      container.innerHTML += `
-        <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700 ml-auto">
-          <p class="text-[10px] text-green-400 font-bold">@Umar (Channel Admin)</p>
-          <p class="text-xs text-gray-200 allow-select">${msg}</p>
-          <div class="flex gap-2 mt-1 text-[10px] text-gray-400">
-            <button onclick="showToast('Reacted ❤️')" class="hover:text-red-400">❤️ 1</button>
-            <button onclick="showToast('Reacted 🔥')" class="hover:text-amber-400">🔥 1</button>
-          </div>
-        </div>
-      `;
+      const text = input.value.trim();
+      if (!text) return;
+
+      chatMessages.push({ id: Date.now(), author: currentUser || '@User', text: text });
+      saveChats();
       input.value = '';
+      renderChats();
+    }
+
+    function renderChats() {
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = chatMessages.map(m => `
+        <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700 ${m.author === currentUser ? 'ml-auto border-cyan-500/40' : ''}">
+          <p class="text-[10px] text-cyan-400 font-bold">${m.author}</p>
+          <p class="text-xs text-gray-200 mt-0.5">${m.text}</p>
+        </div>
+      `).join('');
       container.scrollTop = container.scrollHeight;
     }
 
-    // LIVE CODE RUNNER USING SKULPT & JS EVAL
+    // TRADING VIEW SYMBOL SWITCH
+    function changeSymbol(symbol) {
+      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&theme=dark`;
+    }
+
+    // CODE RUNNER
     function executeCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
-      const outputDiv = document.getElementById('code-output');
-      outputDiv.innerHTML = '';
+      const output = document.getElementById('code-output');
+
+      output.innerText = "Running...";
 
       if (lang === 'javascript') {
         try {
-          // Safe console.log capture
-          const originalLog = console.log;
           let logs = [];
+          const oldLog = console.log;
           console.log = (...args) => logs.push(args.join(' '));
-          const res = eval(code);
-          console.log = originalLog;
-          if (logs.length > 0) {
-            outputDiv.innerHTML = logs.join('<br>');
-          } else if (res !== undefined) {
-            outputDiv.innerHTML = res;
-          } else {
-            outputDiv.innerHTML = 'Executed successfully with no output.';
-          }
-        } catch (err) {
-          outputDiv.innerHTML = `<span class="text-red-400">${err.toString()}</span>`;
+          eval(code);
+          console.log = oldLog;
+          output.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully (No output)";
+        } catch (e) {
+          output.innerText = "JS Error: " + e.message;
         }
-      } else {
-        // Python execution via Skulpt
-        Sk.builtinFiles = Sk.builtinFiles || {};
-        Sk.builtinFiles["files"] = Sk.builtinFiles["files"] || {};
+      } else if (lang === 'python') {
         Sk.configure({
-          output: function(text) {
-            outputDiv.innerHTML += text.replace(/\n/g, '<br>');
-          },
-          read: function(filename) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][filename] === undefined) {
-              throw "File not found: '" + filename + "'";
-            }
-            return Sk.builtinFiles["files"][filename];
+          output: function(text) { output.innerText += text; },
+          read: function(x) {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+              throw "File not found: '" + x + "'";
+            return Sk.builtinFiles["files"][x];
           }
         });
+        output.innerText = "";
         Sk.misceval.asyncToPromise(function() {
           return Sk.importMainWithBody("<stdin>", false, code, true);
-        }).then(function() {
-          // Success
-        }, function(err) {
-          outputDiv.innerHTML += `<br><span class="text-red-400">${err.toString()}</span>`;
+        }).catch(function(err) {
+          output.innerText = err.toString();
         });
       }
     }
 
-    function changeSymbol(sym) {
-      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${sym}&interval=D&theme=dark`;
-      showToast(`Loaded chart: ${sym.split(':')[1] || sym}`);
-    }
-
     function triggerWalletWithdraw() {
-      showToast('Wallet balance is $0.00. Earn likes to withdraw!');
+      showToast('Wallet Feature: Minimum balance $10.00 required.');
     }
 
-    // Initial renders on load
-    renderVideos();
-    renderPosts();
-    renderProfile();
+    function initApp() {
+      loadAppData();
+      renderVideos();
+      renderPosts();
+      renderChats();
+      renderProfile();
+    }
+
+    // STARTUP
+    window.onload = function() {
+      checkAuthSession();
+    };
   </script>
 </body>
 </html>
