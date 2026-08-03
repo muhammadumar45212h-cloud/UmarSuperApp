@@ -24,7 +24,7 @@
       background-color: var(--bg-dark);
       color: #ffffff;
       font-family: system-ui, -apple-system, sans-serif;
-      user-select: none; /* Privacy & Copy Control */
+      user-select: none;
       -webkit-user-select: none;
     }
     .allow-select {
@@ -55,7 +55,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Custom Non-Intrusive Toast Notification */
     #toast-notification {
       transition: all 0.3s ease-in-out;
       transform: translateY(-100%);
@@ -69,111 +68,94 @@
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden">
 
-  <!-- AUTO-DISMISS FLOATING TOAST (NO ALERTS) -->
+  <!-- AUTO-DISMISS FLOATING TOAST -->
   <div id="toast-notification" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-cyan-400 border border-cyan-500/40 px-4 py-2 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 pointer-events-none">
     <i class="fa-solid fa-circle-info" id="toast-icon"></i>
     <span id="toast-message">Notification Message</span>
   </div>
 
-  <!-- LONG PRESS CONTEXT ACTION MODAL -->
-  <div id="longPressMenu" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end justify-center p-4" onclick="closeLongPressMenu()">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-4 space-y-3" onclick="event.stopPropagation()">
-      <div class="text-xs font-bold text-gray-400 text-center pb-2 border-b border-gray-800">Message Options</div>
-      
-      <!-- Quick Reactions -->
-      <div class="flex justify-around text-2xl py-2 bg-gray-950 rounded-xl border border-gray-800">
-        <button onclick="applyQuickReaction('👍')">👍</button>
-        <button onclick="applyQuickReaction('❤️')">❤️</button>
-        <button onclick="applyQuickReaction('🔥')">🔥</button>
-        <button onclick="applyQuickReaction('😂')">😂</button>
-        <button onclick="applyQuickReaction('🚀')">🚀</button>
-      </div>
-
-      <div class="space-y-1 pt-1">
-        <button onclick="executeAction('copy')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-cyan-400">
-          <i class="fa-regular fa-copy"></i> Copy Text
-        </button>
-        <button onclick="executeAction('forward')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-green-400">
-          <i class="fa-solid fa-share"></i> Forward Message
-        </button>
-        <button onclick="executeAction('report')" class="w-full text-left px-4 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-semibold flex items-center gap-3 text-red-400">
-          <i class="fa-solid fa-flag"></i> Report Content
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOP HEADER -->
-  <header class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center z-10">
-    <h1 class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
+  <!-- COMPACT TOP HEADER -->
+  <header class="p-2.5 bg-gray-900 border-b border-gray-800 flex justify-between items-center z-10">
+    <h1 class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
       SUPER APP
     </h1>
-    <div class="flex gap-2">
-      <button onclick="openModal('translateModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-green-500/30 text-green-400 flex items-center gap-1">
-        <i class="fa-solid fa-language"></i> Translate
+    <div class="flex gap-1.5 items-center">
+      <button onclick="openModal('translateModal')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-green-500/30 text-green-400 flex items-center gap-1">
+        <i class="fa-solid fa-language text-[10px]"></i> Translate
       </button>
-      <button onclick="openModal('weatherModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-cyan-500/30 flex items-center gap-1">
+      <button onclick="openModal('weatherModal')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-cyan-500/30 flex items-center gap-1">
         ☀️ Weather
       </button>
-      <button onclick="openModal('chatModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-red-500/30 flex items-center gap-1">
-        💬 Messages
+      <button onclick="openModal('chatModal')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 flex items-center gap-1">
+        💬 DMs
       </button>
-      <button onclick="openModal('codeModal')" class="p-2 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400">
+      <button onclick="openModal('codeModal')" class="w-7 h-7 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30" title="Code Runner">
         <i class="fa-solid fa-code"></i>
       </button>
     </div>
   </header>
 
-  <!-- MAIN CONTENT CONTAINER -->
+  <!-- MAIN VIEWPORT -->
   <main id="app-viewport" class="flex-1 relative overflow-y-auto no-scrollbar">
 
-    <!-- TAB 1: VIDEOS / SHORTS FEED -->
+    <!-- VIDEOS FEED -->
     <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
       <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
-        <!-- Dynamic Videos Rendered Here -->
+        <!-- Dynamic Videos -->
       </div>
     </section>
 
-    <!-- TAB 2: TEXT FEED -->
+    <!-- TEXT FEED -->
     <section id="tab-feed" class="p-4 space-y-4 hidden">
       <div id="posts-container" class="space-y-4 max-w-md mx-auto">
-        <!-- Posts Rendered Dynamically -->
+        <!-- Text Posts Dynamic -->
       </div>
     </section>
 
-    <!-- TAB 3: TRADING / FOREX CHART -->
+    <!-- TRADING CHART -->
     <section id="tab-trading" class="h-full w-full hidden flex-col">
       <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between items-center">
         <span>📈 Live Market Real-time Chart</span>
         <div class="flex gap-1">
-          <button onclick="changeSymbol('FX:XAUUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-amber-400 text-[10px] font-bold">XAUUSD</button>
-          <button onclick="changeSymbol('BITSTAMP:BTCUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
-          <button onclick="changeSymbol('FX:EURUSD')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-cyan-400 text-[10px] font-bold">EURUSD</button>
+          <button onclick="changeSymbol('FX:XAUUSD')" class="px-2 py-1 bg-gray-800 rounded text-amber-400 text-[10px] font-bold">XAUUSD</button>
+          <button onclick="changeSymbol('BITSTAMP:BTCUSD')" class="px-2 py-1 bg-gray-800 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
+          <button onclick="changeSymbol('FX:EURUSD')" class="px-2 py-1 bg-gray-800 rounded text-cyan-400 text-[10px] font-bold">EURUSD</button>
         </div>
       </div>
       <div class="flex-1 w-full h-full">
-        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&theme=dark&style=1&timezone=Etc%2FUTC" class="w-full h-full border-0"></iframe>
+        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&theme=dark" class="w-full h-full border-0"></iframe>
       </div>
     </section>
 
-    <!-- TAB 4: PROFILE -->
-    <section id="tab-profile" class="p-4 hidden space-y-6">
+    <!-- USER PROFILE & SETTINGS -->
+    <section id="tab-profile" class="p-4 hidden space-y-5">
       <div class="flex flex-col items-center">
-        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
           <img id="user-avatar-img" src="https://via.placeholder.com/150/090d16/00f2fe?text=Umar" class="w-full h-full rounded-full object-cover">
         </div>
-        <h2 class="text-xl font-bold" id="profile-display-name">@Umar</h2>
-        <p class="text-xs text-gray-400">Verified Creator Profile</p>
+        <h2 class="text-lg font-bold" id="profile-display-name">@Umar</h2>
+        <p class="text-[11px] text-gray-400">Verified Creator Profile</p>
         
-        <div class="flex gap-6 mt-4 text-center">
-          <div><p class="font-bold text-lg" id="profile-likes">0</p><p class="text-xs text-gray-400">Likes</p></div>
-          <div><p class="font-bold text-lg" id="profile-subscribers">1</p><p class="text-xs text-gray-400">Subscribers</p></div>
-          <div><p class="font-bold text-lg" id="profile-posts-count">0</p><p class="text-xs text-gray-400">Posts</p></div>
+        <div class="flex gap-6 mt-3 text-center">
+          <div><p class="font-bold text-base" id="profile-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
+          <div><p class="font-bold text-base" id="profile-subscribers">1</p><p class="text-[10px] text-gray-400">Subscribers</p></div>
+          <div><p class="font-bold text-base" id="profile-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
         </div>
       </div>
 
-      <div class="border-t border-gray-800 pt-4">
-        <h3 class="text-sm font-semibold mb-3 text-cyan-400">My Videos & Uploads</h3>
+      <!-- WALLET & SETTINGS SECTION -->
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+          <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1"></i> Wallet Balance</span>
+          <span class="text-sm font-bold text-green-400">$0.00</span>
+        </div>
+        <button onclick="triggerWalletWithdraw()" class="w-full py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded text-xs font-bold border border-cyan-500/30">
+          Withdraw / Transfer Funds
+        </button>
+      </div>
+
+      <div class="border-t border-gray-800 pt-3">
+        <h3 class="text-xs font-semibold mb-3 text-cyan-400">My Uploads & Videos</h3>
         <div id="profile-grid" class="grid grid-cols-3 gap-2"></div>
       </div>
     </section>
@@ -183,179 +165,32 @@
   <!-- BOTTOM NAVIGATION BAR -->
   <nav class="bg-gray-900 border-t border-gray-800 p-2 flex justify-around items-center z-10">
     <button onclick="switchTab('videos')" class="nav-btn text-cyan-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-play text-lg mb-1"></i>Videos
+      <i class="fa-solid fa-play text-base mb-0.5"></i>Videos
     </button>
     <button onclick="switchTab('feed')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-newspaper text-lg mb-1"></i>Feed
+      <i class="fa-solid fa-newspaper text-base mb-0.5"></i>Feed
     </button>
-    <button onclick="openModal('createModal')" class="w-12 h-12 btn-gradient rounded-full flex items-center justify-center text-white text-xl shadow-lg transform -translate-y-2 border-2 border-gray-900">
+    <button onclick="openModal('createModal')" class="w-11 h-11 btn-gradient rounded-full flex items-center justify-center text-white text-lg shadow-lg transform -translate-y-2 border-2 border-gray-900">
       <i class="fa-solid fa-plus"></i>
     </button>
     <button onclick="switchTab('trading')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-chart-line text-lg mb-1"></i>Trading
+      <i class="fa-solid fa-chart-line text-base mb-0.5"></i>Trading
     </button>
     <button onclick="switchTab('profile')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
-      <i class="fa-solid fa-user text-lg mb-1"></i>Profile
+      <i class="fa-solid fa-user text-base mb-0.5"></i>Profile
     </button>
   </nav>
 
-  <!-- ==================== MODALS & POPUPS ==================== -->
-
-  <!-- TRANSLATE MODAL -->
-  <div id="translateModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-green-400"><i class="fa-solid fa-language"></i> All Languages Translator</h2>
-      <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3 flex-1 flex flex-col">
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Enter Text to Translate</label>
-        <textarea id="source-text" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-sm text-white focus:outline-none allow-select" placeholder="Yahan text likhein..."></textarea>
-      </div>
-      <div class="flex gap-2">
-        <div class="flex-1">
-          <label class="text-xs text-gray-400 block mb-1">Target Language</label>
-          <select id="target-lang" class="w-full bg-gray-800 text-xs text-green-400 p-2.5 rounded border border-gray-700">
-            <option value="ur">Urdu (اردو)</option>
-            <option value="en">English</option>
-            <option value="ar">Arabic (العربية)</option>
-            <option value="hi">Hindi (हिन्दी)</option>
-            <option value="es">Spanish (Español)</option>
-            <option value="fr">French (Français)</option>
-            <option value="de">German (Deutsch)</option>
-          </select>
-        </div>
-        <div class="flex items-end">
-          <button onclick="translateText()" class="px-5 py-2.5 bg-green-600 hover:bg-green-500 rounded text-sm font-bold text-white h-[41px]">Translate</button>
-        </div>
-      </div>
-      <div class="flex-1 flex flex-col mt-2 relative">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs text-gray-400">Translated Result:</span>
-          <button onclick="copyTranslation()" class="text-xs text-green-400 hover:text-green-300 flex items-center gap-1 bg-gray-800 px-2 py-1 rounded border border-gray-700">
-            <i class="fa-regular fa-copy"></i> Copy Text
-          </button>
-        </div>
-        <div id="translated-output" class="w-full flex-1 bg-gray-950 border border-gray-800 p-3 rounded text-sm text-gray-200 overflow-y-auto allow-select">
-          Translation yahan show hogi...
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CHAT & CHANNELS MODAL -->
-  <div id="chatModal" class="fullscreen-modal hidden">
-    <div class="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
-      <h2 class="text-lg font-bold text-cyan-400" id="chat-header-title">Direct Messages & Channels</h2>
-      <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    
-    <div class="flex border-b border-gray-800">
-      <button onclick="switchChatTab('chat')" class="flex-1 py-3 text-center font-semibold text-cyan-400 border-b-2 border-cyan-400" id="btn-chat-tab">Direct Chat</button>
-      <button onclick="switchChatTab('channel')" class="flex-1 py-3 text-center font-semibold text-gray-400" id="btn-channel-tab">Channels</button>
-    </div>
-
-    <!-- Direct Chat View -->
-    <div id="chat-view" class="flex-1 flex flex-col p-4">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3 text-sm"></div>
-      <div class="flex gap-2">
-        <input type="text" id="chat-input" placeholder="Type message..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white focus:outline-none allow-select">
-        <button onclick="sendMessage()" class="px-4 py-2 bg-cyan-600 rounded text-sm font-bold">Send</button>
-      </div>
-    </div>
-
-    <!-- Channels Navigation & Settings View -->
-    <div id="channel-view" class="flex-1 flex flex-col p-4 hidden space-y-4 overflow-y-auto">
-      
-      <!-- Create & List Channels -->
-      <div id="channels-list-container" class="space-y-4">
-        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl space-y-2">
-          <h3 class="text-xs font-bold text-red-400 uppercase">Create Protected Channel</h3>
-          <input type="text" id="channel-name-input" placeholder="Channel Name..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
-          <div class="flex gap-2">
-            <input type="text" id="channel-user-input" placeholder="Admin Username" class="w-1/2 bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
-            <input type="password" id="channel-pass-input" placeholder="Password Key" class="w-1/2 bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white allow-select">
-          </div>
-          <button onclick="createChannel()" class="w-full py-2 bg-red-600 hover:bg-red-500 rounded text-xs font-bold text-white">Create Channel</button>
-        </div>
-
-        <h3 class="text-xs font-bold text-gray-400 uppercase">Available Channels</h3>
-        <div id="channels-list" class="space-y-2"></div>
-      </div>
-
-      <!-- Active Channel View -->
-      <div id="channel-room-container" class="hidden flex-1 flex flex-col h-full">
-        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded border border-gray-800 mb-2">
-          <button onclick="backToChannelsList()" class="text-xs text-cyan-400 font-bold flex items-center gap-1">
-            <i class="fa-solid fa-arrow-left"></i> Channels
-          </button>
-          <span id="active-channel-title" class="font-bold text-sm text-white"></span>
-          
-          <!-- Channel Security Setting Switcher -->
-          <button id="channel-security-btn" onclick="toggleChannelProtection()" class="px-2.5 py-1 bg-red-950 text-red-400 border border-red-800 rounded-full text-[10px] font-bold flex items-center gap-1">
-            <i class="fa-solid fa-shield-halved"></i> Protection OFF
-          </button>
-        </div>
-
-        <div id="channel-history" class="flex-1 overflow-y-auto space-y-3 p-2 bg-gray-950 rounded border border-gray-800 mb-3"></div>
-
-        <div class="bg-gray-900 p-3 rounded border border-gray-800 space-y-2">
-          <textarea id="channel-msg-text" placeholder="Write channel post..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-white focus:outline-none allow-select"></textarea>
-          <div class="flex justify-between items-center">
-            <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-xs px-3 py-1.5 rounded border border-cyan-500/30 text-cyan-400 flex items-center gap-1">
-              <i class="fa-solid fa-image"></i> Media
-              <input type="file" id="channel-media-file" accept="image/*,video/*" class="hidden" onchange="previewChannelMedia(this)">
-            </label>
-            <button onclick="postToActiveChannel()" class="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded text-xs font-bold">Post</button>
-          </div>
-          <div id="channel-media-preview-tag" class="text-xs text-green-400 hidden">Media attached</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WEATHER MODAL -->
-  <div id="weatherModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-cyan-400">Weather Search</h2>
-      <button onclick="closeModal('weatherModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="flex gap-2 mb-4">
-      <input type="text" id="weather-city" placeholder="Search City..." class="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white allow-select">
-      <button onclick="fetchWeather()" class="px-4 py-2 bg-cyan-600 rounded text-sm font-bold">Search</button>
-    </div>
-    <div id="weather-result" class="p-4 bg-gray-900 rounded border border-gray-800 text-center">
-      <p class="text-gray-400 text-sm">Enter city name.</p>
-    </div>
-  </div>
-
-  <!-- CODE RUNNER MODAL -->
-  <div id="codeModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-lg font-bold text-cyan-400">Code Runner</h2>
-      <button onclick="closeModal('codeModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="flex gap-2 mb-2">
-      <select id="code-lang" class="bg-gray-800 text-xs text-cyan-400 p-2 rounded border border-gray-700">
-        <option value="python">Python 3</option>
-        <option value="javascript">JavaScript</option>
-      </select>
-      <button onclick="runCode()" class="flex-1 bg-gradient-to-r from-blue-600 to-red-600 py-2 rounded text-sm font-bold">Run Code</button>
-    </div>
-    <textarea id="code-input" class="w-full h-48 bg-gray-950 border border-gray-800 p-3 rounded text-sm font-mono text-green-400 focus:outline-none mb-2 allow-select" placeholder="Write code..."></textarea>
-    <pre id="code-output" class="flex-1 bg-black border border-gray-800 p-3 rounded text-xs font-mono text-white overflow-y-auto allow-select"></pre>
-  </div>
-
-  <!-- CREATE CONTENT MODAL -->
+  <!-- CREATE POST MODAL -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold text-cyan-400">Create New Post</h2>
+      <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
       <button onclick="closeModal('createModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="space-y-4">
       <div>
         <label class="text-xs text-gray-400 block mb-1">Post Type</label>
-        <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white">
+        <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
           <option value="text">Text Post</option>
           <option value="video">Gallery Video</option>
         </select>
@@ -368,56 +203,43 @@
 
       <div>
         <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-sm text-white h-28 focus:outline-none allow-select" placeholder="Write something..."></textarea>
+        <textarea id="post-caption" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
       </div>
-      <button onclick="publishPost()" class="w-full btn-gradient py-3 rounded font-bold text-white">Publish</button>
+
+      <button onclick="publishPost()" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
     </div>
   </div>
 
-  <!-- JAVASCRIPT APP LOGIC -->
-  <script>
-    // Current User Session Info
-    const CURRENT_USER = "@Umar";
+  <!-- SCRIPT INTEGRATION -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
-    let posts = JSON.parse(localStorage.getItem('super_app_posts')) || [];
-    let channels = JSON.parse(localStorage.getItem('super_app_channels')) || [
-      { id: 'c1', name: 'General Space', admin: '@Umar', protection: false }
-    ];
-    let directMessages = JSON.parse(localStorage.getItem('super_app_dms')) || [];
-    let channelPosts = JSON.parse(localStorage.getItem('super_app_channel_posts')) || {};
-    let subscriptions = JSON.parse(localStorage.getItem('super_app_subs')) || [];
-
-    let activeChannelId = null;
-    let currentChannelMediaBase64 = null;
-
-    // Long Press Handler Storage
-    let longPressTimer = null;
-    let selectedTargetItem = null; // { id, context }
-
-    window.onload = () => {
-      renderPosts();
-      renderChannels();
-      renderDirectMessages();
-      setupGlobalSecurityHandlers();
+    const firebaseConfig = {
+      apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
+      authDomain: "umarsuperapp.firebaseapp.com",
+      projectId: "umarsuperapp",
+      storageBucket: "umarsuperapp.firebasestorage.app",
+      messagingSenderId: "812034119197",
+      appId: "1:812034119197:web:60dc07304f30f29f6058f4"
     };
 
-    // Live Trading Chart Switcher (XAUUSD, BTCUSD, EURUSD)
-    function changeSymbol(symbol) {
-      const iframe = document.getElementById('trading-frame');
-      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=111827&theme=dark&style=1&timezone=Etc%2FUTC`;
-    }
+    const app = initializeApp(firebaseConfig);
+    window.SUPABASE_URL = "https://hfrqoamagezzgdomlmus.supabase.co";
+    window.SUPABASE_KEY = "sb_publishable_qWJP0WEFBfRKwcbxRcoQCA_bmkpmJyN";
+  </script>
 
-    // Non-Intrusive Floating Notification
-    function showToast(message, isError = false) {
+  <script>
+    // GLOBAL STATE & POSTS
+    let posts = [
+      { id: 1, type: 'text', author: '@Umar', content: 'Wellcume to Super App!', likes: 1, isLiked: false, subscribers: 1, comments: [] }
+    ];
+
+    function showToast(msg) {
       const toast = document.getElementById('toast-notification');
-      const msg = document.getElementById('toast-message');
-      const icon = document.getElementById('toast-icon');
-
-      msg.innerText = message;
-      icon.className = isError ? "fa-solid fa-triangle-exclamation text-red-400" : "fa-solid fa-circle-check text-green-400";
-      
+      document.getElementById('toast-message').innerText = msg;
       toast.classList.add('show');
-      setTimeout(() => { toast.classList.remove('show'); }, 2500);
+      setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
     function switchTab(tab) {
@@ -425,377 +247,12 @@
         document.getElementById(`tab-${t}`).classList.add('hidden');
       });
       document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      if (tab === 'profile') renderProfile();
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // --- Google Translator ---
-    async function translateText() {
-      const text = document.getElementById('source-text').value.trim();
-      const targetLang = document.getElementById('target-lang').value;
-      const outputBox = document.getElementById('translated-output');
-
-      if (!text) {
-        outputBox.innerText = "Please enter text to translate.";
-        return;
-      }
-      outputBox.innerText = "Translating...";
-
-      try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        let translatedString = "";
-        if (data && data[0]) {
-          data[0].forEach(item => { if (item[0]) translatedString += item[0]; });
-        }
-        outputBox.innerText = translatedString || "Translation failed.";
-      } catch (error) {
-        outputBox.innerText = "Error connecting to service.";
-      }
-    }
-
-    function copyTranslation() {
-      const text = document.getElementById('translated-output').innerText;
-      if (text && text !== "Translation yahan show hogi...") {
-        navigator.clipboard.writeText(text);
-        showToast("Translation copied!");
-      }
-    }
-
-    // --- Chat Tab Toggle ---
-    function switchChatTab(type) {
-      if(type === 'chat') {
-        document.getElementById('chat-view').classList.remove('hidden');
-        document.getElementById('channel-view').classList.add('hidden');
-        document.getElementById('btn-chat-tab').className = "flex-1 py-3 text-center font-semibold text-cyan-400 border-b-2 border-cyan-400";
-        document.getElementById('btn-channel-tab').className = "flex-1 py-3 text-center font-semibold text-gray-400";
-      } else {
-        document.getElementById('chat-view').classList.add('hidden');
-        document.getElementById('channel-view').classList.remove('hidden');
-        document.getElementById('btn-channel-tab').className = "flex-1 py-3 text-center font-semibold text-red-500 border-b-2 border-red-500";
-        document.getElementById('btn-chat-tab').className = "flex-1 py-3 text-center font-semibold text-gray-400";
-      }
-    }
-
-    // --- Direct Messages ---
-    function sendMessage() {
-      const input = document.getElementById('chat-input');
-      if(!input.value.trim()) return;
-      
-      const newMsg = {
-        id: Date.now(),
-        sender: CURRENT_USER,
-        text: input.value,
-        reactions: {}
-      };
-
-      directMessages.push(newMsg);
-      localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
-      input.value = '';
-      renderDirectMessages();
-    }
-
-    function renderDirectMessages() {
-      const box = document.getElementById('chat-messages');
-      box.innerHTML = `<div class="text-gray-500 text-xs text-center py-1">Direct Chat Conversation</div>`;
-      
-      directMessages.forEach(msg => {
-        const rxHtml = renderReactionsBar(msg.id, 'dm', msg.reactions);
-        box.innerHTML += `
-          <div class="text-right text-cyan-300 mb-2">
-            <div class="bg-blue-900/40 p-2 rounded-xl inline-block text-left border border-blue-800/40 max-w-[85%]"
-                 onmousedown="startLongPress(${msg.id}, 'dm')" onmouseup="cancelLongPress()"
-                 ontouchstart="startLongPress(${msg.id}, 'dm')" ontouchend="cancelLongPress()">
-              <div class="font-bold text-[10px] text-cyan-400">${msg.sender}</div>
-              <div class="text-white text-xs mt-0.5">${msg.text}</div>
-              ${rxHtml}
-            </div>
-          </div>`;
-      });
-      box.scrollTop = box.scrollHeight;
-    }
-
-    // --- Channel System ---
-    function createChannel() {
-      const name = document.getElementById('channel-name-input').value.trim();
-      const user = document.getElementById('channel-user-input').value.trim() || CURRENT_USER;
-      const pass = document.getElementById('channel-pass-input').value.trim();
-
-      if(!name) { showToast("Enter channel name!", true); return; }
-
-      const newChan = {
-        id: 'c_' + Date.now(),
-        name,
-        admin: user,
-        passKey: pass,
-        protection: false
-      };
-
-      channels.push(newChan);
-      localStorage.setItem('super_app_channels', JSON.stringify(channels));
-      document.getElementById('channel-name-input').value = '';
-      document.getElementById('channel-pass-input').value = '';
-      showToast("Channel created!");
-      renderChannels();
-    }
-
-    function renderChannels() {
-      const list = document.getElementById('channels-list');
-      list.innerHTML = channels.map(c => `
-        <div onclick="openChannelRoom('${c.id}')" class="flex justify-between items-center p-3 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:bg-gray-800">
-          <div>
-            <span class="text-sm font-semibold text-gray-200 block">📢 ${c.name}</span>
-            <span class="text-[10px] text-gray-500">Owner: ${c.admin} ${c.protection ? '• 🔒 Protected' : ''}</span>
-          </div>
-          <button class="text-xs bg-cyan-600 px-3 py-1 rounded-full font-bold">Enter</button>
-        </div>
-      `).join('');
-    }
-
-    function openChannelRoom(id) {
-      const chan = channels.find(c => c.id === id);
-      if(!chan) return;
-      activeChannelId = id;
-      
-      document.getElementById('channels-list-container').classList.add('hidden');
-      document.getElementById('channel-room-container').classList.remove('hidden');
-      document.getElementById('active-channel-title').innerText = `📢 ${chan.name}`;
-
-      updateProtectionUI(chan.protection);
-      renderChannelHistory();
-    }
-
-    function backToChannelsList() {
-      activeChannelId = null;
-      document.getElementById('channel-room-container').classList.add('hidden');
-      document.getElementById('channels-list-container').classList.remove('hidden');
-    }
-
-    function toggleChannelProtection() {
-      const chan = channels.find(c => c.id === activeChannelId);
-      if(!chan) return;
-
-      chan.protection = !chan.protection;
-      localStorage.setItem('super_app_channels', JSON.stringify(channels));
-      updateProtectionUI(chan.protection);
-      showToast(chan.protection ? "Protection Activated!" : "Protection Deactivated!");
-    }
-
-    function updateProtectionUI(isProtected) {
-      const btn = document.getElementById('channel-security-btn');
-      if(isProtected) {
-        btn.className = "px-2.5 py-1 bg-red-600 text-white rounded-full text-[10px] font-bold flex items-center gap-1";
-        btn.innerHTML = `<i class="fa-solid fa-lock"></i> Protection ON`;
-      } else {
-        btn.className = "px-2.5 py-1 bg-gray-800 text-gray-400 border border-gray-700 rounded-full text-[10px] font-bold flex items-center gap-1";
-        btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Protection OFF`;
-      }
-    }
-
-    function previewChannelMedia(input) {
-      const file = input.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        currentChannelMediaBase64 = {
-          data: e.target.result,
-          type: file.type.startsWith('video') ? 'video' : 'image'
-        };
-        document.getElementById('channel-media-preview-tag').classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function postToActiveChannel() {
-      const textInput = document.getElementById('channel-msg-text');
-      const caption = textInput.value.trim();
-      
-      if(!caption && !currentChannelMediaBase64) return;
-      if(!channelPosts[activeChannelId]) channelPosts[activeChannelId] = [];
-
-      const newPost = {
-        id: Date.now(),
-        author: CURRENT_USER,
-        text: caption,
-        media: currentChannelMediaBase64,
-        reactions: {}
-      };
-
-      channelPosts[activeChannelId].push(newPost);
-      localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
-
-      textInput.value = '';
-      currentChannelMediaBase64 = null;
-      document.getElementById('channel-media-preview-tag').classList.add('hidden');
-      document.getElementById('channel-media-file').value = '';
-      renderChannelHistory();
-    }
-
-    function renderChannelHistory() {
-      const container = document.getElementById('channel-history');
-      container.innerHTML = '';
-      const history = channelPosts[activeChannelId] || [];
-
-      if(history.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No channel messages yet.</p>`;
-        return;
-      }
-
-      history.forEach(item => {
-        let mediaTag = '';
-        if(item.media) {
-          if(item.media.type === 'video') {
-            mediaTag = `<video src="${item.media.data}" controls class="w-full rounded mt-2 max-h-60 object-cover"></video>`;
-          } else {
-            mediaTag = `<img src="${item.media.data}" class="w-full rounded mt-2 max-h-60 object-cover" />`;
-          }
-        }
-        const rxHtml = renderReactionsBar(item.id, 'channel', item.reactions);
-        container.innerHTML += `
-          <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg text-xs space-y-1"
-               onmousedown="startLongPress(${item.id}, 'channel')" onmouseup="cancelLongPress()"
-               ontouchstart="startLongPress(${item.id}, 'channel')" ontouchend="cancelLongPress()">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-cyan-400">${item.author}</span>
-              <span class="text-[10px] text-gray-500">${new Date(item.id).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            </div>
-            ${item.text ? `<p class="text-gray-200 text-sm mt-1">${item.text}</p>` : ''}
-            ${mediaTag}
-            ${rxHtml}
-          </div>
-        `;
-      });
-      container.scrollTop = container.scrollHeight;
-    }
-
-    // --- Strict 1-User 1-Reaction & 1-Like Policy Engine ---
-    function toggleSingleReaction(id, context, emoji) {
-      let dataTarget;
-      if (context === 'dm') dataTarget = directMessages;
-      else if (context === 'channel') dataTarget = channelPosts[activeChannelId] || [];
-      else if (context === 'post') dataTarget = posts;
-
-      const item = dataTarget.find(x => x.id === id);
-      if (!item) return;
-
-      if (!item.reactions) item.reactions = {};
-
-      let currentEmojiUsers = item.reactions[emoji] || [];
-      const userIndex = currentEmojiUsers.indexOf(CURRENT_USER);
-
-      Object.keys(item.reactions).forEach(e => {
-        item.reactions[e] = (item.reactions[e] || []).filter(u => u !== CURRENT_USER);
-        if (item.reactions[e].length === 0) delete item.reactions[e];
-      });
-
-      if (userIndex === -1) {
-        if (!item.reactions[emoji]) item.reactions[emoji] = [];
-        item.reactions[emoji].push(CURRENT_USER);
-        showToast(`Reacted with ${emoji}`);
-      } else {
-        showToast(`Reaction removed`);
-      }
-
-      if (context === 'dm') {
-        localStorage.setItem('super_app_dms', JSON.stringify(directMessages));
-        renderDirectMessages();
-      } else if (context === 'channel') {
-        localStorage.setItem('super_app_channel_posts', JSON.stringify(channelPosts));
-        renderChannelHistory();
-      } else if (context === 'post') {
-        localStorage.setItem('super_app_posts', JSON.stringify(posts));
-        renderPosts();
-      }
-    }
-
-    function renderReactionsBar(id, context, reactions = {}) {
-      const emojis = ['👍', '❤️', '🔥', '😂', '🚀'];
-      const buttons = emojis.map(e => {
-        const userList = reactions[e] || [];
-        const count = userList.length;
-        const hasReacted = userList.includes(CURRENT_USER);
-        const activeClass = hasReacted ? 'border-cyan-400 text-cyan-400 bg-cyan-950' : 'border-gray-700 text-gray-400 bg-gray-800';
-
-        return `
-          <button onclick="event.stopPropagation(); toggleSingleReaction(${id}, '${context}', '${e}')" 
-                  class="${activeClass} px-2 py-0.5 rounded border text-[11px] flex items-center gap-1 transition">
-            <span>${e}</span>
-            <span>${count}</span>
-          </button>
-        `;
-      }).join('');
-      return `<div class="flex gap-1.5 flex-wrap mt-2 pt-1 border-t border-gray-800/60">${buttons}</div>`;
-    }
-
-    // --- 2 Second Long Press Trigger Engine ---
-    function startLongPress(id, context) {
-      cancelLongPress();
-      selectedTargetItem = { id, context };
-      longPressTimer = setTimeout(() => {
-        openLongPressMenu();
-      }, 2000);
-    }
-
-    function cancelLongPress() {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
-    }
-
-    function openLongPressMenu() {
-      document.getElementById('longPressMenu').classList.remove('hidden');
-    }
-
-    function closeLongPressMenu() {
-      document.getElementById('longPressMenu').classList.add('hidden');
-      selectedTargetItem = null;
-    }
-
-    function applyQuickReaction(emoji) {
-      if(selectedTargetItem) {
-        toggleSingleReaction(selectedTargetItem.id, selectedTargetItem.context, emoji);
-      }
-      closeLongPressMenu();
-    }
-
-    function executeAction(action) {
-      if(!selectedTargetItem) return;
-      const { id, context } = selectedTargetItem;
-      let textToUse = "";
-
-      if(context === 'dm') {
-        const msg = directMessages.find(m => m.id === id);
-        if(msg) textToUse = msg.text;
-      } else if(context === 'channel') {
-        const list = channelPosts[activeChannelId] || [];
-        const item = list.find(i => i.id === id);
-        if(item) textToUse = item.text;
-      }
-
-      if(action === 'copy') {
-        if(context === 'channel') {
-          const chan = channels.find(c => c.id === activeChannelId);
-          if(chan && chan.protection) {
-            showToast("Copy restricted on protected channel!", true);
-            closeLongPressMenu();
-            return;
-          }
-        }
-        navigator.clipboard.writeText(textToUse);
-        showToast("Copied to clipboard!");
-      } else if(action === 'forward') {
-        showToast("Message forwarded!");
-      } else if(action === 'report') {
-        showToast("Message reported to admin.");
-      }
-      closeLongPressMenu();
-    }
-
-    // --- Post Creator & Feed Engine ---
     function togglePostType() {
       const type = document.getElementById('post-type').value;
       document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
@@ -804,251 +261,145 @@
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value;
-      const fileInput = document.getElementById('post-video-file');
+      const videoInput = document.getElementById('post-video-file');
 
-      if(type === 'video' && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => { savePostObject(type, caption, e.target.result); };
-        reader.readAsDataURL(file);
-      } else {
-        savePostObject(type, caption, null);
-      }
-    }
-
-    function savePostObject(type, caption, videoBase64) {
-      if(!caption && !videoBase64) return;
-      const newPost = {
+      let newPost = {
         id: Date.now(),
-        type,
-        caption,
-        videoUrl: videoBase64,
-        likes: [],
-        author: CURRENT_USER,
-        reactions: {}
+        type: type,
+        author: '@Umar',
+        content: caption,
+        likes: 0,
+        isLiked: false,
+        subscribers: 1,
+        comments: []
       };
 
-      posts.unshift(newPost);
-      localStorage.setItem('super_app_posts', JSON.stringify(posts));
-      document.getElementById('post-caption').value = '';
-      document.getElementById('post-video-file').value = '';
-      closeModal('createModal');
-      showToast("Post published!");
-      switchTab(type === 'video' ? 'videos' : 'feed');
-      renderPosts();
-    }
-
-    // --- Rendering Posts & Video Reel Stream ---
-    function renderPosts() {
-      const feedContainer = document.getElementById('posts-container');
-      const videoContainer = document.getElementById('video-feed-container');
-      const profileGrid = document.getElementById('profile-grid');
-      
-      feedContainer.innerHTML = '';
-      videoContainer.innerHTML = '';
-      profileGrid.innerHTML = '';
-      let videoCount = 0;
-
-      posts.forEach(post => {
-        const rxHtml = renderReactionsBar(post.id, 'post', post.reactions);
-        const likeList = Array.isArray(post.likes) ? post.likes : [];
-        const hasLiked = likeList.includes(CURRENT_USER);
-
-        if(post.type === 'text') {
-          feedContainer.innerHTML += `
-            <div class="p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-3">
-              <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs">U</div>
-                  <span class="font-bold text-sm">${post.author}</span>
-                </div>
-                <button onclick="toggleSubscribe('${post.author}')" class="text-xs ${subscriptions.includes(post.author) ? 'text-gray-400' : 'text-cyan-400 font-bold'}">
-                  ${subscriptions.includes(post.author) ? 'Subscribed' : '+ Subscribe'}
-                </button>
-              </div>
-              <p class="text-sm text-gray-200 allow-select">${post.caption}</p>
-              
-              <div class="flex justify-between text-xs border-t border-gray-800 pt-3 text-gray-400">
-                <button onclick="toggleSingleLike(${post.id})" class="flex items-center gap-1.5 ${hasLiked ? 'text-red-500 font-bold' : ''}">
-                  <i class="fa-${hasLiked ? 'solid' : 'regular'} fa-heart"></i> ${likeList.length} Likes
-                </button>
-                <button onclick="showToast('Comment opened')" class="flex items-center gap-1.5">
-                  <i class="fa-regular fa-comment"></i> Comment
-                </button>
-                <button onclick="showToast('Link copied')" class="flex items-center gap-1.5">
-                  <i class="fa-solid fa-share"></i> Share
-                </button>
-                <button onclick="openModal('chatModal'); switchChatTab('chat');" class="flex items-center gap-1.5 text-cyan-400">
-                  <i class="fa-regular fa-paper-plane"></i> DM
-                </button>
-              </div>
-              ${rxHtml}
-            </div>
-          `;
-        }
-
-        if(post.type === 'video' && post.videoUrl) {
-          videoCount++;
-          videoContainer.innerHTML += `
-            <div class="reel-item relative w-full h-full flex-shrink-0 flex items-center justify-center bg-black">
-              <video src="${post.videoUrl}" controls autoplay loop class="w-full h-full object-cover"></video>
-              
-              <div class="absolute right-3 bottom-24 flex flex-col gap-4 text-center z-10">
-                <button onclick="toggleSingleLike(${post.id})" class="flex flex-col items-center">
-                  <div class="w-10 h-10 rounded-full bg-gray-900/60 backdrop-blur-md flex items-center justify-center text-lg ${hasLiked ? 'text-red-500' : 'text-white'}">
-                    <i class="fa-solid fa-heart"></i>
-                  </div>
-                  <span class="text-[10px] text-white mt-1 font-bold">${likeList.length}</span>
-                </button>
-                
-                <button onclick="toggleSubscribe('${post.author}')" class="flex flex-col items-center">
-                  <div class="w-10 h-10 rounded-full bg-cyan-600/80 flex items-center justify-center text-white text-xs">
-                    <i class="fa-solid ${subscriptions.includes(post.author) ? 'fa-check' : 'fa-plus'}"></i>
-                  </div>
-                </button>
-              </div>
-
-              <div class="absolute bottom-6 left-4 right-16 z-10 bg-black/50 p-3 rounded-xl backdrop-blur-md border border-white/10">
-                <p class="font-bold text-cyan-400 text-sm">${post.author}</p>
-                <p class="text-xs text-gray-200 mt-1">${post.caption}</p>
-                ${rxHtml}
-              </div>
-            </div>
-          `;
-
-          profileGrid.innerHTML += `
-            <div class="aspect-square bg-gray-900 border border-gray-800 rounded overflow-hidden relative">
-              <video src="${post.videoUrl}" class="w-full h-full object-cover"></video>
-            </div>
-          `;
-        }
-      });
-
-      if(videoCount === 0) {
-        videoContainer.innerHTML = `<div class="w-full h-full flex flex-col items-center justify-center text-center p-6"><p class="text-gray-500 text-sm">No Videos Uploaded Yet.</p></div>`;
-      }
-      document.getElementById('profile-posts-count').innerText = posts.length;
-      document.getElementById('profile-likes').innerText = posts.reduce((acc, curr) => acc + (Array.isArray(curr.likes) ? curr.likes.length : 0), 0);
-      document.getElementById('profile-subscribers').innerText = subscriptions.length;
-    }
-
-    function toggleSingleLike(id) {
-      posts = posts.map(p => {
-        if(p.id === id) {
-          let likeList = Array.isArray(p.likes) ? p.likes : [];
-          if(likeList.includes(CURRENT_USER)) {
-            likeList = likeList.filter(u => u !== CURRENT_USER);
-            showToast("Like removed");
-          } else {
-            likeList.push(CURRENT_USER);
-            showToast("Post liked!");
-          }
-          return { ...p, likes: likeList };
-        }
-        return p;
-      });
-      localStorage.setItem('super_app_posts', JSON.stringify(posts));
-      renderPosts();
-    }
-
-    function toggleSubscribe(author) {
-      if(subscriptions.includes(author)) {
-        subscriptions = subscriptions.filter(a => a !== author);
-        showToast(`Unsubscribed from ${author}`);
-      } else {
-        subscriptions.push(author);
-        showToast(`Subscribed to ${author}!`);
-      }
-      localStorage.setItem('super_app_subs', JSON.stringify(subscriptions));
-      renderPosts();
-    }
-
-    // --- Weather Fetch Engine ---
-    async function fetchWeather() {
-      const city = document.getElementById('weather-city').value.trim();
-      const resContainer = document.getElementById('weather-result');
-      if(!city) return;
-      resContainer.innerHTML = `<p class="text-cyan-400 text-sm">Searching...</p>`;
-      try {
-        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-        const geoData = await geoRes.json();
-        if(!geoData.results || geoData.results.length === 0) {
-          resContainer.innerHTML = `<p class="text-red-500 text-sm font-bold">City Not Found!</p>`;
+      if (type === 'video') {
+        if (!videoInput.files || !videoInput.files[0]) {
+          showToast('Please select a video file!');
           return;
         }
-        const { latitude, longitude, name, country } = geoData.results[0];
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-        const weatherData = await weatherRes.json();
-        resContainer.innerHTML = `
-          <h3 class="text-lg font-bold text-white">${name}, ${country}</h3>
-          <p class="text-3xl font-extrabold text-cyan-400 my-2">${weatherData.current_weather.temperature}°C</p>
-          <p class="text-xs text-gray-400">Wind Speed: ${weatherData.current_weather.windspeed} km/h</p>
-        `;
-      } catch(err) {
-        resContainer.innerHTML = `<p class="text-red-500 text-sm">Error fetching weather.</p>`;
+        newPost.videoUrl = URL.createObjectURL(videoInput.files[0]);
+      }
+
+      posts.unshift(newPost);
+      closeModal('createModal');
+      document.getElementById('post-caption').value = '';
+      showToast('Post Published Successfully!');
+      renderPosts();
+      renderProfile();
+    }
+
+    function toggleLike(postId) {
+      const p = posts.find(item => item.id === postId);
+      if (p) {
+        if (p.isLiked) {
+          p.likes -= 1;
+          p.isLiked = false;
+          showToast('Like Removed');
+        } else {
+          p.likes += 1;
+          p.isLiked = true;
+          showToast('Post Liked!');
+        }
+        renderPosts();
+        renderProfile();
       }
     }
 
-    // --- Code Runner Engine ---
-    function runCode() {
-      const lang = document.getElementById('code-lang').value;
-      const code = document.getElementById('code-input').value;
-      const outputBox = document.getElementById('code-output');
-      outputBox.innerText = "";
-      outputBox.style.color = "#ffffff";
-
-      if(lang === 'javascript') {
-        try {
-          let logs = [];
-          const customConsole = { log: (...args) => logs.push(args.join(' ')) };
-          const runFn = new Function('console', code);
-          runFn(customConsole);
-          outputBox.innerText = logs.join('\n') || "Executed with no console output.";
-        } catch(err) {
-          outputBox.style.color = "#ff0055";
-          outputBox.innerText = `JS Error: ${err.message}`;
-        }
-      } else if(lang === 'python') {
-        Sk.configure({
-          output: (text) => { outputBox.innerText += text; },
-          read: (x) => {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-              throw "File not found: '" + x + "'";
-            return Sk.builtinFiles["files"][x];
-          }
-        });
-        Sk.misceval.asyncToPromise(() => {
-          return Sk.importMainWithBody("<stdin>", false, code, true);
-        }).then(() => {}, (err) => {
-          outputBox.style.color = "#ff0055";
-          outputBox.innerText = `Python Error: ${err.toString()}`;
-        });
-      }
+    function triggerWalletWithdraw() {
+      showToast('Balance unavailable ($0.00)');
     }
 
-    // --- Global Security Handlers ---
-    function setupGlobalSecurityHandlers() {
-      document.addEventListener('copy', (e) => {
-        if(activeChannelId) {
-          const chan = channels.find(c => c.id === activeChannelId);
-          if(chan && chan.protection) {
-            e.preventDefault();
-            showToast("Copying blocked by channel admin!", true);
-          }
-        }
-      });
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      const videoContainer = document.getElementById('video-feed-container');
+      container.innerHTML = '';
+      videoContainer.innerHTML = '';
 
-      document.addEventListener('keydown', (e) => {
-        if(activeChannelId) {
-          const chan = channels.find(c => c.id === activeChannelId);
-          if(chan && chan.protection) {
-            if (e.key === "PrintScreen" || (e.ctrlKey && e.key === 'c')) {
-              showToast("Action restricted by channel settings!", true);
-            }
-          }
+      posts.forEach(p => {
+        if (p.type === 'text') {
+          container.innerHTML += `
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center font-bold text-xs text-black">U</div>
+                  <span class="text-xs font-bold">${p.author}</span>
+                  <button class="text-[10px] text-cyan-400 hover:underline">+ Subscribe</button>
+                </div>
+                <button class="text-gray-400 text-xs px-2"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+              </div>
+              <p class="text-xs text-gray-200 allow-select">${p.content}</p>
+              <div class="flex justify-between items-center pt-2 border-t border-gray-800 text-xs">
+                <button onclick="toggleLike(${p.id})" class="${p.isLiked ? 'text-red-500' : 'text-gray-400'} flex items-center gap-1 font-semibold">
+                  <i class="fa-solid fa-heart"></i> ${p.likes}
+                </button>
+                <button class="text-gray-400 flex items-center gap-1"><i class="fa-regular fa-comment"></i> Comment</button>
+                <button class="text-gray-400 flex items-center gap-1"><i class="fa-solid fa-share"></i> Share</button>
+                <button onclick="openModal('chatModal')" class="text-cyan-400 flex items-center gap-1 font-bold"><i class="fa-paper-plane"></i> DM</button>
+              </div>
+            </div>
+          `;
+        } else if (p.type === 'video') {
+          videoContainer.innerHTML += `
+            <div class="reel-item h-full w-full relative bg-black flex items-center justify-center">
+              <video src="${p.videoUrl}" class="w-full h-full object-cover" controls loop autoplay muted></video>
+              <div class="absolute bottom-6 left-4 right-16 text-white space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-xs">${p.author}</span>
+                  <button class="bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">+ Subscribe</button>
+                </div>
+                <p class="text-xs font-light">${p.content}</p>
+              </div>
+              <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 text-white text-xs">
+                <button onclick="toggleLike(${p.id})" class="flex flex-col items-center">
+                  <i class="fa-solid fa-heart text-xl ${p.isLiked ? 'text-red-500' : 'text-white'}"></i>
+                  <span>${p.likes}</span>
+                </button>
+                <button class="flex flex-col items-center"><i class="fa-solid fa-comment text-xl"></i><span>0</span></button>
+                <button class="flex flex-col items-center"><i class="fa-solid fa-share text-xl"></i><span>Share</span></button>
+                <button onclick="openModal('chatModal')" class="flex flex-col items-center text-cyan-400"><i class="fa-solid fa-paper-plane text-xl"></i><span>DM</span></button>
+              </div>
+            </div>
+          `;
         }
       });
     }
+
+    function renderProfile() {
+      const totalPosts = posts.length;
+      const totalLikes = posts.reduce((acc, p) => acc + p.likes, 0);
+
+      document.getElementById('profile-posts-count').innerText = totalPosts;
+      document.getElementById('profile-likes').innerText = totalLikes;
+
+      const grid = document.getElementById('profile-grid');
+      grid.innerHTML = '';
+      posts.forEach(p => {
+        if (p.type === 'video') {
+          grid.innerHTML += `
+            <div class="aspect-square bg-gray-900 border border-gray-800 rounded relative overflow-hidden">
+              <video src="${p.videoUrl}" class="w-full h-full object-cover"></video>
+              <span class="absolute bottom-1 right-1 text-[9px] bg-black/70 px-1 rounded text-cyan-400 font-bold"><i class="fa-solid fa-heart text-red-500"></i> ${p.likes}</span>
+            </div>
+          `;
+        } else {
+          grid.innerHTML += `
+            <div class="aspect-square bg-gray-900 border border-gray-800 rounded p-1 flex items-center justify-center text-[10px] text-gray-400 text-center overflow-hidden">
+              ${p.content.substring(0, 20)}...
+            </div>
+          `;
+        }
+      });
+    }
+
+    function changeSymbol(symbol) {
+      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&theme=dark`;
+    }
+
+    window.onload = function() {
+      renderPosts();
+    };
   </script>
 </body>
 </html>
