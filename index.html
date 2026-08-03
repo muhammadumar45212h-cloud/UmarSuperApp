@@ -174,16 +174,15 @@
       <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="space-y-3">
-      <select id="trans-lang" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
+      <select id="trans-lang" onchange="runTranslation()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
         <option value="ur">Urdu (اردو)</option>
         <option value="en">English</option>
         <option value="es">Spanish</option>
         <option value="ar">Arabic (العربية)</option>
         <option value="hi">Hindi</option>
       </select>
-      <textarea id="trans-input" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select" placeholder="Enter text to translate..."></textarea>
-      <button onclick="runTranslation()" class="w-full py-2 bg-green-600 rounded text-xs font-bold">Translate Now</button>
-      <div id="trans-output" class="p-3 bg-gray-900 border border-gray-800 rounded text-xs text-cyan-300 min-h-[80px] allow-select"></div>
+      <textarea id="trans-input" oninput="runTranslation()" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select" placeholder="Enter text to translate..."></textarea>
+      <div id="trans-output" class="p-3 bg-gray-900 border border-gray-800 rounded text-xs text-cyan-300 min-h-[80px] allow-select">Translation will appear here...</div>
     </div>
   </div>
 
@@ -212,8 +211,8 @@
     <div class="flex-1 flex flex-col justify-between overflow-hidden">
       <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar">
         <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700">
-          <p class="text-[10px] text-cyan-400 font-bold">Official Channel</p>
-          <p class="text-xs text-gray-200">Welcome to Super App Channel!</p>
+          <p class="text-[10px] text-cyan-400 font-bold">Official Channel (@Umar)</p>
+          <p class="text-xs text-gray-200">Welcome to Super App Channel! Join our official Telegram for updates.</p>
           <div class="flex gap-2 mt-1 text-[10px] text-gray-400">
             <button onclick="showToast('Reacted ❤️')" class="hover:text-red-400">❤️ 5</button>
             <button onclick="showToast('Reacted 🔥')" class="hover:text-amber-400">🔥 12</button>
@@ -248,16 +247,16 @@
     </div>
   </div>
 
-  <!-- HALF-SCREEN COMMENTS DRAWER -->
+  <!-- HALF-SCREEN COMMENTS & SHARE DRAWER -->
   <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
     <div class="p-3 border-b border-gray-800 flex justify-between items-center">
-      <h3 class="text-xs font-bold text-cyan-400">Comments Section</h3>
+      <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
       <button onclick="closeCommentDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
-    <div id="comments-list" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar">
-      <!-- Dynamic Comments -->
+    <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar">
+      <!-- Dynamic Comments or Share List -->
     </div>
-    <div class="p-3 border-t border-gray-800 flex gap-2">
+    <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
       <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select" placeholder="Write a comment...">
       <button onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
     </div>
@@ -294,14 +293,25 @@
 
   <script>
     // LOCAL STORAGE PERSISTENCE SETUP
-    let posts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS')) || [
-      { id: 101, type: 'text', author: '@Umar', content: 'Wellcume to Super App!', likes: 2, isLiked: false, comments: [] }
-    ];
+    let posts = [];
+    try {
+      const saved = localStorage.getItem('SUPER_APP_POSTS');
+      posts = saved ? JSON.parse(saved) : [
+        { id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, isLiked: false, comments: [] }
+      ];
+    } catch (e) {
+      posts = [{ id: 101, type: 'text', author: '@Umar', content: 'Welcome to Super App!', likes: 2, isLiked: false, comments: [] }];
+    }
 
     let activeActivePostId = null;
+    let drawerMode = 'comments'; // 'comments' or 'share'
 
     function savePosts() {
-      localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(posts));
+      try {
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(posts));
+      } catch (err) {
+        showToast('Storage full! Data could not be saved.');
+      }
     }
 
     function showToast(msg) {
@@ -317,6 +327,8 @@
       });
       document.getElementById(`tab-${tab}`).classList.remove('hidden');
       if (tab === 'profile') renderProfile();
+      if (tab === 'videos') renderVideos();
+      if (tab === 'feed') renderPosts();
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -327,7 +339,7 @@
       document.getElementById('video-file-field').classList.toggle('hidden', type !== 'video');
     }
 
-    // BASE64 VIDEO CONVERSION FOR LOCAL STORAGE PERSISTENCE
+    // BASE64 VIDEO CONVERSION & POST PUBLISHING
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value;
@@ -355,7 +367,9 @@
           closeModal('createModal');
           document.getElementById('post-caption').value = '';
           showToast('Video Published & Saved!');
+          renderVideos();
           renderPosts();
+          renderProfile();
         };
         reader.readAsDataURL(videoInput.files[0]);
       } else {
@@ -373,7 +387,9 @@
         closeModal('createModal');
         document.getElementById('post-caption').value = '';
         showToast('Text Post Published!');
+        renderVideos();
         renderPosts();
+        renderProfile();
       }
     }
 
@@ -388,16 +404,188 @@
           p.isLiked = true;
         }
         savePosts();
+        renderVideos();
         renderPosts();
         renderProfile();
       }
     }
 
-    // COMMENTS BOTTOM DRAWER HANDLERS
-    function openCommentDrawer(postId) {
+    // REAL-TIME TRANSLATION WITH SELECTOR SUPPORT
+    async function runTranslation() {
+      const input = document.getElementById('trans-input').value;
+      const targetLang = document.getElementById('trans-lang').value;
+      const outputDiv = document.getElementById('trans-output');
+      
+      if (!input) {
+        outputDiv.innerText = "Translation will appear here...";
+        return;
+      }
+      
+      outputDiv.innerText = "Translating...";
+      try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=en|${targetLang}`);
+        const data = await res.json();
+        if (data && data.responseData) {
+          outputDiv.innerText = data.responseData.translatedText;
+        } else {
+          outputDiv.innerText = "Translation failed.";
+        }
+      } catch (e) {
+        outputDiv.innerText = "Error connecting to translator.";
+      }
+    }
+
+    // RENDER FEED POSTS
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      container.innerHTML = '';
+      const textPosts = posts.filter(p => p.type === 'text');
+      if (textPosts.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 text-xs py-10">No text posts yet. Create one!</p>';
+        return;
+      }
+      textPosts.forEach(p => {
+        container.innerHTML += `
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-cyan-400">${p.author}</span>
+              <div class="relative">
+                <button onclick="togglePostMenu(${p.id})" class="text-gray-400 px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                <div id="menu-${p.id}" class="hidden absolute right-0 mt-1 bg-gray-800 border border-gray-700 rounded shadow-lg text-xs z-20 w-28">
+                  <button onclick="deletePost(${p.id})" class="w-full text-left px-3 py-1.5 text-red-400 hover:bg-gray-700">Delete</button>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-gray-200 allow-select">${p.content}</p>
+            <div class="flex gap-4 pt-1 border-t border-gray-800 text-xs">
+              <button onclick="toggleLike(${p.id})" class="flex items-center gap-1 ${p.isLiked ? 'text-red-500 font-bold' : 'text-gray-400'}">
+                <i class="fa-solid fa-heart"></i> <span>${p.likes}</span>
+              </button>
+              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="flex items-center gap-1 text-gray-400">
+                <i class="fa-solid fa-comment"></i> <span>${p.comments.length}</span>
+              </button>
+              <button onclick="openCommentDrawer(${p.id}, 'share')" class="flex items-center gap-1 text-gray-400">
+                <i class="fa-solid fa-share"></i> Share
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // RENDER VIDEO REELS FEED
+    function renderVideos() {
+      const container = document.getElementById('video-feed-container');
+      container.innerHTML = '';
+      const videoPosts = posts.filter(p => p.type === 'video');
+      if (videoPosts.length === 0) {
+        container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">No video reels available. Upload one!</div>';
+        return;
+      }
+      videoPosts.forEach(p => {
+        container.innerHTML += `
+          <div class="reel-item w-full h-full relative flex items-center justify-center bg-black">
+            <video src="${p.videoUrl}" class="w-full h-full object-cover" autoplay loop muted playsinline></video>
+            <div class="absolute bottom-16 left-4 right-16 space-y-2 z-20">
+              <span class="text-xs font-bold text-cyan-400 bg-black/50 px-2 py-1 rounded">${p.author}</span>
+              <p class="text-xs text-white bg-black/50 p-2 rounded allow-select">${p.content}</p>
+            </div>
+            <div class="absolute right-3 bottom-20 flex flex-col items-center gap-4 z-20">
+              <button onclick="toggleLike(${p.id})" class="flex flex-col items-center text-white text-xs">
+                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center ${p.isLiked ? 'text-red-500' : 'text-white'}">
+                  <i class="fa-solid fa-heart text-base"></i>
+                </div>
+                <span class="mt-1">${p.likes}</span>
+              </button>
+              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="flex flex-col items-center text-white text-xs">
+                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
+                  <i class="fa-solid fa-comment text-base"></i>
+                </div>
+                <span class="mt-1">${p.comments.length}</span>
+              </button>
+              <button onclick="openCommentDrawer(${p.id}, 'share')" class="flex flex-col items-center text-white text-xs">
+                <div class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
+                  <i class="fa-solid fa-share text-base"></i>
+                </div>
+                <span class="mt-1">Share</span>
+              </button>
+              <div class="relative">
+                <button onclick="togglePostMenu(${p.id})" class="w-10 h-10 rounded-full bg-gray-900/80 flex items-center justify-center text-white">
+                  <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+                </button>
+                <div id="menu-${p.id}" class="hidden absolute right-12 bottom-0 bg-gray-800 border border-gray-700 rounded shadow-lg text-xs z-30 w-28">
+                  <button onclick="deletePost(${p.id})" class="w-full text-left px-3 py-1.5 text-red-400 hover:bg-gray-700">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function togglePostMenu(postId) {
+      const menu = document.getElementById(`menu-${postId}`);
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    function deletePost(postId) {
+      posts = posts.filter(p => p.id !== postId);
+      savePosts();
+      renderVideos();
+      renderPosts();
+      renderProfile();
+      showToast('Post deleted');
+    }
+
+    // PROFILE RENDER & MANAGEMENT
+    function renderProfile() {
+      document.getElementById('profile-posts-count').innerText = posts.length;
+      let totalLikes = 0;
+      posts.forEach(p => totalLikes += p.likes);
+      document.getElementById('profile-likes').innerText = totalLikes;
+
+      const grid = document.getElementById('profile-grid');
+      grid.innerHTML = '';
+      if (posts.length === 0) {
+        grid.innerHTML = '<p class="col-span-3 text-center text-gray-500 text-xs py-4">No uploads yet.</p>';
+        return;
+      }
+      posts.forEach(p => {
+        if (p.type === 'video') {
+          grid.innerHTML += `
+            <div class="aspect-square bg-gray-800 rounded-lg overflow-relative relative">
+              <video src="${p.videoUrl}" class="w-full h-full object-cover"></video>
+              <button onclick="openCommentDrawer(${p.id}, 'comments')" class="absolute inset-0 bg-black/20"></button>
+            </div>
+          `;
+        } else {
+          grid.innerHTML += `
+            <div onclick="openCommentDrawer(${p.id}, 'comments')" class="aspect-square bg-gray-800 border border-gray-700 rounded-lg p-2 text-[10px] text-gray-300 overflow-hidden cursor-pointer flex items-center justify-center text-center">
+              ${p.content}
+            </div>
+          `;
+        }
+      });
+    }
+
+    // HALF-SCREEN COMMENTS & SHARE DRAWER HANDLERS WITH DEEP LINKING
+    function openCommentDrawer(postId, mode) {
       activeActivePostId = postId;
-      document.getElementById('commentDrawer').classList.add('open');
-      renderComments();
+      drawerMode = mode;
+      const drawer = document.getElementById('commentDrawer');
+      const title = document.getElementById('drawer-title');
+      const footer = document.getElementById('drawer-footer-area');
+      
+      if (mode === 'comments') {
+        title.innerText = "Comments Section";
+        footer.classList.remove('hidden');
+        renderComments();
+      } else {
+        title.innerText = "Share Post & Social Apps";
+        footer.classList.add('hidden');
+        renderShareOptions();
+      }
+      drawer.classList.add('open');
     }
 
     function closeCommentDrawer() {
@@ -406,189 +594,162 @@
 
     function renderComments() {
       const p = posts.find(item => item.id === activeActivePostId);
-      const list = document.getElementById('comments-list');
+      const list = document.getElementById('drawer-content-area');
       list.innerHTML = '';
-      if (!p || !p.comments.length) {
+      if (!p || !p.comments || !p.comments.length) {
         list.innerHTML = '<p class="text-gray-500 text-xs text-center py-4">No comments yet. Be the first!</p>';
         return;
       }
       p.comments.forEach((c, idx) => {
-        const isMine = c.author === '@Umar';
         list.innerHTML += `
-          <div class="bg-gray-800 p-2 rounded text-xs space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-cyan-400">${c.author}</span>
-              ${isMine ? `<button onclick="deleteComment(${idx})" class="text-red-400 text-[10px]"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
-            </div>
-            <p class="text-gray-200">${c.text}</p>
-            <div class="flex gap-3 text-[10px] text-gray-400 pt-1">
-              <button onclick="showToast('Liked comment!')" class="hover:text-red-400"><i class="fa-solid fa-heart"></i> Like</button>
-              <button onclick="showToast('Reply feature active')" class="hover:text-cyan-400"><i class="fa-solid fa-reply"></i> Reply</button>
-            </div>
+          <div class="bg-gray-800 p-2 rounded text-xs border border-gray-700 flex justify-between items-center">
+            <div><span class="text-cyan-400 font-bold">@Umar:</span> <span class="allow-select text-gray-200">${c}</span></div>
+            <button onclick="deleteComment(${idx})" class="text-red-400 text-[10px] px-1"><i class="fa-solid fa-trash"></i></button>
           </div>
         `;
       });
     }
 
     function addCommentSubmit() {
-      const text = document.getElementById('new-comment-input').value;
-      if (!text) return;
+      const input = document.getElementById('new-comment-input');
+      const val = input.value.trim();
+      if (!val) return;
       const p = posts.find(item => item.id === activeActivePostId);
       if (p) {
-        p.comments.push({ author: '@Umar', text: text });
+        if (!p.comments) p.comments = [];
+        p.comments.push(val);
         savePosts();
-        document.getElementById('new-comment-input').value = '';
+        input.value = '';
         renderComments();
+        renderVideos();
         renderPosts();
+        showToast('Comment added');
       }
     }
 
     function deleteComment(idx) {
       const p = posts.find(item => item.id === activeActivePostId);
-      if (p) {
+      if (p && p.comments) {
         p.comments.splice(idx, 1);
         savePosts();
         renderComments();
+        renderVideos();
         renderPosts();
       }
     }
 
-    // CODE RUNNER COMPILER LOGIC
+    function renderShareOptions() {
+      const list = document.getElementById('drawer-content-area');
+      // Generate clean deep link format: username + video/post id
+      const deepLink = `https://superapp.official/user/Umar/post/${activeActivePostId}`;
+      
+      list.innerHTML = `
+        <div class="space-y-3">
+          <div class="bg-gray-800 p-2.5 rounded-lg border border-gray-700 flex justify-between items-center">
+            <span class="text-[11px] text-cyan-300 truncate mr-2 allow-select">${deepLink}</span>
+            <button onclick="navigator.clipboard.writeText('${deepLink}'); showToast('Deep link copied!')" class="px-3 py-1 bg-cyan-600 text-white rounded text-xs font-bold shrink-0">Copy</button>
+          </div>
+          <div class="grid grid-cols-4 gap-3 text-center pt-2">
+            <button onclick="showToast('Shared to WhatsApp!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-green-400 text-xs">
+              <i class="fa-brands fa-whatsapp text-xl"></i> WhatsApp
+            </button>
+            <button onclick="showToast('Shared to Telegram!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-cyan-400 text-xs">
+              <i class="fa-brands fa-telegram text-xl"></i> Telegram
+            </button>
+            <button onclick="showToast('Shared to Facebook!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-blue-500 text-xs">
+              <i class="fa-brands fa-facebook text-xl"></i> Facebook
+            </button>
+            <button onclick="showToast('Shared to Twitter!')" class="flex flex-col items-center gap-1 bg-gray-800 p-3 rounded-xl border border-gray-700 text-white text-xs">
+              <i class="fa-brands fa-x-twitter text-xl"></i> Twitter
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // CHAT CHANNELS & DM SENDER
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      const container = document.getElementById('chat-messages');
+      container.innerHTML += `
+        <div class="bg-gray-800 p-2.5 rounded-lg max-w-[80%] border border-gray-700 ml-auto">
+          <p class="text-[10px] text-green-400 font-bold">@Umar (Channel Admin)</p>
+          <p class="text-xs text-gray-200 allow-select">${msg}</p>
+          <div class="flex gap-2 mt-1 text-[10px] text-gray-400">
+            <button onclick="showToast('Reacted ❤️')" class="hover:text-red-400">❤️ 1</button>
+            <button onclick="showToast('Reacted 🔥')" class="hover:text-amber-400">🔥 1</button>
+          </div>
+        </div>
+      `;
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // LIVE CODE RUNNER USING SKULPT & JS EVAL
     function executeCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
-      const out = document.getElementById('code-output');
-      out.innerText = 'Running code...';
+      const outputDiv = document.getElementById('code-output');
+      outputDiv.innerHTML = '';
 
       if (lang === 'javascript') {
         try {
-          let result = eval(code);
-          out.innerText = result !== undefined ? String(result) : 'Executed successfully (No return value).';
+          // Safe console.log capture
+          const originalLog = console.log;
+          let logs = [];
+          console.log = (...args) => logs.push(args.join(' '));
+          const res = eval(code);
+          console.log = originalLog;
+          if (logs.length > 0) {
+            outputDiv.innerHTML = logs.join('<br>');
+          } else if (res !== undefined) {
+            outputDiv.innerHTML = res;
+          } else {
+            outputDiv.innerHTML = 'Executed successfully with no output.';
+          }
         } catch (err) {
-          out.innerText = 'JS Error: ' + err.message;
+          outputDiv.innerHTML = `<span class="text-red-400">${err.toString()}</span>`;
         }
-      } else if (lang === 'python') {
+      } else {
+        // Python execution via Skulpt
+        Sk.builtinFiles = Sk.builtinFiles || {};
+        Sk.builtinFiles["files"] = Sk.builtinFiles["files"] || {};
         Sk.configure({
-          output: function(text) { out.innerText += text; },
-          read: function(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-              throw "File not found: '" + x + "'";
-            return Sk.builtinFiles["files"][x];
+          output: function(text) {
+            outputDiv.innerHTML += text.replace(/\n/g, '<br>');
+          },
+          read: function(filename) {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][filename] === undefined) {
+              throw "File not found: '" + filename + "'";
+            }
+            return Sk.builtinFiles["files"][filename];
           }
         });
-        out.innerText = '';
         Sk.misceval.asyncToPromise(function() {
           return Sk.importMainWithBody("<stdin>", false, code, true);
-        }).then(function() {}, function(err) {
-          out.innerText = 'Python Error: ' + err.toString();
+        }).then(function() {
+          // Success
+        }, function(err) {
+          outputDiv.innerHTML += `<br><span class="text-red-400">${err.toString()}</span>`;
         });
       }
     }
 
-    function runTranslation() {
-      const input = document.getElementById('trans-input').value;
-      document.getElementById('trans-output').innerText = input ? "Translated: " + input : "Please enter valid text.";
+    function changeSymbol(sym) {
+      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${sym}&interval=D&theme=dark`;
+      showToast(`Loaded chart: ${sym.split(':')[1] || sym}`);
     }
 
-    function sendChatMessage() {
-      const val = document.getElementById('chat-input').value;
-      if (!val) return;
-      const box = document.getElementById('chat-messages');
-      box.innerHTML += `
-        <div class="bg-cyan-950 p-2.5 rounded-lg max-w-[80%] ml-auto border border-cyan-800 space-y-1">
-          <p class="text-[10px] text-cyan-300 font-bold">@Umar</p>
-          <p class="text-xs text-white">${val}</p>
-        </div>
-      `;
-      document.getElementById('chat-input').value = '';
+    function triggerWalletWithdraw() {
+      showToast('Wallet balance is $0.00. Earn likes to withdraw!');
     }
 
-    function triggerWalletWithdraw() { showToast('Balance unavailable ($0.00)'); }
-
-    function renderPosts() {
-      const container = document.getElementById('posts-container');
-      const videoContainer = document.getElementById('video-feed-container');
-      container.innerHTML = ''; videoContainer.innerHTML = '';
-
-      posts.forEach(p => {
-        if (p.type === 'text') {
-          container.innerHTML += `
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-              <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center font-bold text-xs text-black">U</div>
-                  <span class="text-xs font-bold">${p.author}</span>
-                </div>
-              </div>
-              <p class="text-xs text-gray-200 allow-select">${p.content}</p>
-              <div class="flex justify-between items-center pt-2 border-t border-gray-800 text-xs">
-                <button onclick="toggleLike(${p.id})" class="${p.isLiked ? 'text-red-500' : 'text-gray-400'} font-semibold">
-                  <i class="fa-solid fa-heart"></i> ${p.likes}
-                </button>
-                <button onclick="openCommentDrawer(${p.id})" class="text-gray-400"><i class="fa-regular fa-comment"></i> ${p.comments.length}</button>
-                <button onclick="showToast('Post Link Copied')" class="text-gray-400"><i class="fa-solid fa-share"></i> Share</button>
-                <button onclick="openModal('chatModal')" class="text-cyan-400 font-bold"><i class="fa-paper-plane"></i> DM</button>
-              </div>
-            </div>
-          `;
-        } else if (p.type === 'video') {
-          videoContainer.innerHTML += `
-            <div class="reel-item h-full w-full relative bg-black flex items-center justify-center">
-              <video src="${p.videoUrl}" class="w-full h-full object-cover" controls loop autoplay muted></video>
-              <div class="absolute bottom-6 left-4 right-16 text-white space-y-1">
-                <span class="font-bold text-xs">${p.author}</span>
-                <p class="text-xs font-light">${p.content}</p>
-              </div>
-              <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 text-white text-xs">
-                <button onclick="toggleLike(${p.id})" class="flex flex-col items-center">
-                  <i class="fa-solid fa-heart text-xl ${p.isLiked ? 'text-red-500' : 'text-white'}"></i>
-                  <span>${p.likes}</span>
-                </button>
-                <button onclick="openCommentDrawer(${p.id})" class="flex flex-col items-center">
-                  <i class="fa-solid fa-comment text-xl"></i><span>${p.comments.length}</span>
-                </button>
-                <button onclick="openModal('chatModal')" class="flex flex-col items-center text-cyan-400"><i class="fa-solid fa-paper-plane text-xl"></i><span>DM</span></button>
-              </div>
-            </div>
-          `;
-        }
-      });
-    }
-
-    function renderProfile() {
-      const totalPosts = posts.length;
-      const totalLikes = posts.reduce((acc, p) => acc + p.likes, 0);
-
-      document.getElementById('profile-posts-count').innerText = totalPosts;
-      document.getElementById('profile-likes').innerText = totalLikes;
-
-      const grid = document.getElementById('profile-grid');
-      grid.innerHTML = '';
-      posts.forEach(p => {
-        if (p.type === 'video') {
-          grid.innerHTML += `
-            <div onclick="switchTab('videos')" class="aspect-square bg-gray-900 border border-gray-800 rounded relative overflow-hidden cursor-pointer">
-              <video src="${p.videoUrl}" class="w-full h-full object-cover"></video>
-              <span class="absolute bottom-1 right-1 text-[9px] bg-black/70 px-1 rounded text-cyan-400 font-bold"><i class="fa-solid fa-heart text-red-500"></i> ${p.likes}</span>
-            </div>
-          `;
-        } else {
-          grid.innerHTML += `
-            <div onclick="switchTab('feed')" class="aspect-square bg-gray-900 border border-gray-800 rounded p-1 flex items-center justify-center text-[10px] text-gray-400 text-center overflow-hidden cursor-pointer">
-              ${p.content.substring(0, 20)}...
-            </div>
-          `;
-        }
-      });
-    }
-
-    function changeSymbol(symbol) {
-      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&theme=dark`;
-    }
-
-    window.onload = function() {
-      renderPosts();
-    };
+    // Initial renders on load
+    renderVideos();
+    renderPosts();
+    renderProfile();
   </script>
 </body>
 </html>
