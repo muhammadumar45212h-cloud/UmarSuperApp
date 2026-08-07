@@ -461,7 +461,7 @@
       }
     }
 
-    // GALLERY VIDEO UPLOAD & TEXT PUBLISH FIX
+    // GALLERY VIDEO UPLOAD (BASE64 NO EXPIRE) & TEXT PUBLISH FIX
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
@@ -473,23 +473,29 @@
           return;
         }
         const file = fileInput.files[0];
-        const videoUrl = URL.createObjectURL(file);
-
-        let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-        const newVid = {
-          id: Date.now(),
-          user: currentUser || 'Umar',
-          caption: caption || 'Gallery Video Upload 🚀',
-          url: videoUrl,
-          likes: 0,
-          subscribed: false,
-          comments: []
+        
+        // Convert Video to Base64 so it never expires when reopening app
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const videoBase64 = e.target.result;
+          let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
+          const newVid = {
+            id: Date.now(),
+            user: currentUser || 'Umar',
+            caption: caption || 'Gallery Video Upload 🚀',
+            url: videoBase64,
+            likes: [], // Array of usernames who liked
+            subscribed: false,
+            comments: []
+          };
+          storedVideos.unshift(newVid);
+          localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
+          showToast('Video published successfully!');
+          initAppContent();
+          loadProfileGrid();
         };
-        storedVideos.unshift(newVid);
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        showToast('Video published successfully!');
-        initAppContent();
-        loadProfileGrid();
+        reader.readAsDataURL(file);
+
       } else {
         if (!caption) {
           showToast('Please enter text content!');
@@ -500,7 +506,8 @@
           id: Date.now(),
           user: currentUser || 'Umar',
           text: caption,
-          likes: 0
+          likes: [], // Array of usernames who liked
+          comments: []
         });
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
         showToast('Text post published!');
@@ -532,11 +539,11 @@
     // INITIALIZE VIDEO FEED WITH FULL SIDEBAR BUTTONS
     function initAppContent() {
       const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: 12, subscribed: false, comments: [{user: 'aqib', text: 'Awesome features!'}, {user: 'ali', text: 'Super Fast!'}] },
-        { id: 2, user: 'aqib_dev', caption: 'Checking live features seamlessly', url: 'https://www.w3schools.com/html/movie.mp4', likes: 25, subscribed: false, comments: [] }
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], subscribed: false, comments: [{user: 'aqib', text: 'Awesome features!', likes: []}, {user: 'ali', text: 'Super Fast!', likes: []}] },
+        { id: 2, user: 'aqib_dev', caption: 'Checking live features seamlessly', url: 'https://www.w3schools.com/html/movie.mp4', likes: [], subscribed: false, comments: [] }
       ];
 
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '');
+      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || 'null');
       if (!storedVideos || storedVideos.length === 0) {
         storedVideos = defaultVideos;
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(defaultVideos));
@@ -546,6 +553,9 @@
       container.innerHTML = '';
 
       storedVideos.forEach(v => {
+        const likesArr = Array.isArray(v.likes) ? v.likes : [];
+        const isLiked = currentUser && likesArr.includes(currentUser);
+
         const item = document.createElement('div');
         item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
         item.innerHTML = `
@@ -564,10 +574,10 @@
           <!-- SIDE BUTTONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
           <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
             <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
-              <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 text-lg border border-gray-700">
+              <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
                 <i class="fa-solid fa-heart"></i>
               </div>
-              <span class="text-[10px] text-white font-semibold mt-1" id="likes-count-${v.id}">${v.likes}</span>
+              <span class="text-[10px] text-white font-semibold mt-1" id="likes-count-${v.id}">${likesArr.length}</span>
             </button>
 
             <button onclick="openCommentDrawer(${v.id})" class="flex flex-col items-center">
@@ -600,15 +610,25 @@
       loadTextPosts();
     }
 
+    // TOGGLE LIKE VIDEO (1 USER = 1 LIKE MAX)
     function likeVideo(id) {
+      if (!currentUser) { showToast('Please login to like!'); return; }
       let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
       const index = storedVideos.findIndex(v => v.id === id);
       if (index !== -1) {
-        storedVideos[index].likes += 1;
+        if (!Array.isArray(storedVideos[index].likes)) {
+          storedVideos[index].likes = [];
+        }
+        const userIdx = storedVideos[index].likes.indexOf(currentUser);
+        if (userIdx === -1) {
+          storedVideos[index].likes.push(currentUser); // Single Like
+          showToast('Liked Video!');
+        } else {
+          storedVideos[index].likes.splice(userIdx, 1); // Unlike on second click
+          showToast('Unliked Video');
+        }
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        const countElem = document.getElementById(`likes-count-${id}`);
-        if (countElem) countElem.innerText = storedVideos[index].likes;
-        showToast('Liked Video!');
+        initAppContent();
       }
     }
 
@@ -636,7 +656,7 @@
       }
     }
 
-    // HALF-SCREEN COMMENTS DRAWER WITH LIKES & REPLIES
+    // HALF-SCREEN COMMENTS DRAWER WITH SINGLE LIKES & REPLIES
     function openCommentDrawer(videoId) {
       currentActiveVideoId = videoId;
       document.getElementById('drawer-title').innerText = "Comments Section";
@@ -657,13 +677,16 @@
       }
 
       video.comments.forEach((c, idx) => {
+        const likesArr = Array.isArray(c.likes) ? c.likes : [];
+        const isLiked = currentUser && likesArr.includes(currentUser);
+
         const item = document.createElement('div');
         item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1.5';
         item.innerHTML = `
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-cyan-400">@${c.user}</span>
-            <button onclick="likeComment(${idx})" class="text-[10px] text-red-400 flex items-center gap-1">
-              <i class="fa-solid fa-heart"></i> <span>${c.likes || 0}</span>
+            <button onclick="likeComment(${idx})" class="text-[10px] ${isLiked ? 'text-red-500' : 'text-gray-400'} flex items-center gap-1">
+              <i class="fa-solid fa-heart"></i> <span>${likesArr.length}</span>
             </button>
           </div>
           <p class="text-xs text-gray-200">${c.text}</p>
@@ -685,7 +708,7 @@
       const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
       if (index !== -1) {
         if (!storedVideos[index].comments) storedVideos[index].comments = [];
-        storedVideos[index].comments.push({ user: currentUser || 'Umar', text: text, likes: 0, replies: [] });
+        storedVideos[index].comments.push({ user: currentUser || 'Umar', text: text, likes: [], replies: [] });
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
         input.value = '';
         renderComments();
@@ -693,11 +716,21 @@
       }
     }
 
+    // TOGGLE LIKE COMMENT (1 USER = 1 LIKE MAX)
     function likeComment(cIdx) {
+      if (!currentUser) return;
       let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
       const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
       if (index !== -1 && storedVideos[index].comments[cIdx]) {
-        storedVideos[index].comments[cIdx].likes = (storedVideos[index].comments[cIdx].likes || 0) + 1;
+        let comment = storedVideos[index].comments[cIdx];
+        if (!Array.isArray(comment.likes)) comment.likes = [];
+        
+        const uIdx = comment.likes.indexOf(currentUser);
+        if (uIdx === -1) {
+          comment.likes.push(currentUser);
+        } else {
+          comment.likes.splice(uIdx, 1);
+        }
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
         renderComments();
       }
@@ -775,23 +808,68 @@
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
+    // TEXT POSTS WITH USER FIX, BOTTOM ACTION BUTTONS & SINGLE LIKE TOGGLE
     function loadTextPosts() {
       let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
       const container = document.getElementById('posts-container');
       container.innerHTML = '';
 
       storedPosts.forEach(p => {
+        const author = p.user || 'Umar';
+        const likesArr = Array.isArray(p.likes) ? p.likes : [];
+        const isLiked = currentUser && likesArr.includes(currentUser);
+
         const item = document.createElement('div');
-        item.className = 'bg-gray-900 border border-gray-800 p-3.5 rounded-xl space-y-2';
+        item.className = 'bg-gray-900 border border-gray-800 p-3.5 rounded-xl space-y-3';
         item.innerHTML = `
           <div class="flex justify-between items-center">
-            <span class="font-bold text-xs text-cyan-400">@${p.user}</span>
+            <span class="font-bold text-xs text-cyan-400">@${author}</span>
             <span class="text-[10px] text-gray-500">Just now</span>
           </div>
           <p class="text-xs text-gray-200 allow-select">${p.text}</p>
+
+          <!-- TEXT POST BOTTOM BUTTONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
+          <div class="flex justify-around items-center pt-2 border-t border-gray-800 text-xs text-gray-400">
+            <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-red-400'}">
+              <i class="fa-solid fa-heart"></i>
+              <span>${likesArr.length}</span>
+            </button>
+            <button onclick="showToast('Comments feature open!')" class="flex items-center gap-1.5 hover:text-cyan-400">
+              <i class="fa-solid fa-comment"></i>
+              <span>Comment</span>
+            </button>
+            <button onclick="copyShareLink(window.location.href)" class="flex items-center gap-1.5 hover:text-green-400">
+              <i class="fa-solid fa-share"></i>
+              <span>Share</span>
+            </button>
+            <button onclick="showToast('Subscribed to @${author}')" class="flex items-center gap-1.5 text-cyan-400 font-bold">
+              <i class="fa-solid fa-bell"></i>
+              <span>Subscribe</span>
+            </button>
+          </div>
         `;
         container.appendChild(item);
       });
+    }
+
+    // TOGGLE LIKE TEXT POST (1 USER = 1 LIKE MAX)
+    function likeTextPost(postId) {
+      if (!currentUser) { showToast('Please login to like!'); return; }
+      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      const index = storedPosts.findIndex(p => p.id === postId);
+      if (index !== -1) {
+        if (!Array.isArray(storedPosts[index].likes)) storedPosts[index].likes = [];
+        const uIdx = storedPosts[index].likes.indexOf(currentUser);
+        if (uIdx === -1) {
+          storedPosts[index].likes.push(currentUser);
+          showToast('Liked Post!');
+        } else {
+          storedPosts[index].likes.splice(uIdx, 1);
+          showToast('Unliked Post');
+        }
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+        loadTextPosts();
+      }
     }
 
     // LIVE WORKING TRANSLATOR FIX
