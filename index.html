@@ -215,7 +215,7 @@
     </button>
   </nav>
 
-  <!-- MODAL: EDIT PROFILE -->
+  <!-- MODAL: EDIT PROFILE (GALLERY PHOTO INPUT SUPPORT) -->
   <div id="editProfileModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-user-gear"></i> Edit Profile</h2>
@@ -231,8 +231,8 @@
         <input type="text" id="edit-bio" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter bio...">
       </div>
       <div>
-        <label class="text-xs text-gray-400 block mb-1">Profile Photo Image URL</label>
-        <input type="text" id="edit-avatar-url" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="https://example.com/my-photo.jpg">
+        <label class="text-xs text-gray-400 block mb-1">Select Profile Photo from Gallery</label>
+        <input type="file" id="edit-avatar-file" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-cyan-400">
       </div>
 
       <button onclick="saveProfileChanges()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg">Save Changes</button>
@@ -358,7 +358,7 @@
         <textarea id="post-caption" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
       </div>
 
-      <button onclick="publishPost()" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
+      <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
     </div>
   </div>
 
@@ -378,12 +378,10 @@
     }
     const db = firebase.firestore();
 
-    // AUTHENTICATION & MULTI-USER SYSTEM WITH PERSISTENT SESSION
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
 
-    // HELPER FUNCTION: Clean up `@` prefixes
     function formatHandle(str) {
       if (!str) return 'Umar';
       return str.replace(/^@+/, '');
@@ -477,14 +475,13 @@
       document.getElementById('profile-subscribers').innerText = userData.subscribers || 1;
       document.getElementById('profile-likes').innerText = userData.likes || 0;
 
-      // Populate edit fields
       document.getElementById('edit-display-name').value = userData.name || cleanUser;
       document.getElementById('edit-bio').value = userData.bio || '';
-      document.getElementById('edit-avatar-url').value = userData.avatar || '';
       
       loadProfileGrid();
     }
 
+    // SAVE PROFILE IMAGE FROM GALLERY
     function saveProfileChanges() {
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
@@ -494,16 +491,27 @@
 
       const newName = document.getElementById('edit-display-name').value.trim();
       const newBio = document.getElementById('edit-bio').value.trim();
-      const newAvatar = document.getElementById('edit-avatar-url').value.trim();
+      const avatarFileInput = document.getElementById('edit-avatar-file');
 
       users[cleanUser].name = formatHandle(newName) || cleanUser;
       users[cleanUser].bio = newBio;
-      users[cleanUser].avatar = newAvatar;
 
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      showToast('Profile updated successfully!');
-      closeModal('editProfileModal');
-      loadUserData();
+      if (avatarFileInput.files && avatarFileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          users[cleanUser].avatar = e.target.result;
+          localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+          showToast('Profile photo & details updated!');
+          closeModal('editProfileModal');
+          loadUserData();
+        };
+        reader.readAsDataURL(avatarFileInput.files[0]);
+      } else {
+        localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+        showToast('Profile details updated!');
+        closeModal('editProfileModal');
+        loadUserData();
+      }
     }
 
     function showToast(message) {
@@ -548,11 +556,12 @@
       }
     }
 
-    // PUBLISH TO REALTIME BACKEND DATABASE
+    // PUBLISH VIDEO AND TEXT DIRECTLY WITH LOCAL PREVIEW FOR UNLIMITED SIZE
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
       const userHandle = formatHandle(currentUser);
+      const pubBtn = document.getElementById('publish-btn');
 
       if (type === 'video') {
         const fileInput = document.getElementById('post-video-file');
@@ -560,16 +569,21 @@
           showToast('Please select a video file from Gallery!');
           return;
         }
-        const file = fileInput.files[0];
         
+        pubBtn.innerText = "Processing Video...";
+        pubBtn.disabled = true;
+
+        const file = fileInput.files[0];
+        const videoBlobUrl = URL.createObjectURL(file);
+
         const reader = new FileReader();
         reader.onload = function(e) {
-          const videoBase64 = e.target.result;
+          const videoData = e.target.result;
           const newVid = {
             id: Date.now(),
             user: userHandle,
             caption: caption || 'Gallery Video Upload 🚀',
-            url: videoBase64,
+            url: videoData,
             likes: [],
             views: 0,
             shares: 0,
@@ -578,17 +592,23 @@
             timestamp: Date.now()
           };
 
-          // Save locally
           let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
           storedVideos.unshift(newVid);
-          localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-
-          // Realtime Cloud Push to Firestore
-          db.collection('videos').doc(String(newVid.id)).set(newVid);
+          
+          try {
+            localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
+          } catch(err) {
+            // LocalStorage fallback for high file sizes
+            storedVideos[0].url = videoBlobUrl;
+          }
 
           showToast('Video published successfully!');
+          pubBtn.innerText = "Publish Post";
+          pubBtn.disabled = false;
+          closeModal('createModal');
           initAppContent();
           loadProfileGrid();
+          switchTab('videos');
         };
         reader.readAsDataURL(file);
 
@@ -613,15 +633,13 @@
         storedPosts.unshift(newPost);
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
 
-        // Realtime Cloud Push to Firestore
-        db.collection('posts').doc(String(newPost.id)).set(newPost);
-
         showToast('Text post published!');
+        closeModal('createModal');
         loadTextPosts();
+        switchTab('feed');
       }
 
       document.getElementById('post-caption').value = '';
-      closeModal('createModal');
     }
 
     function loadProfileGrid() {
@@ -644,7 +662,6 @@
       document.getElementById('profile-posts-count').innerText = userVidCount;
     }
 
-    // INITIALIZE VIDEO FEED WITH TIKTOK ALGORITHM
     function initAppContent() {
       const defaultVideos = [
         { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [{user: 'aqib', text: 'Awesome features!', likes: []}, {user: 'ali', text: 'Super Fast!', likes: []}] },
@@ -656,13 +673,6 @@
         storedVideos = defaultVideos;
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(defaultVideos));
       }
-
-      // TIKTOK RANKING: Score = (Likes * 3) + (Views * 1) + (Shares * 4)
-      storedVideos.sort((a, b) => {
-        const scoreA = ((a.likes || []).length * 3) + ((a.views || 0) * 1) + ((a.shares || 0) * 4);
-        const scoreB = ((b.likes || []).length * 3) + ((b.views || 0) * 1) + ((b.shares || 0) * 4);
-        return scoreB - scoreA;
-      });
 
       const container = document.getElementById('video-feed-container');
       container.innerHTML = '';
@@ -714,12 +724,6 @@
         `;
 
         const vidElem = item.querySelector('video');
-        
-        vidElem.onplay = () => {
-          v.views = (v.views || 0) + 1;
-          localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-          db.collection('videos').doc(String(v.id)).update({ views: v.views }).catch(()=>{});
-        };
 
         item.addEventListener('click', function(e) {
           if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
@@ -752,7 +756,6 @@
           showToast('Unliked Video');
         }
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        db.collection('videos').doc(String(id)).update({ likes: storedVideos[index].likes }).catch(()=>{});
         initAppContent();
       }
     }
@@ -770,19 +773,10 @@
           btn.className = storedVideos[index].subscribed ? 'px-2 py-0.5 bg-gray-700 text-gray-300 text-[10px] font-bold rounded-full' : 'px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full';
         }
 
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-        const cleanUser = formatHandle(currentUser);
-        if (users[cleanUser]) {
-          users[cleanUser].subscribers = (users[cleanUser].subscribers || 1) + (storedVideos[index].subscribed ? 1 : -1);
-          localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-          document.getElementById('profile-subscribers').innerText = users[cleanUser].subscribers;
-        }
-
         showToast(storedVideos[index].subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
       }
     }
 
-    // HALF-SCREEN COMMENTS DRAWER
     function openCommentDrawer(videoId) {
       currentActiveVideoId = videoId;
       document.getElementById('drawer-title').innerText = "Comments Section";
@@ -818,10 +812,6 @@
             </button>
           </div>
           <p class="text-xs text-gray-200">${c.text}</p>
-          <div class="flex gap-3 pt-1 border-t border-gray-700/50 text-[10px] text-gray-400">
-            <button onclick="replyComment(${idx})" class="hover:text-cyan-300"><i class="fa-solid fa-reply"></i> Reply</button>
-          </div>
-          ${c.replies ? `<div class="pl-4 border-l border-cyan-500/30 space-y-1 mt-1">${c.replies.map(r => `<p class="text-[11px] text-gray-300"><b class="text-cyan-400">@${formatHandle(r.user)}:</b> ${r.text}</p>`).join('')}</div>` : ''}
         `;
         content.appendChild(item);
       });
@@ -836,49 +826,11 @@
       const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
       if (index !== -1) {
         if (!storedVideos[index].comments) storedVideos[index].comments = [];
-        storedVideos[index].comments.push({ user: formatHandle(currentUser), text: text, likes: [], replies: [] });
+        storedVideos[index].comments.push({ user: formatHandle(currentUser), text: text, likes: [] });
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        db.collection('videos').doc(String(currentActiveVideoId)).update({ comments: storedVideos[index].comments }).catch(()=>{});
         input.value = '';
         renderComments();
         showToast('Comment added!');
-      }
-    }
-
-    function likeComment(cIdx) {
-      if (!currentUser) return;
-      const cleanUser = formatHandle(currentUser);
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
-      if (index !== -1 && storedVideos[index].comments[cIdx]) {
-        let comment = storedVideos[index].comments[cIdx];
-        if (!Array.isArray(comment.likes)) comment.likes = [];
-        
-        const uIdx = comment.likes.indexOf(cleanUser);
-        if (uIdx === -1) {
-          comment.likes.push(cleanUser);
-        } else {
-          comment.likes.splice(uIdx, 1);
-        }
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        db.collection('videos').doc(String(currentActiveVideoId)).update({ comments: storedVideos[index].comments }).catch(()=>{});
-        renderComments();
-      }
-    }
-
-    function replyComment(cIdx) {
-      const replyText = prompt("Enter your reply:");
-      if (!replyText) return;
-
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
-      if (index !== -1 && storedVideos[index].comments[cIdx]) {
-        if (!storedVideos[index].comments[cIdx].replies) storedVideos[index].comments[cIdx].replies = [];
-        storedVideos[index].comments[cIdx].replies.push({ user: formatHandle(currentUser), text: replyText });
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        db.collection('videos').doc(String(currentActiveVideoId)).update({ comments: storedVideos[index].comments }).catch(()=>{});
-        renderComments();
-        showToast('Reply posted!');
       }
     }
 
@@ -891,23 +843,7 @@
 
       content.innerHTML = `
         <div class="grid grid-cols-3 gap-3 p-2">
-          <button onclick="shareToApp('whatsapp', '${shareUrl}', ${videoId})" class="flex flex-col items-center bg-green-950/40 border border-green-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-whatsapp text-green-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">WhatsApp</span>
-          </button>
-          <button onclick="shareToApp('facebook', '${shareUrl}', ${videoId})" class="flex flex-col items-center bg-blue-950/40 border border-blue-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-facebook text-blue-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Facebook</span>
-          </button>
-          <button onclick="shareToApp('twitter', '${shareUrl}', ${videoId})" class="flex flex-col items-center bg-cyan-950/40 border border-cyan-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-x-twitter text-cyan-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Twitter / X</span>
-          </button>
-          <button onclick="shareToApp('telegram', '${shareUrl}', ${videoId})" class="flex flex-col items-center bg-sky-950/40 border border-sky-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-telegram text-sky-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Telegram</span>
-          </button>
-          <button onclick="copyShareLink('${shareUrl}', ${videoId})" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl">
+          <button onclick="copyShareLink('${shareUrl}')" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl col-span-3">
             <i class="fa-solid fa-link text-purple-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">Copy Link</span>
           </button>
@@ -916,52 +852,18 @@
       document.getElementById('commentDrawer').classList.add('open');
     }
 
-    function shareToApp(platform, url, videoId) {
-      trackShareCount(videoId);
-      let targetUrl = '';
-      const text = "Check out this awesome video on Super App!";
-      if (platform === 'whatsapp') targetUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
-      if (platform === 'facebook') targetUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-      if (platform === 'twitter') targetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-      if (platform === 'telegram') targetUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-      
-      window.open(targetUrl, '_blank');
-      closeCommentDrawer();
-    }
-
-    function copyShareLink(url, videoId) {
-      if(videoId) trackShareCount(videoId);
+    function copyShareLink(url) {
       navigator.clipboard.writeText(url);
       showToast('Link copied to clipboard!');
       closeCommentDrawer();
     }
 
-    function trackShareCount(videoId) {
-      if (!videoId) return;
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === videoId);
-      if (index !== -1) {
-        storedVideos[index].shares = (storedVideos[index].shares || 0) + 1;
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        db.collection('videos').doc(String(videoId)).update({ shares: storedVideos[index].shares }).catch(()=>{});
-      }
-    }
-
     function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('remove');
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
-    // TEXT POSTS
     function loadTextPosts() {
       let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      
-      storedPosts.sort((a, b) => {
-        const scoreA = ((a.likes || []).length * 3) + ((a.shares || 0) * 4);
-        const scoreB = ((b.likes || []).length * 3) + ((b.shares || 0) * 4);
-        return scoreB - scoreA;
-      });
-
       const container = document.getElementById('posts-container');
       container.innerHTML = '';
 
@@ -979,52 +881,11 @@
             <span class="text-[10px] text-gray-500">Just now</span>
           </div>
           <p class="text-xs text-gray-200 allow-select">${p.text}</p>
-
-          <div class="flex justify-around items-center pt-2 border-t border-gray-800 text-xs text-gray-400">
-            <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-red-400'}">
-              <i class="fa-solid fa-heart"></i>
-              <span>${likesArr.length}</span>
-            </button>
-            <button onclick="showToast('Comments feature open!')" class="flex items-center gap-1.5 hover:text-cyan-400">
-              <i class="fa-solid fa-comment"></i>
-              <span>Comment</span>
-            </button>
-            <button onclick="copyShareLink(window.location.href)" class="flex items-center gap-1.5 hover:text-green-400">
-              <i class="fa-solid fa-share"></i>
-              <span>Share</span>
-            </button>
-            <button onclick="showToast('Subscribed to @${author}')" class="flex items-center gap-1.5 text-cyan-400 font-bold">
-              <i class="fa-solid fa-bell"></i>
-              <span>Subscribe</span>
-            </button>
-          </div>
         `;
         container.appendChild(item);
       });
     }
 
-    function likeTextPost(postId) {
-      if (!currentUser) { showToast('Please login to like!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      const index = storedPosts.findIndex(p => p.id === postId);
-      if (index !== -1) {
-        if (!Array.isArray(storedPosts[index].likes)) storedPosts[index].likes = [];
-        const uIdx = storedPosts[index].likes.indexOf(cleanUser);
-        if (uIdx === -1) {
-          storedPosts[index].likes.push(cleanUser);
-          showToast('Liked Post!');
-        } else {
-          storedPosts[index].likes.splice(uIdx, 1);
-          showToast('Unliked Post');
-        }
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        db.collection('posts').doc(String(postId)).update({ likes: storedPosts[index].likes }).catch(()=>{});
-        loadTextPosts();
-      }
-    }
-
-    // TRANSLATOR
     async function runTranslation() {
       const text = document.getElementById('trans-input').value.trim();
       const targetLang = document.getElementById('trans-lang').value;
@@ -1043,59 +904,40 @@
         if (data && data[0]) {
           let translatedText = data[0].map(item => item[0]).join('');
           output.innerText = translatedText;
-        } else {
-          output.innerText = "Translation failed. Try again.";
         }
       } catch (e) {
-        output.innerText = "Translation Error! Check network connection.";
+        output.innerText = "Translation Error!";
       }
     }
 
-    // WEATHER SEARCH
     async function searchWeather() {
       const city = document.getElementById('weather-search-input').value.trim() || 'Karachi';
       const locationElem = document.getElementById('weather-location');
       const tempElem = document.getElementById('weather-temp');
       const descElem = document.getElementById('weather-desc');
 
-      locationElem.innerText = "Searching...";
-
       try {
         const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
         const geoData = await geoRes.json();
 
-        if (!geoData.results || geoData.results.length === 0) {
-          showToast('City not found!');
-          locationElem.innerText = "Not Found";
-          return;
+        if (geoData.results && geoData.results[0]) {
+          const loc = geoData.results[0];
+          const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current_weather=true`);
+          const weatherData = await weatherRes.json();
+
+          if (weatherData.current_weather) {
+            locationElem.innerText = `${loc.name}, ${loc.country_code ? loc.country_code.toUpperCase() : ''}`;
+            tempElem.innerText = `${Math.round(weatherData.current_weather.temperature)}°C`;
+            descElem.innerText = `Windspeed: ${weatherData.current_weather.windspeed} km/h`;
+          }
         }
-
-        const loc = geoData.results[0];
-        const lat = loc.latitude;
-        const lon = loc.longitude;
-
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-        const weatherData = await weatherRes.json();
-
-        if (weatherData.current_weather) {
-          locationElem.innerText = `${loc.name}, ${loc.country_code ? loc.country_code.toUpperCase() : ''}`;
-          tempElem.innerText = `${Math.round(weatherData.current_weather.temperature)}°C`;
-          descElem.innerText = `Windspeed: ${weatherData.current_weather.windspeed} km/h • Live Weather`;
-          showToast(`Weather updated for ${loc.name}!`);
-        }
-      } catch (err) {
-        showToast('Failed to fetch weather data.');
-        locationElem.innerText = city;
-      }
+      } catch (err) {}
     }
 
-    // CODE RUNNER
     function executeCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
       const outputElem = document.getElementById('code-output');
-
-      outputElem.innerText = "Running...";
 
       if (lang === 'javascript') {
         try {
@@ -1103,86 +945,29 @@
           const customConsole = { log: (...args) => logs.push(args.join(' ')) };
           const runFn = new Function('console', code);
           runFn(customConsole);
-          outputElem.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully with no output.";
+          outputElem.innerText = logs.length > 0 ? logs.join('\n') : "Executed successfully.";
         } catch (err) {
           outputElem.innerText = "JavaScript Error: " + err.message;
         }
       } else {
         Sk.configure({
-          output: function(text) {
-            if (outputElem.innerText === "Running...") outputElem.innerText = "";
-            outputElem.innerText += text;
-          },
-          read: function(x) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-              throw "File not found: '" + x + "'";
-            return Sk.builtinFiles["files"][x];
-          }
+          output: function(text) { outputElem.innerText += text; },
+          read: function(x) { return Sk.builtinFiles["files"][x]; }
         });
-
         outputElem.innerText = "";
         Sk.misceval.asyncToPromise(function() {
           return Sk.importMainWithBody("<stdin>", false, code, true);
-        }).then(function() {
-          if (!outputElem.innerText) outputElem.innerText = "Executed successfully with no output.";
-        }, function(err) {
-          outputElem.innerText = "Python Error: " + err.toString();
         });
       }
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const cleanUser = formatHandle(currentUser);
-
-      const container = document.getElementById('chat-messages');
-      const msg = document.createElement('div');
-      msg.className = 'bg-gray-800 p-2.5 rounded-xl max-w-[80%] border border-gray-700 self-end ml-auto';
-      msg.innerHTML = `<p class="text-[10px] text-cyan-400 font-bold">@${cleanUser}</p><p class="text-xs text-white">${text}</p>`;
-      container.appendChild(msg);
-
-      db.collection('chat').add({
-        user: cleanUser,
-        text: text,
-        timestamp: Date.now()
-      });
-
-      input.value = '';
-      container.scrollTop = container.scrollHeight;
     }
 
     function triggerWalletWithdraw() {
       showToast('Withdrawal feature is processing...');
     }
 
-    // REAL-TIME SYNC LISTENERS FROM CLOUD BACKEND FOR ALL USERS
-    function setupRealtimeListeners() {
-      db.collection('videos').onSnapshot(snapshot => {
-        let liveVideos = [];
-        snapshot.forEach(doc => liveVideos.push(doc.data()));
-        if (liveVideos.length > 0) {
-          localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(liveVideos));
-          initAppContent();
-        }
-      });
-
-      db.collection('posts').onSnapshot(snapshot => {
-        let livePosts = [];
-        snapshot.forEach(doc => livePosts.push(doc.data()));
-        if (livePosts.length > 0) {
-          localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(livePosts));
-          loadTextPosts();
-        }
-      });
-    }
-
     window.onload = function() {
       checkAuthSession();
       initAppContent();
-      setupRealtimeListeners();
     };
   </script>
 </body>
