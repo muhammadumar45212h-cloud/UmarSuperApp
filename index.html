@@ -155,13 +155,17 @@
     <!-- USER PROFILE & SETTINGS -->
     <section id="tab-profile" class="p-4 hidden space-y-5">
       <div class="flex flex-col items-center">
-        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2 relative">
           <img id="user-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=Umar" class="w-full h-full rounded-full object-cover bg-gray-800">
         </div>
         <h2 class="text-lg font-bold" id="profile-display-name">@Umar</h2>
-        <p class="text-[11px] text-gray-400">Verified Creator Profile</p>
+        <p class="text-[11px] text-gray-400" id="profile-bio">Verified Creator Profile</p>
         
-        <div class="flex gap-6 mt-3 text-center">
+        <button onclick="openModal('editProfileModal')" class="mt-2 px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-semibold">
+          <i class="fa-solid fa-user-pen mr-1"></i> Edit Profile
+        </button>
+        
+        <div class="flex gap-6 mt-4 text-center">
           <div><p class="font-bold text-base" id="profile-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
           <div><p class="font-bold text-base" id="profile-subscribers">1</p><p class="text-[10px] text-gray-400">Subscribers</p></div>
           <div><p class="font-bold text-base" id="profile-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
@@ -210,6 +214,30 @@
       <i class="fa-solid fa-user text-base mb-0.5"></i>Profile
     </button>
   </nav>
+
+  <!-- MODAL: EDIT PROFILE -->
+  <div id="editProfileModal" class="fullscreen-modal hidden p-4">
+    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-user-gear"></i> Edit Profile</h2>
+      <button onclick="closeModal('editProfileModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Display Name / Handle</label>
+        <input type="text" id="edit-display-name" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter name...">
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Bio / Description</label>
+        <input type="text" id="edit-bio" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter bio...">
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Profile Photo Image URL</label>
+        <input type="text" id="edit-avatar-url" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="https://example.com/my-photo.jpg">
+      </div>
+
+      <button onclick="saveProfileChanges()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg">Save Changes</button>
+    </div>
+  </div>
 
   <!-- MODAL: TRANSLATE -->
   <div id="translateModal" class="fullscreen-modal hidden p-4">
@@ -355,7 +383,7 @@
     let authMode = 'login';
     let currentActiveVideoId = null;
 
-    // HELPER FUNCTION: Clean up `@` prefixes to fix the `@@` issue
+    // HELPER FUNCTION: Clean up `@` prefixes
     function formatHandle(str) {
       if (!str) return 'Umar';
       return str.replace(/^@+/, '');
@@ -409,7 +437,7 @@
           showToast('Username already exists! Please login.');
           return;
         }
-        users[usernameInput] = { password: passwordInput, likes: 0, subscribers: 1 };
+        users[usernameInput] = { password: passwordInput, likes: 0, subscribers: 1, bio: 'Verified Creator Profile', avatar: '' };
         localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
         showToast('Account created successfully!');
       } else {
@@ -436,16 +464,46 @@
     function loadUserData() {
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
-      document.getElementById('profile-display-name').innerText = '@' + cleanUser;
-      document.getElementById('user-avatar-img').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUser}`;
-      
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (users[cleanUser]) {
-        document.getElementById('profile-subscribers').innerText = users[cleanUser].subscribers || 1;
-        document.getElementById('profile-likes').innerText = users[cleanUser].likes || 0;
-      }
+      
+      const userData = users[cleanUser] || {};
+
+      document.getElementById('profile-display-name').innerText = '@' + (userData.name || cleanUser);
+      document.getElementById('profile-bio').innerText = userData.bio || 'Verified Creator Profile';
+      
+      const avatarUrl = userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUser}`;
+      document.getElementById('user-avatar-img').src = avatarUrl;
+      
+      document.getElementById('profile-subscribers').innerText = userData.subscribers || 1;
+      document.getElementById('profile-likes').innerText = userData.likes || 0;
+
+      // Populate edit fields
+      document.getElementById('edit-display-name').value = userData.name || cleanUser;
+      document.getElementById('edit-bio').value = userData.bio || '';
+      document.getElementById('edit-avatar-url').value = userData.avatar || '';
       
       loadProfileGrid();
+    }
+
+    function saveProfileChanges() {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      if (!users[cleanUser]) users[cleanUser] = {};
+
+      const newName = document.getElementById('edit-display-name').value.trim();
+      const newBio = document.getElementById('edit-bio').value.trim();
+      const newAvatar = document.getElementById('edit-avatar-url').value.trim();
+
+      users[cleanUser].name = formatHandle(newName) || cleanUser;
+      users[cleanUser].bio = newBio;
+      users[cleanUser].avatar = newAvatar;
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      showToast('Profile updated successfully!');
+      closeModal('editProfileModal');
+      loadUserData();
     }
 
     function showToast(message) {
@@ -586,7 +644,7 @@
       document.getElementById('profile-posts-count').innerText = userVidCount;
     }
 
-    // INITIALIZE VIDEO FEED WITH TIKTOK ALGORITHM (Sorted by Popularity Score: Likes + Views + Shares)
+    // INITIALIZE VIDEO FEED WITH TIKTOK ALGORITHM
     function initAppContent() {
       const defaultVideos = [
         { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [{user: 'aqib', text: 'Awesome features!', likes: []}, {user: 'ali', text: 'Super Fast!', likes: []}] },
@@ -599,7 +657,7 @@
         localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(defaultVideos));
       }
 
-      // TIKTOK-LIKE RANKING ALGORITHM: Score = (Likes * 3) + (Views * 1) + (Shares * 4)
+      // TIKTOK RANKING: Score = (Likes * 3) + (Views * 1) + (Shares * 4)
       storedVideos.sort((a, b) => {
         const scoreA = ((a.likes || []).length * 3) + ((a.views || 0) * 1) + ((a.shares || 0) * 4);
         const scoreB = ((b.likes || []).length * 3) + ((b.views || 0) * 1) + ((b.shares || 0) * 4);
@@ -630,7 +688,7 @@
             <p class="text-xs text-gray-200">${v.caption}</p>
           </div>
 
-          <!-- SIDE BUTTONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
+          <!-- SIDE BUTTONS -->
           <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
             <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
               <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
@@ -657,7 +715,6 @@
 
         const vidElem = item.querySelector('video');
         
-        // Track View when playing
         vidElem.onplay = () => {
           v.views = (v.views || 0) + 1;
           localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
@@ -677,7 +734,6 @@
       loadTextPosts();
     }
 
-    // TOGGLE LIKE VIDEO (1 USER = 1 LIKE MAX)
     function likeVideo(id) {
       if (!currentUser) { showToast('Please login to like!'); return; }
       const cleanUser = formatHandle(currentUser);
@@ -726,7 +782,7 @@
       }
     }
 
-    // HALF-SCREEN COMMENTS DRAWER WITH SINGLE LIKES & REPLIES
+    // HALF-SCREEN COMMENTS DRAWER
     function openCommentDrawer(videoId) {
       currentActiveVideoId = videoId;
       document.getElementById('drawer-title').innerText = "Comments Section";
@@ -789,7 +845,6 @@
       }
     }
 
-    // TOGGLE LIKE COMMENT (1 USER = 1 LIKE MAX)
     function likeComment(cIdx) {
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
@@ -827,7 +882,6 @@
       }
     }
 
-    // HALF-SCREEN SHARE DRAWER (SOCIAL APPS & TRACKING SHARES)
     function openShareDrawer(videoId) {
       document.getElementById('drawer-title').innerText = "Share to Social Media";
       document.getElementById('drawer-footer-area').classList.add('hidden');
@@ -894,14 +948,14 @@
     }
 
     function closeCommentDrawer() {
+      document.getElementById('commentDrawer').classList.remove('remove');
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
-    // TEXT POSTS SORTED BY POPULARITY ALGORITHM
+    // TEXT POSTS
     function loadTextPosts() {
       let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
       
-      // Algorithm sort for Text Feed
       storedPosts.sort((a, b) => {
         const scoreA = ((a.likes || []).length * 3) + ((a.shares || 0) * 4);
         const scoreB = ((b.likes || []).length * 3) + ((b.shares || 0) * 4);
@@ -926,7 +980,6 @@
           </div>
           <p class="text-xs text-gray-200 allow-select">${p.text}</p>
 
-          <!-- TEXT POST BOTTOM BUTTONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
           <div class="flex justify-around items-center pt-2 border-t border-gray-800 text-xs text-gray-400">
             <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-red-400'}">
               <i class="fa-solid fa-heart"></i>
@@ -950,7 +1003,6 @@
       });
     }
 
-    // TOGGLE LIKE TEXT POST (1 USER = 1 LIKE MAX)
     function likeTextPost(postId) {
       if (!currentUser) { showToast('Please login to like!'); return; }
       const cleanUser = formatHandle(currentUser);
@@ -972,7 +1024,7 @@
       }
     }
 
-    // LIVE WORKING TRANSLATOR FIX
+    // TRANSLATOR
     async function runTranslation() {
       const text = document.getElementById('trans-input').value.trim();
       const targetLang = document.getElementById('trans-lang').value;
@@ -999,7 +1051,7 @@
       }
     }
 
-    // REAL-TIME WEATHER SEARCH FIX
+    // WEATHER SEARCH
     async function searchWeather() {
       const city = document.getElementById('weather-search-input').value.trim() || 'Karachi';
       const locationElem = document.getElementById('weather-location');
@@ -1037,7 +1089,7 @@
       }
     }
 
-    // CODE RUNNER FIX (PYTHON & JS)
+    // CODE RUNNER
     function executeCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
@@ -1092,7 +1144,6 @@
       msg.innerHTML = `<p class="text-[10px] text-cyan-400 font-bold">@${cleanUser}</p><p class="text-xs text-white">${text}</p>`;
       container.appendChild(msg);
 
-      // Realtime Broadcast via Firestore Chat Collection
       db.collection('chat').add({
         user: cleanUser,
         text: text,
@@ -1107,9 +1158,8 @@
       showToast('Withdrawal feature is processing...');
     }
 
-    // REAL-TIME SYNC LISTENERS FROM CLOUD BACKEND
+    // REAL-TIME SYNC LISTENERS FROM CLOUD BACKEND FOR ALL USERS
     function setupRealtimeListeners() {
-      // Listen to Videos Collection dynamically
       db.collection('videos').onSnapshot(snapshot => {
         let liveVideos = [];
         snapshot.forEach(doc => liveVideos.push(doc.data()));
@@ -1119,7 +1169,6 @@
         }
       });
 
-      // Listen to Posts Collection dynamically
       db.collection('posts').onSnapshot(snapshot => {
         let livePosts = [];
         snapshot.forEach(doc => livePosts.push(doc.data()));
