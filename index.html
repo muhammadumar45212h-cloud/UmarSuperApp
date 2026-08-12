@@ -126,14 +126,14 @@
     <!-- VIDEOS FEED -->
     <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
       <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
-        <!-- Dynamic Reels Load Here via Backend -->
+        <!-- Dynamic Reels Load Here -->
       </div>
     </section>
 
     <!-- TEXT FEED -->
     <section id="tab-feed" class="p-4 space-y-4 hidden">
       <div id="posts-container" class="space-y-4 max-w-md mx-auto">
-        <!-- Dynamic Text Posts Load Here via Backend -->
+        <!-- Dynamic Text Posts Load Here -->
       </div>
     </section>
 
@@ -215,7 +215,7 @@
     </button>
   </nav>
 
-  <!-- MODAL: EDIT PROFILE (GALLERY PHOTO INPUT SUPPORT) -->
+  <!-- MODAL: EDIT PROFILE -->
   <div id="editProfileModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-user-gear"></i> Edit Profile</h2>
@@ -258,7 +258,7 @@
     </div>
   </div>
 
-  <!-- MODAL: WEATHER WITH LIVE SEARCH -->
+  <!-- MODAL: WEATHER -->
   <div id="weatherModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-cyan-400">☀️ Real-Time Weather</h2>
@@ -280,16 +280,14 @@
     </div>
   </div>
 
-  <!-- MODAL: DMs & CHAT CHANNELS -->
+  <!-- MODAL: DMs -->
   <div id="chatModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-red-400">💬 Community Channels & DMs</h2>
       <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="flex-1 flex flex-col justify-between overflow-hidden">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar">
-        <!-- Chat Messages -->
-      </div>
+      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar"></div>
       <div class="flex gap-2 pt-2 border-t border-gray-800">
         <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Send a message...">
         <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
@@ -318,15 +316,13 @@
     </div>
   </div>
 
-  <!-- HALF-SCREEN COMMENTS & SHARE DRAWER -->
+  <!-- COMMENTS & SHARE DRAWER -->
   <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
     <div class="p-3 border-b border-gray-800 flex justify-between items-center">
       <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
       <button onclick="closeCommentDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
-    <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar">
-      <!-- Dynamic Comments or Share List -->
-    </div>
+    <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar"></div>
     <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
       <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Write a comment...">
       <button onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
@@ -377,6 +373,20 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
+
+    // INDEXEDDB DATABASE INITIALIZATION FOR HEAVY VIDEOS (No Crashes on app reload)
+    let dbInstance;
+    const dbReq = indexedDB.open("SuperAppDB", 1);
+    dbReq.onupgradeneeded = function(e) {
+      dbInstance = e.target.result;
+      if (!dbInstance.objectStoreNames.contains("videos")) {
+        dbInstance.createObjectStore("videos", { keyPath: "id" });
+      }
+    };
+    dbReq.onsuccess = function(e) {
+      dbInstance = e.target.result;
+      initAppContent();
+    };
 
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
@@ -481,7 +491,6 @@
       loadProfileGrid();
     }
 
-    // SAVE PROFILE IMAGE FROM GALLERY
     function saveProfileChanges() {
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
@@ -556,7 +565,7 @@
       }
     }
 
-    // PUBLISH VIDEO AND TEXT DIRECTLY WITH LOCAL PREVIEW FOR UNLIMITED SIZE
+    // PUBLISH VIDEO DIRECTLY TO INDEXEDDB & FIREBASE LIVE CLOUD
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
@@ -574,13 +583,12 @@
         pubBtn.disabled = true;
 
         const file = fileInput.files[0];
-        const videoBlobUrl = URL.createObjectURL(file);
-
         const reader = new FileReader();
         reader.onload = function(e) {
           const videoData = e.target.result;
+          const videoId = Date.now();
           const newVid = {
-            id: Date.now(),
+            id: videoId,
             user: userHandle,
             caption: caption || 'Gallery Video Upload 🚀',
             url: videoData,
@@ -589,18 +597,23 @@
             shares: 0,
             subscribed: false,
             comments: [],
-            timestamp: Date.now()
+            timestamp: videoId
           };
 
-          let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-          storedVideos.unshift(newVid);
-          
-          try {
-            localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-          } catch(err) {
-            // LocalStorage fallback for high file sizes
-            storedVideos[0].url = videoBlobUrl;
+          // Save to permanent IndexedDB Storage
+          if (dbInstance) {
+            const tx = dbInstance.transaction("videos", "readwrite");
+            const store = tx.objectStore("videos");
+            store.put(newVid);
           }
+
+          // Sync cloud document reference with Firebase Firestore
+          db.collection('videos').doc(String(videoId)).set({
+            user: userHandle,
+            caption: caption || 'Gallery Video Upload 🚀',
+            timestamp: videoId,
+            hasVideo: true
+          }).catch(err => console.log('Firebase Cloud Sync Warning:', err));
 
           showToast('Video published successfully!');
           pubBtn.innerText = "Publish Post";
@@ -633,6 +646,9 @@
         storedPosts.unshift(newPost);
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
 
+        // Sync post directly with Firebase Cloud Data
+        db.collection('posts').add(newPost).catch(e => console.log(e));
+
         showToast('Text post published!');
         closeModal('createModal');
         loadTextPosts();
@@ -643,137 +659,169 @@
     }
 
     function loadProfileGrid() {
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      let userVidCount = 0;
-      const grid = document.getElementById('profile-grid');
-      grid.innerHTML = '';
+      getVideosFromStorage(function(storedVideos) {
+        let userVidCount = 0;
+        const grid = document.getElementById('profile-grid');
+        grid.innerHTML = '';
+        const cleanUser = formatHandle(currentUser);
 
-      const cleanUser = formatHandle(currentUser);
-
-      storedVideos.forEach(v => {
-        if (formatHandle(v.user) === cleanUser) {
-          userVidCount++;
-          const thumb = document.createElement('div');
-          thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
-          thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover"></video>`;
-          grid.appendChild(thumb);
-        }
+        storedVideos.forEach(v => {
+          if (formatHandle(v.user) === cleanUser) {
+            userVidCount++;
+            const thumb = document.createElement('div');
+            thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
+            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover"></video>`;
+            grid.appendChild(thumb);
+          }
+        });
+        document.getElementById('profile-posts-count').innerText = userVidCount;
       });
-      document.getElementById('profile-posts-count').innerText = userVidCount;
     }
 
-    function initAppContent() {
+    function getVideosFromStorage(callback) {
       const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [{user: 'aqib', text: 'Awesome features!', likes: []}, {user: 'ali', text: 'Super Fast!', likes: []}] },
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [] },
         { id: 2, user: 'aqib_dev', caption: 'Checking live features seamlessly', url: 'https://www.w3schools.com/html/movie.mp4', likes: [], views: 5, shares: 0, subscribed: false, comments: [] }
       ];
 
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || 'null');
-      if (!storedVideos || storedVideos.length === 0) {
-        storedVideos = defaultVideos;
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(defaultVideos));
+      if (!dbInstance) {
+        callback(defaultVideos);
+        return;
       }
 
-      const container = document.getElementById('video-feed-container');
-      container.innerHTML = '';
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const getReq = store.getAll();
 
-      storedVideos.forEach(v => {
-        const likesArr = Array.isArray(v.likes) ? v.likes : [];
-        const cleanUser = formatHandle(currentUser);
-        const isLiked = cleanUser && likesArr.includes(cleanUser);
-        const authorHandle = formatHandle(v.user);
+      getReq.onsuccess = function() {
+        let list = getReq.result || [];
+        if (list.length === 0) {
+          callback(defaultVideos);
+        } else {
+          callback(list.reverse());
+        }
+      };
+      getReq.onerror = function() {
+        callback(defaultVideos);
+      };
+    }
 
-        const item = document.createElement('div');
-        item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
-        item.innerHTML = `
-          <video src="${v.url}" class="w-full h-full object-cover" loop playsinline autoplay muted></video>
-          
-          <div class="absolute bottom-16 left-4 text-white z-20">
-            <div class="flex items-center gap-2 mb-1">
-              <h4 class="font-bold text-sm">@${authorHandle}</h4>
-              <button onclick="toggleSubscribe(${v.id}, '${authorHandle}')" id="sub-btn-${v.id}" class="px-2 py-0.5 ${v.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[10px] font-bold rounded-full">
-                ${v.subscribed ? 'Subscribed' : 'Subscribe'}
+    function initAppContent() {
+      getVideosFromStorage(function(storedVideos) {
+        const container = document.getElementById('video-feed-container');
+        container.innerHTML = '';
+
+        storedVideos.forEach(v => {
+          const likesArr = Array.isArray(v.likes) ? v.likes : [];
+          const cleanUser = formatHandle(currentUser);
+          const isLiked = cleanUser && likesArr.includes(cleanUser);
+          const authorHandle = formatHandle(v.user);
+
+          const item = document.createElement('div');
+          item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
+          item.innerHTML = `
+            <video src="${v.url}" class="w-full h-full object-cover" loop playsinline autoplay muted></video>
+            
+            <div class="absolute bottom-16 left-4 text-white z-20">
+              <div class="flex items-center gap-2 mb-1">
+                <h4 class="font-bold text-sm">@${authorHandle}</h4>
+                <button onclick="toggleSubscribe(${v.id}, '${authorHandle}')" id="sub-btn-${v.id}" class="px-2 py-0.5 ${v.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[10px] font-bold rounded-full">
+                  ${v.subscribed ? 'Subscribed' : 'Subscribe'}
+                </button>
+              </div>
+              <p class="text-xs text-gray-200">${v.caption}</p>
+            </div>
+
+            <!-- SIDE BUTTONS -->
+            <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
+              <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
+                  <i class="fa-solid fa-heart"></i>
+                </div>
+                <span class="text-[10px] text-white font-semibold mt-1" id="likes-count-${v.id}">${likesArr.length}</span>
+              </button>
+
+              <button onclick="openCommentDrawer(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-cyan-400 text-lg border border-gray-700">
+                  <i class="fa-solid fa-comment"></i>
+                </div>
+                <span class="text-[10px] text-white font-semibold mt-1">${(v.comments || []).length}</span>
+              </button>
+
+              <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-green-400 text-lg border border-gray-700">
+                  <i class="fa-solid fa-share"></i>
+                </div>
+                <span class="text-[10px] text-white font-semibold mt-1">${v.shares || 'Share'}</span>
               </button>
             </div>
-            <p class="text-xs text-gray-200">${v.caption}</p>
-          </div>
+          `;
 
-          <!-- SIDE BUTTONS -->
-          <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
-            <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
-              <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
-                <i class="fa-solid fa-heart"></i>
-              </div>
-              <span class="text-[10px] text-white font-semibold mt-1" id="likes-count-${v.id}">${likesArr.length}</span>
-            </button>
+          const vidElem = item.querySelector('video');
 
-            <button onclick="openCommentDrawer(${v.id})" class="flex flex-col items-center">
-              <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-cyan-400 text-lg border border-gray-700">
-                <i class="fa-solid fa-comment"></i>
-              </div>
-              <span class="text-[10px] text-white font-semibold mt-1">${(v.comments || []).length}</span>
-            </button>
+          item.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+              if (vidElem.paused) { vidElem.play(); } else { vidElem.pause(); }
+              vidElem.muted = !vidElem.muted;
+            }
+          });
 
-            <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
-              <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-green-400 text-lg border border-gray-700">
-                <i class="fa-solid fa-share"></i>
-              </div>
-              <span class="text-[10px] text-white font-semibold mt-1">${v.shares || 'Share'}</span>
-            </button>
-          </div>
-        `;
-
-        const vidElem = item.querySelector('video');
-
-        item.addEventListener('click', function(e) {
-          if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-            if (vidElem.paused) { vidElem.play(); } else { vidElem.pause(); }
-            vidElem.muted = !vidElem.muted;
-          }
+          container.appendChild(item);
         });
 
-        container.appendChild(item);
+        loadTextPosts();
       });
-
-      loadTextPosts();
     }
 
     function likeVideo(id) {
       if (!currentUser) { showToast('Please login to like!'); return; }
       const cleanUser = formatHandle(currentUser);
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === id);
-      if (index !== -1) {
-        if (!Array.isArray(storedVideos[index].likes)) {
-          storedVideos[index].likes = [];
-        }
-        const userIdx = storedVideos[index].likes.indexOf(cleanUser);
-        if (userIdx === -1) {
-          storedVideos[index].likes.push(cleanUser);
-          showToast('Liked Video!');
-        } else {
-          storedVideos[index].likes.splice(userIdx, 1);
-          showToast('Unliked Video');
-        }
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        initAppContent();
+
+      if (dbInstance) {
+        const tx = dbInstance.transaction("videos", "readwrite");
+        const store = tx.objectStore("videos");
+        const getReq = store.get(id);
+
+        getReq.onsuccess = function() {
+          let vid = getReq.result;
+          if (vid) {
+            if (!Array.isArray(vid.likes)) vid.likes = [];
+            const idx = vid.likes.indexOf(cleanUser);
+            if (idx === -1) {
+              vid.likes.push(cleanUser);
+              showToast('Liked Video!');
+            } else {
+              vid.likes.splice(idx, 1);
+              showToast('Unliked Video');
+            }
+            store.put(vid);
+            initAppContent();
+          }
+        };
       }
     }
 
     function toggleSubscribe(id, author) {
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === id);
-      if (index !== -1) {
-        storedVideos[index].subscribed = !storedVideos[index].subscribed;
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        
-        const btn = document.getElementById(`sub-btn-${id}`);
-        if (btn) {
-          btn.innerText = storedVideos[index].subscribed ? 'Subscribed' : 'Subscribe';
-          btn.className = storedVideos[index].subscribed ? 'px-2 py-0.5 bg-gray-700 text-gray-300 text-[10px] font-bold rounded-full' : 'px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full';
-        }
+      if (dbInstance) {
+        const tx = dbInstance.transaction("videos", "readwrite");
+        const store = tx.objectStore("videos");
+        const getReq = store.get(id);
 
-        showToast(storedVideos[index].subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
+        getReq.onsuccess = function() {
+          let vid = getReq.result;
+          if (vid) {
+            vid.subscribed = !vid.subscribed;
+            store.put(vid);
+            
+            const btn = document.getElementById(`sub-btn-${id}`);
+            if (btn) {
+              btn.innerText = vid.subscribed ? 'Subscribed' : 'Subscribe';
+              btn.className = vid.subscribed ? 'px-2 py-0.5 bg-gray-700 text-gray-300 text-[10px] font-bold rounded-full' : 'px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full';
+            }
+
+            showToast(vid.subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
+          }
+        };
       }
     }
 
@@ -786,66 +834,117 @@
     }
 
     function renderComments() {
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const video = storedVideos.find(v => v.id === currentActiveVideoId);
-      const content = document.getElementById('drawer-content-area');
-      content.innerHTML = '';
+      if (!dbInstance || !currentActiveVideoId) return;
 
-      if (!video || !video.comments || video.comments.length === 0) {
-        content.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>';
-        return;
-      }
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const getReq = store.get(currentActiveVideoId);
 
-      video.comments.forEach((c, idx) => {
-        const likesArr = Array.isArray(c.likes) ? c.likes : [];
-        const cleanUser = formatHandle(currentUser);
-        const isLiked = cleanUser && likesArr.includes(cleanUser);
-        const commentUser = formatHandle(c.user);
+      getReq.onsuccess = function() {
+        const video = getReq.result;
+        const content = document.getElementById('drawer-content-area');
+        content.innerHTML = '';
 
-        const item = document.createElement('div');
-        item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1.5';
-        item.innerHTML = `
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-cyan-400">@${commentUser}</span>
-            <button onclick="likeComment(${idx})" class="text-[10px] ${isLiked ? 'text-red-500' : 'text-gray-400'} flex items-center gap-1">
-              <i class="fa-solid fa-heart"></i> <span>${likesArr.length}</span>
-            </button>
-          </div>
-          <p class="text-xs text-gray-200">${c.text}</p>
-        `;
-        content.appendChild(item);
-      });
+        if (!video || !video.comments || video.comments.length === 0) {
+          content.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>';
+          return;
+        }
+
+        video.comments.forEach((c, idx) => {
+          const likesArr = Array.isArray(c.likes) ? c.likes : [];
+          const cleanUser = formatHandle(currentUser);
+          const isLiked = cleanUser && likesArr.includes(cleanUser);
+          const commentUser = formatHandle(c.user);
+
+          const item = document.createElement('div');
+          item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1.5';
+          item.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-cyan-400">@${commentUser}</span>
+              <button onclick="likeComment(${idx})" class="text-[10px] ${isLiked ? 'text-red-500' : 'text-gray-400'} flex items-center gap-1">
+                <i class="fa-solid fa-heart"></i> <span>${likesArr.length}</span>
+              </button>
+            </div>
+            <p class="text-xs text-gray-200">${c.text}</p>
+          `;
+          content.appendChild(item);
+        });
+      };
     }
 
     function addCommentSubmit() {
       const input = document.getElementById('new-comment-input');
       const text = input.value.trim();
-      if (!text || !currentActiveVideoId) return;
+      if (!text || !currentActiveVideoId || !dbInstance) return;
 
-      let storedVideos = JSON.parse(localStorage.getItem('SUPER_APP_VIDEOS') || '[]');
-      const index = storedVideos.findIndex(v => v.id === currentActiveVideoId);
-      if (index !== -1) {
-        if (!storedVideos[index].comments) storedVideos[index].comments = [];
-        storedVideos[index].comments.push({ user: formatHandle(currentUser), text: text, likes: [] });
-        localStorage.setItem('SUPER_APP_VIDEOS', JSON.stringify(storedVideos));
-        input.value = '';
-        renderComments();
-        showToast('Comment added!');
-      }
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const getReq = store.get(currentActiveVideoId);
+
+      getReq.onsuccess = function() {
+        let vid = getReq.result;
+        if (vid) {
+          if (!vid.comments) vid.comments = [];
+          vid.comments.push({ user: formatHandle(currentUser), text: text, likes: [] });
+          store.put(vid);
+          input.value = '';
+          renderComments();
+          showToast('Comment added!');
+        }
+      };
     }
 
+    // MULTI SOCIAL MEDIA SHARE DRAWER (WhatsApp, TikTok, YouTube, X, Telegram, FB)
     function openShareDrawer(videoId) {
       document.getElementById('drawer-title').innerText = "Share to Social Media";
       document.getElementById('drawer-footer-area').classList.add('hidden');
       
       const content = document.getElementById('drawer-content-area');
-      const shareUrl = window.location.href;
+      const shareUrl = encodeURIComponent(window.location.href);
+      const shareText = encodeURIComponent("Check out this awesome video on Super App! 🚀");
 
       content.innerHTML = `
         <div class="grid grid-cols-3 gap-3 p-2">
-          <button onclick="copyShareLink('${shareUrl}')" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl col-span-3">
+          <!-- WHATSAPP -->
+          <a href="https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}" target="_blank" class="flex flex-col items-center bg-green-900/40 border border-green-500/30 p-3 rounded-xl">
+            <i class="fa-brands fa-whatsapp text-green-400 text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">WhatsApp</span>
+          </a>
+
+          <!-- TELEGRAM -->
+          <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-cyan-900/40 border border-cyan-500/30 p-3 rounded-xl">
+            <i class="fa-brands fa-telegram text-cyan-400 text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">Telegram</span>
+          </a>
+
+          <!-- TWITTER / X -->
+          <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-gray-800 border border-gray-600 p-3 rounded-xl">
+            <i class="fa-brands fa-x-twitter text-white text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">X / Twitter</span>
+          </a>
+
+          <!-- FACEBOOK -->
+          <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" class="flex flex-col items-center bg-blue-900/40 border border-blue-500/30 p-3 rounded-xl">
+            <i class="fa-brands fa-facebook text-blue-400 text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">Facebook</span>
+          </a>
+
+          <!-- TIKTOK -->
+          <a href="https://www.tiktok.com" target="_blank" class="flex flex-col items-center bg-pink-950/40 border border-pink-500/30 p-3 rounded-xl">
+            <i class="fa-brands fa-tiktok text-pink-400 text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">TikTok</span>
+          </a>
+
+          <!-- YOUTUBE -->
+          <a href="https://www.youtube.com" target="_blank" class="flex flex-col items-center bg-red-950/40 border border-red-500/30 p-3 rounded-xl">
+            <i class="fa-brands fa-youtube text-red-500 text-2xl mb-1"></i>
+            <span class="text-[10px] text-gray-200">YouTube</span>
+          </a>
+
+          <!-- COPY LINK -->
+          <button onclick="copyShareLink('${window.location.href}')" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl col-span-3">
             <i class="fa-solid fa-link text-purple-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Copy Link</span>
+            <span class="text-[10px] text-gray-200">Copy Direct Link</span>
           </button>
         </div>
       `;
@@ -869,10 +968,6 @@
 
       storedPosts.forEach(p => {
         const author = formatHandle(p.user);
-        const likesArr = Array.isArray(p.likes) ? p.likes : [];
-        const cleanUser = formatHandle(currentUser);
-        const isLiked = cleanUser && likesArr.includes(cleanUser);
-
         const item = document.createElement('div');
         item.className = 'bg-gray-900 border border-gray-800 p-3.5 rounded-xl space-y-3';
         item.innerHTML = `
@@ -967,7 +1062,6 @@
 
     window.onload = function() {
       checkAuthSession();
-      initAppContent();
     };
   </script>
 </body>
