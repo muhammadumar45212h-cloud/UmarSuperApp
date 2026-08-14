@@ -55,6 +55,10 @@
     .drawer-bottom.open {
       transform: translateY(0);
     }
+    .play-overlay {
+      pointer-events: none;
+      transition: opacity 0.2s ease-in-out;
+    }
   </style>
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden">
@@ -138,17 +142,17 @@
     </section>
 
     <!-- TRADING CHART -->
-    <section id="tab-trading" class="h-full w-full hidden flex-col">
+    <section id="tab-trading" class="h-full w-full hidden flex flex-col">
       <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between items-center">
         <span>📈 Live Market Real-time Chart</span>
         <div class="flex gap-1">
           <button onclick="changeSymbol('FX:XAUUSD')" class="px-2 py-1 bg-gray-800 rounded text-amber-400 text-[10px] font-bold">XAUUSD</button>
-          <button onclick="changeSymbol('BITSTAMP:BTCUSD')" class="px-2 py-1 bg-gray-800 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
+          <button onclick="changeSymbol('BINANCE:BTCUSDT')" class="px-2 py-1 bg-gray-800 rounded text-orange-400 text-[10px] font-bold">BTCUSD</button>
           <button onclick="changeSymbol('FX:EURUSD')" class="px-2 py-1 bg-gray-800 rounded text-cyan-400 text-[10px] font-bold">EURUSD</button>
         </div>
       </div>
       <div class="flex-1 w-full h-full">
-        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&theme=dark" class="w-full h-full border-0"></iframe>
+        <iframe id="trading-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=FX%3AXAUUSD&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC" class="w-full h-full border-0"></iframe>
       </div>
     </section>
 
@@ -391,6 +395,7 @@
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
+    let videoObserver = null;
 
     function formatHandle(str) {
       if (!str) return 'Umar';
@@ -551,11 +556,19 @@
         btn.classList.remove('text-cyan-400');
         btn.classList.add('text-gray-400');
       });
+
+      // Mute/Pause videos when leaving the video tab
+      if (tabName !== 'videos') {
+        document.querySelectorAll('video').forEach(v => {
+          v.pause();
+          v.muted = true;
+        });
+      }
     }
 
     function changeSymbol(symbol) {
       const iframe = document.getElementById('trading-frame');
-      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&theme=dark`;
+      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
     }
 
     function togglePostType() {
@@ -568,7 +581,6 @@
       }
     }
 
-    // FIXED VIDEO PUBLISH SYSTEM FOR MOBILE GALLERIES
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
@@ -586,8 +598,6 @@
         pubBtn.disabled = true;
 
         const file = fileInput.files[0];
-        
-        // Use Blob URL for immediate playback without base64 size limits
         const videoBlobUrl = URL.createObjectURL(file);
         
         const reader = new FileReader();
@@ -626,7 +636,6 @@
               };
 
               tx.onerror = function() {
-                // Fallback to Blob URL if payload is large
                 dataToSave.url = videoBlobUrl;
                 const tx2 = dbInstance.transaction("videos", "readwrite");
                 tx2.objectStore("videos").put(dataToSave);
@@ -645,7 +654,6 @@
 
           saveToDb(newVid);
 
-          // Firebase Firestore lightweight reference
           db.collection('videos').doc(String(videoId)).set({
             user: userHandle,
             caption: caption || 'Gallery Video Upload 🚀',
@@ -705,7 +713,7 @@
             userVidCount++;
             const thumb = document.createElement('div');
             thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
-            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover"></video>`;
+            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
             grid.appendChild(thumb);
           }
         });
@@ -746,6 +754,38 @@
         const container = document.getElementById('video-feed-container');
         container.innerHTML = '';
 
+        if (videoObserver) videoObserver.disconnect();
+
+        // IntersectionObserver for auto-playing active scroll video with audio
+        videoObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const vid = entry.target.querySelector('video');
+            const playOverlay = entry.target.querySelector('.play-overlay');
+            const audioBtn = entry.target.querySelector('.audio-toggle-btn');
+
+            if (entry.isIntersecting) {
+              vid.currentTime = 0;
+              vid.muted = false; // Enable audio for active scroll video
+              let playPromise = vid.play();
+              if (playPromise !== undefined) {
+                playPromise.then(() => {
+                  if (playOverlay) playOverlay.classList.add('opacity-0');
+                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                }).catch(() => {
+                  // Fallback to muted if browser blocks unmuted autoplay
+                  vid.muted = true;
+                  vid.play();
+                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                });
+              }
+            } else {
+              vid.pause();
+              vid.muted = true;
+              if (playOverlay) playOverlay.classList.remove('opacity-0');
+            }
+          });
+        }, { threshold: 0.65 });
+
         storedVideos.forEach(v => {
           const likesArr = Array.isArray(v.likes) ? v.likes : [];
           const cleanUser = formatHandle(currentUser);
@@ -755,8 +795,20 @@
           const item = document.createElement('div');
           item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
           item.innerHTML = `
-            <video src="${v.url}" class="w-full h-full object-cover" loop playsinline autoplay muted></video>
+            <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
             
+            <!-- PLAY / PAUSE CENTER OVERLAY BUTTON -->
+            <div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
+              <div class="w-16 h-16 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white text-2xl border border-white/20">
+                <i class="fa-solid fa-play ml-1"></i>
+              </div>
+            </div>
+
+            <!-- AUDIO MUTE / UNMUTE TOP-RIGHT BUTTON -->
+            <button onclick="toggleAudio(this, event)" class="audio-toggle-btn absolute top-4 right-4 z-20 w-9 h-9 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm border border-gray-700">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+
             <div class="absolute bottom-16 left-4 text-white z-20">
               <div class="flex items-center gap-2 mb-1">
                 <h4 class="font-bold text-sm">@${authorHandle}</h4>
@@ -793,19 +845,44 @@
           `;
 
           const vidElem = item.querySelector('video');
+          const overlayElem = item.querySelector('.play-overlay');
 
+          // Click anywhere on video screen to toggle Play/Pause
           item.addEventListener('click', function(e) {
             if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-              if (vidElem.paused) { vidElem.play(); } else { vidElem.pause(); }
-              vidElem.muted = !vidElem.muted;
+              if (vidElem.paused) {
+                vidElem.play();
+                overlayElem.classList.add('opacity-0');
+              } else {
+                vidElem.pause();
+                overlayElem.classList.remove('opacity-0');
+              }
             }
           });
 
           container.appendChild(item);
+          videoObserver.observe(item);
         });
 
         loadTextPosts();
       });
+    }
+
+    // Dynamic Mute / Unmute Handler
+    function toggleAudio(btnElem, e) {
+      e.stopPropagation();
+      const reelItem = btnElem.closest('.reel-item');
+      const vidElem = reelItem.querySelector('video');
+
+      if (vidElem.muted) {
+        vidElem.muted = false;
+        btnElem.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+        showToast('Sound On');
+      } else {
+        vidElem.muted = true;
+        btnElem.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+        showToast('Sound Muted');
+      }
     }
 
     function likeVideo(id) {
@@ -929,7 +1006,6 @@
       };
     }
 
-    // MULTI SOCIAL MEDIA SHARE DRAWER
     function openShareDrawer(videoId) {
       document.getElementById('drawer-title').innerText = "Share to Social Media";
       document.getElementById('drawer-footer-area').classList.add('hidden');
