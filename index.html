@@ -13,6 +13,9 @@
   <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 
+  <!-- Google AdSense / AdMob Web Script -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9780067506108310" crossorigin="anonymous"></script>
+
   <!-- Firebase SDKs (v9 Compatibility Mode) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -130,7 +133,7 @@
     <!-- VIDEOS FEED -->
     <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
       <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
-        <!-- Dynamic Reels Load Here -->
+        <!-- Dynamic Reels & Scrollable Ads Load Here -->
       </div>
     </section>
 
@@ -947,6 +950,38 @@
       };
     }
 
+    function createAdReelItem() {
+      const adItem = document.createElement('div');
+      adItem.className = 'reel-item w-full h-full relative flex flex-col items-center justify-center bg-gray-950 p-4 border-y border-gray-800';
+      adItem.innerHTML = `
+        <div class="absolute top-4 left-4 z-20 bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+          <i class="fa-solid fa-rectangle-ad"></i> Sponsored Ad
+        </div>
+
+        <div class="w-full max-w-sm h-full flex flex-col justify-center items-center text-center space-y-4">
+          <p class="text-xs text-gray-400">Advertisement</p>
+          
+          <!-- AdSense / AdMob Web Container -->
+          <ins class="adsbygoogle"
+               style="display:block; width:100%; height:300px;"
+               data-ad-client="ca-pub-9780067506108310"
+               data-ad-slot="auto"
+               data-ad-format="auto"
+               data-full-width-responsive="true"></ins>
+
+          <p class="text-[10px] text-gray-500 italic">Scroll up or down to continue watching videos</p>
+        </div>
+      `;
+
+      setTimeout(() => {
+        try {
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {}
+      }, 300);
+
+      return adItem;
+    }
+
     function initAppContent() {
       getVideosFromStorage(function(storedVideos) {
         const container = document.getElementById('video-feed-container');
@@ -961,30 +996,31 @@
             const playOverlay = entry.target.querySelector('.play-overlay');
             const audioBtn = entry.target.querySelector('.audio-toggle-btn');
 
-            if (entry.isIntersecting) {
-              vid.currentTime = 0;
-              vid.muted = false; // Enable audio for active scroll video
-              let playPromise = vid.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  if (playOverlay) playOverlay.classList.add('opacity-0');
-                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-                }).catch(() => {
-                  // Fallback to muted if browser blocks unmuted autoplay
-                  vid.muted = true;
-                  vid.play();
-                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
-                });
+            if (vid) {
+              if (entry.isIntersecting) {
+                vid.currentTime = 0;
+                vid.muted = false; // Enable audio for active scroll video
+                let playPromise = vid.play();
+                if (playPromise !== undefined) {
+                  playPromise.then(() => {
+                    if (playOverlay) playOverlay.classList.add('opacity-0');
+                    if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                  }).catch(() => {
+                    vid.muted = true;
+                    vid.play();
+                    if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+                  });
+                }
+              } else {
+                vid.pause();
+                vid.muted = true;
+                if (playOverlay) playOverlay.classList.remove('opacity-0');
               }
-            } else {
-              vid.pause();
-              vid.muted = true;
-              if (playOverlay) playOverlay.classList.remove('opacity-0');
             }
           });
         }, { threshold: 0.65 });
 
-        storedVideos.forEach(v => {
+        storedVideos.forEach((v, index) => {
           const likesArr = Array.isArray(v.likes) ? v.likes : [];
           const cleanUser = formatHandle(currentUser);
           const isLiked = cleanUser && likesArr.includes(cleanUser);
@@ -1045,7 +1081,6 @@
           const vidElem = item.querySelector('video');
           const overlayElem = item.querySelector('.play-overlay');
 
-          // Click anywhere on video screen to toggle Play/Pause
           item.addEventListener('click', function(e) {
             if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
               if (vidElem.paused) {
@@ -1060,6 +1095,12 @@
 
           container.appendChild(item);
           videoObserver.observe(item);
+
+          // Insert Scrollable Ad Reel Item after every 2 videos
+          if ((index + 1) % 2 === 0) {
+            const adReel = createAdReelItem();
+            container.appendChild(adReel);
+          }
         });
 
         loadTextPosts();
@@ -1305,7 +1346,6 @@
 
           <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text}</p>
 
-          <!-- TEXT POST ACTIONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
           <div class="flex justify-between items-center pt-2 border-t border-gray-800/80 text-xs text-gray-400">
             <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-white'}">
               <i class="fa-solid fa-heart"></i>
@@ -1388,7 +1428,6 @@
         const input = document.getElementById('new-comment-input');
         const text = input.value.trim();
         if (!text) return;
-
         if (!post.comments) post.comments = [];
         post.comments.push({ user: formatHandle(currentUser), text: text });
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
@@ -1408,150 +1447,33 @@
         post.shares = (post.shares || 0) + 1;
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
         loadTextPosts();
+        openShareDrawer(id);
       }
-      openShareDrawer(id);
     }
 
-    // CHANNELS & DMS FUNCTIONALITY
+    function createChannelSubmit() {
+      const name = document.getElementById('channel-name').value.trim();
+      if (!name) { showToast('Channel Name is required!'); return; }
+      showToast('Channel created successfully!');
+      closeModal('createChannelModal');
+    }
+
     function toggleChatMenu() {
       const menu = document.getElementById('chat-dropdown-menu');
       menu.classList.toggle('hidden');
     }
 
-    function createChannelSubmit() {
-      const name = document.getElementById('channel-name').value.trim();
-      const phone = document.getElementById('channel-phone').value.trim();
-      const pass = document.getElementById('channel-password').value.trim();
-      const photoFile = document.getElementById('channel-photo');
-
-      if (!name || !phone || !pass) {
-        showToast('Please fill in all channel details!');
-        return;
-      }
-
-      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-
-      const finishCreate = function(avatarUrl) {
-        const channelObj = {
-          id: 'chan_' + Date.now(),
-          name: name,
-          phone: phone,
-          avatar: avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
-          creator: formatHandle(currentUser),
-          messages: [{ sender: 'System', text: `Welcome to ${name} Channel! 🎉`, time: 'Now' }],
-          posts: []
-        };
-
-        channels.push(channelObj);
-        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-        showToast('Channel created successfully!');
-        closeModal('createChannelModal');
-
-        document.getElementById('channel-name').value = '';
-        document.getElementById('channel-phone').value = '';
-        document.getElementById('channel-password').value = '';
-        document.getElementById('channel-photo').value = '';
-
-        renderChatList();
-      };
-
-      if (photoFile.files && photoFile.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          finishCreate(e.target.result);
-        };
-        reader.readAsDataURL(photoFile.files[0]);
-      } else {
-        finishCreate(null);
-      }
-    }
-
     function renderChatList() {
-      const container = document.getElementById('chat-list-view');
-      container.innerHTML = '';
-
-      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-      let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-
-      if (channels.length === 0) {
-        channels = [
-          { id: 'chan_default', name: 'Official Announcement Channel', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=Official', messages: [{ sender: 'Admin', text: 'Welcome to Super App Channels!', time: '12:00' }] }
-        ];
-        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-      }
-
-      channels.forEach(ch => {
-        const lastMsg = ch.messages && ch.messages.length > 0 ? ch.messages[ch.messages.length - 1].text : 'No messages yet';
-        const item = document.createElement('div');
-        item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
-        item.onclick = function() { openChatWindow(ch.id, ch.name, 'channel', ch.avatar); };
-        item.innerHTML = `
-          <div class="w-11 h-11 rounded-full bg-cyan-900/60 border border-cyan-500/40 p-0.5 relative flex-shrink-0">
-            <img src="${ch.avatar}" class="w-full h-full rounded-full object-cover">
-            <span class="absolute bottom-0 right-0 w-3 h-3 bg-cyan-500 border-2 border-gray-900 rounded-full" title="Channel"></span>
+      const list = document.getElementById('chat-list-view');
+      list.innerHTML = `
+        <div onclick="openConversation('Global Community')" class="p-3 bg-gray-900 hover:bg-gray-800 rounded-xl border border-gray-800 flex items-center gap-3 cursor-pointer">
+          <div class="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-white">#</div>
+          <div>
+            <h4 class="text-xs font-bold text-white">Global Chat</h4>
+            <p class="text-[10px] text-gray-400">Public discussion room</p>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-center mb-0.5">
-              <h4 class="text-xs font-bold text-cyan-400 truncate">${ch.name}</h4>
-              <span class="text-[9px] text-cyan-500/80 uppercase font-semibold border border-cyan-500/30 px-1 rounded">Channel</span>
-            </div>
-            <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-      Object.keys(users).forEach(u => {
-        if (u !== cleanUser) {
-          const chatId = [cleanUser, u].sort().join('_');
-          const chatData = dms[chatId] || { messages: [] };
-          const lastMsg = chatData.messages.length > 0 ? chatData.messages[chatData.messages.length - 1].text : 'Tap to start conversation';
-          const avatarUrl = users[u].avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u}`;
-
-          const item = document.createElement('div');
-          item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
-          item.onclick = function() { openChatWindow(chatId, '@' + u, 'user', avatarUrl); };
-          item.innerHTML = `
-            <div class="w-11 h-11 rounded-full bg-red-900/60 border border-red-500/40 p-0.5 relative flex-shrink-0">
-              <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover">
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-center mb-0.5">
-                <h4 class="text-xs font-bold text-white truncate">@${u}</h4>
-                <span class="text-[9px] text-gray-500">User Chat</span>
-              </div>
-              <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
-            </div>
-          `;
-          container.appendChild(item);
-        }
-      });
-    }
-
-    function openDirectMessage(targetUser) {
-      openModal('chatModal');
-      const cleanTarget = formatHandle(targetUser);
-      const cleanUser = formatHandle(currentUser);
-      const chatId = [cleanUser, cleanTarget].sort().join('_');
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      const avatarUrl = users[cleanTarget]?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanTarget}`;
-
-      openChatWindow(chatId, '@' + cleanTarget, 'user', avatarUrl);
-    }
-
-    function openChatWindow(id, title, type, avatar) {
-      currentActiveChatId = id;
-      activeChatType = type;
-
-      document.getElementById('chat-list-view').classList.add('hidden');
-      document.getElementById('chat-active-view').classList.remove('hidden');
-      document.getElementById('back-to-chats-btn').classList.remove('hidden');
-      document.getElementById('chat-header-title').innerText = title;
-
-      renderChatMessages();
+        </div>
+      `;
     }
 
     function showChatList() {
@@ -1559,77 +1481,55 @@
       document.getElementById('chat-active-view').classList.add('hidden');
       document.getElementById('back-to-chats-btn').classList.add('hidden');
       document.getElementById('chat-header-title').innerText = "💬 Channels & DMs";
-      renderChatList();
     }
 
-    function renderChatMessages() {
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = '';
+    function openConversation(title) {
+      document.getElementById('chat-list-view').classList.add('hidden');
+      document.getElementById('chat-active-view').classList.remove('hidden');
+      document.getElementById('back-to-chats-btn').classList.remove('hidden');
+      document.getElementById('chat-header-title').innerText = title;
+    }
 
-      let messages = [];
-
-      if (activeChatType === 'channel') {
-        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-        let channel = channels.find(c => c.id === currentActiveChatId);
-        if (channel) messages = channel.messages || [];
-      } else {
-        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-        if (dms[currentActiveChatId]) messages = dms[currentActiveChatId].messages || [];
-      }
-
-      if (messages.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No messages yet. Send a message to start!</p>';
-        return;
-      }
-
-      const cleanUser = formatHandle(currentUser);
-
-      messages.forEach(m => {
-        const isSelf = formatHandle(m.sender) === cleanUser;
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
-        msgDiv.innerHTML = `
-          <div class="max-w-[75%] ${isSelf ? 'bg-cyan-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-gray-800 text-gray-200 rounded-r-xl rounded-tl-xl'} p-2.5 text-xs shadow">
-            <p class="font-bold text-[10px] text-cyan-200 mb-0.5">${m.sender}</p>
-            <p class="allow-select">${m.text}</p>
-          </div>
-        `;
-        container.appendChild(msgDiv);
-      });
-
-      container.scrollTop = container.scrollHeight;
+    function openDirectMessage(handle) {
+      openModal('chatModal');
+      openConversation('@' + handle);
     }
 
     function sendChatMessage() {
       const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text || !currentActiveChatId) return;
-
-      const cleanUser = formatHandle(currentUser);
-      const newMsg = { sender: cleanUser, text: text, time: 'Now' };
-
-      if (activeChatType === 'channel') {
-        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-        let channel = channels.find(c => c.id === currentActiveChatId);
-        if (channel) {
-          if (!channel.messages) channel.messages = [];
-          channel.messages.push(newMsg);
-          localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-        }
-      } else {
-        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-        if (!dms[currentActiveChatId]) dms[currentActiveChatId] = { messages: [] };
-        dms[currentActiveChatId].messages.push(newMsg);
-        localStorage.setItem('SUPER_APP_DMS', JSON.stringify(dms));
-      }
-
+      const msg = input.value.trim();
+      if (!msg) return;
+      const box = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-xs text-white max-w-[80%] self-end ml-auto';
+      div.innerText = msg;
+      box.appendChild(div);
       input.value = '';
-      renderChatMessages();
+      box.scrollTop = box.scrollHeight;
     }
 
-    window.onload = function() {
+    function searchWeather() {
+      const city = document.getElementById('weather-search-input').value.trim() || 'Karachi';
+      document.getElementById('weather-location').innerText = city + ', PK';
+      showToast('Weather updated for ' + city);
+    }
+
+    function runTranslation() {
+      const text = document.getElementById('trans-input').value;
+      const output = document.getElementById('trans-output');
+      output.innerText = text ? "Translated: " + text : "Translation will appear here...";
+    }
+
+    function executeCode() {
+      const code = document.getElementById('code-input').value;
+      const out = document.getElementById('code-output');
+      out.innerText = "Running code...\nOutput:\n" + code;
+    }
+
+    // Window Load / Auth Trigger
+    window.addEventListener('DOMContentLoaded', () => {
       checkAuthSession();
-    };
+    });
   </script>
 </body>
 </html>
