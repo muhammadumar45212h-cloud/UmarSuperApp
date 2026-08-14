@@ -284,18 +284,70 @@
     </div>
   </div>
 
-  <!-- MODAL: DMs -->
+  <!-- MODAL: DMs & CHANNELS -->
   <div id="chatModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-red-400">💬 Community Channels & DMs</h2>
-      <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2 relative">
+      <div class="flex items-center gap-2">
+        <button id="back-to-chats-btn" onclick="showChatList()" class="hidden text-gray-400 hover:text-white mr-1 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-base font-bold text-red-400" id="chat-header-title">💬 Channels & DMs</h2>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- THREE DOT MENU BUTTON -->
+        <button onclick="toggleChatMenu()" class="text-gray-300 hover:text-white text-lg px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- THREE DOT DROPDOWN MENU -->
+      <div id="chat-dropdown-menu" class="hidden absolute right-0 top-10 w-44 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <button onclick="openModal('createChannelModal'); toggleChatMenu();" class="w-full text-left px-4 py-2.5 text-xs text-cyan-400 hover:bg-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle"></i> Create Channel
+        </button>
+      </div>
     </div>
-    <div class="flex-1 flex flex-col justify-between overflow-hidden">
+
+    <!-- CHAT / CHANNEL LIST VIEW -->
+    <div id="chat-list-view" class="flex-1 overflow-y-auto space-y-2 no-scrollbar p-1">
+      <!-- Dynamic list of Channels and DMs will render here -->
+    </div>
+
+    <!-- ACTIVE CONVERSATION VIEW -->
+    <div id="chat-active-view" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
       <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar"></div>
       <div class="flex gap-2 pt-2 border-t border-gray-800">
         <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Send a message...">
-        <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+        <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold text-white"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE CHANNEL -->
+  <div id="createChannelModal" class="fullscreen-modal hidden p-4">
+    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-bullhorn"></i> Create New Channel</h2>
+      <button onclick="closeModal('createChannelModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-3 max-w-md mx-auto w-full">
+      <div>
+        <label class="text-[10px] text-gray-400 block mb-1">Channel Photo (Gallery)</label>
+        <input type="file" id="channel-photo" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-cyan-400">
+      </div>
+      <div>
+        <label class="text-[10px] text-gray-400 block mb-1">Channel Username / Name</label>
+        <input type="text" id="channel-name" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="e.g. Umar Crypto Signals">
+      </div>
+      <div>
+        <label class="text-[10px] text-gray-400 block mb-1">Phone Number</label>
+        <input type="tel" id="channel-phone" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="+923001234567">
+      </div>
+      <div>
+        <label class="text-[10px] text-gray-400 block mb-1">Password</label>
+        <input type="password" id="channel-password" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="••••••••">
+      </div>
+
+      <button onclick="createChannelSubmit()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg mt-2">
+        Create Channel
+      </button>
     </div>
   </div>
 
@@ -395,6 +447,8 @@
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
+    let currentActiveChatId = null;
+    let activeChatType = 'user'; // 'user' or 'channel'
     let videoObserver = null;
 
     function formatHandle(str) {
@@ -539,6 +593,9 @@
       document.getElementById(modalId).classList.remove('hidden');
       if (modalId === 'createModal') {
         togglePostType();
+      } else if (modalId === 'chatModal') {
+        renderChatList();
+        showChatList();
       }
     }
 
@@ -683,6 +740,7 @@
           likes: [],
           views: 0,
           shares: 0,
+          subscribed: false,
           comments: [],
           timestamp: Date.now()
         };
@@ -811,7 +869,7 @@
 
             <div class="absolute bottom-16 left-4 text-white z-20">
               <div class="flex items-center gap-2 mb-1">
-                <h4 class="font-bold text-sm">@${authorHandle}</h4>
+                <h4 class="font-bold text-sm cursor-pointer hover:underline" onclick="openDirectMessage('${authorHandle}')">@${authorHandle}</h4>
                 <button onclick="toggleSubscribe(${v.id}, '${authorHandle}')" id="sub-btn-${v.id}" class="px-2 py-0.5 ${v.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[10px] font-bold rounded-full">
                   ${v.subscribed ? 'Subscribed' : 'Subscribe'}
                 </button>
@@ -1072,24 +1130,362 @@
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
+    // TEXT POSTS FUNCTIONALITY WITH LIKE, COMMENT, SHARE, SUBSCRIBE
     function loadTextPosts() {
       let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      if (storedPosts.length === 0) {
+        storedPosts = [
+          { id: 101, user: 'Umar', text: 'Welcome to Super App Feed! Share your thoughts here 🚀', likes: [], comments: [], shares: 0, subscribed: false },
+          { id: 102, user: 'aqib_dev', text: 'Realtime Trading and Short Videos feature enabled!', likes: [], comments: [], shares: 0, subscribed: false }
+        ];
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+      }
+
       const container = document.getElementById('posts-container');
       container.innerHTML = '';
 
       storedPosts.forEach(p => {
         const author = formatHandle(p.user);
+        const likesArr = Array.isArray(p.likes) ? p.likes : [];
+        const cleanUser = formatHandle(currentUser);
+        const isLiked = cleanUser && likesArr.includes(cleanUser);
+
         const item = document.createElement('div');
-        item.className = 'bg-gray-900 border border-gray-800 p-3.5 rounded-xl space-y-3';
+        item.className = 'bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg';
         item.innerHTML = `
           <div class="flex justify-between items-center">
-            <span class="font-bold text-xs text-cyan-400">@${author}</span>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs text-cyan-400 cursor-pointer hover:underline" onclick="openDirectMessage('${author}')">@${author}</span>
+              <button onclick="toggleTextPostSubscribe(${p.id}, '${author}')" id="post-sub-btn-${p.id}" class="px-2 py-0.5 ${p.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[9px] font-bold rounded-full">
+                ${p.subscribed ? 'Subscribed' : 'Subscribe'}
+              </button>
+            </div>
             <span class="text-[10px] text-gray-500">Just now</span>
           </div>
-          <p class="text-xs text-gray-200 allow-select">${p.text}</p>
+
+          <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text}</p>
+
+          <!-- TEXT POST ACTIONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
+          <div class="flex justify-between items-center pt-2 border-t border-gray-800/80 text-xs text-gray-400">
+            <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-white'}">
+              <i class="fa-solid fa-heart"></i>
+              <span>${likesArr.length}</span>
+            </button>
+
+            <button onclick="openTextPostComments(${p.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
+              <i class="fa-solid fa-comment"></i>
+              <span>${(p.comments || []).length}</span>
+            </button>
+
+            <button onclick="shareTextPost(${p.id})" class="flex items-center gap-1.5 hover:text-green-400">
+              <i class="fa-solid fa-share"></i>
+              <span>${p.shares || 0}</span>
+            </button>
+          </div>
         `;
         container.appendChild(item);
       });
+    }
+
+    function likeTextPost(id) {
+      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      const cleanUser = formatHandle(currentUser);
+
+      let post = storedPosts.find(p => p.id === id);
+      if (post) {
+        if (!Array.isArray(post.likes)) post.likes = [];
+        const idx = post.likes.indexOf(cleanUser);
+        if (idx === -1) {
+          post.likes.push(cleanUser);
+          showToast('Liked Post!');
+        } else {
+          post.likes.splice(idx, 1);
+          showToast('Unliked Post');
+        }
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+        loadTextPosts();
+      }
+    }
+
+    function toggleTextPostSubscribe(id, author) {
+      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      let post = storedPosts.find(p => p.id === id);
+      if (post) {
+        post.subscribed = !post.subscribed;
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+        loadTextPosts();
+        showToast(post.subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
+      }
+    }
+
+    function openTextPostComments(id) {
+      currentActiveVideoId = null; // Reset video comment active id
+      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      let post = storedPosts.find(p => p.id === id);
+      if (!post) return;
+
+      document.getElementById('drawer-title').innerText = "Post Comments";
+      document.getElementById('drawer-footer-area').classList.remove('hidden');
+
+      const content = document.getElementById('drawer-content-area');
+      content.innerHTML = '';
+
+      if (!post.comments || post.comments.length === 0) {
+        content.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No comments on this post yet.</p>';
+      } else {
+        post.comments.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1';
+          item.innerHTML = `
+            <span class="text-xs font-bold text-cyan-400">@${formatHandle(c.user)}</span>
+            <p class="text-xs text-gray-200">${c.text}</p>
+          `;
+          content.appendChild(item);
+        });
+      }
+
+      // Override Submit button for text posts
+      document.getElementById('drawer-footer-area').querySelector('button').onclick = function() {
+        const input = document.getElementById('new-comment-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        if (!post.comments) post.comments = [];
+        post.comments.push({ user: formatHandle(currentUser), text: text });
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+        input.value = '';
+        openTextPostComments(id);
+        loadTextPosts();
+        showToast('Comment added!');
+      };
+
+      document.getElementById('commentDrawer').classList.add('open');
+    }
+
+    function shareTextPost(id) {
+      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      let post = storedPosts.find(p => p.id === id);
+      if (post) {
+        post.shares = (post.shares || 0) + 1;
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+        loadTextPosts();
+      }
+      openShareDrawer(id);
+    }
+
+    // CHANNELS & DMS FUNCTIONALITY
+    function toggleChatMenu() {
+      const menu = document.getElementById('chat-dropdown-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function createChannelSubmit() {
+      const name = document.getElementById('channel-name').value.trim();
+      const phone = document.getElementById('channel-phone').value.trim();
+      const pass = document.getElementById('channel-password').value.trim();
+      const photoFile = document.getElementById('channel-photo');
+
+      if (!name || !phone || !pass) {
+        showToast('Please fill in all channel details!');
+        return;
+      }
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
+
+      const finishCreate = function(avatarUrl) {
+        const channelObj = {
+          id: 'chan_' + Date.now(),
+          name: name,
+          phone: phone,
+          avatar: avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
+          creator: formatHandle(currentUser),
+          messages: [{ sender: 'System', text: `Welcome to ${name} Channel! 🎉`, time: 'Now' }],
+          posts: []
+        };
+
+        channels.push(channelObj);
+        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+        showToast('Channel created successfully!');
+        closeModal('createChannelModal');
+        
+        // Reset inputs
+        document.getElementById('channel-name').value = '';
+        document.getElementById('channel-phone').value = '';
+        document.getElementById('channel-password').value = '';
+        document.getElementById('channel-photo').value = '';
+
+        renderChatList();
+      };
+
+      if (photoFile.files && photoFile.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          finishCreate(e.target.result);
+        };
+        reader.readAsDataURL(photoFile.files[0]);
+      } else {
+        finishCreate(null);
+      }
+    }
+
+    function renderChatList() {
+      const container = document.getElementById('chat-list-view');
+      container.innerHTML = '';
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
+      let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
+
+      // Default Channels if empty
+      if (channels.length === 0) {
+        channels = [
+          { id: 'chan_default', name: 'Official Announcement Channel', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=Official', messages: [{ sender: 'Admin', text: 'Welcome to Super App Channels!', time: '12:00' }] }
+        ];
+        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      }
+
+      // 1. RENDER CHANNELS IN LINE
+      channels.forEach(ch => {
+        const lastMsg = ch.messages && ch.messages.length > 0 ? ch.messages[ch.messages.length - 1].text : 'No messages yet';
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
+        item.onclick = function() { openChatWindow(ch.id, ch.name, 'channel', ch.avatar); };
+        item.innerHTML = `
+          <div class="w-11 h-11 rounded-full bg-cyan-900/60 border border-cyan-500/40 p-0.5 relative flex-shrink-0">
+            <img src="${ch.avatar}" class="w-full h-full rounded-full object-cover">
+            <span class="absolute bottom-0 right-0 w-3 h-3 bg-cyan-500 border-2 border-gray-900 rounded-full" title="Channel"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center mb-0.5">
+              <h4 class="text-xs font-bold text-cyan-400 truncate">${ch.name}</h4>
+              <span class="text-[9px] text-cyan-500/80 uppercase font-semibold border border-cyan-500/30 px-1 rounded">Channel</span>
+            </div>
+            <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      // 2. RENDER USER DMS / CHATS IN LINE
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      Object.keys(users).forEach(u => {
+        if (u !== cleanUser) {
+          const chatId = [cleanUser, u].sort().join('_');
+          const chatData = dms[chatId] || { messages: [] };
+          const lastMsg = chatData.messages.length > 0 ? chatData.messages[chatData.messages.length - 1].text : 'Tap to start conversation';
+          const avatarUrl = users[u].avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u}`;
+
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
+          item.onclick = function() { openChatWindow(chatId, '@' + u, 'user', avatarUrl); };
+          item.innerHTML = `
+            <div class="w-11 h-11 rounded-full bg-red-900/60 border border-red-500/40 p-0.5 relative flex-shrink-0">
+              <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center mb-0.5">
+                <h4 class="text-xs font-bold text-white truncate">@${u}</h4>
+                <span class="text-[9px] text-gray-500">User Chat</span>
+              </div>
+              <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
+            </div>
+          `;
+          container.appendChild(item);
+        }
+      });
+    }
+
+    function openDirectMessage(targetUser) {
+      openModal('chatModal');
+      const cleanTarget = formatHandle(targetUser);
+      const cleanUser = formatHandle(currentUser);
+      const chatId = [cleanUser, cleanTarget].sort().join('_');
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      const avatarUrl = users[cleanTarget]?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanTarget}`;
+
+      openChatWindow(chatId, '@' + cleanTarget, 'user', avatarUrl);
+    }
+
+    function openChatWindow(id, title, type, avatar) {
+      currentActiveChatId = id;
+      activeChatType = type;
+
+      document.getElementById('chat-list-view').classList.add('hidden');
+      document.getElementById('chat-active-view').classList.remove('hidden');
+      document.getElementById('back-to-chats-btn').classList.remove('hidden');
+      document.getElementById('chat-header-title').innerText = title;
+
+      renderChatMessages();
+    }
+
+    function showChatList() {
+      document.getElementById('chat-list-view').classList.remove('hidden');
+      document.getElementById('chat-active-view').classList.add('hidden');
+      document.getElementById('back-to-chats-btn').classList.add('hidden');
+      document.getElementById('chat-header-title').innerText = "💬 Channels & DMs";
+      renderChatList();
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+
+      let messages = [];
+
+      if (activeChatType === 'channel') {
+        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
+        let ch = channels.find(c => c.id === currentActiveChatId);
+        if (ch) messages = ch.messages || [];
+      } else {
+        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
+        let chatData = dms[currentActiveChatId] || { messages: [] };
+        messages = chatData.messages || [];
+      }
+
+      const cleanUser = formatHandle(currentUser);
+
+      messages.forEach(m => {
+        const isMe = formatHandle(m.sender) === cleanUser;
+        const msgBubble = document.createElement('div');
+        msgBubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+        msgBubble.innerHTML = `
+          <div class="max-w-[78%] px-3 py-2 rounded-2xl text-xs allow-select ${isMe ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-800 border border-gray-700 text-gray-200 rounded-bl-none'}">
+            <span class="block text-[9px] opacity-75 font-bold mb-0.5">@${formatHandle(m.sender)}</span>
+            ${m.text}
+          </div>
+        `;
+        container.appendChild(msgBubble);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || !currentActiveChatId) return;
+
+      const cleanUser = formatHandle(currentUser);
+      const newMsg = { sender: cleanUser, text: text, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+
+      if (activeChatType === 'channel') {
+        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
+        let ch = channels.find(c => c.id === currentActiveChatId);
+        if (ch) {
+          if (!ch.messages) ch.messages = [];
+          ch.messages.push(newMsg);
+          localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+        }
+      } else {
+        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
+        if (!dms[currentActiveChatId]) dms[currentActiveChatId] = { messages: [] };
+        dms[currentActiveChatId].messages.push(newMsg);
+        localStorage.setItem('SUPER_APP_DMS', JSON.stringify(dms));
+      }
+
+      input.value = '';
+      renderChatMessages();
     }
 
     async function runTranslation() {
