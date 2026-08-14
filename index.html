@@ -374,7 +374,7 @@
     }
     const db = firebase.firestore();
 
-    // INDEXEDDB DATABASE INITIALIZATION FOR HEAVY VIDEOS (No Crashes on app reload)
+    // INDEXEDDB DATABASE INITIALIZATION FOR HEAVY VIDEOS
     let dbInstance;
     const dbReq = indexedDB.open("SuperAppDB", 1);
     dbReq.onupgradeneeded = function(e) {
@@ -532,6 +532,9 @@
 
     function openModal(modalId) {
       document.getElementById(modalId).classList.remove('hidden');
+      if (modalId === 'createModal') {
+        togglePostType();
+      }
     }
 
     function closeModal(modalId) {
@@ -565,7 +568,7 @@
       }
     }
 
-    // PUBLISH VIDEO DIRECTLY TO INDEXEDDB & FIREBASE LIVE CLOUD
+    // FIXED VIDEO PUBLISH SYSTEM FOR MOBILE GALLERIES
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
@@ -583,6 +586,10 @@
         pubBtn.disabled = true;
 
         const file = fileInput.files[0];
+        
+        // Use Blob URL for immediate playback without base64 size limits
+        const videoBlobUrl = URL.createObjectURL(file);
+        
         const reader = new FileReader();
         reader.onload = function(e) {
           const videoData = e.target.result;
@@ -600,29 +607,59 @@
             timestamp: videoId
           };
 
-          // Save to permanent IndexedDB Storage
-          if (dbInstance) {
-            const tx = dbInstance.transaction("videos", "readwrite");
-            const store = tx.objectStore("videos");
-            store.put(newVid);
-          }
+          const saveToDb = function(dataToSave) {
+            if (dbInstance) {
+              const tx = dbInstance.transaction("videos", "readwrite");
+              const store = tx.objectStore("videos");
+              store.put(dataToSave);
+              
+              tx.oncomplete = function() {
+                showToast('Video published successfully!');
+                pubBtn.innerText = "Publish Post";
+                pubBtn.disabled = false;
+                closeModal('createModal');
+                initAppContent();
+                loadProfileGrid();
+                switchTab('videos');
+                document.getElementById('post-caption').value = '';
+                document.getElementById('post-video-file').value = '';
+              };
 
-          // Sync cloud document reference with Firebase Firestore
+              tx.onerror = function() {
+                // Fallback to Blob URL if payload is large
+                dataToSave.url = videoBlobUrl;
+                const tx2 = dbInstance.transaction("videos", "readwrite");
+                tx2.objectStore("videos").put(dataToSave);
+                showToast('Video published successfully!');
+                pubBtn.innerText = "Publish Post";
+                pubBtn.disabled = false;
+                closeModal('createModal');
+                initAppContent();
+                loadProfileGrid();
+                switchTab('videos');
+                document.getElementById('post-caption').value = '';
+                document.getElementById('post-video-file').value = '';
+              };
+            }
+          };
+
+          saveToDb(newVid);
+
+          // Firebase Firestore lightweight reference
           db.collection('videos').doc(String(videoId)).set({
             user: userHandle,
             caption: caption || 'Gallery Video Upload 🚀',
             timestamp: videoId,
             hasVideo: true
           }).catch(err => console.log('Firebase Cloud Sync Warning:', err));
+        };
 
-          showToast('Video published successfully!');
+        reader.onerror = function() {
+          showToast('Error reading video file!');
           pubBtn.innerText = "Publish Post";
           pubBtn.disabled = false;
-          closeModal('createModal');
-          initAppContent();
-          loadProfileGrid();
-          switchTab('videos');
         };
+
         reader.readAsDataURL(file);
 
       } else {
@@ -646,16 +683,14 @@
         storedPosts.unshift(newPost);
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
 
-        // Sync post directly with Firebase Cloud Data
         db.collection('posts').add(newPost).catch(e => console.log(e));
 
         showToast('Text post published!');
         closeModal('createModal');
         loadTextPosts();
         switchTab('feed');
+        document.getElementById('post-caption').value = '';
       }
-
-      document.getElementById('post-caption').value = '';
     }
 
     function loadProfileGrid() {
@@ -894,7 +929,7 @@
       };
     }
 
-    // MULTI SOCIAL MEDIA SHARE DRAWER (WhatsApp, TikTok, YouTube, X, Telegram, FB)
+    // MULTI SOCIAL MEDIA SHARE DRAWER
     function openShareDrawer(videoId) {
       document.getElementById('drawer-title').innerText = "Share to Social Media";
       document.getElementById('drawer-footer-area').classList.add('hidden');
