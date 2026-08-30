@@ -453,9 +453,7 @@
         <button onclick="executeCode()" class="px-4 py-1.5 bg-cyan-600 rounded text-xs font-bold text-white"><i class="fa-solid fa-play mr-1"></i> Run</button>
       </div>
       <textarea id="code-input" class="w-full flex-1 bg-gray-900 border border-gray-800 p-3 rounded font-mono text-xs text-green-400 allow-select focus:outline-none" placeholder="print('hello world')"></textarea>
-      <div class="h-28 bg-black border border-gray-800 p-3 rounded font-mono text-xs text-cyan-300 overflow-y-auto" id="code-output">
-        Console Output will appear here...
-      </div>
+      <div class="h-28 bg-black border border-gray-800 p-3 rounded font-mono text-xs text-cyan-300 overflow-y-auto" id="code-output">Console Output will appear here...</div>
     </div>
   </div>
 
@@ -558,11 +556,11 @@
         }
 
         Sk.configure({ output: outf, read: builtinRead });
-        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.miscellaneous.pyCheckArgs;
+
+        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.importMainWithBody("<stdin>", false, code, true);
         
-        Sk.miscellaneous.pyCheckArgs = undefined;
-        Sk.importMainWithBody("<stdin>", false, code, true).then(function (module) {
-          if(!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
+        myPromise.then(function (module) {
+          if (!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
         }, function (err) {
           outputElem.innerText = err.toString();
         });
@@ -807,7 +805,6 @@
         btn.classList.add('text-gray-400');
       });
 
-      // Mute/Pause videos when leaving the video tab
       if (tabName !== 'videos') {
         document.querySelectorAll('video').forEach(v => {
           v.pause();
@@ -1007,7 +1004,6 @@
 
         if (videoObserver) videoObserver.disconnect();
 
-        // IntersectionObserver for auto-playing active scroll video with audio
         videoObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             const vid = entry.target.querySelector('video');
@@ -1016,14 +1012,13 @@
 
             if (entry.isIntersecting) {
               vid.currentTime = 0;
-              vid.muted = false; // Enable audio for active scroll video
+              vid.muted = false;
               let playPromise = vid.play();
               if (playPromise !== undefined) {
                 playPromise.then(() => {
                   if (playOverlay) playOverlay.classList.add('opacity-0');
                   if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
                 }).catch(() => {
-                  // Fallback to muted if browser blocks unmuted autoplay
                   vid.muted = true;
                   vid.play();
                   if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
@@ -1048,14 +1043,12 @@
           item.innerHTML = `
             <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
             
-            <!-- PLAY / PAUSE CENTER OVERLAY BUTTON -->
             <div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
               <div class="w-16 h-16 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white text-2xl border border-white/20">
                 <i class="fa-solid fa-play ml-1"></i>
               </div>
             </div>
 
-            <!-- AUDIO MUTE / UNMUTE TOP-RIGHT BUTTON -->
             <button onclick="toggleAudio(this, event)" class="audio-toggle-btn absolute top-4 right-4 z-20 w-9 h-9 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm border border-gray-700">
               <i class="fa-solid fa-volume-high"></i>
             </button>
@@ -1070,7 +1063,6 @@
               <p class="text-xs text-gray-200">${v.caption}</p>
             </div>
 
-            <!-- SIDE BUTTONS -->
             <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
               <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
                 <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
@@ -1098,7 +1090,6 @@
           const vidElem = item.querySelector('video');
           const overlayElem = item.querySelector('.play-overlay');
 
-          // Click anywhere on video screen to toggle Play/Pause
           item.addEventListener('click', function(e) {
             if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
               if (vidElem.paused) {
@@ -1119,7 +1110,6 @@
       });
     }
 
-    // Dynamic Mute / Unmute Handler
     function toggleAudio(btnElem, e) {
       e.stopPropagation();
       const reelItem = btnElem.closest('.reel-item');
@@ -1267,43 +1257,36 @@
 
       content.innerHTML = `
         <div class="grid grid-cols-3 gap-3 p-2">
-          <!-- WHATSAPP -->
           <a href="https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}" target="_blank" class="flex flex-col items-center bg-green-900/40 border border-green-500/30 p-3 rounded-xl">
             <i class="fa-brands fa-whatsapp text-green-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">WhatsApp</span>
           </a>
 
-          <!-- TELEGRAM -->
           <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-cyan-900/40 border border-cyan-500/30 p-3 rounded-xl">
             <i class="fa-brands fa-telegram text-cyan-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">Telegram</span>
           </a>
 
-          <!-- TWITTER / X -->
           <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-gray-800 border border-gray-600 p-3 rounded-xl">
             <i class="fa-brands fa-x-twitter text-white text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">X / Twitter</span>
           </a>
 
-          <!-- FACEBOOK -->
           <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" class="flex flex-col items-center bg-blue-900/40 border border-blue-500/30 p-3 rounded-xl">
             <i class="fa-brands fa-facebook text-blue-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">Facebook</span>
           </a>
 
-          <!-- TIKTOK -->
           <a href="https://www.tiktok.com" target="_blank" class="flex flex-col items-center bg-pink-950/40 border border-pink-500/30 p-3 rounded-xl">
             <i class="fa-brands fa-tiktok text-pink-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">TikTok</span>
           </a>
 
-          <!-- YOUTUBE -->
           <a href="https://www.youtube.com" target="_blank" class="flex flex-col items-center bg-red-950/40 border border-red-500/30 p-3 rounded-xl">
             <i class="fa-brands fa-youtube text-red-500 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">YouTube</span>
           </a>
 
-          <!-- COPY LINK -->
           <button onclick="copyShareLink('${window.location.href}')" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl col-span-3">
             <i class="fa-solid fa-link text-purple-400 text-2xl mb-1"></i>
             <span class="text-[10px] text-gray-200">Copy Direct Link</span>
@@ -1323,7 +1306,6 @@
       document.getElementById('commentDrawer').classList.remove('open');
     }
 
-    // TEXT POSTS FUNCTIONALITY WITH LIKE, COMMENT, SHARE, SUBSCRIBE
     function loadTextPosts() {
       let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
       if (storedPosts.length === 0) {
@@ -1358,7 +1340,6 @@
 
           <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text}</p>
 
-          <!-- TEXT POST ACTIONS: LIKE, COMMENT, SHARE, SUBSCRIBE -->
           <div class="flex justify-between items-center pt-2 border-t border-gray-800/80 text-xs text-gray-400">
             <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-white'}">
               <i class="fa-solid fa-heart"></i>
@@ -1465,7 +1446,6 @@
       openShareDrawer(id);
     }
 
-    // CHANNELS & DMS FUNCTIONALITY
     function toggleChatMenu() {
       const menu = document.getElementById('chat-dropdown-menu');
       menu.classList.toggle('hidden');
@@ -1610,7 +1590,7 @@
     function showChatList() {
       document.getElementById('chat-list-view').classList.remove('hidden');
       document.getElementById('chat-active-view').classList.add('hidden');
-      document.getElementById('back-to-chats-btn').classList.add('hidden');
+      document.getElementById('back-to-chats-btn').add('hidden');
       document.getElementById('chat-header-title').innerText = "💬 Channels & DMs";
       renderChatList();
     }
@@ -1686,4 +1666,3 @@
   </script>
 </body>
 </html>
-
