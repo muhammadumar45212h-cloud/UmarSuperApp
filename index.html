@@ -539,6 +539,59 @@
     let activeChatType = 'user'; // 'user' or 'channel'
     let videoObserver = null;
 
+    // CODE RUNNER EXECUTION LOGIC (PYTHON & JAVASCRIPT FIXED)
+    function executeCode() {
+      const lang = document.getElementById('code-lang').value;
+      const code = document.getElementById('code-input').value;
+      const outputElem = document.getElementById('code-output');
+      outputElem.innerText = '';
+
+      if (lang === 'python') {
+        function outf(text) {
+          outputElem.innerText += text;
+        }
+        function builtinRead(x) {
+          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+            throw "File not found: '" + x + "'";
+          }
+          return Sk.builtinFiles["files"][x];
+        }
+
+        Sk.configure({ output: outf, read: builtinRead });
+        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.miscellaneous.pyCheckArgs;
+        
+        Sk.miscellaneous.pyCheckArgs = undefined;
+        Sk.importMainWithBody("<stdin>", false, code, true).then(function (module) {
+          if(!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
+        }, function (err) {
+          outputElem.innerText = err.toString();
+        });
+
+      } else if (lang === 'javascript') {
+        try {
+          let logs = [];
+          const originalLog = console.log;
+          console.log = function(...args) {
+            logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+            originalLog.apply(console, args);
+          };
+
+          let result = eval(code);
+          console.log = originalLog;
+
+          if (logs.length > 0) {
+            outputElem.innerText = logs.join('\n');
+          } else if (result !== undefined) {
+            outputElem.innerText = String(result);
+          } else {
+            outputElem.innerText = "Code executed successfully.";
+          }
+        } catch (err) {
+          outputElem.innerText = "Error: " + err.message;
+        }
+      }
+    }
+
     function formatHandle(str) {
       if (!str) return 'Umar';
       return str.replace(/^@+/, '');
@@ -1633,3 +1686,4 @@
   </script>
 </body>
 </html>
+
