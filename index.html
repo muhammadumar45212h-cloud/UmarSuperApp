@@ -158,8 +158,6 @@
 
     <!-- USER PROFILE & SETTINGS -->
     <section id="tab-profile" class="p-4 hidden space-y-4 relative">
-      
-      <!-- TOP PROFILE HEADER WITH THREE DOT SETTINGS BUTTON -->
       <div class="flex justify-between items-center border-b border-gray-800/80 pb-2">
         <span class="text-xs font-bold text-gray-300">My Profile</span>
         <button onclick="openModal('settingsModal')" class="text-gray-300 hover:text-white text-lg px-2 py-1 cursor-pointer" title="Settings">
@@ -189,7 +187,6 @@
         </div>
       </div>
 
-      <!-- WALLET & SETTINGS SECTION -->
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
         <div class="flex justify-between items-center border-b border-gray-800 pb-2">
           <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1"></i> Wallet Balance</span>
@@ -240,8 +237,6 @@
     </div>
     
     <div class="space-y-5 max-w-md mx-auto w-full overflow-y-auto no-scrollbar pb-6">
-      
-      <!-- ACCOUNT INFORMATION -->
       <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-2 shadow-lg">
         <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-id-card mr-1.5"></i> Account Information</h3>
         <div class="text-xs space-y-2 pt-1 text-gray-300">
@@ -260,10 +255,9 @@
         </div>
       </div>
 
-      <!-- THEME COLOR SELECTION -->
       <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg">
         <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-palette mr-1.5"></i> Custom Theme Color</h3>
-        <p class="text-[11px] text-gray-400">Choose your preferred accent color for the application interface:</p>
+        <p class="text-[11px] text-gray-400">Choose your preferred accent color for the interface:</p>
         
         <div class="flex items-center gap-3">
           <input type="color" id="settings-theme-color" value="#00f2fe" onchange="applyCustomColor(this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border border-gray-700 p-0.5">
@@ -279,7 +273,6 @@
         </div>
       </div>
 
-      <!-- PRIVACY SETTINGS (PUBLIC / PRIVATE) -->
       <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg">
         <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-lock mr-1.5"></i> Profile Privacy Settings</h3>
         <p class="text-[11px] text-gray-400">When set to Private, only you can view your profile content and uploads.</p>
@@ -302,7 +295,6 @@
           </label>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -380,12 +372,10 @@
       </div>
       
       <div class="flex items-center gap-3">
-        <!-- THREE DOT MENU BUTTON -->
         <button onclick="toggleChatMenu()" class="text-gray-300 hover:text-white text-lg px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
         <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- THREE DOT DROPDOWN MENU -->
       <div id="chat-dropdown-menu" class="hidden absolute right-0 top-10 w-44 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
         <button onclick="openModal('createChannelModal'); toggleChatMenu();" class="w-full text-left px-4 py-2.5 text-xs text-cyan-400 hover:bg-gray-700 flex items-center gap-2">
           <i class="fa-solid fa-plus-circle"></i> Create Channel
@@ -393,12 +383,10 @@
       </div>
     </div>
 
-    <!-- CHAT / CHANNEL LIST VIEW -->
     <div id="chat-list-view" class="flex-1 overflow-y-auto space-y-2 no-scrollbar p-1">
       <!-- Dynamic list of Channels and DMs will render here -->
     </div>
 
-    <!-- ACTIVE CONVERSATION VIEW -->
     <div id="chat-active-view" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
       <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar"></div>
       <div class="flex gap-2 pt-2 border-t border-gray-800">
@@ -528,16 +516,16 @@
       dbInstance = e.target.result;
       initAppContent();
       loadSavedThemeColor();
+      checkAuthSession();
     };
 
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
     let currentActiveChatId = null;
-    let activeChatType = 'user'; // 'user' or 'channel'
+    let activeChatType = 'user';
     let videoObserver = null;
 
-    // CODE RUNNER EXECUTION LOGIC (PYTHON & JAVASCRIPT FIXED)
     function executeCode() {
       const lang = document.getElementById('code-lang').value;
       const code = document.getElementById('code-input').value;
@@ -545,26 +533,20 @@
       outputElem.innerText = '';
 
       if (lang === 'python') {
-        function outf(text) {
-          outputElem.innerText += text;
-        }
+        function outf(text) { outputElem.innerText += text; }
         function builtinRead(x) {
           if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
             throw "File not found: '" + x + "'";
           }
           return Sk.builtinFiles["files"][x];
         }
-
         Sk.configure({ output: outf, read: builtinRead });
-
         var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.importMainWithBody("<stdin>", false, code, true);
-        
         myPromise.then(function (module) {
           if (!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
         }, function (err) {
           outputElem.innerText = err.toString();
         });
-
       } else if (lang === 'javascript') {
         try {
           let logs = [];
@@ -573,10 +555,8 @@
             logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
             originalLog.apply(console, args);
           };
-
           let result = eval(code);
           console.log = originalLog;
-
           if (logs.length > 0) {
             outputElem.innerText = logs.join('\n');
           } else if (result !== undefined) {
@@ -628,7 +608,6 @@
     function handleAuthSubmit() {
       let usernameInput = document.getElementById('auth-username').value.trim();
       const passwordInput = document.getElementById('auth-password').value.trim();
-
       usernameInput = formatHandle(usernameInput);
 
       if (!usernameInput || !passwordInput) {
@@ -671,7 +650,6 @@
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      
       const userData = users[cleanUser] || {};
 
       document.getElementById('profile-display-name').innerText = '@' + (userData.name || cleanUser);
@@ -687,7 +665,6 @@
       document.getElementById('edit-display-name').value = userData.name || cleanUser;
       document.getElementById('edit-bio').value = userData.bio || '';
       
-      // Privacy Badge and Selection Setup
       const isPrivate = userData.privacy === 'private';
       const badgeElem = document.getElementById('privacy-status-badge');
       if (badgeElem) {
@@ -705,14 +682,12 @@
       loadProfileGrid();
     }
 
-    // THEME & PRIVACY SETTINGS FUNCTIONS
     function applyCustomColor(colorHex) {
       document.documentElement.style.setProperty('--accent-blue', colorHex);
       const hexText = document.getElementById('settings-color-hex');
       const colorPicker = document.getElementById('settings-theme-color');
       if (hexText) hexText.innerText = colorHex;
       if (colorPicker) colorPicker.value = colorHex;
-      
       localStorage.setItem('SUPER_APP_THEME_COLOR', colorHex);
       showToast('Theme color applied!');
     }
@@ -732,12 +707,10 @@
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
       if (!users[cleanUser]) users[cleanUser] = {};
       users[cleanUser].privacy = mode;
       localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-
-      showToast(mode === 'private' ? 'Profile is now Private (Only you can see)' : 'Profile is now Public');
+      showToast(mode === 'private' ? 'Profile is now Private' : 'Profile is now Public');
       loadUserData();
     }
 
@@ -745,7 +718,6 @@
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
       if (!users[cleanUser]) users[cleanUser] = {};
 
       const newName = document.getElementById('edit-display-name').value.trim();
@@ -760,14 +732,14 @@
         reader.onload = function(e) {
           users[cleanUser].avatar = e.target.result;
           localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-          showToast('Profile photo & details updated!');
+          showToast('Profile updated!');
           closeModal('editProfileModal');
           loadUserData();
         };
         reader.readAsDataURL(avatarFileInput.files[0]);
       } else {
         localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-        showToast('Profile details updated!');
+        showToast('Profile updated!');
         closeModal('editProfileModal');
         loadUserData();
       }
@@ -782,12 +754,7 @@
 
     function openModal(modalId) {
       document.getElementById(modalId).classList.remove('hidden');
-      if (modalId === 'createModal') {
-        togglePostType();
-      } else if (modalId === 'chatModal') {
-        renderChatList();
-        showChatList();
-      }
+      if (modalId === 'createModal') { togglePostType(); }
     }
 
     function closeModal(modalId) {
@@ -799,17 +766,8 @@
         document.getElementById(`tab-${t}`).classList.add('hidden');
       });
       document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      
-      document.querySelectorAll('nav button.nav-btn').forEach(btn => {
-        btn.classList.remove('text-cyan-400');
-        btn.classList.add('text-gray-400');
-      });
-
       if (tabName !== 'videos') {
-        document.querySelectorAll('video').forEach(v => {
-          v.pause();
-          v.muted = true;
-        });
+        document.querySelectorAll('video').forEach(v => { v.pause(); v.muted = true; });
       }
     }
 
@@ -821,11 +779,8 @@
     function togglePostType() {
       const type = document.getElementById('post-type').value;
       const fileField = document.getElementById('video-file-field');
-      if (type === 'video') {
-        fileField.classList.remove('hidden');
-      } else {
-        fileField.classList.add('hidden');
-      }
+      if (type === 'video') fileField.classList.remove('hidden');
+      else fileField.classList.add('hidden');
     }
 
     function publishPost() {
@@ -837,16 +792,13 @@
       if (type === 'video') {
         const fileInput = document.getElementById('post-video-file');
         if (!fileInput.files || fileInput.files.length === 0) {
-          showToast('Please select a video file from Gallery!');
+          showToast('Please select a video file!');
           return;
         }
-        
         pubBtn.innerText = "Processing Video...";
         pubBtn.disabled = true;
 
         const file = fileInput.files[0];
-        const videoBlobUrl = URL.createObjectURL(file);
-        
         const reader = new FileReader();
         reader.onload = function(e) {
           const videoData = e.target.result;
@@ -864,88 +816,31 @@
             timestamp: videoId
           };
 
-          const saveToDb = function(dataToSave) {
-            if (dbInstance) {
-              const tx = dbInstance.transaction("videos", "readwrite");
-              const store = tx.objectStore("videos");
-              store.put(dataToSave);
-              
-              tx.oncomplete = function() {
-                showToast('Video published successfully!');
-                pubBtn.innerText = "Publish Post";
-                pubBtn.disabled = false;
-                closeModal('createModal');
-                initAppContent();
-                loadProfileGrid();
-                switchTab('videos');
-                document.getElementById('post-caption').value = '';
-                document.getElementById('post-video-file').value = '';
-              };
-
-              tx.onerror = function() {
-                dataToSave.url = videoBlobUrl;
-                const tx2 = dbInstance.transaction("videos", "readwrite");
-                tx2.objectStore("videos").put(dataToSave);
-                showToast('Video published successfully!');
-                pubBtn.innerText = "Publish Post";
-                pubBtn.disabled = false;
-                closeModal('createModal');
-                initAppContent();
-                loadProfileGrid();
-                switchTab('videos');
-                document.getElementById('post-caption').value = '';
-                document.getElementById('post-video-file').value = '';
-              };
-            }
-          };
-
-          saveToDb(newVid);
-
-          db.collection('videos').doc(String(videoId)).set({
-            user: userHandle,
-            caption: caption || 'Gallery Video Upload 🚀',
-            timestamp: videoId,
-            hasVideo: true
-          }).catch(err => console.log('Firebase Cloud Sync Warning:', err));
+          if (dbInstance) {
+            const tx = dbInstance.transaction("videos", "readwrite");
+            const store = tx.objectStore("videos");
+            store.put(newVid);
+            tx.oncomplete = function() {
+              showToast('Video published successfully!');
+              pubBtn.innerText = "Publish Post";
+              pubBtn.disabled = false;
+              closeModal('createModal');
+              initAppContent();
+              loadProfileGrid();
+              switchTab('videos');
+            };
+          }
         };
-
-        reader.onerror = function() {
-          showToast('Error reading video file!');
-          pubBtn.innerText = "Publish Post";
-          pubBtn.disabled = false;
-        };
-
         reader.readAsDataURL(file);
-
       } else {
-        if (!caption) {
-          showToast('Please enter text content!');
-          return;
-        }
-        
-        const newPost = {
-          id: Date.now(),
-          user: userHandle,
-          text: caption,
-          likes: [],
-          views: 0,
-          shares: 0,
-          subscribed: false,
-          comments: [],
-          timestamp: Date.now()
-        };
-
+        if (!caption) { showToast('Please enter text content!'); return; }
+        const newPost = { id: Date.now(), user: userHandle, text: caption, timestamp: Date.now() };
         let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
         storedPosts.unshift(newPost);
         localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-
-        db.collection('posts').add(newPost).catch(e => console.log(e));
-
         showToast('Text post published!');
         closeModal('createModal');
-        loadTextPosts();
         switchTab('feed');
-        document.getElementById('post-caption').value = '';
       }
     }
 
@@ -971,30 +866,18 @@
 
     function getVideosFromStorage(callback) {
       const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [] },
-        { id: 2, user: 'aqib_dev', caption: 'Checking live features seamlessly', url: 'https://www.w3schools.com/html/movie.mp4', likes: [], views: 5, shares: 0, subscribed: false, comments: [] }
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [] }
       ];
 
-      if (!dbInstance) {
-        callback(defaultVideos);
-        return;
-      }
-
+      if (!dbInstance) { callback(defaultVideos); return; }
       const tx = dbInstance.transaction("videos", "readonly");
       const store = tx.objectStore("videos");
       const getReq = store.getAll();
-
       getReq.onsuccess = function() {
         let list = getReq.result || [];
-        if (list.length === 0) {
-          callback(defaultVideos);
-        } else {
-          callback(list.reverse());
-        }
+        callback(list.length === 0 ? defaultVideos : list.reverse());
       };
-      getReq.onerror = function() {
-        callback(defaultVideos);
-      };
+      getReq.onerror = function() { callback(defaultVideos); };
     }
 
     function initAppContent() {
@@ -1003,666 +886,36 @@
         container.innerHTML = '';
 
         if (videoObserver) videoObserver.disconnect();
-
         videoObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             const vid = entry.target.querySelector('video');
-            const playOverlay = entry.target.querySelector('.play-overlay');
-            const audioBtn = entry.target.querySelector('.audio-toggle-btn');
-
             if (entry.isIntersecting) {
               vid.currentTime = 0;
               vid.muted = false;
-              let playPromise = vid.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  if (playOverlay) playOverlay.classList.add('opacity-0');
-                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-                }).catch(() => {
-                  vid.muted = true;
-                  vid.play();
-                  if (audioBtn) audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
-                });
-              }
+              vid.play().catch(() => { vid.muted = true; vid.play(); });
             } else {
               vid.pause();
               vid.muted = true;
-              if (playOverlay) playOverlay.classList.remove('opacity-0');
             }
           });
         }, { threshold: 0.65 });
 
         storedVideos.forEach(v => {
-          const likesArr = Array.isArray(v.likes) ? v.likes : [];
-          const cleanUser = formatHandle(currentUser);
-          const isLiked = cleanUser && likesArr.includes(cleanUser);
           const authorHandle = formatHandle(v.user);
-
           const item = document.createElement('div');
           item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
           item.innerHTML = `
             <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
-            
-            <div class="play-overlay absolute inset-0 flex items-center justify-center z-10">
-              <div class="w-16 h-16 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white text-2xl border border-white/20">
-                <i class="fa-solid fa-play ml-1"></i>
-              </div>
-            </div>
-
-            <button onclick="toggleAudio(this, event)" class="audio-toggle-btn absolute top-4 right-4 z-20 w-9 h-9 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white text-sm border border-gray-700">
-              <i class="fa-solid fa-volume-high"></i>
-            </button>
-
             <div class="absolute bottom-16 left-4 text-white z-20">
-              <div class="flex items-center gap-2 mb-1">
-                <h4 class="font-bold text-sm cursor-pointer hover:underline" onclick="openDirectMessage('${authorHandle}')">@${authorHandle}</h4>
-                <button onclick="toggleSubscribe(${v.id}, '${authorHandle}')" id="sub-btn-${v.id}" class="px-2 py-0.5 ${v.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[10px] font-bold rounded-full">
-                  ${v.subscribed ? 'Subscribed' : 'Subscribe'}
-                </button>
-              </div>
+              <h4 class="font-bold text-sm">@${authorHandle}</h4>
               <p class="text-xs text-gray-200">${v.caption}</p>
             </div>
-
-            <div class="absolute bottom-20 right-4 flex flex-col items-center gap-4 z-20">
-              <button onclick="likeVideo(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center ${isLiked ? 'text-red-500' : 'text-white'} text-lg border border-gray-700">
-                  <i class="fa-solid fa-heart"></i>
-                </div>
-                <span class="text-[10px] text-white font-semibold mt-1" id="likes-count-${v.id}">${likesArr.length}</span>
-              </button>
-
-              <button onclick="openCommentDrawer(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-cyan-400 text-lg border border-gray-700">
-                  <i class="fa-solid fa-comment"></i>
-                </div>
-                <span class="text-[10px] text-white font-semibold mt-1">${(v.comments || []).length}</span>
-              </button>
-
-              <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-green-400 text-lg border border-gray-700">
-                  <i class="fa-solid fa-share"></i>
-                </div>
-                <span class="text-[10px] text-white font-semibold mt-1">${v.shares || 'Share'}</span>
-              </button>
-            </div>
           `;
-
-          const vidElem = item.querySelector('video');
-          const overlayElem = item.querySelector('.play-overlay');
-
-          item.addEventListener('click', function(e) {
-            if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-              if (vidElem.paused) {
-                vidElem.play();
-                overlayElem.classList.add('opacity-0');
-              } else {
-                vidElem.pause();
-                overlayElem.classList.remove('opacity-0');
-              }
-            }
-          });
-
           container.appendChild(item);
           videoObserver.observe(item);
         });
-
-        loadTextPosts();
       });
     }
-
-    function toggleAudio(btnElem, e) {
-      e.stopPropagation();
-      const reelItem = btnElem.closest('.reel-item');
-      const vidElem = reelItem.querySelector('video');
-
-      if (vidElem.muted) {
-        vidElem.muted = false;
-        btnElem.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-        showToast('Sound On');
-      } else {
-        vidElem.muted = true;
-        btnElem.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
-        showToast('Sound Muted');
-      }
-    }
-
-    function likeVideo(id) {
-      if (!currentUser) { showToast('Please login to like!'); return; }
-      const cleanUser = formatHandle(currentUser);
-
-      if (dbInstance) {
-        const tx = dbInstance.transaction("videos", "readwrite");
-        const store = tx.objectStore("videos");
-        const getReq = store.get(id);
-
-        getReq.onsuccess = function() {
-          let vid = getReq.result;
-          if (vid) {
-            if (!Array.isArray(vid.likes)) vid.likes = [];
-            const idx = vid.likes.indexOf(cleanUser);
-            if (idx === -1) {
-              vid.likes.push(cleanUser);
-              showToast('Liked Video!');
-            } else {
-              vid.likes.splice(idx, 1);
-              showToast('Unliked Video');
-            }
-            store.put(vid);
-            initAppContent();
-          }
-        };
-      }
-    }
-
-    function toggleSubscribe(id, author) {
-      if (dbInstance) {
-        const tx = dbInstance.transaction("videos", "readwrite");
-        const store = tx.objectStore("videos");
-        const getReq = store.get(id);
-
-        getReq.onsuccess = function() {
-          let vid = getReq.result;
-          if (vid) {
-            vid.subscribed = !vid.subscribed;
-            store.put(vid);
-            
-            const btn = document.getElementById(`sub-btn-${id}`);
-            if (btn) {
-              btn.innerText = vid.subscribed ? 'Subscribed' : 'Subscribe';
-              btn.className = vid.subscribed ? 'px-2 py-0.5 bg-gray-700 text-gray-300 text-[10px] font-bold rounded-full' : 'px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full';
-            }
-
-            showToast(vid.subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
-          }
-        };
-      }
-    }
-
-    function openCommentDrawer(videoId) {
-      currentActiveVideoId = videoId;
-      document.getElementById('drawer-title').innerText = "Comments Section";
-      document.getElementById('drawer-footer-area').classList.remove('hidden');
-      renderComments();
-      document.getElementById('commentDrawer').classList.add('open');
-    }
-
-    function renderComments() {
-      if (!dbInstance || !currentActiveVideoId) return;
-
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const getReq = store.get(currentActiveVideoId);
-
-      getReq.onsuccess = function() {
-        const video = getReq.result;
-        const content = document.getElementById('drawer-content-area');
-        content.innerHTML = '';
-
-        if (!video || !video.comments || video.comments.length === 0) {
-          content.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>';
-          return;
-        }
-
-        video.comments.forEach((c, idx) => {
-          const likesArr = Array.isArray(c.likes) ? c.likes : [];
-          const cleanUser = formatHandle(currentUser);
-          const isLiked = cleanUser && likesArr.includes(cleanUser);
-          const commentUser = formatHandle(c.user);
-
-          const item = document.createElement('div');
-          item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1.5';
-          item.innerHTML = `
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-cyan-400">@${commentUser}</span>
-              <button onclick="likeComment(${idx})" class="text-[10px] ${isLiked ? 'text-red-500' : 'text-gray-400'} flex items-center gap-1">
-                <i class="fa-solid fa-heart"></i> <span>${likesArr.length}</span>
-              </button>
-            </div>
-            <p class="text-xs text-gray-200">${c.text}</p>
-          `;
-          content.appendChild(item);
-        });
-      };
-    }
-
-    function addCommentSubmit() {
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text || !currentActiveVideoId || !dbInstance) return;
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const getReq = store.get(currentActiveVideoId);
-
-      getReq.onsuccess = function() {
-        let vid = getReq.result;
-        if (vid) {
-          if (!vid.comments) vid.comments = [];
-          vid.comments.push({ user: formatHandle(currentUser), text: text, likes: [] });
-          store.put(vid);
-          input.value = '';
-          renderComments();
-          showToast('Comment added!');
-        }
-      };
-    }
-
-    function openShareDrawer(videoId) {
-      document.getElementById('drawer-title').innerText = "Share to Social Media";
-      document.getElementById('drawer-footer-area').classList.add('hidden');
-      
-      const content = document.getElementById('drawer-content-area');
-      const shareUrl = encodeURIComponent(window.location.href);
-      const shareText = encodeURIComponent("Check out this awesome video on Super App! 🚀");
-
-      content.innerHTML = `
-        <div class="grid grid-cols-3 gap-3 p-2">
-          <a href="https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}" target="_blank" class="flex flex-col items-center bg-green-900/40 border border-green-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-whatsapp text-green-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">WhatsApp</span>
-          </a>
-
-          <a href="https://t.me/share/url?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-cyan-900/40 border border-cyan-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-telegram text-cyan-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Telegram</span>
-          </a>
-
-          <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}" target="_blank" class="flex flex-col items-center bg-gray-800 border border-gray-600 p-3 rounded-xl">
-            <i class="fa-brands fa-x-twitter text-white text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">X / Twitter</span>
-          </a>
-
-          <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" class="flex flex-col items-center bg-blue-900/40 border border-blue-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-facebook text-blue-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Facebook</span>
-          </a>
-
-          <a href="https://www.tiktok.com" target="_blank" class="flex flex-col items-center bg-pink-950/40 border border-pink-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-tiktok text-pink-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">TikTok</span>
-          </a>
-
-          <a href="https://www.youtube.com" target="_blank" class="flex flex-col items-center bg-red-950/40 border border-red-500/30 p-3 rounded-xl">
-            <i class="fa-brands fa-youtube text-red-500 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">YouTube</span>
-          </a>
-
-          <button onclick="copyShareLink('${window.location.href}')" class="flex flex-col items-center bg-purple-950/40 border border-purple-500/30 p-3 rounded-xl col-span-3">
-            <i class="fa-solid fa-link text-purple-400 text-2xl mb-1"></i>
-            <span class="text-[10px] text-gray-200">Copy Direct Link</span>
-          </button>
-        </div>
-      `;
-      document.getElementById('commentDrawer').classList.add('open');
-    }
-
-    function copyShareLink(url) {
-      navigator.clipboard.writeText(url);
-      showToast('Link copied to clipboard!');
-      closeCommentDrawer();
-    }
-
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
-    }
-
-    function loadTextPosts() {
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      if (storedPosts.length === 0) {
-        storedPosts = [
-          { id: 101, user: 'Umar', text: 'Welcome to Super App Feed! Share your thoughts here 🚀', likes: [], comments: [], shares: 0, subscribed: false },
-          { id: 102, user: 'aqib_dev', text: 'Realtime Trading and Short Videos feature enabled!', likes: [], comments: [], shares: 0, subscribed: false }
-        ];
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-      }
-
-      const container = document.getElementById('posts-container');
-      container.innerHTML = '';
-
-      storedPosts.forEach(p => {
-        const author = formatHandle(p.user);
-        const likesArr = Array.isArray(p.likes) ? p.likes : [];
-        const cleanUser = formatHandle(currentUser);
-        const isLiked = cleanUser && likesArr.includes(cleanUser);
-
-        const item = document.createElement('div');
-        item.className = 'bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg';
-        item.innerHTML = `
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-xs text-cyan-400 cursor-pointer hover:underline" onclick="openDirectMessage('${author}')">@${author}</span>
-              <button onclick="toggleTextPostSubscribe(${p.id}, '${author}')" id="post-sub-btn-${p.id}" class="px-2 py-0.5 ${p.subscribed ? 'bg-gray-700 text-gray-300' : 'bg-red-600 text-white'} text-[9px] font-bold rounded-full">
-                ${p.subscribed ? 'Subscribed' : 'Subscribe'}
-              </button>
-            </div>
-            <span class="text-[10px] text-gray-500">Just now</span>
-          </div>
-
-          <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text}</p>
-
-          <div class="flex justify-between items-center pt-2 border-t border-gray-800/80 text-xs text-gray-400">
-            <button onclick="likeTextPost(${p.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-white'}">
-              <i class="fa-solid fa-heart"></i>
-              <span>${likesArr.length}</span>
-            </button>
-
-            <button onclick="openTextPostComments(${p.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
-              <i class="fa-solid fa-comment"></i>
-              <span>${(p.comments || []).length}</span>
-            </button>
-
-            <button onclick="shareTextPost(${p.id})" class="flex items-center gap-1.5 hover:text-green-400">
-              <i class="fa-solid fa-share"></i>
-              <span>${p.shares || 0}</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function likeTextPost(id) {
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      const cleanUser = formatHandle(currentUser);
-
-      let post = storedPosts.find(p => p.id === id);
-      if (post) {
-        if (!Array.isArray(post.likes)) post.likes = [];
-        const idx = post.likes.indexOf(cleanUser);
-        if (idx === -1) {
-          post.likes.push(cleanUser);
-          showToast('Liked Post!');
-        } else {
-          post.likes.splice(idx, 1);
-          showToast('Unliked Post');
-        }
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        loadTextPosts();
-      }
-    }
-
-    function toggleTextPostSubscribe(id, author) {
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      let post = storedPosts.find(p => p.id === id);
-      if (post) {
-        post.subscribed = !post.subscribed;
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        loadTextPosts();
-        showToast(post.subscribed ? `Subscribed to @${formatHandle(author)}` : `Unsubscribed from @${formatHandle(author)}`);
-      }
-    }
-
-    function openTextPostComments(id) {
-      currentActiveVideoId = null;
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      let post = storedPosts.find(p => p.id === id);
-      if (!post) return;
-
-      document.getElementById('drawer-title').innerText = "Post Comments";
-      document.getElementById('drawer-footer-area').classList.remove('hidden');
-
-      const content = document.getElementById('drawer-content-area');
-      content.innerHTML = '';
-
-      if (!post.comments || post.comments.length === 0) {
-        content.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No comments on this post yet.</p>';
-      } else {
-        post.comments.forEach(c => {
-          const item = document.createElement('div');
-          item.className = 'bg-gray-800 p-2.5 rounded-xl border border-gray-700 space-y-1';
-          item.innerHTML = `
-            <span class="text-xs font-bold text-cyan-400">@${formatHandle(c.user)}</span>
-            <p class="text-xs text-gray-200">${c.text}</p>
-          `;
-          content.appendChild(item);
-        });
-      }
-
-      document.getElementById('drawer-footer-area').querySelector('button').onclick = function() {
-        const input = document.getElementById('new-comment-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        if (!post.comments) post.comments = [];
-        post.comments.push({ user: formatHandle(currentUser), text: text });
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        input.value = '';
-        openTextPostComments(id);
-        loadTextPosts();
-        showToast('Comment added!');
-      };
-
-      document.getElementById('commentDrawer').classList.add('open');
-    }
-
-    function shareTextPost(id) {
-      let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      let post = storedPosts.find(p => p.id === id);
-      if (post) {
-        post.shares = (post.shares || 0) + 1;
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        loadTextPosts();
-      }
-      openShareDrawer(id);
-    }
-
-    function toggleChatMenu() {
-      const menu = document.getElementById('chat-dropdown-menu');
-      menu.classList.toggle('hidden');
-    }
-
-    function createChannelSubmit() {
-      const name = document.getElementById('channel-name').value.trim();
-      const phone = document.getElementById('channel-phone').value.trim();
-      const pass = document.getElementById('channel-password').value.trim();
-      const photoFile = document.getElementById('channel-photo');
-
-      if (!name || !phone || !pass) {
-        showToast('Please fill in all channel details!');
-        return;
-      }
-
-      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-
-      const finishCreate = function(avatarUrl) {
-        const channelObj = {
-          id: 'chan_' + Date.now(),
-          name: name,
-          phone: phone,
-          avatar: avatarUrl || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
-          creator: formatHandle(currentUser),
-          messages: [{ sender: 'System', text: `Welcome to ${name} Channel! 🎉`, time: 'Now' }],
-          posts: []
-        };
-
-        channels.push(channelObj);
-        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-        showToast('Channel created successfully!');
-        closeModal('createChannelModal');
-
-        document.getElementById('channel-name').value = '';
-        document.getElementById('channel-phone').value = '';
-        document.getElementById('channel-password').value = '';
-        document.getElementById('channel-photo').value = '';
-
-        renderChatList();
-      };
-
-      if (photoFile.files && photoFile.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          finishCreate(e.target.result);
-        };
-        reader.readAsDataURL(photoFile.files[0]);
-      } else {
-        finishCreate(null);
-      }
-    }
-
-    function renderChatList() {
-      const container = document.getElementById('chat-list-view');
-      container.innerHTML = '';
-
-      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-      let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-
-      if (channels.length === 0) {
-        channels = [
-          { id: 'chan_default', name: 'Official Announcement Channel', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=Official', messages: [{ sender: 'Admin', text: 'Welcome to Super App Channels!', time: '12:00' }] }
-        ];
-        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-      }
-
-      channels.forEach(ch => {
-        const lastMsg = ch.messages && ch.messages.length > 0 ? ch.messages[ch.messages.length - 1].text : 'No messages yet';
-        const item = document.createElement('div');
-        item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
-        item.onclick = function() { openChatWindow(ch.id, ch.name, 'channel', ch.avatar); };
-        item.innerHTML = `
-          <div class="w-11 h-11 rounded-full bg-cyan-900/60 border border-cyan-500/40 p-0.5 relative flex-shrink-0">
-            <img src="${ch.avatar}" class="w-full h-full rounded-full object-cover">
-            <span class="absolute bottom-0 right-0 w-3 h-3 bg-cyan-500 border-2 border-gray-900 rounded-full" title="Channel"></span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-center mb-0.5">
-              <h4 class="text-xs font-bold text-cyan-400 truncate">${ch.name}</h4>
-              <span class="text-[9px] text-cyan-500/80 uppercase font-semibold border border-cyan-500/30 px-1 rounded">Channel</span>
-            </div>
-            <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-      Object.keys(users).forEach(u => {
-        if (u !== cleanUser) {
-          const chatId = [cleanUser, u].sort().join('_');
-          const chatData = dms[chatId] || { messages: [] };
-          const lastMsg = chatData.messages.length > 0 ? chatData.messages[chatData.messages.length - 1].text : 'Tap to start conversation';
-          const avatarUrl = users[u].avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u}`;
-
-          const item = document.createElement('div');
-          item.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:bg-gray-800/80 transition-all';
-          item.onclick = function() { openChatWindow(chatId, '@' + u, 'user', avatarUrl); };
-          item.innerHTML = `
-            <div class="w-11 h-11 rounded-full bg-red-900/60 border border-red-500/40 p-0.5 relative flex-shrink-0">
-              <img src="${avatarUrl}" class="w-full h-full rounded-full object-cover">
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-center mb-0.5">
-                <h4 class="text-xs font-bold text-white truncate">@${u}</h4>
-                <span class="text-[9px] text-gray-500">User Chat</span>
-              </div>
-              <p class="text-[11px] text-gray-400 truncate">${lastMsg}</p>
-            </div>
-          `;
-          container.appendChild(item);
-        }
-      });
-    }
-
-    function openDirectMessage(targetUser) {
-      openModal('chatModal');
-      const cleanTarget = formatHandle(targetUser);
-      const cleanUser = formatHandle(currentUser);
-      const chatId = [cleanUser, cleanTarget].sort().join('_');
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      const avatarUrl = users[cleanTarget]?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanTarget}`;
-
-      openChatWindow(chatId, '@' + cleanTarget, 'user', avatarUrl);
-    }
-
-    function openChatWindow(id, title, type, avatar) {
-      currentActiveChatId = id;
-      activeChatType = type;
-
-      document.getElementById('chat-list-view').classList.add('hidden');
-      document.getElementById('chat-active-view').classList.remove('hidden');
-      document.getElementById('back-to-chats-btn').classList.remove('hidden');
-      document.getElementById('chat-header-title').innerText = title;
-
-      renderChatMessages();
-    }
-
-    function showChatList() {
-      document.getElementById('chat-list-view').classList.remove('hidden');
-      document.getElementById('chat-active-view').classList.add('hidden');
-      document.getElementById('back-to-chats-btn').add('hidden');
-      document.getElementById('chat-header-title').innerText = "💬 Channels & DMs";
-      renderChatList();
-    }
-
-    function renderChatMessages() {
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = '';
-
-      let messages = [];
-
-      if (activeChatType === 'channel') {
-        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-        let channel = channels.find(c => c.id === currentActiveChatId);
-        if (channel) messages = channel.messages || [];
-      } else {
-        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-        if (dms[currentActiveChatId]) messages = dms[currentActiveChatId].messages || [];
-      }
-
-      if (messages.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">No messages yet. Send a message to start!</p>';
-        return;
-      }
-
-      const cleanUser = formatHandle(currentUser);
-
-      messages.forEach(m => {
-        const isSelf = formatHandle(m.sender) === cleanUser;
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
-        msgDiv.innerHTML = `
-          <div class="max-w-[75%] ${isSelf ? 'bg-cyan-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-gray-800 text-gray-200 rounded-r-xl rounded-tl-xl'} p-2.5 text-xs shadow">
-            <p class="font-bold text-[10px] text-cyan-200 mb-0.5">${m.sender}</p>
-            <p class="allow-select">${m.text}</p>
-          </div>
-        `;
-        container.appendChild(msgDiv);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text || !currentActiveChatId) return;
-
-      const cleanUser = formatHandle(currentUser);
-      const newMsg = { sender: cleanUser, text: text, time: 'Now' };
-
-      if (activeChatType === 'channel') {
-        let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '[]');
-        let channel = channels.find(c => c.id === currentActiveChatId);
-        if (channel) {
-          if (!channel.messages) channel.messages = [];
-          channel.messages.push(newMsg);
-          localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
-        }
-      } else {
-        let dms = JSON.parse(localStorage.getItem('SUPER_APP_DMS') || '{}');
-        if (!dms[currentActiveChatId]) dms[currentActiveChatId] = { messages: [] };
-        dms[currentActiveChatId].messages.push(newMsg);
-        localStorage.setItem('SUPER_APP_DMS', JSON.stringify(dms));
-      }
-
-      input.value = '';
-      renderChatMessages();
-    }
-
-    window.onload = function() {
-      checkAuthSession();
-    };
   </script>
 </body>
 </html>
