@@ -111,7 +111,7 @@
       <button onclick="openModal('weatherModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-cyan-500/30 text-cyan-300 flex items-center gap-1 cursor-pointer">
         ☀️ Weather
       </button>
-      <button onclick="openModal('chatModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 text-red-400 flex items-center gap-1 cursor-pointer">
+      <button onclick="openDmInboxModal()" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 text-red-400 flex items-center gap-1 cursor-pointer">
         💬 DMs
       </button>
       <button onclick="openModal('codeModal')" class="w-7 h-7 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30 cursor-pointer" title="Code Runner">
@@ -152,13 +152,19 @@
       </div>
     </section>
 
-    <!-- USER PROFILE & SETTINGS -->
+    <!-- MY PROFILE & SETTINGS -->
     <section id="tab-profile" class="p-4 hidden space-y-4 relative">
       <div class="flex justify-between items-center border-b border-gray-800/80 pb-2">
         <span class="text-xs font-bold text-gray-300">My Profile</span>
-        <button onclick="openModal('settingsModal')" class="text-gray-300 hover:text-white text-lg px-2 py-1 cursor-pointer" title="Settings">
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- VISITOR NOTIFICATION BADGE FOR OWNER -->
+          <span id="profile-visitor-badge" class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-semibold hidden">
+            👁️ <span id="visitor-count-text">0</span> Views
+          </span>
+          <button onclick="openModal('settingsModal')" class="text-gray-300 hover:text-white text-lg px-2 py-1 cursor-pointer" title="Settings">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
       </div>
 
       <div class="flex flex-col items-center">
@@ -170,15 +176,13 @@
         </h2>
         <p class="text-[11px] text-gray-400" id="profile-bio">Verified Creator Profile</p>
         
-        <div id="privacy-status-badge" class="mt-1"></div>
-
         <button onclick="openModal('editProfileModal')" class="mt-2 px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-semibold">
           <i class="fa-solid fa-user-pen mr-1"></i> Edit Profile
         </button>
         
         <div class="flex gap-6 mt-4 text-center">
           <div><p class="font-bold text-base" id="profile-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
-          <div onclick="openSubscribersList()" class="cursor-pointer bg-gray-900/80 px-3 py-1 rounded-xl border border-cyan-500/30">
+          <div class="cursor-pointer bg-gray-900/80 px-3 py-1 rounded-xl border border-cyan-500/30">
             <p class="font-bold text-base text-cyan-400" id="profile-subscribers">0</p>
             <p class="text-[10px] text-gray-400">Subscribers</p>
           </div>
@@ -228,10 +232,91 @@
     </button>
   </nav>
 
-  <!-- MODAL: VIDEO ANALYTICS PAGE -->
+  <!-- PUBLIC USER PROFILE MODAL (ONLY PUBLIC ACCESS) -->
+  <div id="publicProfileModal" class="fullscreen-modal hidden p-4">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+      <button onclick="closeModal('publicProfileModal')" class="text-cyan-400 font-bold text-xs flex items-center gap-1">
+        <i class="fa-solid fa-chevron-left"></i> Back
+      </button>
+      <span class="text-xs text-gray-400">Public Profile</span>
+      <div></div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pt-4">
+      <div class="flex flex-col items-center">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
+          <img id="pub-avatar-img" src="" class="w-full h-full rounded-full object-cover bg-gray-800">
+        </div>
+        <h2 class="text-lg font-bold" id="pub-display-name">@User</h2>
+        <p class="text-[11px] text-gray-400" id="pub-bio">Creator Profile</p>
+
+        <!-- PUBLIC ACTIONS: DM & SUBSCRIBE -->
+        <div class="flex gap-2 mt-3">
+          <button id="pub-dm-btn" onclick="openDirectChatFromPublicProfile()" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane text-xs"></i> Message
+          </button>
+          <button id="pub-sub-btn" onclick="toggleSubscribePublicUser()" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-bold">
+            Subscribe
+          </button>
+        </div>
+
+        <div class="flex gap-6 mt-4 text-center">
+          <div><p class="font-bold text-base" id="pub-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
+          <div><p class="font-bold text-base text-cyan-400" id="pub-subscribers">0</p><p class="text-[10px] text-gray-400">Subscribers</p></div>
+          <div><p class="font-bold text-base" id="pub-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-3">
+        <h3 class="text-xs font-semibold mb-3 text-cyan-400">Videos</h3>
+        <div id="pub-profile-grid" class="grid grid-cols-3 gap-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DM CHAT INBOX & THREAD MODAL -->
+  <div id="dmModal" class="fullscreen-modal hidden flex flex-col">
+    <!-- INBOX HEADER -->
+    <div id="dm-inbox-header" class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+      <h2 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
+        <i class="fa-solid fa-comments text-base"></i> Direct Messages
+      </h2>
+      <button onclick="closeModal('dmModal')" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- THREAD HEADER (ACTIVE CHAT) -->
+    <div id="dm-thread-header" class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center hidden">
+      <button onclick="backToDmInbox()" class="text-cyan-400 font-bold text-xs flex items-center gap-1">
+        <i class="fa-solid fa-chevron-left"></i> Back
+      </button>
+      <div class="flex items-center gap-2">
+        <img id="chat-target-avatar" class="w-6 h-6 rounded-full object-cover">
+        <span class="text-xs font-bold text-white" id="chat-target-username">@User</span>
+      </div>
+      <div></div>
+    </div>
+
+    <!-- INBOX CHAT LIST VIEW -->
+    <div id="dm-inbox-view" class="flex-1 p-3 overflow-y-auto space-y-2 no-scrollbar">
+      <!-- Dynamic Chat Threads & Pending Requests Load Here -->
+    </div>
+
+    <!-- ACTIVE CHAT CONVERSATION VIEW -->
+    <div id="dm-thread-view" class="flex-1 p-3 overflow-y-auto space-y-3 no-scrollbar hidden allow-select">
+      <!-- Chat Messages Load Here -->
+    </div>
+
+    <!-- CHAT INPUT FOOTER -->
+    <div id="dm-input-footer" class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2 hidden">
+      <input type="text" id="dm-message-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded.xl text-xs text-white focus:outline-none allow-select" placeholder="Write a message...">
+      <button onclick="sendDmMessageSubmit()" class="px-4 py-2 btn-gradient rounded-xl text-xs font-bold text-white shadow">Send</button>
+    </div>
+  </div>
+
+  <!-- MODAL: VIDEO ANALYTICS PAGE (UPDATED WITH PROFILE VISITS & LINK CLICKS) -->
   <div id="videoAnalyticsModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-chart-pie mr-1"></i> Video Detailed Analytics</h2>
+      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-chart-pie mr-1"></i> Detailed Analytics</h2>
       <button onclick="closeModal('videoAnalyticsModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -262,6 +347,24 @@
           </div>
         </div>
 
+        <!-- NEW: PROFILE VISITS ANALYTICS CARD -->
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-user-gear"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Profile Visits</p>
+            <p class="text-lg font-extrabold text-amber-400" id="analytics-profile-visits">0</p>
+          </div>
+        </div>
+
+        <!-- NEW: LINK CLICKS ANALYTICS CARD -->
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-teal-600/20 text-teal-400 flex items-center justify-center text-lg"><i class="fa-solid fa-link"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Link Clicks</p>
+            <p class="text-lg font-extrabold text-teal-400" id="analytics-link-clicks">0</p>
+          </div>
+        </div>
+
         <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-cyan-600/20 text-cyan-400 flex items-center justify-center text-lg"><i class="fa-solid fa-comment"></i></div>
           <div>
@@ -275,22 +378,6 @@
           <div>
             <p class="text-xs text-gray-400">Reposts</p>
             <p class="text-lg font-extrabold text-white" id="analytics-reposts">0</p>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center text-lg"><i class="fa-solid fa-share"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Shares</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-shares">0</p>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-bookmark"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Saves</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-saves">0</p>
           </div>
         </div>
       </div>
@@ -321,7 +408,6 @@
     <div class="p-4 flex-1 overflow-y-auto no-scrollbar space-y-4">
       <p class="text-[11px] text-gray-400">Share this video across platforms or copy direct video link:</p>
       
-      <!-- SOCIAL PLATFORMS GRID -->
       <div class="grid grid-cols-4 gap-4 text-center">
         <button onclick="shareToPlatform('facebook')" class="flex flex-col items-center gap-1.5">
           <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-facebook-f"></i></div>
@@ -359,13 +445,13 @@
 
       <div class="border-t border-gray-800 pt-3">
         <button onclick="openVideoAnalyticsPage()" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-          <i class="fa-solid fa-chart-pie"></i> View Video Analytics
+          <i class="fa-solid fa-chart-pie"></i> View Detailed Analytics
         </button>
       </div>
     </div>
   </div>
 
-  <!-- COMMENTS DRAWER WITH REPLIES & LIKES -->
+  <!-- COMMENTS DRAWER -->
   <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
     <div class="p-3 border-b border-gray-800 flex justify-between items-center">
       <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
@@ -384,7 +470,7 @@
     </div>
   </div>
 
-  <!-- CREATE POST MODAL -->
+  <!-- CREATE POST MODAL WITH LINK ATTACHMENT -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
@@ -406,7 +492,12 @@
 
       <div>
         <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
+        <textarea id="post-caption" class="w-full h-20 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
+      </div>
+
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Attach External Link (Optional)</label>
+        <input type="text" id="post-link" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 allow-select" placeholder="https://example.com">
       </div>
 
       <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
@@ -429,7 +520,7 @@
     }
     const db = firebase.firestore();
 
-    // INDEXEDDB DATABASE INITIALIZATION FOR HEAVY VIDEOS
+    // INDEXEDDB DATABASE INITIALIZATION
     let dbInstance;
     const dbReq = indexedDB.open("SuperAppDB", 1);
     dbReq.onupgradeneeded = function(e) {
@@ -448,6 +539,8 @@
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
+    let currentActivePublicUser = null;
+    let activeChatTargetUser = null;
     let videoObserver = null;
     let replyTargetCommentId = null;
 
@@ -503,7 +596,7 @@
           showToast('Username already exists! Please login.');
           return;
         }
-        users[usernameInput] = { password: passwordInput, likes: 0, subscribersList: [], bio: 'Verified Creator Profile', avatar: '', privacy: 'public', savedVideos: [] };
+        users[usernameInput] = { password: passwordInput, likes: 0, subscribersList: [], bio: 'Verified Creator Profile', avatar: '', profileVisits: 0, savedVideos: [] };
         localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
         showToast('Account created successfully!');
       } else {
@@ -542,6 +635,12 @@
       const subList = userData.subscribersList || [];
       document.getElementById('profile-subscribers').innerText = subList.length;
 
+      // SHOW OWNER VISITOR BADGE
+      if (userData.profileVisits && userData.profileVisits > 0) {
+        document.getElementById('visitor-count-text').innerText = userData.profileVisits;
+        document.getElementById('profile-visitor-badge').classList.remove('hidden');
+      }
+
       getVideosFromStorage(function(storedVideos) {
         let totalLikes = 0;
         storedVideos.forEach(v => {
@@ -555,7 +654,306 @@
       loadProfileGrid();
     }
 
-    // FIRESTORE REALTIME SYNC FOR MULTI-USER VISIBILITY
+    // PUBLIC PROFILE VIEW (VISIT COUNTING & RESTRICTED ACCESS)
+    function openPublicUserProfile(targetUser) {
+      const cleanTarget = formatHandle(targetUser);
+      const cleanCurr = formatHandle(currentUser);
+
+      // If clicking on own profile, open own profile tab
+      if (cleanTarget === cleanCurr) {
+        switchTab('profile');
+        return;
+      }
+
+      currentActivePublicUser = cleanTarget;
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanTarget]) {
+        users[cleanTarget] = { bio: 'Verified Creator Profile', subscribersList: [], profileVisits: 0 };
+      }
+
+      // REGISTER PROFILE VISIT
+      users[cleanTarget].profileVisits = (users[cleanTarget].profileVisits || 0) + 1;
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+
+      const uData = users[cleanTarget];
+      document.getElementById('pub-display-name').innerText = '@' + cleanTarget;
+      document.getElementById('pub-bio').innerText = uData.bio || 'Verified Creator Profile';
+      document.getElementById('pub-avatar-img').src = uData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanTarget}`;
+      
+      const subList = uData.subscribersList || [];
+      document.getElementById('pub-subscribers').innerText = subList.length;
+
+      const subBtn = document.getElementById('pub-sub-btn');
+      if (subList.includes(cleanCurr)) {
+        subBtn.innerText = 'Subscribed';
+        subBtn.className = 'px-4 py-1.5 bg-cyan-600 text-white rounded-full text-xs font-bold';
+      } else {
+        subBtn.innerText = 'Subscribe';
+        subBtn.className = 'px-4 py-1.5 bg-gray-800 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-bold';
+      }
+
+      // LOAD USER VIDEOS
+      getVideosFromStorage(function(storedVideos) {
+        let userVidCount = 0;
+        let totalLikes = 0;
+        const grid = document.getElementById('pub-profile-grid');
+        grid.innerHTML = '';
+
+        storedVideos.forEach(v => {
+          if (formatHandle(v.user) === cleanTarget) {
+            userVidCount++;
+            totalLikes += (v.likes || []).length;
+            const thumb = document.createElement('div');
+            thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
+            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
+            grid.appendChild(thumb);
+          }
+        });
+
+        document.getElementById('pub-likes').innerText = totalLikes;
+        document.getElementById('pub-posts-count').innerText = userVidCount;
+        openModal('publicProfileModal');
+      });
+    }
+
+    function toggleSubscribePublicUser() {
+      if (!currentUser || !currentActivePublicUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      if (!users[currentActivePublicUser]) users[currentActivePublicUser] = { subscribersList: [] };
+      if (!users[currentActivePublicUser].subscribersList) users[currentActivePublicUser].subscribersList = [];
+
+      const subList = users[currentActivePublicUser].subscribersList;
+      const idx = subList.indexOf(cleanCurr);
+
+      if (idx > -1) {
+        subList.splice(idx, 1);
+        showToast(`Unsubscribed @${currentActivePublicUser}`);
+      } else {
+        subList.push(cleanCurr);
+        showToast(`Subscribed to @${currentActivePublicUser}!`);
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      openPublicUserProfile(currentActivePublicUser);
+    }
+
+    // DIRECT MESSAGING / DM SYSTEM WITH REQUEST FLOW
+    function openDmInboxModal() {
+      renderDmInboxList();
+      document.getElementById('dm-inbox-header').classList.remove('hidden');
+      document.getElementById('dm-inbox-view').classList.remove('hidden');
+      document.getElementById('dm-thread-header').classList.add('hidden');
+      document.getElementById('dm-thread-view').classList.add('hidden');
+      document.getElementById('dm-input-footer').classList.add('hidden');
+      openModal('dmModal');
+    }
+
+    function openDirectChatFromPublicProfile() {
+      if (!currentActivePublicUser) return;
+      closeModal('publicProfileModal');
+      openChatConversation(currentActivePublicUser);
+    }
+
+    function renderDmInboxList() {
+      if (!currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      const inboxView = document.getElementById('dm-inbox-view');
+      inboxView.innerHTML = '';
+
+      let chatKeys = Object.keys(chats).filter(key => key.includes(cleanCurr));
+
+      if (chatKeys.length === 0) {
+        inboxView.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No message chats or requests yet.</p>`;
+        return;
+      }
+
+      chatKeys.forEach(key => {
+        const thread = chats[key];
+        const otherUser = key.replace(cleanCurr, '').replace(':', '');
+        const uAvatar = (users[otherUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser}`;
+        const lastMsg = thread.messages && thread.messages.length > 0 ? thread.messages[thread.messages.length - 1] : null;
+
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/60 transition-all';
+
+        if (thread.status === 'pending' && thread.requestedTo === cleanCurr) {
+          // PENDING REQUEST FOR ME
+          div.innerHTML = `
+            <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
+            <div class="flex-1">
+              <p class="text-xs font-bold text-white">@${otherUser} <span class="text-[9px] text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded ml-1">Message Request</span></p>
+              <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Sent you a message request'}</p>
+            </div>
+            <button onclick="acceptMessageRequest('${key}')" class="px-2.5 py-1 bg-cyan-600 text-white text-[10px] font-bold rounded-lg">Accept</button>
+          `;
+        } else {
+          // REGULAR CHAT THREAD
+          div.onclick = function() { openChatConversation(otherUser); };
+          div.innerHTML = `
+            <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
+            <div class="flex-1">
+              <p class="text-xs font-bold text-white">@${otherUser}</p>
+              <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+          `;
+        }
+        inboxView.appendChild(div);
+      });
+    }
+
+    function getChatKey(user1, user2) {
+      return [user1, user2].sort().join(':');
+    }
+
+    function openChatConversation(targetUser) {
+      activeChatTargetUser = formatHandle(targetUser);
+      const cleanCurr = formatHandle(currentUser);
+      const key = getChatKey(cleanCurr, activeChatTargetUser);
+
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      document.getElementById('chat-target-username').innerText = '@' + activeChatTargetUser;
+      document.getElementById('chat-target-avatar').src = (users[activeChatTargetUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${activeChatTargetUser}`;
+
+      document.getElementById('dm-inbox-header').classList.add('hidden');
+      document.getElementById('dm-inbox-view').classList.add('hidden');
+      document.getElementById('dm-thread-header').classList.remove('hidden');
+      document.getElementById('dm-thread-view').classList.remove('hidden');
+      document.getElementById('dm-input-footer').classList.remove('hidden');
+
+      renderChatMessages(key);
+      openModal('dmModal');
+    }
+
+    function renderChatMessages(key) {
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      const thread = chats[key] || { messages: [] };
+      const threadView = document.getElementById('dm-thread-view');
+      threadView.innerHTML = '';
+
+      const cleanCurr = formatHandle(currentUser);
+
+      if (thread.status === 'pending') {
+        if (thread.requestedTo === cleanCurr) {
+          threadView.innerHTML = `
+            <div class="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-center space-y-2">
+              <p class="text-xs text-amber-300 font-bold">Message Request</p>
+              <p class="text-[10px] text-gray-400">Accept to allow messaging with @${activeChatTargetUser}.</p>
+              <button onclick="acceptMessageRequest('${key}')" class="px-4 py-1.5 bg-cyan-600 text-white rounded-lg text-xs font-bold">Accept Request</button>
+            </div>
+          `;
+        } else {
+          threadView.innerHTML = `
+            <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl text-center">
+              <p class="text-xs text-gray-400">Message request sent to @${activeChatTargetUser}. Waiting for acceptance.</p>
+            </div>
+          `;
+        }
+      }
+
+      (thread.messages || []).forEach(m => {
+        const isMe = m.sender === cleanCurr;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+        msgDiv.innerHTML = `
+          <div class="max-w-[75%] p-2.5 rounded-2xl text-xs ${isMe ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700'}">
+            <p class="allow-select">${m.text}</p>
+            <span class="text-[8px] text-gray-300 block text-right mt-1 opacity-70">${m.time || ''}</span>
+          </div>
+        `;
+        threadView.appendChild(msgDiv);
+      });
+
+      threadView.scrollTop = threadView.scrollHeight;
+    }
+
+    function sendDmMessageSubmit() {
+      if (!currentUser || !activeChatTargetUser) return;
+      const input = document.getElementById('dm-message-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const cleanCurr = formatHandle(currentUser);
+      const key = getChatKey(cleanCurr, activeChatTargetUser);
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+
+      if (!chats[key]) {
+        // FIRST MESSAGE REQUEST CREATION
+        chats[key] = {
+          status: 'pending',
+          requestedBy: cleanCurr,
+          requestedTo: activeChatTargetUser,
+          messages: []
+        };
+      }
+
+      const thread = chats[key];
+
+      // Block second message if request is not accepted yet
+      if (thread.status === 'pending' && thread.messages.length >= 1 && thread.requestedBy === cleanCurr) {
+        showToast('Waiting for user to accept your first message request!');
+        return;
+      }
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      thread.messages.push({
+        sender: cleanCurr,
+        text: text,
+        time: timeStr
+      });
+
+      localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chats));
+      input.value = '';
+      renderChatMessages(key);
+    }
+
+    function acceptMessageRequest(key) {
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      if (chats[key]) {
+        chats[key].status = 'accepted';
+        localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chats));
+        showToast('Message request accepted!');
+        renderDmInboxList();
+        if (activeChatTargetUser) renderChatMessages(key);
+      }
+    }
+
+    function backToDmInbox() {
+      activeChatTargetUser = null;
+      renderDmInboxList();
+      document.getElementById('dm-thread-header').classList.add('hidden');
+      document.getElementById('dm-thread-view').classList.add('hidden');
+      document.getElementById('dm-input-footer').classList.add('hidden');
+      document.getElementById('dm-inbox-header').classList.remove('hidden');
+      document.getElementById('dm-inbox-view').classList.remove('hidden');
+    }
+
+    // LINK CLICK TRACKING HANDLER
+    function handleLinkClick(vidId, linkUrl) {
+      if (!vidId) return;
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (vid) {
+          vid.linkClicks = (vid.linkClicks || 0) + 1;
+          store.put(vid);
+          db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+        }
+      };
+      window.open(linkUrl, '_blank');
+    }
+
+    // FIRESTORE REALTIME SYNC
     function setupFirestoreRealtimeSync() {
       db.collection("videos").onSnapshot(snapshot => {
         snapshot.forEach(doc => {
@@ -582,6 +980,7 @@
     function publishPost() {
       const type = document.getElementById('post-type').value;
       const caption = document.getElementById('post-caption').value.trim();
+      const linkUrl = document.getElementById('post-link').value.trim();
       const userHandle = formatHandle(currentUser);
       const pubBtn = document.getElementById('publish-btn');
 
@@ -605,6 +1004,8 @@
             repostedBy: null,
             caption: caption || 'Gallery Video Upload 🚀',
             url: videoData,
+            link: linkUrl || null,
+            linkClicks: 0,
             likes: [],
             views: 1,
             shares: 0,
@@ -665,7 +1066,7 @@
       };
     }
 
-    // OPEN REPOSTS DRAWER (HALF PAGE SHEET)
+    // OPEN REPOSTS DRAWER
     function openRepostsDrawer(vidId) {
       currentActiveVideoId = vidId;
       const tx = dbInstance.transaction("videos", "readonly");
@@ -687,8 +1088,6 @@
           container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No reposts yet.</p>`;
         } else {
           let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-          
-          // Display up to 3 users fully
           const displayUsers = reposts.slice(0, 3);
           const remainCount = total - displayUsers.length;
 
@@ -697,7 +1096,8 @@
             const uAvatar = uData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u}`;
             
             const div = document.createElement('div');
-            div.className = 'flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-800 rounded-xl';
+            div.className = 'flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-800 rounded-xl cursor-pointer';
+            div.onclick = function() { closeRepostDrawer(); openPublicUserProfile(u); };
             div.innerHTML = `
               <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-700">
               <div class="flex-1">
@@ -724,7 +1124,7 @@
       document.getElementById('repostDrawer').classList.remove('open');
     }
 
-    // COMMENTS SYSTEM (FULLY FIXED & FUNCTIONAL)
+    // COMMENTS SYSTEM
     function openCommentsDrawer(vidId) {
       currentActiveVideoId = vidId;
       renderCommentsList();
@@ -766,10 +1166,10 @@
           const cDiv = document.createElement('div');
           cDiv.className = 'flex gap-3 bg-gray-800/40 p-2.5 rounded-xl border border-gray-800';
           cDiv.innerHTML = `
-            <img src="${cAvatar}" class="w-8 h-8 rounded-full object-cover bg-gray-700">
+            <img src="${cAvatar}" onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="w-8 h-8 rounded-full object-cover bg-gray-700 cursor-pointer">
             <div class="flex-1 space-y-1">
               <div class="flex justify-between items-center">
-                <span class="text-xs font-bold text-cyan-400">@${cUser}</span>
+                <span onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="text-xs font-bold text-cyan-400 cursor-pointer">@${cUser}</span>
                 <span class="text-[9px] text-gray-500">${c.time || 'Just now'}</span>
               </div>
               <p class="text-xs text-gray-200 allow-select">${c.text}</p>
@@ -783,7 +1183,6 @@
                 </button>
               </div>
 
-              <!-- SUB-REPLIES -->
               ${(c.replies || []).length > 0 ? `
                 <div class="mt-2 pl-3 border-l-2 border-cyan-500/30 space-y-2">
                   ${c.replies.map(r => `
@@ -824,27 +1223,13 @@
         if (!vid.comments) vid.comments = [];
 
         if (replyTargetCommentId) {
-          // Add as a sub-reply
           const targetComment = vid.comments.find(c => String(c.id) === String(replyTargetCommentId));
           if (targetComment) {
             if (!targetComment.replies) targetComment.replies = [];
-            targetComment.replies.push({
-              id: Date.now(),
-              user: cleanUser,
-              text: text,
-              time: 'Just now'
-            });
+            targetComment.replies.push({ id: Date.now(), user: cleanUser, text: text, time: 'Just now' });
           }
         } else {
-          // Add top-level comment
-          vid.comments.push({
-            id: Date.now(),
-            user: cleanUser,
-            text: text,
-            likes: [],
-            replies: [],
-            time: 'Just now'
-          });
+          vid.comments.push({ id: Date.now(), user: cleanUser, text: text, likes: [], replies: [], time: 'Just now' });
         }
 
         store.put(vid);
@@ -876,18 +1261,14 @@
         if (targetComment) {
           if (!targetComment.likes) targetComment.likes = [];
           const idx = targetComment.likes.indexOf(cleanUser);
-          if (idx > -1) {
-            targetComment.likes.splice(idx, 1);
-          } else {
-            targetComment.likes.push(cleanUser);
-          }
+          if (idx > -1) targetComment.likes.splice(idx, 1);
+          else targetComment.likes.push(cleanUser);
+          
           store.put(vid);
           db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
         }
 
-        tx.oncomplete = function() {
-          renderCommentsList();
-        };
+        tx.oncomplete = function() { renderCommentsList(); };
       };
     }
 
@@ -903,7 +1284,7 @@
       document.getElementById('replying-banner').classList.add('hidden');
     }
 
-    // DEDICATED ANALYTICS PAGE (UNTOUCHED & PRESERVED)
+    // ANALYTICS PAGE (WITH PROFILE VISITS & LINK CLICKS)
     function openVideoAnalyticsPage() {
       if (!currentActiveVideoId) return;
 
@@ -916,20 +1297,17 @@
         if (!vid) return;
 
         let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-        let totalSaves = 0;
-        Object.keys(users).forEach(u => {
-          if ((users[u].savedVideos || []).includes(vid.id)) totalSaves++;
-        });
+        const authorData = users[vid.user] || {};
 
         document.getElementById('analytics-preview-video').src = vid.url;
         document.getElementById('analytics-author').innerText = '@' + vid.user;
         document.getElementById('analytics-caption').innerText = vid.caption || 'No Caption';
         document.getElementById('analytics-views').innerText = vid.views || 1;
         document.getElementById('analytics-likes').innerText = (vid.likes || []).length;
+        document.getElementById('analytics-profile-visits').innerText = authorData.profileVisits || 0;
+        document.getElementById('analytics-link-clicks').innerText = vid.linkClicks || 0;
         document.getElementById('analytics-comments').innerText = (vid.comments || []).length;
         document.getElementById('analytics-reposts').innerText = (vid.reposts || []).length;
-        document.getElementById('analytics-shares').innerText = vid.shares || 0;
-        document.getElementById('analytics-saves').innerText = totalSaves;
 
         closeShareDrawer();
         openModal('videoAnalyticsModal');
@@ -1061,12 +1439,21 @@
 
             <!-- CAPTION & AUTHOR INFO -->
             <div class="absolute bottom-6 left-4 text-white z-20 max-w-[70%] space-y-1.5">
-              <h4 class="font-bold text-sm drop-shadow">@${authorHandle}</h4>
+              <h4 onclick="openPublicUserProfile('${authorHandle}')" class="font-bold text-sm drop-shadow cursor-pointer hover:underline flex items-center gap-1">
+                @${authorHandle}
+              </h4>
               <p class="text-xs text-gray-200 drop-shadow line-clamp-2">${v.caption}</p>
 
-              <!-- REPOST BADGE BELOW CAPTION & NAME -->
+              <!-- ATTACHED LINK BUTTON IF PRESENT -->
+              ${v.link ? `
+                <button onclick="handleLinkClick(${v.id}, '${v.link}')" class="inline-flex items-center gap-1.5 bg-cyan-600/90 text-white px-3 py-1 rounded-full text-[10px] font-bold border border-cyan-400 shadow-md">
+                  <i class="fa-solid fa-link text-xs"></i> Visit Link
+                </button>
+              ` : ''}
+
+              <!-- REPOST BADGE -->
               ${repostCount > 0 ? `
-                <div onclick="openRepostsDrawer(${v.id})" class="inline-flex items-center gap-1.5 bg-purple-900/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] text-purple-200 font-bold border border-purple-500/40 shadow-lg cursor-pointer hover:bg-purple-800/90 transition-all">
+                <div onclick="openRepostsDrawer(${v.id})" class="inline-flex items-center gap-1.5 bg-purple-900/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] text-purple-200 font-bold border border-purple-500/40 shadow-lg cursor-pointer">
                   <i class="fa-solid fa-retweet text-purple-400"></i> 
                   <span>${repostCount} Repost${repostCount === 1 ? '' : 's'}</span>
                 </div>
@@ -1075,7 +1462,7 @@
 
             <!-- RIGHT CONTROL SIDEBAR -->
             <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 z-20">
-              <div class="relative mb-2">
+              <div onclick="openPublicUserProfile('${authorHandle}')" class="relative mb-2 cursor-pointer">
                 <img src="${authorAvatar}" class="w-11 h-11 rounded-full border-2 border-white object-cover bg-gray-800 shadow-xl">
               </div>
 
@@ -1110,7 +1497,6 @@
                 </div>
                 <span class="text-[10px] font-bold mt-1 text-white shadow">Save</span>
               </button>
-
             </div>
           `;
           container.appendChild(item);
