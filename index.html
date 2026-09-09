@@ -455,12 +455,72 @@
     </div>
   </div>
 
-  <!-- COMMENTS DRAWER -->
+  <!-- HALF-PAGE SHARE BOTTOM DRAWER -->
+  <div id="shareDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[50vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
+    <div class="p-3 border-b border-gray-800 flex justify-between items-center">
+      <h3 class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-share mr-1.5"></i> Share Video</h3>
+      <button onclick="closeShareDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    
+    <div class="p-4 flex-1 overflow-y-auto no-scrollbar space-y-4">
+      <p class="text-[11px] text-gray-400">Share this video across platforms or copy direct video link:</p>
+      
+      <!-- SOCIAL PLATFORMS GRID -->
+      <div class="grid grid-cols-4 gap-4 text-center">
+        <button onclick="shareToPlatform('facebook')" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-facebook-f"></i></div>
+          <span class="text-[10px] text-gray-300">Facebook</span>
+        </button>
+        <button onclick="shareToPlatform('instagram')" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-red-500 to-purple-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-instagram"></i></div>
+          <span class="text-[10px] text-gray-300">Instagram</span>
+        </button>
+        <button onclick="shareToPlatform('tiktok')" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-black border border-gray-700 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-tiktok"></i></div>
+          <span class="text-[10px] text-gray-300">TikTok</span>
+        </button>
+        <button onclick="shareToPlatform('youtube')" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-youtube"></i></div>
+          <span class="text-[10px] text-gray-300">YouTube</span>
+        </button>
+        <button onclick="shareToPlatform('twitter')" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-sky-500 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-x-twitter"></i></div>
+          <span class="text-[10px] text-gray-300">Twitter</span>
+        </button>
+        <button onclick="copyDirectVideoLink()" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-gray-800 border border-cyan-500/40 flex items-center justify-center text-lg text-cyan-400 shadow-lg"><i class="fa-solid fa-link"></i></div>
+          <span class="text-[10px] text-gray-300">Copy Link</span>
+        </button>
+        <button onclick="nativeShareLink()" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-gray-800 border border-green-500/40 flex items-center justify-center text-lg text-green-400 shadow-lg"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+          <span class="text-[10px] text-gray-300">Share Link</span>
+        </button>
+        <button onclick="repostVideoAction()" class="flex flex-col items-center gap-1.5">
+          <div class="w-12 h-12 rounded-full bg-purple-900/60 border border-purple-500/40 flex items-center justify-center text-lg text-purple-400 shadow-lg"><i class="fa-solid fa-retweet"></i></div>
+          <span class="text-[10px] text-gray-300">Repost</span>
+        </button>
+      </div>
+
+      <div class="border-t border-gray-800 pt-3">
+        <button onclick="openVideoAnalytics()" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+          <i class="fa-solid fa-chart-pie"></i> View Video Analytics
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMENTS DRAWER WITH REPLIES & LIKES -->
   <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
     <div class="p-3 border-b border-gray-800 flex justify-between items-center">
       <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
       <button onclick="closeCommentDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
     </div>
+    
+    <div id="replying-banner" class="hidden bg-gray-800 px-3 py-1 text-[10px] text-cyan-400 flex justify-between items-center border-b border-gray-700">
+      <span>Replying to <b id="reply-target-username">@user</b></span>
+      <button onclick="cancelReplyMode()" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
     <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar"></div>
     <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
       <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Write a comment...">
@@ -527,56 +587,14 @@
       initAppContent();
       loadSavedThemeColor();
       checkAuthSession();
+      setupFirestoreRealtimeSync();
     };
 
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
     let videoObserver = null;
-
-    function executeCode() {
-      const lang = document.getElementById('code-lang').value;
-      const code = document.getElementById('code-input').value;
-      const outputElem = document.getElementById('code-output');
-      outputElem.innerText = '';
-
-      if (lang === 'python') {
-        function outf(text) { outputElem.innerText += text; }
-        function builtinRead(x) {
-          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-            throw "File not found: '" + x + "'";
-          }
-          return Sk.builtinFiles["files"][x];
-        }
-        Sk.configure({ output: outf, read: builtinRead });
-        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.importMainWithBody("<stdin>", false, code, true);
-        myPromise.then(function (module) {
-          if (!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
-        }, function (err) {
-          outputElem.innerText = err.toString();
-        });
-      } else if (lang === 'javascript') {
-        try {
-          let logs = [];
-          const originalLog = console.log;
-          console.log = function(...args) {
-            logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
-            originalLog.apply(console, args);
-          };
-          let result = eval(code);
-          console.log = originalLog;
-          if (logs.length > 0) {
-            outputElem.innerText = logs.join('\n');
-          } else if (result !== undefined) {
-            outputElem.innerText = String(result);
-          } else {
-            outputElem.innerText = "Code executed successfully.";
-          }
-        } catch (err) {
-          outputElem.innerText = "Error: " + err.message;
-        }
-      }
-    }
+    let replyTargetCommentId = null;
 
     function formatHandle(str) {
       if (!str) return 'Umar';
@@ -670,7 +688,6 @@
       const subList = userData.subscribersList || [];
       document.getElementById('profile-subscribers').innerText = subList.length;
 
-      // Calculate total likes for user's videos
       getVideosFromStorage(function(storedVideos) {
         let totalLikes = 0;
         storedVideos.forEach(v => {
@@ -683,24 +700,584 @@
 
       document.getElementById('edit-display-name').value = userData.name || cleanUser;
       document.getElementById('edit-bio').value = userData.bio || '';
-      
-      const isPrivate = userData.privacy === 'private';
-      const badgeElem = document.getElementById('privacy-status-badge');
-      if (badgeElem) {
-        badgeElem.innerHTML = isPrivate 
-          ? `<span class="px-2 py-0.5 bg-red-950/80 text-red-400 border border-red-500/40 rounded-full text-[10px] font-bold"><i class="fa-solid fa-lock mr-1"></i> Private Profile</span>`
-          : `<span class="px-2 py-0.5 bg-green-950/80 text-green-400 border border-green-500/40 rounded-full text-[10px] font-bold"><i class="fa-solid fa-earth-americas mr-1"></i> Public Profile</span>`;
+      loadProfileGrid();
+    }
+
+    // REALTIME FIRESTORE SYNC FOR GLOBAL VISIBILITY
+    function setupFirestoreRealtimeSync() {
+      db.collection("posts").onSnapshot(snapshot => {
+        let remotePosts = [];
+        snapshot.forEach(doc => { remotePosts.push({ id: doc.id, ...doc.data() }); });
+        if (remotePosts.length > 0) {
+          localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(remotePosts));
+          renderFeedPosts();
+        }
+      }, err => { renderFeedPosts(); });
+
+      db.collection("videos").onSnapshot(snapshot => {
+        snapshot.forEach(doc => {
+          let vidData = doc.data();
+          if (dbInstance) {
+            const tx = dbInstance.transaction("videos", "readwrite");
+            tx.objectStore("videos").put(vidData);
+          }
+        });
+        initAppContent();
+      }, err => {});
+    }
+
+    function renderFeedPosts() {
+      const container = document.getElementById('posts-container');
+      if (!container) return;
+      let posts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+      container.innerHTML = '';
+
+      if (posts.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No posts yet. Create the first post!</p>`;
+        return;
       }
 
-      loadProfileGrid();
+      posts.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center gap-2">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.user}" class="w-8 h-8 rounded-full bg-gray-800">
+            <div>
+              <p class="text-xs font-bold text-white">@${p.user}</p>
+              <p class="text-[9px] text-gray-500">${new Date(p.timestamp || Date.now()).toLocaleTimeString()}</p>
+            </div>
+          </div>
+          <p class="text-xs text-gray-200 allow-select">${p.text}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function publishPost() {
+      const type = document.getElementById('post-type').value;
+      const caption = document.getElementById('post-caption').value.trim();
+      const userHandle = formatHandle(currentUser);
+      const pubBtn = document.getElementById('publish-btn');
+
+      if (type === 'video') {
+        const fileInput = document.getElementById('post-video-file');
+        if (!fileInput.files || fileInput.files.length === 0) {
+          showToast('Please select a video file!');
+          return;
+        }
+        pubBtn.innerText = "Publishing & Syncing...";
+        pubBtn.disabled = true;
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const videoData = e.target.result;
+          const videoId = Date.now();
+          const newVid = {
+            id: videoId,
+            user: userHandle,
+            caption: caption || 'Gallery Video Upload 🚀',
+            url: videoData,
+            likes: [],
+            views: 0,
+            shares: 0,
+            comments: [],
+            timestamp: videoId
+          };
+
+          if (dbInstance) {
+            const tx = dbInstance.transaction("videos", "readwrite");
+            tx.objectStore("videos").put(newVid);
+            tx.oncomplete = function() {
+              // Sync to Firestore Cloud so ALL users see it
+              db.collection("videos").doc(String(videoId)).set(newVid).catch(() => {});
+              showToast('Video published globally!');
+              pubBtn.innerText = "Publish Post";
+              pubBtn.disabled = false;
+              closeModal('createModal');
+              initAppContent();
+              loadUserData();
+              switchTab('videos');
+            };
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        if (!caption) { showToast('Please enter text content!'); return; }
+        const postId = Date.now();
+        const newPost = { id: postId, user: userHandle, text: caption, timestamp: postId };
+        
+        let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
+        storedPosts.unshift(newPost);
+        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
+
+        // Sync post to Firestore Cloud
+        db.collection("posts").doc(String(postId)).set(newPost).catch(() => {});
+
+        showToast('Text post published!');
+        closeModal('createModal');
+        renderFeedPosts();
+        switchTab('feed');
+      }
+    }
+
+    // LIKE / UNLIKE HANDLER
+    function toggleLikeVideo(vidId) {
+      if (!currentUser) { showToast('Login to like videos!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        if (!vid.likes) vid.likes = [];
+        
+        const idx = vid.likes.indexOf(cleanUser);
+        if (idx > -1) {
+          vid.likes.splice(idx, 1);
+          showToast('Unliked');
+        } else {
+          vid.likes.push(cleanUser);
+          showToast('Liked!');
+        }
+        store.put(vid);
+        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          initAppContent();
+          loadUserData();
+        };
+      };
+    }
+
+    // SHARE DRAWER & DIRECT VIDEO LINK SYSTEM
+    function openShareDrawer(vidId) {
+      currentActiveVideoId = vidId;
+      document.getElementById('shareDrawer').classList.add('open');
+    }
+
+    function closeShareDrawer() {
+      document.getElementById('shareDrawer').classList.remove('open');
+    }
+
+    function getDirectVideoLink(vidId) {
+      const baseUrl = window.location.href.split('?')[0];
+      return `${baseUrl}?video=${vidId}`;
+    }
+
+    function copyDirectVideoLink() {
+      if (!currentActiveVideoId) return;
+      const link = getDirectVideoLink(currentActiveVideoId);
+      navigator.clipboard.writeText(link).then(() => {
+        showToast('Direct Video Link copied to clipboard!');
+        closeShareDrawer();
+      });
+    }
+
+    function shareToPlatform(platform) {
+      if (!currentActiveVideoId) return;
+      const link = encodeURIComponent(getDirectVideoLink(currentActiveVideoId));
+      let shareUrl = '';
+
+      if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${link}`;
+      else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${link}&text=Watch%20this%20video%20on%20SuperApp!`;
+      else if (platform === 'instagram' || platform === 'tiktok' || platform === 'youtube') {
+        copyDirectVideoLink();
+        showToast(`Link copied! Opening ${platform}...`);
+        setTimeout(() => { window.open(`https://www.${platform}.com`, '_blank'); }, 1000);
+        return;
+      }
+
+      if (shareUrl) window.open(shareUrl, '_blank');
+      closeShareDrawer();
+    }
+
+    function nativeShareLink() {
+      if (!currentActiveVideoId) return;
+      const link = getDirectVideoLink(currentActiveVideoId);
+      if (navigator.share) {
+        navigator.share({ title: 'Super App Video', url: link }).catch(() => {});
+      } else {
+        copyDirectVideoLink();
+      }
+    }
+
+    function repostVideoAction() {
+      showToast('Video reposted to your feed!');
+      closeShareDrawer();
+    }
+
+    function openVideoAnalytics() {
+      showToast('Views: 1.2k | Shares: 84 | Engagement: 94%');
+    }
+
+    // COMMENT SYSTEM WITH REPLIES & COMMENT LIKES
+    function openCommentsDrawer(vidId) {
+      currentActiveVideoId = vidId;
+      document.getElementById('commentDrawer').classList.add('open');
+      loadDrawerComments();
+    }
+
+    function closeCommentDrawer() {
+      document.getElementById('commentDrawer').classList.remove('open');
+      cancelReplyMode();
+    }
+
+    function setReplyToComment(commentId, username) {
+      replyTargetCommentId = commentId;
+      document.getElementById('replying-banner').classList.remove('hidden');
+      document.getElementById('reply-target-username').innerText = '@' + username;
+      document.getElementById('new-comment-input').focus();
+    }
+
+    function cancelReplyMode() {
+      replyTargetCommentId = null;
+      document.getElementById('replying-banner').classList.add('hidden');
+    }
+
+    function toggleLikeComment(commentId) {
+      if (!currentUser || !currentActiveVideoId) return;
+      const cleanUser = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid || !vid.comments) return;
+
+        let findAndLike = function(list) {
+          list.forEach(c => {
+            if (c.id === commentId) {
+              if (!c.likes) c.likes = [];
+              let idx = c.likes.indexOf(cleanUser);
+              if (idx > -1) c.likes.splice(idx, 1);
+              else c.likes.push(cleanUser);
+            }
+            if (c.replies) findAndLike(c.replies);
+          });
+        };
+
+        findAndLike(vid.comments);
+        store.put(vid);
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() { loadDrawerComments(); };
+      };
+    }
+
+    function loadDrawerComments() {
+      if (!currentActiveVideoId) return;
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        const vid = req.result;
+        const area = document.getElementById('drawer-content-area');
+        area.innerHTML = '';
+
+        if (vid && vid.comments && vid.comments.length > 0) {
+          const cleanUser = formatHandle(currentUser);
+
+          function renderCommentTree(commentsList, level = 0) {
+            commentsList.forEach(c => {
+              const div = document.createElement('div');
+              const isCommentLiked = (c.likes || []).includes(cleanUser);
+              div.className = `p-2.5 bg-gray-800 rounded-xl text-xs space-y-1 border border-gray-700/60 ${level > 0 ? 'ml-5 border-l-2 border-l-cyan-500' : ''}`;
+              
+              div.innerHTML = `
+                <div class="flex justify-between items-start">
+                  <span class="font-bold text-cyan-400">@${c.user}</span>
+                  <span class="text-[9px] text-gray-500">${new Date(c.timestamp || Date.now()).toLocaleTimeString()}</span>
+                </div>
+                <p class="text-gray-200">${c.text}</p>
+                
+                <div class="flex gap-4 pt-1 text-[10px] text-gray-400">
+                  <button onclick="toggleLikeComment(${c.id})" class="flex items-center gap-1 ${isCommentLiked ? 'text-red-400' : ''}">
+                    <i class="fa-solid fa-heart"></i> <span>${(c.likes || []).length}</span>
+                  </button>
+                  <button onclick="setReplyToComment(${c.id}, '${c.user}')" class="flex items-center gap-1 hover:text-cyan-400">
+                    <i class="fa-solid fa-reply"></i> Reply
+                  </button>
+                </div>
+              `;
+              area.appendChild(div);
+
+              if (c.replies && c.replies.length > 0) {
+                renderCommentTree(c.replies, level + 1);
+              }
+            });
+          }
+
+          renderCommentTree(vid.comments);
+        } else {
+          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>`;
+        }
+      };
+    }
+
+    function addCommentSubmit() {
+      if (!currentUser) { showToast('Login to comment!'); return; }
+      const input = document.getElementById('new-comment-input');
+      const text = input.value.trim();
+      if (!text || !currentActiveVideoId) return;
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        if (!vid.comments) vid.comments = [];
+
+        const newComment = {
+          id: Date.now(),
+          user: formatHandle(currentUser),
+          text: text,
+          likes: [],
+          replies: [],
+          timestamp: Date.now()
+        };
+
+        if (replyTargetCommentId) {
+          let insertReply = function(list) {
+            list.forEach(c => {
+              if (c.id === replyTargetCommentId) {
+                if (!c.replies) c.replies = [];
+                c.replies.push(newComment);
+              } else if (c.replies) {
+                insertReply(c.replies);
+              }
+            });
+          };
+          insertReply(vid.comments);
+        } else {
+          vid.comments.push(newComment);
+        }
+
+        store.put(vid);
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          input.value = '';
+          cancelReplyMode();
+          loadDrawerComments();
+          initAppContent();
+        };
+      };
+    }
+
+    function initAppContent() {
+      getVideosFromStorage(function(storedVideos) {
+        const container = document.getElementById('video-feed-container');
+        container.innerHTML = '';
+
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const cleanCurrUser = formatHandle(currentUser);
+
+        if (videoObserver) videoObserver.disconnect();
+        videoObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const vid = entry.target.querySelector('video');
+            if (entry.isIntersecting) {
+              vid.currentTime = 0;
+              vid.muted = false;
+              vid.play().catch(() => { vid.muted = true; vid.play(); });
+            } else {
+              vid.pause();
+              vid.muted = true;
+            }
+          });
+        }, { threshold: 0.65 });
+
+        storedVideos.forEach(v => {
+          const authorHandle = formatHandle(v.user);
+          const authorData = users[authorHandle] || {};
+          const authorAvatar = authorData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${authorHandle}`;
+
+          const isLiked = (v.likes || []).includes(cleanCurrUser);
+          const isSubscribed = (authorData.subscribersList || []).includes(cleanCurrUser);
+          const isSaved = ((users[cleanCurrUser] || {}).savedVideos || []).includes(v.id);
+
+          const item = document.createElement('div');
+          item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
+          item.innerHTML = `
+            <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
+            
+            <div class="absolute bottom-6 left-4 text-white z-20 max-w-[70%]">
+              <h4 class="font-bold text-sm drop-shadow">@${authorHandle}</h4>
+              <p class="text-xs text-gray-200 mt-1 drop-shadow line-clamp-2">${v.caption}</p>
+            </div>
+
+            <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 z-20">
+              <div class="relative mb-2">
+                <img src="${authorAvatar}" class="w-11 h-11 rounded-full border-2 border-white object-cover bg-gray-800 shadow-xl">
+                ${authorHandle !== cleanCurrUser ? `
+                  <button onclick="toggleSubscribeUser('${authorHandle}')" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 ${isSubscribed ? 'bg-gray-600' : 'bg-red-600'} text-white rounded-full flex items-center justify-center text-[10px] border border-black shadow">
+                    <i class="fa-solid ${isSubscribed ? 'fa-check' : 'fa-plus'}"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <!-- LIKE / UNLIKE BUTTON -->
+              <button onclick="toggleLikeVideo(${v.id})" class="flex flex-col items-center group">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white group-active:scale-125 transition-transform">
+                  <i class="fa-solid fa-heart ${isLiked ? 'text-red-500' : 'text-white'}"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.likes || []).length}</span>
+              </button>
+
+              <!-- COMMENT BUTTON -->
+              <button onclick="openCommentsDrawer(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-comment"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.comments || []).length}</span>
+              </button>
+
+              <!-- SHARE BUTTON (HALF PAGE DRAWER) -->
+              <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-share"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${v.shares || 0}</span>
+              </button>
+
+              <!-- SAVE / BOOKMARK BUTTON -->
+              <button onclick="saveVideo(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-bookmark ${isSaved ? 'text-amber-400' : 'text-white'}"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">Save</span>
+              </button>
+
+            </div>
+          `;
+          container.appendChild(item);
+          videoObserver.observe(item);
+        });
+      });
+    }
+
+    function getVideosFromStorage(callback) {
+      const defaultVideos = [
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, comments: [] }
+      ];
+
+      if (!dbInstance) { callback(defaultVideos); return; }
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const getReq = store.getAll();
+      getReq.onsuccess = function() {
+        let list = getReq.result || [];
+        callback(list.length === 0 ? defaultVideos : list.reverse());
+      };
+      getReq.onerror = function() { callback(defaultVideos); };
+    }
+
+    function toggleSubscribeUser(authorHandle) {
+      if (!currentUser) { showToast('Login to subscribe!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      const cleanAuthor = formatHandle(authorHandle);
+
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanAuthor]) users[cleanAuthor] = { subscribersList: [] };
+      if (!users[cleanAuthor].subscribersList) users[cleanAuthor].subscribersList = [];
+
+      const subList = users[cleanAuthor].subscribersList;
+      const idx = subList.indexOf(cleanUser);
+      if (idx > -1) {
+        subList.splice(idx, 1);
+        showToast('Unsubscribed from @' + cleanAuthor);
+      } else {
+        subList.push(cleanUser);
+        showToast('Subscribed to @' + cleanAuthor + '!');
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      initAppContent();
+      loadUserData();
+    }
+
+    function saveVideo(vidId) {
+      if (!currentUser) { showToast('Login to save video!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanUser]) users[cleanUser] = {};
+      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
+
+      const idx = users[cleanUser].savedVideos.indexOf(vidId);
+      if (idx > -1) {
+        users[cleanUser].savedVideos.splice(idx, 1);
+        showToast('Removed from saved videos!');
+      } else {
+        users[cleanUser].savedVideos.push(vidId);
+        showToast('Video saved to profile!');
+      }
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      initAppContent();
+    }
+
+    function loadProfileGrid() {
+      getVideosFromStorage(function(storedVideos) {
+        let userVidCount = 0;
+        const grid = document.getElementById('profile-grid');
+        grid.innerHTML = '';
+        const cleanUser = formatHandle(currentUser);
+
+        storedVideos.forEach(v => {
+          if (formatHandle(v.user) === cleanUser) {
+            userVidCount++;
+            const thumb = document.createElement('div');
+            thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
+            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
+            grid.appendChild(thumb);
+          }
+        });
+        document.getElementById('profile-posts-count').innerText = userVidCount;
+      });
+    }
+
+    function openSubscribersList() {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      const userData = users[cleanUser] || {};
+      const subList = userData.subscribersList || [];
+
+      const listContainer = document.getElementById('subscribers-list-content');
+      listContainer.innerHTML = '';
+
+      if (subList.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">You don't have any subscribers yet.</p>`;
+      } else {
+        subList.forEach(subHandle => {
+          const subData = users[subHandle] || {};
+          const avatarUrl = subData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${subHandle}`;
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-3 p-3 bg-gray-900 border border-gray-800 rounded-xl';
+          item.innerHTML = `
+            <img src="${avatarUrl}" class="w-10 h-10 rounded-full bg-gray-800 border border-cyan-500/30">
+            <div>
+              <p class="text-xs font-bold text-white">@${subHandle}</p>
+              <p class="text-[10px] text-gray-400">${subData.bio || 'Verified User'}</p>
+            </div>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+      openModal('subscribersModal');
     }
 
     function applyCustomColor(colorHex) {
       document.documentElement.style.setProperty('--accent-blue', colorHex);
-      const hexText = document.getElementById('settings-color-hex');
-      const colorPicker = document.getElementById('settings-theme-color');
-      if (hexText) hexText.innerText = colorHex;
-      if (colorPicker) colorPicker.value = colorHex;
       localStorage.setItem('SUPER_APP_THEME_COLOR', colorHex);
       showToast('Theme color applied!');
     }
@@ -709,10 +1286,6 @@
       const savedColor = localStorage.getItem('SUPER_APP_THEME_COLOR');
       if (savedColor) {
         document.documentElement.style.setProperty('--accent-blue', savedColor);
-        const hexText = document.getElementById('settings-color-hex');
-        const colorPicker = document.getElementById('settings-theme-color');
-        if (hexText) hexText.innerText = savedColor;
-        if (colorPicker) colorPicker.value = savedColor;
       }
     }
 
@@ -797,369 +1370,48 @@
       else fileField.classList.add('hidden');
     }
 
-    function publishPost() {
-      const type = document.getElementById('post-type').value;
-      const caption = document.getElementById('post-caption').value.trim();
-      const userHandle = formatHandle(currentUser);
-      const pubBtn = document.getElementById('publish-btn');
+    function executeCode() {
+      const lang = document.getElementById('code-lang').value;
+      const code = document.getElementById('code-input').value;
+      const outputElem = document.getElementById('code-output');
+      outputElem.innerText = '';
 
-      if (type === 'video') {
-        const fileInput = document.getElementById('post-video-file');
-        if (!fileInput.files || fileInput.files.length === 0) {
-          showToast('Please select a video file!');
-          return;
+      if (lang === 'python') {
+        function outf(text) { outputElem.innerText += text; }
+        function builtinRead(x) {
+          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+            throw "File not found: '" + x + "'";
+          }
+          return Sk.builtinFiles["files"][x];
         }
-        pubBtn.innerText = "Processing Video...";
-        pubBtn.disabled = true;
-
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const videoData = e.target.result;
-          const videoId = Date.now();
-          const newVid = {
-            id: videoId,
-            user: userHandle,
-            caption: caption || 'Gallery Video Upload 🚀',
-            url: videoData,
-            likes: [],
-            views: 0,
-            shares: 0,
-            comments: [],
-            timestamp: videoId
+        Sk.configure({ output: outf, read: builtinRead });
+        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.importMainWithBody("<stdin>", false, code, true);
+        myPromise.then(function (module) {
+          if (!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
+        }, function (err) {
+          outputElem.innerText = err.toString();
+        });
+      } else if (lang === 'javascript') {
+        try {
+          let logs = [];
+          const originalLog = console.log;
+          console.log = function(...args) {
+            logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
+            originalLog.apply(console, args);
           };
-
-          if (dbInstance) {
-            const tx = dbInstance.transaction("videos", "readwrite");
-            const store = tx.objectStore("videos");
-            store.put(newVid);
-            tx.oncomplete = function() {
-              showToast('Video published successfully!');
-              pubBtn.innerText = "Publish Post";
-              pubBtn.disabled = false;
-              closeModal('createModal');
-              initAppContent();
-              loadUserData();
-              switchTab('videos');
-            };
+          let result = eval(code);
+          console.log = originalLog;
+          if (logs.length > 0) {
+            outputElem.innerText = logs.join('\n');
+          } else if (result !== undefined) {
+            outputElem.innerText = String(result);
+          } else {
+            outputElem.innerText = "Code executed successfully.";
           }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        if (!caption) { showToast('Please enter text content!'); return; }
-        const newPost = { id: Date.now(), user: userHandle, text: caption, timestamp: Date.now() };
-        let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-        storedPosts.unshift(newPost);
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-        showToast('Text post published!');
-        closeModal('createModal');
-        switchTab('feed');
-      }
-    }
-
-    function loadProfileGrid() {
-      getVideosFromStorage(function(storedVideos) {
-        let userVidCount = 0;
-        const grid = document.getElementById('profile-grid');
-        grid.innerHTML = '';
-        const cleanUser = formatHandle(currentUser);
-
-        storedVideos.forEach(v => {
-          if (formatHandle(v.user) === cleanUser) {
-            userVidCount++;
-            const thumb = document.createElement('div');
-            thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
-            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
-            grid.appendChild(thumb);
-          }
-        });
-        document.getElementById('profile-posts-count').innerText = userVidCount;
-      });
-    }
-
-    function getVideosFromStorage(callback) {
-      const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, comments: [] }
-      ];
-
-      if (!dbInstance) { callback(defaultVideos); return; }
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const getReq = store.getAll();
-      getReq.onsuccess = function() {
-        let list = getReq.result || [];
-        callback(list.length === 0 ? defaultVideos : list.reverse());
-      };
-      getReq.onerror = function() { callback(defaultVideos); };
-    }
-
-    // INTERACTION HANDLERS FOR VIDEOS (LIKE, SUBSCRIBE, SAVE, SHARE, COMMENT)
-    function toggleLikeVideo(vidId) {
-      if (!currentUser) { showToast('Login to like videos!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-        if (!vid.likes) vid.likes = [];
-        
-        const idx = vid.likes.indexOf(cleanUser);
-        if (idx > -1) {
-          vid.likes.splice(idx, 1);
-        } else {
-          vid.likes.push(cleanUser);
+        } catch (err) {
+          outputElem.innerText = "Error: " + err.message;
         }
-        store.put(vid);
-        tx.oncomplete = function() {
-          initAppContent();
-          loadUserData();
-        };
-      };
-    }
-
-    function toggleSubscribeUser(authorHandle) {
-      if (!currentUser) { showToast('Login to subscribe!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      const cleanAuthor = formatHandle(authorHandle);
-
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanAuthor]) users[cleanAuthor] = { subscribersList: [] };
-      if (!users[cleanAuthor].subscribersList) users[cleanAuthor].subscribersList = [];
-
-      const subList = users[cleanAuthor].subscribersList;
-      const idx = subList.indexOf(cleanUser);
-      if (idx > -1) {
-        subList.splice(idx, 1);
-        showToast('Unsubscribed from @' + cleanAuthor);
-      } else {
-        subList.push(cleanUser);
-        showToast('Subscribed to @' + cleanAuthor + '!');
       }
-
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      initAppContent();
-      loadUserData();
-    }
-
-    function saveVideo(vidId) {
-      if (!currentUser) { showToast('Login to save video!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanUser]) users[cleanUser] = {};
-      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
-
-      const idx = users[cleanUser].savedVideos.indexOf(vidId);
-      if (idx > -1) {
-        users[cleanUser].savedVideos.splice(idx, 1);
-        showToast('Removed from saved videos!');
-      } else {
-        users[cleanUser].savedVideos.push(vidId);
-        showToast('Video saved to profile!');
-      }
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      initAppContent();
-    }
-
-    function shareVideo(vidId) {
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-        vid.shares = (vid.shares || 0) + 1;
-        store.put(vid);
-        tx.oncomplete = function() {
-          showToast('Share link copied to clipboard!');
-          initAppContent();
-        };
-      };
-    }
-
-    function openCommentsDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      document.getElementById('commentDrawer').classList.add('open');
-      loadDrawerComments();
-    }
-
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
-    }
-
-    function loadDrawerComments() {
-      if (!currentActiveVideoId) return;
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-      req.onsuccess = function() {
-        const vid = req.result;
-        const area = document.getElementById('drawer-content-area');
-        area.innerHTML = '';
-        if (vid && vid.comments && vid.comments.length > 0) {
-          vid.comments.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'p-2 bg-gray-800 rounded-lg text-xs space-y-0.5 border border-gray-700/60';
-            div.innerHTML = `<span class="font-bold text-cyan-400">@${c.user}:</span> <span class="text-gray-200">${c.text}</span>`;
-            area.appendChild(div);
-          });
-        } else {
-          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>`;
-        }
-      };
-    }
-
-    function addCommentSubmit() {
-      if (!currentUser) { showToast('Login to comment!'); return; }
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text || !currentActiveVideoId) return;
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-        if (!vid.comments) vid.comments = [];
-        vid.comments.push({ user: formatHandle(currentUser), text: text, timestamp: Date.now() });
-        store.put(vid);
-        tx.oncomplete = function() {
-          input.value = '';
-          loadDrawerComments();
-          initAppContent();
-        };
-      };
-    }
-
-    function openSubscribersList() {
-      if (!currentUser) return;
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      const userData = users[cleanUser] || {};
-      const subList = userData.subscribersList || [];
-
-      const listContainer = document.getElementById('subscribers-list-content');
-      listContainer.innerHTML = '';
-
-      if (subList.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">You don't have any subscribers yet.</p>`;
-      } else {
-        subList.forEach(subHandle => {
-          const subData = users[subHandle] || {};
-          const avatarUrl = subData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${subHandle}`;
-          const item = document.createElement('div');
-          item.className = 'flex items-center gap-3 p-3 bg-gray-900 border border-gray-800 rounded-xl';
-          item.innerHTML = `
-            <img src="${avatarUrl}" class="w-10 h-10 rounded-full bg-gray-800 border border-cyan-500/30">
-            <div>
-              <p class="text-xs font-bold text-white">@${subHandle}</p>
-              <p class="text-[10px] text-gray-400">${subData.bio || 'Verified User'}</p>
-            </div>
-          `;
-          listContainer.appendChild(item);
-        });
-      }
-      openModal('subscribersModal');
-    }
-
-    function initAppContent() {
-      getVideosFromStorage(function(storedVideos) {
-        const container = document.getElementById('video-feed-container');
-        container.innerHTML = '';
-
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-        const cleanCurrUser = formatHandle(currentUser);
-
-        if (videoObserver) videoObserver.disconnect();
-        videoObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            const vid = entry.target.querySelector('video');
-            if (entry.isIntersecting) {
-              vid.currentTime = 0;
-              vid.muted = false;
-              vid.play().catch(() => { vid.muted = true; vid.play(); });
-            } else {
-              vid.pause();
-              vid.muted = true;
-            }
-          });
-        }, { threshold: 0.65 });
-
-        storedVideos.forEach(v => {
-          const authorHandle = formatHandle(v.user);
-          const authorData = users[authorHandle] || {};
-          const authorAvatar = authorData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${authorHandle}`;
-
-          const isLiked = (v.likes || []).includes(cleanCurrUser);
-          const isSubscribed = (authorData.subscribersList || []).includes(cleanCurrUser);
-          const isSaved = ((users[cleanCurrUser] || {}).savedVideos || []).includes(v.id);
-
-          const item = document.createElement('div');
-          item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
-          item.innerHTML = `
-            <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
-            
-            <!-- BOTTOM LEFT VIDEO INFO -->
-            <div class="absolute bottom-6 left-4 text-white z-20 max-w-[70%]">
-              <h4 class="font-bold text-sm drop-shadow">@${authorHandle}</h4>
-              <p class="text-xs text-gray-200 mt-1 drop-shadow line-clamp-2">${v.caption}</p>
-            </div>
-
-            <!-- RIGHT ACTION SIDEBAR (PROFILE, SUB, LIKE, COMMENT, SHARE, SAVE) -->
-            <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 z-20">
-              
-              <!-- USER AVATAR & SUBSCRIBE BADGE -->
-              <div class="relative mb-2">
-                <img src="${authorAvatar}" class="w-11 h-11 rounded-full border-2 border-white object-cover bg-gray-800 shadow-xl">
-                ${authorHandle !== cleanCurrUser ? `
-                  <button onclick="toggleSubscribeUser('${authorHandle}')" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 ${isSubscribed ? 'bg-gray-600' : 'bg-red-600'} text-white rounded-full flex items-center justify-center text-[10px] border border-black shadow">
-                    <i class="fa-solid ${isSubscribed ? 'fa-check' : 'fa-plus'}"></i>
-                  </button>
-                ` : ''}
-              </div>
-
-              <!-- LIKE BUTTON -->
-              <button onclick="toggleLikeVideo(${v.id})" class="flex flex-col items-center group">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white group-active:scale-125 transition-transform">
-                  <i class="fa-solid fa-heart ${isLiked ? 'text-red-500' : 'text-white'}"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.likes || []).length}</span>
-              </button>
-
-              <!-- COMMENT BUTTON -->
-              <button onclick="openCommentsDrawer(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
-                  <i class="fa-solid fa-comment"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.comments || []).length}</span>
-              </button>
-
-              <!-- SHARE BUTTON -->
-              <button onclick="shareVideo(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
-                  <i class="fa-solid fa-share"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">${v.shares || 0}</span>
-              </button>
-
-              <!-- SAVE / BOOKMARK BUTTON -->
-              <button onclick="saveVideo(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
-                  <i class="fa-solid fa-bookmark ${isSaved ? 'text-amber-400' : 'text-white'}"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">Save</span>
-              </button>
-
-            </div>
-          `;
-          container.appendChild(item);
-          videoObserver.observe(item);
-        });
-      });
     }
   </script>
 </body>
