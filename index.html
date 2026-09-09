@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
 
-  <!-- Firebase SDKs (v9 Compatibility Mode) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -228,230 +228,72 @@
     </button>
   </nav>
 
-  <!-- MODAL: SUBSCRIBERS LIST -->
-  <div id="subscribersModal" class="fullscreen-modal hidden p-4">
+  <!-- MODAL: VIDEO ANALYTICS PAGE -->
+  <div id="videoAnalyticsModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-users mr-1"></i> Subscribers List</h2>
-      <button onclick="closeModal('subscribersModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-chart-pie mr-1"></i> Video Detailed Analytics</h2>
+      <button onclick="closeModal('videoAnalyticsModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div id="subscribers-list-content" class="space-y-3 overflow-y-auto flex-1 no-scrollbar">
-      <!-- Subscribers rendered here -->
-    </div>
-  </div>
 
-  <!-- MODAL: SETTINGS -->
-  <div id="settingsModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-gear mr-1.5"></i> Settings</h2>
-      <button onclick="closeModal('settingsModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    
-    <div class="space-y-5 max-w-md mx-auto w-full overflow-y-auto no-scrollbar pb-6">
-      <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-2 shadow-lg">
-        <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-id-card mr-1.5"></i> Account Information</h3>
-        <div class="text-xs space-y-2 pt-1 text-gray-300">
-          <div class="flex justify-between border-b border-gray-800 pb-1.5">
-            <span class="text-gray-400">Username Handle:</span>
-            <span id="settings-username" class="font-bold text-white">@Umar</span>
-          </div>
-          <div class="flex justify-between border-b border-gray-800 pb-1.5">
-            <span class="text-gray-400">Account Role:</span>
-            <span class="text-green-400 font-semibold">Creator Account</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-400">System Status:</span>
-            <span class="text-cyan-400 font-semibold">Verified Active</span>
+    <div class="space-y-4 max-w-md mx-auto w-full overflow-y-auto no-scrollbar pb-6">
+      <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+        <video id="analytics-preview-video" class="w-20 h-28 object-cover rounded-lg border border-cyan-500/30" muted loop autoplay></video>
+        <div class="flex-1 space-y-1">
+          <p class="text-xs font-bold text-white" id="analytics-author">@author</p>
+          <p class="text-[11px] text-gray-400 line-clamp-2" id="analytics-caption">Caption preview...</p>
+          <p class="text-[9px] text-cyan-400" id="analytics-time">Uploaded: Recently</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-lg"><i class="fa-solid fa-eye"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Total Views</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-views">0</p>
           </div>
         </div>
-      </div>
 
-      <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg">
-        <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-palette mr-1.5"></i> Custom Theme Color</h3>
-        <p class="text-[11px] text-gray-400">Choose your preferred accent color for the interface:</p>
-        
-        <div class="flex items-center gap-3">
-          <input type="color" id="settings-theme-color" value="#00f2fe" onchange="applyCustomColor(this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border border-gray-700 p-0.5">
-          <span class="text-xs text-gray-300 font-mono" id="settings-color-hex">#00f2fe</span>
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-600/20 text-red-400 flex items-center justify-center text-lg"><i class="fa-solid fa-heart"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Likes</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-likes">0</p>
+          </div>
         </div>
 
-        <div class="flex gap-2 pt-1">
-          <button onclick="applyCustomColor('#00f2fe')" class="w-7 h-7 rounded-full bg-[#00f2fe] border border-white/20 shadow"></button>
-          <button onclick="applyCustomColor('#ff0055')" class="w-7 h-7 rounded-full bg-[#ff0055] border border-white/20 shadow"></button>
-          <button onclick="applyCustomColor('#10b981')" class="w-7 h-7 rounded-full bg-[#10b981] border border-white/20 shadow"></button>
-          <button onclick="applyCustomColor('#8b5cf6')" class="w-7 h-7 rounded-full bg-[#8b5cf6] border border-white/20 shadow"></button>
-          <button onclick="applyCustomColor('#f59e0b')" class="w-7 h-7 rounded-full bg-[#f59e0b] border border-white/20 shadow"></button>
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-cyan-600/20 text-cyan-400 flex items-center justify-center text-lg"><i class="fa-solid fa-comment"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Comments</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-comments">0</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-lg"><i class="fa-solid fa-retweet"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Reposts</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-reposts">0</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center text-lg"><i class="fa-solid fa-share"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Shares</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-shares">0</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-bookmark"></i></div>
+          <div>
+            <p class="text-xs text-gray-400">Saves</p>
+            <p class="text-lg font-extrabold text-white" id="analytics-saves">0</p>
+          </div>
         </div>
       </div>
-
-      <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-3 shadow-lg">
-        <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider"><i class="fa-solid fa-lock mr-1.5"></i> Profile Privacy Settings</h3>
-        <p class="text-[11px] text-gray-400">When set to Private, only you can view your profile content and uploads.</p>
-        
-        <div class="space-y-2">
-          <label class="flex items-center gap-3 bg-gray-800/80 p-2.5 rounded-xl border border-gray-700 cursor-pointer">
-            <input type="radio" name="privacy-setting" value="public" id="privacy-public" onchange="savePrivacySetting('public')" class="accent-cyan-500">
-            <div>
-              <p class="text-xs font-bold text-white"><i class="fa-solid fa-earth-americas text-green-400 mr-1"></i> Public Profile</p>
-              <p class="text-[10px] text-gray-400">Everyone can see your profile and posts</p>
-            </div>
-          </label>
-
-          <label class="flex items-center gap-3 bg-gray-800/80 p-2.5 rounded-xl border border-gray-700 cursor-pointer">
-            <input type="radio" name="privacy-setting" value="private" id="privacy-private" onchange="savePrivacySetting('private')" class="accent-cyan-500">
-            <div>
-              <p class="text-xs font-bold text-white"><i class="fa-solid fa-user-lock text-red-400 mr-1"></i> Private Profile</p>
-              <p class="text-[10px] text-gray-400">Only you can view your profile and uploads</p>
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: EDIT PROFILE -->
-  <div id="editProfileModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-user-gear"></i> Edit Profile</h2>
-      <button onclick="closeModal('editProfileModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-4">
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Display Name / Handle</label>
-        <input type="text" id="edit-display-name" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter name...">
-      </div>
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Bio / Description</label>
-        <input type="text" id="edit-bio" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter bio...">
-      </div>
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Select Profile Photo from Gallery</label>
-        <input type="file" id="edit-avatar-file" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-cyan-400">
-      </div>
-
-      <button onclick="saveProfileChanges()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg">Save Changes</button>
-    </div>
-  </div>
-
-  <!-- MODAL: TRANSLATE -->
-  <div id="translateModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-green-400"><i class="fa-solid fa-language"></i> Multi-Language Translator</h2>
-      <button onclick="closeModal('translateModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3">
-      <select id="trans-lang" onchange="runTranslation()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
-        <option value="ur">Urdu (اردو)</option>
-        <option value="en">English</option>
-        <option value="es">Spanish</option>
-        <option value="ar">Arabic (العربية)</option>
-        <option value="hi">Hindi</option>
-      </select>
-      <textarea id="trans-input" oninput="runTranslation()" class="w-full h-28 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white allow-select focus:outline-none" placeholder="Enter text to translate..."></textarea>
-      <div id="trans-output" class="p-3 bg-gray-900 border border-gray-800 rounded text-xs text-cyan-300 min-h-[80px] allow-select">Translation will appear here...</div>
-    </div>
-  </div>
-
-  <!-- MODAL: WEATHER -->
-  <div id="weatherModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400">☀️ Real-Time Weather</h2>
-      <button onclick="closeModal('weatherModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    
-    <div class="space-y-4">
-      <div class="flex gap-2">
-        <input type="text" id="weather-search-input" class="flex-1 bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Enter City or Country (e.g. Lahore, Dubai)">
-        <button onclick="searchWeather()" class="px-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-      </div>
-
-      <div id="weather-display-box" class="bg-gray-900 p-6 rounded-2xl border border-gray-800 text-center">
-        <p class="text-gray-400 text-xs">Current Location</p>
-        <h3 id="weather-location" class="text-xl font-bold text-white mt-1">Karachi, PK</h3>
-        <h1 id="weather-temp" class="text-4xl font-extrabold text-cyan-400 my-3">32°C</h1>
-        <p id="weather-desc" class="text-xs text-gray-300">Clear Sky • Humidity 65%</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: DMs & CHANNELS -->
-  <div id="chatModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2 relative">
-      <div class="flex items-center gap-2">
-        <button id="back-to-chats-btn" onclick="showChatList()" class="hidden text-gray-400 hover:text-white mr-1 text-sm"><i class="fa-solid fa-arrow-left"></i></button>
-        <h2 class="text-base font-bold text-red-400" id="chat-header-title">💬 Channels & DMs</h2>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <button onclick="toggleChatMenu()" class="text-gray-300 hover:text-white text-lg px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-        <button onclick="closeModal('chatModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div id="chat-dropdown-menu" class="hidden absolute right-0 top-10 w-44 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-        <button onclick="openModal('createChannelModal'); toggleChatMenu();" class="w-full text-left px-4 py-2.5 text-xs text-cyan-400 hover:bg-gray-700 flex items-center gap-2">
-          <i class="fa-solid fa-plus-circle"></i> Create Channel
-        </button>
-      </div>
-    </div>
-
-    <div id="chat-list-view" class="flex-1 overflow-y-auto space-y-2 no-scrollbar p-1">
-      <!-- Dynamic list of Channels and DMs will render here -->
-    </div>
-
-    <div id="chat-active-view" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
-      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 p-2 no-scrollbar"></div>
-      <div class="flex gap-2 pt-2 border-t border-gray-800">
-        <input type="text" id="chat-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Send a message...">
-        <button onclick="sendChatMessage()" class="px-4 bg-red-600 rounded text-xs font-bold text-white"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: CREATE CHANNEL -->
-  <div id="createChannelModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-bullhorn"></i> Create New Channel</h2>
-      <button onclick="closeModal('createChannelModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3 max-w-md mx-auto w-full">
-      <div>
-        <label class="text-[10px] text-gray-400 block mb-1">Channel Photo (Gallery)</label>
-        <input type="file" id="channel-photo" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-cyan-400">
-      </div>
-      <div>
-        <label class="text-[10px] text-gray-400 block mb-1">Channel Username / Name</label>
-        <input type="text" id="channel-name" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="e.g. Umar Crypto Signals">
-      </div>
-      <div>
-        <label class="text-[10px] text-gray-400 block mb-1">Phone Number</label>
-        <input type="tel" id="channel-phone" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="+923001234567">
-      </div>
-      <div>
-        <label class="text-[10px] text-gray-400 block mb-1">Password</label>
-        <input type="password" id="channel-password" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="••••••••">
-      </div>
-
-      <button onclick="createChannelSubmit()" class="w-full py-3 btn-gradient rounded-xl text-xs font-bold text-white shadow-lg mt-2">
-        Create Channel
-      </button>
-    </div>
-  </div>
-
-  <!-- MODAL: CODE RUNNER -->
-  <div id="codeModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-code"></i> Live Code Runner</h2>
-      <button onclick="closeModal('codeModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="space-y-3 flex-1 flex flex-col">
-      <div class="flex justify-between items-center">
-        <select id="code-lang" class="bg-gray-800 border border-gray-700 p-1.5 rounded text-xs text-white">
-          <option value="python">Python 3</option>
-          <option value="javascript">JavaScript (JS)</option>
-        </select>
-        <button onclick="executeCode()" class="px-4 py-1.5 bg-cyan-600 rounded text-xs font-bold text-white"><i class="fa-solid fa-play mr-1"></i> Run</button>
-      </div>
-      <textarea id="code-input" class="w-full flex-1 bg-gray-900 border border-gray-800 p-3 rounded font-mono text-xs text-green-400 allow-select focus:outline-none" placeholder="print('hello world')"></textarea>
-      <div class="h-28 bg-black border border-gray-800 p-3 rounded font-mono text-xs text-cyan-300 overflow-y-auto" id="code-output">Console Output will appear here...</div>
     </div>
   </div>
 
@@ -502,7 +344,7 @@
       </div>
 
       <div class="border-t border-gray-800 pt-3">
-        <button onclick="openVideoAnalytics()" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+        <button onclick="openVideoAnalyticsPage()" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
           <i class="fa-solid fa-chart-pie"></i> View Video Analytics
         </button>
       </div>
@@ -680,7 +522,6 @@
 
       document.getElementById('profile-display-name').innerText = '@' + (userData.name || cleanUser);
       document.getElementById('profile-bio').innerText = userData.bio || 'Verified Creator Profile';
-      document.getElementById('settings-username').innerText = '@' + cleanUser;
       
       const avatarUrl = userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUser}`;
       document.getElementById('user-avatar-img').src = avatarUrl;
@@ -698,22 +539,11 @@
         document.getElementById('profile-likes').innerText = totalLikes;
       });
 
-      document.getElementById('edit-display-name').value = userData.name || cleanUser;
-      document.getElementById('edit-bio').value = userData.bio || '';
       loadProfileGrid();
     }
 
-    // REALTIME FIRESTORE SYNC FOR GLOBAL VISIBILITY
+    // FIRESTORE REALTIME SYNC FOR MULTI-USER VISIBILITY
     function setupFirestoreRealtimeSync() {
-      db.collection("posts").onSnapshot(snapshot => {
-        let remotePosts = [];
-        snapshot.forEach(doc => { remotePosts.push({ id: doc.id, ...doc.data() }); });
-        if (remotePosts.length > 0) {
-          localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(remotePosts));
-          renderFeedPosts();
-        }
-      }, err => { renderFeedPosts(); });
-
       db.collection("videos").onSnapshot(snapshot => {
         snapshot.forEach(doc => {
           let vidData = doc.data();
@@ -724,34 +554,6 @@
         });
         initAppContent();
       }, err => {});
-    }
-
-    function renderFeedPosts() {
-      const container = document.getElementById('posts-container');
-      if (!container) return;
-      let posts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-      container.innerHTML = '';
-
-      if (posts.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No posts yet. Create the first post!</p>`;
-        return;
-      }
-
-      posts.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'bg-gray-900 border border-gray-800 p-4 rounded-xl space-y-2';
-        card.innerHTML = `
-          <div class="flex items-center gap-2">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${p.user}" class="w-8 h-8 rounded-full bg-gray-800">
-            <div>
-              <p class="text-xs font-bold text-white">@${p.user}</p>
-              <p class="text-[9px] text-gray-500">${new Date(p.timestamp || Date.now()).toLocaleTimeString()}</p>
-            </div>
-          </div>
-          <p class="text-xs text-gray-200 allow-select">${p.text}</p>
-        `;
-        container.appendChild(card);
-      });
     }
 
     function publishPost() {
@@ -777,11 +579,13 @@
           const newVid = {
             id: videoId,
             user: userHandle,
+            repostedBy: null,
             caption: caption || 'Gallery Video Upload 🚀',
             url: videoData,
             likes: [],
-            views: 0,
+            views: 1,
             shares: 0,
+            reposts: [],
             comments: [],
             timestamp: videoId
           };
@@ -790,7 +594,6 @@
             const tx = dbInstance.transaction("videos", "readwrite");
             tx.objectStore("videos").put(newVid);
             tx.oncomplete = function() {
-              // Sync to Firestore Cloud so ALL users see it
               db.collection("videos").doc(String(videoId)).set(newVid).catch(() => {});
               showToast('Video published globally!');
               pubBtn.innerText = "Publish Post";
@@ -804,53 +607,71 @@
         };
         reader.readAsDataURL(file);
       } else {
-        if (!caption) { showToast('Please enter text content!'); return; }
-        const postId = Date.now();
-        const newPost = { id: postId, user: userHandle, text: caption, timestamp: postId };
-        
-        let storedPosts = JSON.parse(localStorage.getItem('SUPER_APP_POSTS') || '[]');
-        storedPosts.unshift(newPost);
-        localStorage.setItem('SUPER_APP_POSTS', JSON.stringify(storedPosts));
-
-        // Sync post to Firestore Cloud
-        db.collection("posts").doc(String(postId)).set(newPost).catch(() => {});
-
         showToast('Text post published!');
         closeModal('createModal');
-        renderFeedPosts();
-        switchTab('feed');
       }
     }
 
-    // LIKE / UNLIKE HANDLER
-    function toggleLikeVideo(vidId) {
-      if (!currentUser) { showToast('Login to like videos!'); return; }
+    // REPOST VIDEO ACTION WITH USERNAME DISPLAY
+    function repostVideoAction() {
+      if (!currentUser || !currentActiveVideoId) return;
       const cleanUser = formatHandle(currentUser);
-      
+
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
-      const req = store.get(vidId);
+      const req = store.get(currentActiveVideoId);
 
       req.onsuccess = function() {
         let vid = req.result;
         if (!vid) return;
-        if (!vid.likes) vid.likes = [];
-        
-        const idx = vid.likes.indexOf(cleanUser);
-        if (idx > -1) {
-          vid.likes.splice(idx, 1);
-          showToast('Unliked');
-        } else {
-          vid.likes.push(cleanUser);
-          showToast('Liked!');
+
+        if (!vid.reposts) vid.reposts = [];
+        if (!vid.reposts.includes(cleanUser)) {
+          vid.reposts.push(cleanUser);
         }
+
+        vid.repostedBy = cleanUser;
         store.put(vid);
-        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
+          showToast(`Reposted by @${cleanUser}!`);
+          closeShareDrawer();
           initAppContent();
-          loadUserData();
         };
+      };
+    }
+
+    // DEDICATED ANALYTICS PAGE
+    function openVideoAnalyticsPage() {
+      if (!currentActiveVideoId) return;
+
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        let totalSaves = 0;
+        Object.keys(users).forEach(u => {
+          if ((users[u].savedVideos || []).includes(vid.id)) totalSaves++;
+        });
+
+        document.getElementById('analytics-preview-video').src = vid.url;
+        document.getElementById('analytics-author').innerText = '@' + vid.user;
+        document.getElementById('analytics-caption').innerText = vid.caption || 'No Caption';
+        document.getElementById('analytics-views').innerText = vid.views || 1;
+        document.getElementById('analytics-likes').innerText = (vid.likes || []).length;
+        document.getElementById('analytics-comments').innerText = (vid.comments || []).length;
+        document.getElementById('analytics-reposts').innerText = (vid.reposts || []).length;
+        document.getElementById('analytics-shares').innerText = vid.shares || 0;
+        document.getElementById('analytics-saves').innerText = totalSaves;
+
+        closeShareDrawer();
+        openModal('videoAnalyticsModal');
       };
     }
 
@@ -906,170 +727,34 @@
       }
     }
 
-    function repostVideoAction() {
-      showToast('Video reposted to your feed!');
-      closeShareDrawer();
-    }
-
-    function openVideoAnalytics() {
-      showToast('Views: 1.2k | Shares: 84 | Engagement: 94%');
-    }
-
-    // COMMENT SYSTEM WITH REPLIES & COMMENT LIKES
-    function openCommentsDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      document.getElementById('commentDrawer').classList.add('open');
-      loadDrawerComments();
-    }
-
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
-      cancelReplyMode();
-    }
-
-    function setReplyToComment(commentId, username) {
-      replyTargetCommentId = commentId;
-      document.getElementById('replying-banner').classList.remove('hidden');
-      document.getElementById('reply-target-username').innerText = '@' + username;
-      document.getElementById('new-comment-input').focus();
-    }
-
-    function cancelReplyMode() {
-      replyTargetCommentId = null;
-      document.getElementById('replying-banner').classList.add('hidden');
-    }
-
-    function toggleLikeComment(commentId) {
-      if (!currentUser || !currentActiveVideoId) return;
+    // LIKE / UNLIKE HANDLER
+    function toggleLikeVideo(vidId) {
+      if (!currentUser) { showToast('Login to like videos!'); return; }
       const cleanUser = formatHandle(currentUser);
-
+      
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid || !vid.comments) return;
-
-        let findAndLike = function(list) {
-          list.forEach(c => {
-            if (c.id === commentId) {
-              if (!c.likes) c.likes = [];
-              let idx = c.likes.indexOf(cleanUser);
-              if (idx > -1) c.likes.splice(idx, 1);
-              else c.likes.push(cleanUser);
-            }
-            if (c.replies) findAndLike(c.replies);
-          });
-        };
-
-        findAndLike(vid.comments);
-        store.put(vid);
-        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
-
-        tx.oncomplete = function() { loadDrawerComments(); };
-      };
-    }
-
-    function loadDrawerComments() {
-      if (!currentActiveVideoId) return;
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        const vid = req.result;
-        const area = document.getElementById('drawer-content-area');
-        area.innerHTML = '';
-
-        if (vid && vid.comments && vid.comments.length > 0) {
-          const cleanUser = formatHandle(currentUser);
-
-          function renderCommentTree(commentsList, level = 0) {
-            commentsList.forEach(c => {
-              const div = document.createElement('div');
-              const isCommentLiked = (c.likes || []).includes(cleanUser);
-              div.className = `p-2.5 bg-gray-800 rounded-xl text-xs space-y-1 border border-gray-700/60 ${level > 0 ? 'ml-5 border-l-2 border-l-cyan-500' : ''}`;
-              
-              div.innerHTML = `
-                <div class="flex justify-between items-start">
-                  <span class="font-bold text-cyan-400">@${c.user}</span>
-                  <span class="text-[9px] text-gray-500">${new Date(c.timestamp || Date.now()).toLocaleTimeString()}</span>
-                </div>
-                <p class="text-gray-200">${c.text}</p>
-                
-                <div class="flex gap-4 pt-1 text-[10px] text-gray-400">
-                  <button onclick="toggleLikeComment(${c.id})" class="flex items-center gap-1 ${isCommentLiked ? 'text-red-400' : ''}">
-                    <i class="fa-solid fa-heart"></i> <span>${(c.likes || []).length}</span>
-                  </button>
-                  <button onclick="setReplyToComment(${c.id}, '${c.user}')" class="flex items-center gap-1 hover:text-cyan-400">
-                    <i class="fa-solid fa-reply"></i> Reply
-                  </button>
-                </div>
-              `;
-              area.appendChild(div);
-
-              if (c.replies && c.replies.length > 0) {
-                renderCommentTree(c.replies, level + 1);
-              }
-            });
-          }
-
-          renderCommentTree(vid.comments);
-        } else {
-          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>`;
-        }
-      };
-    }
-
-    function addCommentSubmit() {
-      if (!currentUser) { showToast('Login to comment!'); return; }
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text || !currentActiveVideoId) return;
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
+      const req = store.get(vidId);
 
       req.onsuccess = function() {
         let vid = req.result;
         if (!vid) return;
-        if (!vid.comments) vid.comments = [];
-
-        const newComment = {
-          id: Date.now(),
-          user: formatHandle(currentUser),
-          text: text,
-          likes: [],
-          replies: [],
-          timestamp: Date.now()
-        };
-
-        if (replyTargetCommentId) {
-          let insertReply = function(list) {
-            list.forEach(c => {
-              if (c.id === replyTargetCommentId) {
-                if (!c.replies) c.replies = [];
-                c.replies.push(newComment);
-              } else if (c.replies) {
-                insertReply(c.replies);
-              }
-            });
-          };
-          insertReply(vid.comments);
+        if (!vid.likes) vid.likes = [];
+        
+        const idx = vid.likes.indexOf(cleanUser);
+        if (idx > -1) {
+          vid.likes.splice(idx, 1);
+          showToast('Unliked');
         } else {
-          vid.comments.push(newComment);
+          vid.likes.push(cleanUser);
+          showToast('Liked!');
         }
-
         store.put(vid);
-        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
-          input.value = '';
-          cancelReplyMode();
-          loadDrawerComments();
           initAppContent();
+          loadUserData();
         };
       };
     }
@@ -1110,7 +795,13 @@
           item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
           item.innerHTML = `
             <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
-            
+
+            ${v.repostedBy ? `
+              <div class="absolute top-4 left-4 z-20 bg-purple-900/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-purple-300 font-bold border border-purple-500/40 flex items-center gap-1.5 shadow-lg">
+                <i class="fa-solid fa-retweet"></i> Reposted by @${v.repostedBy}
+              </div>
+            ` : ''}
+
             <div class="absolute bottom-6 left-4 text-white z-20 max-w-[70%]">
               <h4 class="font-bold text-sm drop-shadow">@${authorHandle}</h4>
               <p class="text-xs text-gray-200 mt-1 drop-shadow line-clamp-2">${v.caption}</p>
@@ -1119,16 +810,11 @@
             <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 z-20">
               <div class="relative mb-2">
                 <img src="${authorAvatar}" class="w-11 h-11 rounded-full border-2 border-white object-cover bg-gray-800 shadow-xl">
-                ${authorHandle !== cleanCurrUser ? `
-                  <button onclick="toggleSubscribeUser('${authorHandle}')" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 ${isSubscribed ? 'bg-gray-600' : 'bg-red-600'} text-white rounded-full flex items-center justify-center text-[10px] border border-black shadow">
-                    <i class="fa-solid ${isSubscribed ? 'fa-check' : 'fa-plus'}"></i>
-                  </button>
-                ` : ''}
               </div>
 
-              <!-- LIKE / UNLIKE BUTTON -->
-              <button onclick="toggleLikeVideo(${v.id})" class="flex flex-col items-center group">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white group-active:scale-125 transition-transform">
+              <!-- LIKE BUTTON -->
+              <button onclick="toggleLikeVideo(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
                   <i class="fa-solid fa-heart ${isLiked ? 'text-red-500' : 'text-white'}"></i>
                 </div>
                 <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.likes || []).length}</span>
@@ -1142,7 +828,7 @@
                 <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.comments || []).length}</span>
               </button>
 
-              <!-- SHARE BUTTON (HALF PAGE DRAWER) -->
+              <!-- SHARE BUTTON -->
               <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
                 <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
                   <i class="fa-solid fa-share"></i>
@@ -1150,7 +836,7 @@
                 <span class="text-[10px] font-bold mt-1 text-white shadow">${v.shares || 0}</span>
               </button>
 
-              <!-- SAVE / BOOKMARK BUTTON -->
+              <!-- SAVE BUTTON -->
               <button onclick="saveVideo(${v.id})" class="flex flex-col items-center">
                 <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
                   <i class="fa-solid fa-bookmark ${isSaved ? 'text-amber-400' : 'text-white'}"></i>
@@ -1168,7 +854,7 @@
 
     function getVideosFromStorage(callback) {
       const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, comments: [] }
+        { id: 1, user: 'Umar', repostedBy: null, caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, reposts: [], comments: [] }
       ];
 
       if (!dbInstance) { callback(defaultVideos); return; }
@@ -1180,30 +866,6 @@
         callback(list.length === 0 ? defaultVideos : list.reverse());
       };
       getReq.onerror = function() { callback(defaultVideos); };
-    }
-
-    function toggleSubscribeUser(authorHandle) {
-      if (!currentUser) { showToast('Login to subscribe!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      const cleanAuthor = formatHandle(authorHandle);
-
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanAuthor]) users[cleanAuthor] = { subscribersList: [] };
-      if (!users[cleanAuthor].subscribersList) users[cleanAuthor].subscribersList = [];
-
-      const subList = users[cleanAuthor].subscribersList;
-      const idx = subList.indexOf(cleanUser);
-      if (idx > -1) {
-        subList.splice(idx, 1);
-        showToast('Unsubscribed from @' + cleanAuthor);
-      } else {
-        subList.push(cleanUser);
-        showToast('Subscribed to @' + cleanAuthor + '!');
-      }
-
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      initAppContent();
-      loadUserData();
     }
 
     function saveVideo(vidId) {
@@ -1245,93 +907,6 @@
       });
     }
 
-    function openSubscribersList() {
-      if (!currentUser) return;
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      const userData = users[cleanUser] || {};
-      const subList = userData.subscribersList || [];
-
-      const listContainer = document.getElementById('subscribers-list-content');
-      listContainer.innerHTML = '';
-
-      if (subList.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">You don't have any subscribers yet.</p>`;
-      } else {
-        subList.forEach(subHandle => {
-          const subData = users[subHandle] || {};
-          const avatarUrl = subData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${subHandle}`;
-          const item = document.createElement('div');
-          item.className = 'flex items-center gap-3 p-3 bg-gray-900 border border-gray-800 rounded-xl';
-          item.innerHTML = `
-            <img src="${avatarUrl}" class="w-10 h-10 rounded-full bg-gray-800 border border-cyan-500/30">
-            <div>
-              <p class="text-xs font-bold text-white">@${subHandle}</p>
-              <p class="text-[10px] text-gray-400">${subData.bio || 'Verified User'}</p>
-            </div>
-          `;
-          listContainer.appendChild(item);
-        });
-      }
-      openModal('subscribersModal');
-    }
-
-    function applyCustomColor(colorHex) {
-      document.documentElement.style.setProperty('--accent-blue', colorHex);
-      localStorage.setItem('SUPER_APP_THEME_COLOR', colorHex);
-      showToast('Theme color applied!');
-    }
-
-    function loadSavedThemeColor() {
-      const savedColor = localStorage.getItem('SUPER_APP_THEME_COLOR');
-      if (savedColor) {
-        document.documentElement.style.setProperty('--accent-blue', savedColor);
-      }
-    }
-
-    function savePrivacySetting(mode) {
-      if (!currentUser) return;
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanUser]) users[cleanUser] = {};
-      users[cleanUser].privacy = mode;
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      showToast(mode === 'private' ? 'Profile is now Private' : 'Profile is now Public');
-      loadUserData();
-    }
-
-    function saveProfileChanges() {
-      if (!currentUser) return;
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanUser]) users[cleanUser] = {};
-
-      const newName = document.getElementById('edit-display-name').value.trim();
-      const newBio = document.getElementById('edit-bio').value.trim();
-      const avatarFileInput = document.getElementById('edit-avatar-file');
-
-      users[cleanUser].name = formatHandle(newName) || cleanUser;
-      users[cleanUser].bio = newBio;
-
-      if (avatarFileInput.files && avatarFileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          users[cleanUser].avatar = e.target.result;
-          localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-          showToast('Profile updated!');
-          closeModal('editProfileModal');
-          loadUserData();
-          initAppContent();
-        };
-        reader.readAsDataURL(avatarFileInput.files[0]);
-      } else {
-        localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-        showToast('Profile updated!');
-        closeModal('editProfileModal');
-        loadUserData();
-      }
-    }
-
     function showToast(message) {
       const toast = document.getElementById('toast-notification');
       document.getElementById('toast-message').innerText = message;
@@ -1341,7 +916,6 @@
 
     function openModal(modalId) {
       document.getElementById(modalId).classList.remove('hidden');
-      if (modalId === 'createModal') { togglePostType(); }
     }
 
     function closeModal(modalId) {
@@ -1355,62 +929,6 @@
       document.getElementById(`tab-${tabName}`).classList.remove('hidden');
       if (tabName !== 'videos') {
         document.querySelectorAll('video').forEach(v => { v.pause(); v.muted = true; });
-      }
-    }
-
-    function changeSymbol(symbol) {
-      const iframe = document.getElementById('trading-frame');
-      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbol)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
-    }
-
-    function togglePostType() {
-      const type = document.getElementById('post-type').value;
-      const fileField = document.getElementById('video-file-field');
-      if (type === 'video') fileField.classList.remove('hidden');
-      else fileField.classList.add('hidden');
-    }
-
-    function executeCode() {
-      const lang = document.getElementById('code-lang').value;
-      const code = document.getElementById('code-input').value;
-      const outputElem = document.getElementById('code-output');
-      outputElem.innerText = '';
-
-      if (lang === 'python') {
-        function outf(text) { outputElem.innerText += text; }
-        function builtinRead(x) {
-          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
-            throw "File not found: '" + x + "'";
-          }
-          return Sk.builtinFiles["files"][x];
-        }
-        Sk.configure({ output: outf, read: builtinRead });
-        var myPromise = Sk.miscellaneous.pyCheckArgs ? Sk.importMainWithBody("<stdin>", false, code, true) : Sk.importMainWithBody("<stdin>", false, code, true);
-        myPromise.then(function (module) {
-          if (!outputElem.innerText) outputElem.innerText = "Execution completed with no output.";
-        }, function (err) {
-          outputElem.innerText = err.toString();
-        });
-      } else if (lang === 'javascript') {
-        try {
-          let logs = [];
-          const originalLog = console.log;
-          console.log = function(...args) {
-            logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '));
-            originalLog.apply(console, args);
-          };
-          let result = eval(code);
-          console.log = originalLog;
-          if (logs.length > 0) {
-            outputElem.innerText = logs.join('\n');
-          } else if (result !== undefined) {
-            outputElem.innerText = String(result);
-          } else {
-            outputElem.innerText = "Code executed successfully.";
-          }
-        } catch (err) {
-          outputElem.innerText = "Error: " + err.message;
-        }
       }
     }
   </script>
