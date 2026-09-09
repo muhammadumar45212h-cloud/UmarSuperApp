@@ -24,6 +24,8 @@
       --card-bg: #111827;
       --accent-blue: #00f2fe;
       --accent-red: #ff0055;
+      --custom-chat-bg: #0284c7;
+      --custom-chat-text: #ffffff;
     }
     body {
       background-color: var(--bg-dark);
@@ -31,7 +33,29 @@
       font-family: system-ui, -apple-system, sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      transition: background-color 0.3s ease;
     }
+    
+    /* SCREENSHOT PROTECTION BLACKOUT OVERLAY */
+    body.no-screenshot {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+    body.no-screenshot::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-color: #000000;
+      z-index: 999999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+    }
+    @media print {
+      body.no-screenshot { display: none !important; }
+    }
+
     .allow-select { user-select: text !important; -webkit-user-select: text !important; }
     .fullscreen-modal {
       position: fixed; inset: 0; z-index: 50; background-color: var(--bg-dark);
@@ -54,6 +78,11 @@
     }
     .drawer-bottom.open {
       transform: translateY(0);
+    }
+
+    .custom-chat-bubble {
+      background-color: var(--custom-chat-bg) !important;
+      color: var(--custom-chat-text) !important;
     }
   </style>
 </head>
@@ -152,7 +181,7 @@
       </div>
     </section>
 
-    <!-- MY PROFILE & SETTINGS -->
+    <!-- MY PROFILE -->
     <section id="tab-profile" class="p-4 hidden space-y-4 relative">
       <div class="flex justify-between items-center border-b border-gray-800/80 pb-2">
         <span class="text-xs font-bold text-gray-300">My Profile</span>
@@ -161,6 +190,7 @@
           <span id="profile-visitor-badge" class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full text-[10px] font-semibold hidden">
             👁️ <span id="visitor-count-text">0</span> Views
           </span>
+          <!-- WORKING THREE DOT BUTTON FOR SETTINGS -->
           <button onclick="openModal('settingsModal')" class="text-gray-300 hover:text-white text-lg px-2 py-1 cursor-pointer" title="Settings">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
@@ -187,21 +217,6 @@
             <p class="text-[10px] text-gray-400">Subscribers</p>
           </div>
           <div><p class="font-bold text-base" id="profile-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
-        </div>
-      </div>
-
-      <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 space-y-2">
-        <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-          <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1"></i> Wallet Balance</span>
-          <span class="text-sm font-bold text-green-400">$0.00</span>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="showToast('Withdrawal feature active')" class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded text-xs font-bold border border-cyan-500/30">
-            Withdraw / Transfer Funds
-          </button>
-          <button onclick="logoutUser()" class="py-1.5 px-3 bg-red-950/60 hover:bg-red-900 text-red-400 rounded text-xs font-bold border border-red-500/30">
-            Logout
-          </button>
         </div>
       </div>
 
@@ -232,7 +247,103 @@
     </button>
   </nav>
 
-  <!-- PUBLIC USER PROFILE MODAL (ONLY PUBLIC ACCESS) -->
+  <!-- APP SETTINGS MODAL -->
+  <div id="settingsModal" class="fullscreen-modal hidden p-4 overflow-y-auto no-scrollbar space-y-5">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+      <h2 class="text-base font-bold text-cyan-400 flex items-center gap-2">
+        <i class="fa-solid fa-gear"></i> App Settings & Privacy
+      </h2>
+      <button onclick="closeModal('settingsModal')" class="text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- WALLET & BALANCE SECTION -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <span class="text-xs text-gray-300 font-semibold"><i class="fa-solid fa-wallet text-cyan-400 mr-1.5"></i> Wallet Balance</span>
+        <span class="text-base font-extrabold text-green-400" id="settings-balance">$0.00</span>
+      </div>
+      <button onclick="showToast('Withdrawal feature active. Current balance: $0.00')" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded-lg text-xs font-bold border border-cyan-500/30">
+        Withdraw / Transfer Funds
+      </button>
+    </div>
+
+    <!-- COLOR CUSTOMIZATION SETTINGS -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+      <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-palette"></i> Appearance & Colors
+      </h3>
+      
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-gray-300">Background Color</span>
+        <input type="color" id="setting-bg-color" value="#090d16" onchange="applyColorSettings()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+      </div>
+
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-gray-300">Chat Bubble Color</span>
+        <input type="color" id="setting-chat-color" value="#0284c7" onchange="applyColorSettings()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+      </div>
+
+      <div class="flex justify-between items-center">
+        <span class="text-xs text-gray-300">Chat Text Color</span>
+        <input type="color" id="setting-chat-text-color" value="#ffffff" onchange="applyColorSettings()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+      </div>
+    </div>
+
+    <!-- PRIVACY SETTINGS -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+      <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-lock"></i> Privacy & Controls
+      </h3>
+
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-gray-200 font-semibold">Private Profile</p>
+          <p class="text-[10px] text-gray-400">Only followers & link access can view content</p>
+        </div>
+        <input type="checkbox" id="setting-private-profile" onchange="savePrivacySettings()" class="w-4 h-4 accent-cyan-500">
+      </div>
+
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-gray-200 font-semibold">Allow Comments</p>
+          <p class="text-[10px] text-gray-400">Turn off to disable all user comments</p>
+        </div>
+        <input type="checkbox" id="setting-allow-comments" checked onchange="savePrivacySettings()" class="w-4 h-4 accent-cyan-500">
+      </div>
+
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-gray-200 font-semibold">Screenshot Protection</p>
+          <p class="text-[10px] text-gray-400">Blackout view if screenshot taken</p>
+        </div>
+        <input type="checkbox" id="setting-block-screenshot" onchange="savePrivacySettings()" class="w-4 h-4 accent-cyan-500">
+      </div>
+    </div>
+
+    <!-- APP SHARE & ABOUT -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+      <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-circle-info"></i> About & Share
+      </h3>
+
+      <button onclick="shareOfficialApp()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-share-nodes"></i> Share App Link
+      </button>
+
+      <div class="border-t border-gray-800 pt-3 space-y-1.5 text-xs text-gray-300">
+        <div class="flex justify-between"><span>App Version:</span> <span class="font-bold text-cyan-400">v2.4 Official</span></div>
+        <div class="flex justify-between"><span>User Role:</span> <span class="font-bold text-amber-400" id="settings-user-role">Verified Creator</span></div>
+        <div class="flex justify-between"><span>Developer:</span> <span class="font-bold text-gray-200">Super App Team</span></div>
+      </div>
+    </div>
+
+    <!-- LOGOUT BUTTON -->
+    <button onclick="logoutUser()" class="w-full py-3 bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+    </button>
+  </div>
+
+  <!-- PUBLIC USER PROFILE MODAL -->
   <div id="publicProfileModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center border-b border-gray-800 pb-2">
       <button onclick="closeModal('publicProfileModal')" class="text-cyan-400 font-bold text-xs flex items-center gap-1">
@@ -242,7 +353,7 @@
       <div></div>
     </div>
 
-    <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pt-4">
+    <div id="pub-profile-body" class="flex-1 overflow-y-auto no-scrollbar space-y-4 pt-4">
       <div class="flex flex-col items-center">
         <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 to-red-500 p-1 mb-2">
           <img id="pub-avatar-img" src="" class="w-full h-full rounded-full object-cover bg-gray-800">
@@ -267,9 +378,16 @@
         </div>
       </div>
 
-      <div class="border-t border-gray-800 pt-3">
+      <div id="pub-content-container" class="border-t border-gray-800 pt-3">
         <h3 class="text-xs font-semibold mb-3 text-cyan-400">Videos</h3>
         <div id="pub-profile-grid" class="grid grid-cols-3 gap-2"></div>
+      </div>
+      
+      <!-- PRIVATE PROFILE NOTICE -->
+      <div id="private-profile-lock" class="hidden text-center py-12 space-y-2">
+        <i class="fa-solid fa-lock text-3xl text-amber-400"></i>
+        <p class="text-sm font-bold text-gray-200">This Account is Private</p>
+        <p class="text-xs text-gray-500">Subscribe or get a profile link to view their content.</p>
       </div>
     </div>
   </div>
@@ -298,7 +416,7 @@
 
     <!-- INBOX CHAT LIST VIEW -->
     <div id="dm-inbox-view" class="flex-1 p-3 overflow-y-auto space-y-2 no-scrollbar">
-      <!-- Dynamic Chat Threads & Pending Requests Load Here -->
+      <!-- Dynamic Chat Threads Load Here -->
     </div>
 
     <!-- ACTIVE CHAT CONVERSATION VIEW -->
@@ -308,146 +426,8 @@
 
     <!-- CHAT INPUT FOOTER -->
     <div id="dm-input-footer" class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2 hidden">
-      <input type="text" id="dm-message-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded.xl text-xs text-white focus:outline-none allow-select" placeholder="Write a message...">
+      <input type="text" id="dm-message-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Write a message...">
       <button onclick="sendDmMessageSubmit()" class="px-4 py-2 btn-gradient rounded-xl text-xs font-bold text-white shadow">Send</button>
-    </div>
-  </div>
-
-  <!-- MODAL: VIDEO ANALYTICS PAGE (UPDATED WITH PROFILE VISITS & LINK CLICKS) -->
-  <div id="videoAnalyticsModal" class="fullscreen-modal hidden p-4">
-    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-chart-pie mr-1"></i> Detailed Analytics</h2>
-      <button onclick="closeModal('videoAnalyticsModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-
-    <div class="space-y-4 max-w-md mx-auto w-full overflow-y-auto no-scrollbar pb-6">
-      <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-        <video id="analytics-preview-video" class="w-20 h-28 object-cover rounded-lg border border-cyan-500/30" muted loop autoplay></video>
-        <div class="flex-1 space-y-1">
-          <p class="text-xs font-bold text-white" id="analytics-author">@author</p>
-          <p class="text-[11px] text-gray-400 line-clamp-2" id="analytics-caption">Caption preview...</p>
-          <p class="text-[9px] text-cyan-400" id="analytics-time">Uploaded: Recently</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-lg"><i class="fa-solid fa-eye"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Total Views</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-views">0</p>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-red-600/20 text-red-400 flex items-center justify-center text-lg"><i class="fa-solid fa-heart"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Likes</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-likes">0</p>
-          </div>
-        </div>
-
-        <!-- NEW: PROFILE VISITS ANALYTICS CARD -->
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg"><i class="fa-solid fa-user-gear"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Profile Visits</p>
-            <p class="text-lg font-extrabold text-amber-400" id="analytics-profile-visits">0</p>
-          </div>
-        </div>
-
-        <!-- NEW: LINK CLICKS ANALYTICS CARD -->
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-teal-600/20 text-teal-400 flex items-center justify-center text-lg"><i class="fa-solid fa-link"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Link Clicks</p>
-            <p class="text-lg font-extrabold text-teal-400" id="analytics-link-clicks">0</p>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-cyan-600/20 text-cyan-400 flex items-center justify-center text-lg"><i class="fa-solid fa-comment"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Comments</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-comments">0</p>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-lg"><i class="fa-solid fa-retweet"></i></div>
-          <div>
-            <p class="text-xs text-gray-400">Reposts</p>
-            <p class="text-lg font-extrabold text-white" id="analytics-reposts">0</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- HALF-PAGE REPOST USERS LIST BOTTOM DRAWER -->
-  <div id="repostDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[50vh] bg-gray-900 border-t border-purple-500/40 rounded-t-2xl flex flex-col drawer-bottom">
-    <div class="p-3 border-b border-gray-800 flex justify-between items-center">
-      <h3 id="repost-drawer-title" class="text-xs font-bold text-purple-400 flex items-center gap-2">
-        <i class="fa-solid fa-retweet"></i> Reposts
-      </h3>
-      <button onclick="closeRepostDrawer()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    
-    <div id="repost-users-list" class="flex-1 p-4 overflow-y-auto space-y-3 no-scrollbar">
-      <!-- Repost users load here dynamically -->
-    </div>
-  </div>
-
-  <!-- HALF-PAGE SHARE BOTTOM DRAWER -->
-  <div id="shareDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[50vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
-    <div class="p-3 border-b border-gray-800 flex justify-between items-center">
-      <h3 class="text-xs font-bold text-cyan-400"><i class="fa-solid fa-share mr-1.5"></i> Share Video</h3>
-      <button onclick="closeShareDrawer()" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    
-    <div class="p-4 flex-1 overflow-y-auto no-scrollbar space-y-4">
-      <p class="text-[11px] text-gray-400">Share this video across platforms or copy direct video link:</p>
-      
-      <div class="grid grid-cols-4 gap-4 text-center">
-        <button onclick="shareToPlatform('facebook')" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-facebook-f"></i></div>
-          <span class="text-[10px] text-gray-300">Facebook</span>
-        </button>
-        <button onclick="shareToPlatform('instagram')" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-red-500 to-purple-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-instagram"></i></div>
-          <span class="text-[10px] text-gray-300">Instagram</span>
-        </button>
-        <button onclick="shareToPlatform('tiktok')" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-black border border-gray-700 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-tiktok"></i></div>
-          <span class="text-[10px] text-gray-300">TikTok</span>
-        </button>
-        <button onclick="shareToPlatform('youtube')" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-youtube"></i></div>
-          <span class="text-[10px] text-gray-300">YouTube</span>
-        </button>
-        <button onclick="shareToPlatform('twitter')" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-sky-500 flex items-center justify-center text-lg text-white shadow-lg"><i class="fa-brands fa-x-twitter"></i></div>
-          <span class="text-[10px] text-gray-300">Twitter</span>
-        </button>
-        <button onclick="copyDirectVideoLink()" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-gray-800 border border-cyan-500/40 flex items-center justify-center text-lg text-cyan-400 shadow-lg"><i class="fa-solid fa-link"></i></div>
-          <span class="text-[10px] text-gray-300">Copy Link</span>
-        </button>
-        <button onclick="nativeShareLink()" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-gray-800 border border-green-500/40 flex items-center justify-center text-lg text-green-400 shadow-lg"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
-          <span class="text-[10px] text-gray-300">Share Link</span>
-        </button>
-        <button onclick="repostVideoAction()" class="flex flex-col items-center gap-1.5">
-          <div class="w-12 h-12 rounded-full bg-purple-900/60 border border-purple-500/40 flex items-center justify-center text-lg text-purple-400 shadow-lg"><i class="fa-solid fa-retweet"></i></div>
-          <span class="text-[10px] text-gray-300">Repost</span>
-        </button>
-      </div>
-
-      <div class="border-t border-gray-800 pt-3">
-        <button onclick="openVideoAnalyticsPage()" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 border border-cyan-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-          <i class="fa-solid fa-chart-pie"></i> View Detailed Analytics
-        </button>
-      </div>
     </div>
   </div>
 
@@ -466,11 +446,11 @@
     <div id="drawer-content-area" class="flex-1 p-3 overflow-y-auto space-y-3 allow-select no-scrollbar"></div>
     <div id="drawer-footer-area" class="p-3 border-t border-gray-800 flex gap-2">
       <input type="text" id="new-comment-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white allow-select focus:outline-none" placeholder="Write a comment...">
-      <button onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
+      <button id="post-comment-btn" onclick="addCommentSubmit()" class="px-3 bg-cyan-600 rounded text-xs font-bold text-white">Post</button>
     </div>
   </div>
 
-  <!-- CREATE POST MODAL WITH LINK ATTACHMENT -->
+  <!-- CREATE POST MODAL -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
@@ -533,7 +513,7 @@
       dbInstance = e.target.result;
       initAppContent();
       checkAuthSession();
-      setupFirestoreRealtimeSync();
+      loadSavedSettings();
     };
 
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
@@ -596,7 +576,7 @@
           showToast('Username already exists! Please login.');
           return;
         }
-        users[usernameInput] = { password: passwordInput, likes: 0, subscribersList: [], bio: 'Verified Creator Profile', avatar: '', profileVisits: 0, savedVideos: [] };
+        users[usernameInput] = { password: passwordInput, likes: 0, subscribersList: [], bio: 'Verified Creator Profile', avatar: '', profileVisits: 0, savedVideos: [], isPrivate: false, allowComments: true, blockScreenshot: false };
         localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
         showToast('Account created successfully!');
       } else {
@@ -610,6 +590,7 @@
       localStorage.setItem('SUPER_APP_CURRENT_USER', currentUser);
       document.getElementById('auth-overlay').classList.add('hidden');
       loadUserData();
+      loadSavedSettings();
       initAppContent();
       showToast('Welcome back, ' + currentUser + '!');
     }
@@ -617,6 +598,7 @@
     function logoutUser() {
       localStorage.removeItem('SUPER_APP_CURRENT_USER');
       currentUser = null;
+      closeModal('settingsModal');
       document.getElementById('auth-overlay').classList.remove('hidden');
     }
 
@@ -635,31 +617,91 @@
       const subList = userData.subscribersList || [];
       document.getElementById('profile-subscribers').innerText = subList.length;
 
-      // SHOW OWNER VISITOR BADGE
       if (userData.profileVisits && userData.profileVisits > 0) {
         document.getElementById('visitor-count-text').innerText = userData.profileVisits;
         document.getElementById('profile-visitor-badge').classList.remove('hidden');
       }
 
-      getVideosFromStorage(function(storedVideos) {
-        let totalLikes = 0;
-        storedVideos.forEach(v => {
-          if (formatHandle(v.user) === cleanUser) {
-            totalLikes += (v.likes || []).length;
-          }
-        });
-        document.getElementById('profile-likes').innerText = totalLikes;
-      });
-
       loadProfileGrid();
     }
 
-    // PUBLIC PROFILE VIEW (VISIT COUNTING & RESTRICTED ACCESS)
+    // COLOR & PRIVACY SETTINGS MANAGEMENT
+    function applyColorSettings() {
+      const bgColor = document.getElementById('setting-bg-color').value;
+      const chatColor = document.getElementById('setting-chat-color').value;
+      const chatTextColor = document.getElementById('setting-chat-text-color').value;
+
+      document.documentElement.style.setProperty('--bg-dark', bgColor);
+      document.documentElement.style.setProperty('--custom-chat-bg', chatColor);
+      document.documentElement.style.setProperty('--custom-chat-text', chatTextColor);
+
+      const colorSettings = { bgColor, chatColor, chatTextColor };
+      localStorage.setItem('SUPER_APP_COLOR_SETTINGS', JSON.stringify(colorSettings));
+    }
+
+    function savePrivacySettings() {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanUser]) users[cleanUser] = {};
+
+      const isPrivate = document.getElementById('setting-private-profile').checked;
+      const allowComments = document.getElementById('setting-allow-comments').checked;
+      const blockScreenshot = document.getElementById('setting-block-screenshot').checked;
+
+      users[cleanUser].isPrivate = isPrivate;
+      users[cleanUser].allowComments = allowComments;
+      users[cleanUser].blockScreenshot = blockScreenshot;
+
+      if (blockScreenshot) {
+        document.body.classList.add('no-screenshot');
+      } else {
+        document.body.classList.remove('no-screenshot');
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      showToast('Settings saved!');
+    }
+
+    function loadSavedSettings() {
+      const savedColors = JSON.parse(localStorage.getItem('SUPER_APP_COLOR_SETTINGS') || '{}');
+      if (savedColors.bgColor) document.getElementById('setting-bg-color').value = savedColors.bgColor;
+      if (savedColors.chatColor) document.getElementById('setting-chat-color').value = savedColors.chatColor;
+      if (savedColors.chatTextColor) document.getElementById('setting-chat-text-color').value = savedColors.chatTextColor;
+
+      applyColorSettings();
+
+      if (currentUser) {
+        const cleanUser = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const uData = users[cleanUser] || {};
+
+        document.getElementById('setting-private-profile').checked = !!uData.isPrivate;
+        document.getElementById('setting-allow-comments').checked = uData.allowComments !== false;
+        document.getElementById('setting-block-screenshot').checked = !!uData.blockScreenshot;
+
+        if (uData.blockScreenshot) {
+          document.body.classList.add('no-screenshot');
+        } else {
+          document.body.classList.remove('no-screenshot');
+        }
+      }
+    }
+
+    function shareOfficialApp() {
+      const appUrl = window.location.href;
+      navigator.clipboard.writeText(appUrl).then(() => {
+        showToast('Official App Link copied to clipboard!');
+      }).catch(() => {
+        showToast('App Link: ' + appUrl);
+      });
+    }
+
+    // PUBLIC PROFILE VIEW
     function openPublicUserProfile(targetUser) {
       const cleanTarget = formatHandle(targetUser);
       const cleanCurr = formatHandle(currentUser);
 
-      // If clicking on own profile, open own profile tab
       if (cleanTarget === cleanCurr) {
         switchTab('profile');
         return;
@@ -671,7 +713,6 @@
         users[cleanTarget] = { bio: 'Verified Creator Profile', subscribersList: [], profileVisits: 0 };
       }
 
-      // REGISTER PROFILE VISIT
       users[cleanTarget].profileVisits = (users[cleanTarget].profileVisits || 0) + 1;
       localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
 
@@ -684,7 +725,8 @@
       document.getElementById('pub-subscribers').innerText = subList.length;
 
       const subBtn = document.getElementById('pub-sub-btn');
-      if (subList.includes(cleanCurr)) {
+      const isSubbed = subList.includes(cleanCurr);
+      if (isSubbed) {
         subBtn.innerText = 'Subscribed';
         subBtn.className = 'px-4 py-1.5 bg-cyan-600 text-white rounded-full text-xs font-bold';
       } else {
@@ -692,28 +734,40 @@
         subBtn.className = 'px-4 py-1.5 bg-gray-800 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-bold';
       }
 
-      // LOAD USER VIDEOS
-      getVideosFromStorage(function(storedVideos) {
-        let userVidCount = 0;
-        let totalLikes = 0;
-        const grid = document.getElementById('pub-profile-grid');
-        grid.innerHTML = '';
+      // HANDLE PRIVATE PROFILE RESTRICTION
+      const contentContainer = document.getElementById('pub-content-container');
+      const lockNotice = document.getElementById('private-profile-lock');
 
-        storedVideos.forEach(v => {
-          if (formatHandle(v.user) === cleanTarget) {
-            userVidCount++;
-            totalLikes += (v.likes || []).length;
-            const thumb = document.createElement('div');
-            thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
-            thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
-            grid.appendChild(thumb);
-          }
+      if (uData.isPrivate && !isSubbed) {
+        contentContainer.classList.add('hidden');
+        lockNotice.classList.remove('hidden');
+      } else {
+        contentContainer.classList.remove('hidden');
+        lockNotice.classList.add('hidden');
+
+        getVideosFromStorage(function(storedVideos) {
+          let userVidCount = 0;
+          let totalLikes = 0;
+          const grid = document.getElementById('pub-profile-grid');
+          grid.innerHTML = '';
+
+          storedVideos.forEach(v => {
+            if (formatHandle(v.user) === cleanTarget) {
+              userVidCount++;
+              totalLikes += (v.likes || []).length;
+              const thumb = document.createElement('div');
+              thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative';
+              thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>`;
+              grid.appendChild(thumb);
+            }
+          });
+
+          document.getElementById('pub-likes').innerText = totalLikes;
+          document.getElementById('pub-posts-count').innerText = userVidCount;
         });
+      }
 
-        document.getElementById('pub-likes').innerText = totalLikes;
-        document.getElementById('pub-posts-count').innerText = userVidCount;
-        openModal('publicProfileModal');
-      });
+      openModal('publicProfileModal');
     }
 
     function toggleSubscribePublicUser() {
@@ -739,7 +793,7 @@
       openPublicUserProfile(currentActivePublicUser);
     }
 
-    // DIRECT MESSAGING / DM SYSTEM WITH REQUEST FLOW
+    // DM CHAT SYSTEM
     function openDmInboxModal() {
       renderDmInboxList();
       document.getElementById('dm-inbox-header').classList.remove('hidden');
@@ -781,28 +835,15 @@
         const div = document.createElement('div');
         div.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/60 transition-all';
 
-        if (thread.status === 'pending' && thread.requestedTo === cleanCurr) {
-          // PENDING REQUEST FOR ME
-          div.innerHTML = `
-            <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
-            <div class="flex-1">
-              <p class="text-xs font-bold text-white">@${otherUser} <span class="text-[9px] text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded ml-1">Message Request</span></p>
-              <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Sent you a message request'}</p>
-            </div>
-            <button onclick="acceptMessageRequest('${key}')" class="px-2.5 py-1 bg-cyan-600 text-white text-[10px] font-bold rounded-lg">Accept</button>
-          `;
-        } else {
-          // REGULAR CHAT THREAD
-          div.onclick = function() { openChatConversation(otherUser); };
-          div.innerHTML = `
-            <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
-            <div class="flex-1">
-              <p class="text-xs font-bold text-white">@${otherUser}</p>
-              <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
-            </div>
-            <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
-          `;
-        }
+        div.onclick = function() { openChatConversation(otherUser); };
+        div.innerHTML = `
+          <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white">@${otherUser}</p>
+            <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+        `;
         inboxView.appendChild(div);
       });
     }
@@ -816,7 +857,6 @@
       const cleanCurr = formatHandle(currentUser);
       const key = getChatKey(cleanCurr, activeChatTargetUser);
 
-      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
 
       document.getElementById('chat-target-username').innerText = '@' + activeChatTargetUser;
@@ -840,32 +880,14 @@
 
       const cleanCurr = formatHandle(currentUser);
 
-      if (thread.status === 'pending') {
-        if (thread.requestedTo === cleanCurr) {
-          threadView.innerHTML = `
-            <div class="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-center space-y-2">
-              <p class="text-xs text-amber-300 font-bold">Message Request</p>
-              <p class="text-[10px] text-gray-400">Accept to allow messaging with @${activeChatTargetUser}.</p>
-              <button onclick="acceptMessageRequest('${key}')" class="px-4 py-1.5 bg-cyan-600 text-white rounded-lg text-xs font-bold">Accept Request</button>
-            </div>
-          `;
-        } else {
-          threadView.innerHTML = `
-            <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl text-center">
-              <p class="text-xs text-gray-400">Message request sent to @${activeChatTargetUser}. Waiting for acceptance.</p>
-            </div>
-          `;
-        }
-      }
-
       (thread.messages || []).forEach(m => {
         const isMe = m.sender === cleanCurr;
         const msgDiv = document.createElement('div');
         msgDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
         msgDiv.innerHTML = `
-          <div class="max-w-[75%] p-2.5 rounded-2xl text-xs ${isMe ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700'}">
+          <div class="max-w-[75%] p-2.5 rounded-2xl text-xs ${isMe ? 'custom-chat-bubble rounded-br-none shadow-md' : 'bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700'}">
             <p class="allow-select">${m.text}</p>
-            <span class="text-[8px] text-gray-300 block text-right mt-1 opacity-70">${m.time || ''}</span>
+            <span class="text-[8px] opacity-70 block text-right mt-1">${m.time || ''}</span>
           </div>
         `;
         threadView.appendChild(msgDiv);
@@ -884,26 +906,10 @@
       const key = getChatKey(cleanCurr, activeChatTargetUser);
       let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
 
-      if (!chats[key]) {
-        // FIRST MESSAGE REQUEST CREATION
-        chats[key] = {
-          status: 'pending',
-          requestedBy: cleanCurr,
-          requestedTo: activeChatTargetUser,
-          messages: []
-        };
-      }
-
-      const thread = chats[key];
-
-      // Block second message if request is not accepted yet
-      if (thread.status === 'pending' && thread.messages.length >= 1 && thread.requestedBy === cleanCurr) {
-        showToast('Waiting for user to accept your first message request!');
-        return;
-      }
+      if (!chats[key]) chats[key] = { messages: [] };
 
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      thread.messages.push({
+      chats[key].messages.push({
         sender: cleanCurr,
         text: text,
         time: timeStr
@@ -912,17 +918,6 @@
       localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chats));
       input.value = '';
       renderChatMessages(key);
-    }
-
-    function acceptMessageRequest(key) {
-      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
-      if (chats[key]) {
-        chats[key].status = 'accepted';
-        localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chats));
-        showToast('Message request accepted!');
-        renderDmInboxList();
-        if (activeChatTargetUser) renderChatMessages(key);
-      }
     }
 
     function backToDmInbox() {
@@ -935,36 +930,114 @@
       document.getElementById('dm-inbox-view').classList.remove('hidden');
     }
 
-    // LINK CLICK TRACKING HANDLER
-    function handleLinkClick(vidId, linkUrl) {
-      if (!vidId) return;
-      const tx = dbInstance.transaction("videos", "readwrite");
+    // COMMENTS SYSTEM WITH PRIVACY CHECK
+    function openCommentsDrawer(vidId) {
+      currentActiveVideoId = vidId;
+      renderCommentsList();
+      document.getElementById('commentDrawer').classList.add('open');
+    }
+
+    function closeCommentDrawer() {
+      document.getElementById('commentDrawer').classList.remove('open');
+      cancelReplyMode();
+    }
+
+    function renderCommentsList() {
+      if (!currentActiveVideoId) return;
+
+      const tx = dbInstance.transaction("videos", "readonly");
       const store = tx.objectStore("videos");
-      const req = store.get(vidId);
+      const req = store.get(currentActiveVideoId);
 
       req.onsuccess = function() {
         let vid = req.result;
-        if (vid) {
-          vid.linkClicks = (vid.linkClicks || 0) + 1;
-          store.put(vid);
-          db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+        if (!vid) return;
+
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const authorData = users[vid.user] || {};
+        const footerArea = document.getElementById('drawer-footer-area');
+        const container = document.getElementById('drawer-content-area');
+        container.innerHTML = '';
+
+        // CHECK IF CREATOR TURNED OFF COMMENTS
+        if (authorData.allowComments === false) {
+          container.innerHTML = `
+            <div class="text-center py-10 space-y-2">
+              <i class="fa-solid fa-comment-slash text-2xl text-gray-500"></i>
+              <p class="text-xs font-bold text-gray-400">This creator turned off comments</p>
+            </div>
+          `;
+          footerArea.classList.add('hidden');
+          document.getElementById('drawer-title').innerText = `Comments Disabled`;
+          return;
         }
+
+        footerArea.classList.remove('hidden');
+
+        if (!vid.comments || vid.comments.length === 0) {
+          container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>`;
+          document.getElementById('drawer-title').innerText = `Comments (0)`;
+          return;
+        }
+
+        document.getElementById('drawer-title').innerText = `Comments (${vid.comments.length})`;
+        const cleanCurrUser = formatHandle(currentUser);
+
+        vid.comments.forEach(c => {
+          const cUser = formatHandle(c.user);
+          const cAvatar = (users[cUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cUser}`;
+
+          const cDiv = document.createElement('div');
+          cDiv.className = 'flex gap-3 bg-gray-800/40 p-2.5 rounded-xl border border-gray-800';
+          cDiv.innerHTML = `
+            <img src="${cAvatar}" onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="w-8 h-8 rounded-full object-cover bg-gray-700 cursor-pointer">
+            <div class="flex-1 space-y-1">
+              <div class="flex justify-between items-center">
+                <span onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="text-xs font-bold text-cyan-400 cursor-pointer">@${cUser}</span>
+                <span class="text-[9px] text-gray-500">${c.time || 'Just now'}</span>
+              </div>
+              <p class="text-xs text-gray-200 allow-select">${c.text}</p>
+            </div>
+          `;
+          container.appendChild(cDiv);
+        });
       };
-      window.open(linkUrl, '_blank');
     }
 
-    // FIRESTORE REALTIME SYNC
-    function setupFirestoreRealtimeSync() {
-      db.collection("videos").onSnapshot(snapshot => {
-        snapshot.forEach(doc => {
-          let vidData = doc.data();
-          if (dbInstance) {
-            const tx = dbInstance.transaction("videos", "readwrite");
-            tx.objectStore("videos").put(vidData);
-          }
-        });
-        initAppContent();
-      }, err => {});
+    function addCommentSubmit() {
+      if (!currentUser || !currentActiveVideoId) return;
+      const input = document.getElementById('new-comment-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const cleanUser = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        if (!vid.comments) vid.comments = [];
+        vid.comments.push({ id: Date.now(), user: cleanUser, text: text, time: 'Just now' });
+
+        store.put(vid);
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          input.value = '';
+          renderCommentsList();
+          initAppContent();
+          showToast('Comment posted!');
+        };
+      };
+    }
+
+    function cancelReplyMode() {
+      replyTargetCommentId = null;
+      document.getElementById('replying-banner').classList.add('hidden');
     }
 
     function togglePostType() {
@@ -1001,15 +1074,12 @@
           const newVid = {
             id: videoId,
             user: userHandle,
-            repostedBy: null,
             caption: caption || 'Gallery Video Upload 🚀',
             url: videoData,
             link: linkUrl || null,
-            linkClicks: 0,
             likes: [],
             views: 1,
             shares: 0,
-            reposts: [],
             comments: [],
             timestamp: videoId
           };
@@ -1036,337 +1106,6 @@
       }
     }
 
-    // REPOST VIDEO ACTION WITH USERNAME DISPLAY
-    function repostVideoAction() {
-      if (!currentUser || !currentActiveVideoId) return;
-      const cleanUser = formatHandle(currentUser);
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        if (!vid.reposts) vid.reposts = [];
-        if (!vid.reposts.includes(cleanUser)) {
-          vid.reposts.push(cleanUser);
-        }
-
-        vid.repostedBy = cleanUser;
-        store.put(vid);
-        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
-
-        tx.oncomplete = function() {
-          showToast(`Reposted by @${cleanUser}!`);
-          closeShareDrawer();
-          initAppContent();
-        };
-      };
-    }
-
-    // OPEN REPOSTS DRAWER
-    function openRepostsDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        const reposts = vid.reposts || (vid.repostedBy ? [vid.repostedBy] : []);
-        const total = reposts.length;
-        document.getElementById('repost-drawer-title').innerText = `Reposted by ${total} User${total === 1 ? '' : 's'}`;
-
-        const container = document.getElementById('repost-users-list');
-        container.innerHTML = '';
-
-        if (total === 0) {
-          container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No reposts yet.</p>`;
-        } else {
-          let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-          const displayUsers = reposts.slice(0, 3);
-          const remainCount = total - displayUsers.length;
-
-          displayUsers.forEach(u => {
-            const uData = users[u] || {};
-            const uAvatar = uData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${u}`;
-            
-            const div = document.createElement('div');
-            div.className = 'flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-800 rounded-xl cursor-pointer';
-            div.onclick = function() { closeRepostDrawer(); openPublicUserProfile(u); };
-            div.innerHTML = `
-              <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-700">
-              <div class="flex-1">
-                <p class="text-xs font-bold text-white">@${u}</p>
-                <p class="text-[10px] text-purple-400">Reposted this video</p>
-              </div>
-            `;
-            container.appendChild(div);
-          });
-
-          if (remainCount > 0) {
-            const extraDiv = document.createElement('div');
-            extraDiv.className = 'text-center p-3 bg-purple-900/30 border border-purple-500/30 rounded-xl text-xs text-purple-300 font-bold';
-            extraDiv.innerText = `+ and ${remainCount} other${remainCount === 1 ? '' : 's'} reposted`;
-            container.appendChild(extraDiv);
-          }
-        }
-
-        document.getElementById('repostDrawer').classList.add('open');
-      };
-    }
-
-    function closeRepostDrawer() {
-      document.getElementById('repostDrawer').classList.remove('open');
-    }
-
-    // COMMENTS SYSTEM
-    function openCommentsDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      renderCommentsList();
-      document.getElementById('commentDrawer').classList.add('open');
-    }
-
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
-      cancelReplyMode();
-    }
-
-    function renderCommentsList() {
-      if (!currentActiveVideoId) return;
-
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        const container = document.getElementById('drawer-content-area');
-        container.innerHTML = '';
-
-        if (!vid || !vid.comments || vid.comments.length === 0) {
-          container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No comments yet. Be the first to comment!</p>`;
-          document.getElementById('drawer-title').innerText = `Comments (0)`;
-          return;
-        }
-
-        document.getElementById('drawer-title').innerText = `Comments (${vid.comments.length})`;
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-        const cleanCurrUser = formatHandle(currentUser);
-
-        vid.comments.forEach(c => {
-          const cUser = formatHandle(c.user);
-          const cAvatar = (users[cUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cUser}`;
-          const isLiked = (c.likes || []).includes(cleanCurrUser);
-
-          const cDiv = document.createElement('div');
-          cDiv.className = 'flex gap-3 bg-gray-800/40 p-2.5 rounded-xl border border-gray-800';
-          cDiv.innerHTML = `
-            <img src="${cAvatar}" onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="w-8 h-8 rounded-full object-cover bg-gray-700 cursor-pointer">
-            <div class="flex-1 space-y-1">
-              <div class="flex justify-between items-center">
-                <span onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')" class="text-xs font-bold text-cyan-400 cursor-pointer">@${cUser}</span>
-                <span class="text-[9px] text-gray-500">${c.time || 'Just now'}</span>
-              </div>
-              <p class="text-xs text-gray-200 allow-select">${c.text}</p>
-              
-              <div class="flex gap-4 pt-1 text-[10px] text-gray-400">
-                <button onclick="toggleCommentLike(${c.id})" class="flex items-center gap-1 ${isLiked ? 'text-red-500 font-bold' : 'hover:text-white'}">
-                  <i class="fa-solid fa-heart"></i> <span>${(c.likes || []).length}</span>
-                </button>
-                <button onclick="setReplyTarget('${c.id}', '${cUser}')" class="hover:text-cyan-400">
-                  <i class="fa-solid fa-reply mr-1"></i> Reply
-                </button>
-              </div>
-
-              ${(c.replies || []).length > 0 ? `
-                <div class="mt-2 pl-3 border-l-2 border-cyan-500/30 space-y-2">
-                  ${c.replies.map(r => `
-                    <div class="text-[11px] bg-gray-800/80 p-2 rounded-lg">
-                      <span class="font-bold text-cyan-300">@${r.user}: </span>
-                      <span class="text-gray-200 allow-select">${r.text}</span>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          `;
-          container.appendChild(cDiv);
-        });
-      };
-    }
-
-    function addCommentSubmit() {
-      if (!currentUser || !currentActiveVideoId) {
-        showToast('Please login to post a comment!');
-        return;
-      }
-
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const cleanUser = formatHandle(currentUser);
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        if (!vid.comments) vid.comments = [];
-
-        if (replyTargetCommentId) {
-          const targetComment = vid.comments.find(c => String(c.id) === String(replyTargetCommentId));
-          if (targetComment) {
-            if (!targetComment.replies) targetComment.replies = [];
-            targetComment.replies.push({ id: Date.now(), user: cleanUser, text: text, time: 'Just now' });
-          }
-        } else {
-          vid.comments.push({ id: Date.now(), user: cleanUser, text: text, likes: [], replies: [], time: 'Just now' });
-        }
-
-        store.put(vid);
-        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
-
-        tx.oncomplete = function() {
-          input.value = '';
-          cancelReplyMode();
-          renderCommentsList();
-          initAppContent();
-          showToast('Comment posted!');
-        };
-      };
-    }
-
-    function toggleCommentLike(commentId) {
-      if (!currentUser || !currentActiveVideoId) return;
-      const cleanUser = formatHandle(currentUser);
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid || !vid.comments) return;
-
-        const targetComment = vid.comments.find(c => String(c.id) === String(commentId));
-        if (targetComment) {
-          if (!targetComment.likes) targetComment.likes = [];
-          const idx = targetComment.likes.indexOf(cleanUser);
-          if (idx > -1) targetComment.likes.splice(idx, 1);
-          else targetComment.likes.push(cleanUser);
-          
-          store.put(vid);
-          db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
-        }
-
-        tx.oncomplete = function() { renderCommentsList(); };
-      };
-    }
-
-    function setReplyTarget(commentId, username) {
-      replyTargetCommentId = commentId;
-      document.getElementById('reply-target-username').innerText = '@' + username;
-      document.getElementById('replying-banner').classList.remove('hidden');
-      document.getElementById('new-comment-input').focus();
-    }
-
-    function cancelReplyMode() {
-      replyTargetCommentId = null;
-      document.getElementById('replying-banner').classList.add('hidden');
-    }
-
-    // ANALYTICS PAGE (WITH PROFILE VISITS & LINK CLICKS)
-    function openVideoAnalyticsPage() {
-      if (!currentActiveVideoId) return;
-
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-        const authorData = users[vid.user] || {};
-
-        document.getElementById('analytics-preview-video').src = vid.url;
-        document.getElementById('analytics-author').innerText = '@' + vid.user;
-        document.getElementById('analytics-caption').innerText = vid.caption || 'No Caption';
-        document.getElementById('analytics-views').innerText = vid.views || 1;
-        document.getElementById('analytics-likes').innerText = (vid.likes || []).length;
-        document.getElementById('analytics-profile-visits').innerText = authorData.profileVisits || 0;
-        document.getElementById('analytics-link-clicks').innerText = vid.linkClicks || 0;
-        document.getElementById('analytics-comments').innerText = (vid.comments || []).length;
-        document.getElementById('analytics-reposts').innerText = (vid.reposts || []).length;
-
-        closeShareDrawer();
-        openModal('videoAnalyticsModal');
-      };
-    }
-
-    // SHARE DRAWER & DIRECT VIDEO LINK SYSTEM
-    function openShareDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      document.getElementById('shareDrawer').classList.add('open');
-    }
-
-    function closeShareDrawer() {
-      document.getElementById('shareDrawer').classList.remove('open');
-    }
-
-    function getDirectVideoLink(vidId) {
-      const baseUrl = window.location.href.split('?')[0];
-      return `${baseUrl}?video=${vidId}`;
-    }
-
-    function copyDirectVideoLink() {
-      if (!currentActiveVideoId) return;
-      const link = getDirectVideoLink(currentActiveVideoId);
-      navigator.clipboard.writeText(link).then(() => {
-        showToast('Direct Video Link copied to clipboard!');
-        closeShareDrawer();
-      });
-    }
-
-    function shareToPlatform(platform) {
-      if (!currentActiveVideoId) return;
-      const link = encodeURIComponent(getDirectVideoLink(currentActiveVideoId));
-      let shareUrl = '';
-
-      if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${link}`;
-      else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${link}&text=Watch%20this%20video%20on%20SuperApp!`;
-      else if (platform === 'instagram' || platform === 'tiktok' || platform === 'youtube') {
-        copyDirectVideoLink();
-        showToast(`Link copied! Opening ${platform}...`);
-        setTimeout(() => { window.open(`https://www.${platform}.com`, '_blank'); }, 1000);
-        return;
-      }
-
-      if (shareUrl) window.open(shareUrl, '_blank');
-      closeShareDrawer();
-    }
-
-    function nativeShareLink() {
-      if (!currentActiveVideoId) return;
-      const link = getDirectVideoLink(currentActiveVideoId);
-      if (navigator.share) {
-        navigator.share({ title: 'Super App Video', url: link }).catch(() => {});
-      } else {
-        copyDirectVideoLink();
-      }
-    }
-
-    // LIKE / UNLIKE HANDLER
     function toggleLikeVideo(vidId) {
       if (!currentUser) { showToast('Login to like videos!'); return; }
       const cleanUser = formatHandle(currentUser);
@@ -1383,17 +1122,14 @@
         const idx = vid.likes.indexOf(cleanUser);
         if (idx > -1) {
           vid.likes.splice(idx, 1);
-          showToast('Unliked');
         } else {
           vid.likes.push(cleanUser);
-          showToast('Liked!');
         }
         store.put(vid);
         db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
           initAppContent();
-          loadUserData();
         };
       };
     }
@@ -1425,12 +1161,7 @@
           const authorHandle = formatHandle(v.user);
           const authorData = users[authorHandle] || {};
           const authorAvatar = authorData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${authorHandle}`;
-
           const isLiked = (v.likes || []).includes(cleanCurrUser);
-          const isSaved = ((users[cleanCurrUser] || {}).savedVideos || []).includes(v.id);
-
-          const repostsArr = v.reposts || (v.repostedBy ? [v.repostedBy] : []);
-          const repostCount = repostsArr.length;
 
           const item = document.createElement('div');
           item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
@@ -1443,21 +1174,6 @@
                 @${authorHandle}
               </h4>
               <p class="text-xs text-gray-200 drop-shadow line-clamp-2">${v.caption}</p>
-
-              <!-- ATTACHED LINK BUTTON IF PRESENT -->
-              ${v.link ? `
-                <button onclick="handleLinkClick(${v.id}, '${v.link}')" class="inline-flex items-center gap-1.5 bg-cyan-600/90 text-white px-3 py-1 rounded-full text-[10px] font-bold border border-cyan-400 shadow-md">
-                  <i class="fa-solid fa-link text-xs"></i> Visit Link
-                </button>
-              ` : ''}
-
-              <!-- REPOST BADGE -->
-              ${repostCount > 0 ? `
-                <div onclick="openRepostsDrawer(${v.id})" class="inline-flex items-center gap-1.5 bg-purple-900/80 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] text-purple-200 font-bold border border-purple-500/40 shadow-lg cursor-pointer">
-                  <i class="fa-solid fa-retweet text-purple-400"></i> 
-                  <span>${repostCount} Repost${repostCount === 1 ? '' : 's'}</span>
-                </div>
-              ` : ''}
             </div>
 
             <!-- RIGHT CONTROL SIDEBAR -->
@@ -1481,22 +1197,6 @@
                 </div>
                 <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.comments || []).length}</span>
               </button>
-
-              <!-- SHARE BUTTON -->
-              <button onclick="openShareDrawer(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
-                  <i class="fa-solid fa-share"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">${v.shares || 0}</span>
-              </button>
-
-              <!-- SAVE BUTTON -->
-              <button onclick="saveVideo(${v.id})" class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
-                  <i class="fa-solid fa-bookmark ${isSaved ? 'text-amber-400' : 'text-white'}"></i>
-                </div>
-                <span class="text-[10px] font-bold mt-1 text-white shadow">Save</span>
-              </button>
             </div>
           `;
           container.appendChild(item);
@@ -1507,7 +1207,7 @@
 
     function getVideosFromStorage(callback) {
       const defaultVideos = [
-        { id: 1, user: 'Umar', repostedBy: null, caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, reposts: [], comments: [] }
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, comments: [] }
       ];
 
       if (!dbInstance) { callback(defaultVideos); return; }
@@ -1519,25 +1219,6 @@
         callback(list.length === 0 ? defaultVideos : list.reverse());
       };
       getReq.onerror = function() { callback(defaultVideos); };
-    }
-
-    function saveVideo(vidId) {
-      if (!currentUser) { showToast('Login to save video!'); return; }
-      const cleanUser = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-      if (!users[cleanUser]) users[cleanUser] = {};
-      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
-
-      const idx = users[cleanUser].savedVideos.indexOf(vidId);
-      if (idx > -1) {
-        users[cleanUser].savedVideos.splice(idx, 1);
-        showToast('Removed from saved videos!');
-      } else {
-        users[cleanUser].savedVideos.push(vidId);
-        showToast('Video saved to profile!');
-      }
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      initAppContent();
     }
 
     function loadProfileGrid() {
