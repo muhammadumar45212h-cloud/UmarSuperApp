@@ -55,10 +55,6 @@
     .drawer-bottom.open {
       transform: translateY(0);
     }
-    .play-overlay {
-      pointer-events: none;
-      transition: opacity 0.2s ease-in-out;
-    }
   </style>
 </head>
 <body class="h-screen flex flex-col justify-between overflow-hidden">
@@ -182,7 +178,10 @@
         
         <div class="flex gap-6 mt-4 text-center">
           <div><p class="font-bold text-base" id="profile-likes">0</p><p class="text-[10px] text-gray-400">Likes</p></div>
-          <div><p class="font-bold text-base" id="profile-subscribers">1</p><p class="text-[10px] text-gray-400">Subscribers</p></div>
+          <div onclick="openSubscribersList()" class="cursor-pointer bg-gray-900/80 px-3 py-1 rounded-xl border border-cyan-500/30">
+            <p class="font-bold text-base text-cyan-400" id="profile-subscribers">0</p>
+            <p class="text-[10px] text-gray-400">Subscribers</p>
+          </div>
           <div><p class="font-bold text-base" id="profile-posts-count">0</p><p class="text-[10px] text-gray-400">Total Posts</p></div>
         </div>
       </div>
@@ -228,6 +227,17 @@
       <i class="fa-solid fa-user text-base mb-0.5"></i>Profile
     </button>
   </nav>
+
+  <!-- MODAL: SUBSCRIBERS LIST -->
+  <div id="subscribersModal" class="fullscreen-modal hidden p-4">
+    <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+      <h2 class="text-base font-bold text-cyan-400"><i class="fa-solid fa-users mr-1"></i> Subscribers List</h2>
+      <button onclick="closeModal('subscribersModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="subscribers-list-content" class="space-y-3 overflow-y-auto flex-1 no-scrollbar">
+      <!-- Subscribers rendered here -->
+    </div>
+  </div>
 
   <!-- MODAL: SETTINGS -->
   <div id="settingsModal" class="fullscreen-modal hidden p-4">
@@ -445,7 +455,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS & SHARE DRAWER -->
+  <!-- COMMENTS DRAWER -->
   <div id="commentDrawer" class="fixed inset-x-0 bottom-0 z-50 h-[65vh] bg-gray-900 border-t border-cyan-500/30 rounded-t-2xl flex flex-col drawer-bottom">
     <div class="p-3 border-b border-gray-800 flex justify-between items-center">
       <h3 id="drawer-title" class="text-xs font-bold text-cyan-400">Comments Section</h3>
@@ -522,8 +532,6 @@
     let currentUser = localStorage.getItem('SUPER_APP_CURRENT_USER') || null;
     let authMode = 'login';
     let currentActiveVideoId = null;
-    let currentActiveChatId = null;
-    let activeChatType = 'user';
     let videoObserver = null;
 
     function executeCode() {
@@ -622,7 +630,7 @@
           showToast('Username already exists! Please login.');
           return;
         }
-        users[usernameInput] = { password: passwordInput, likes: 0, subscribers: 1, bio: 'Verified Creator Profile', avatar: '', privacy: 'public' };
+        users[usernameInput] = { password: passwordInput, likes: 0, subscribersList: [], bio: 'Verified Creator Profile', avatar: '', privacy: 'public', savedVideos: [] };
         localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
         showToast('Account created successfully!');
       } else {
@@ -659,8 +667,19 @@
       const avatarUrl = userData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanUser}`;
       document.getElementById('user-avatar-img').src = avatarUrl;
       
-      document.getElementById('profile-subscribers').innerText = userData.subscribers || 1;
-      document.getElementById('profile-likes').innerText = userData.likes || 0;
+      const subList = userData.subscribersList || [];
+      document.getElementById('profile-subscribers').innerText = subList.length;
+
+      // Calculate total likes for user's videos
+      getVideosFromStorage(function(storedVideos) {
+        let totalLikes = 0;
+        storedVideos.forEach(v => {
+          if (formatHandle(v.user) === cleanUser) {
+            totalLikes += (v.likes || []).length;
+          }
+        });
+        document.getElementById('profile-likes').innerText = totalLikes;
+      });
 
       document.getElementById('edit-display-name').value = userData.name || cleanUser;
       document.getElementById('edit-bio').value = userData.bio || '';
@@ -671,12 +690,6 @@
         badgeElem.innerHTML = isPrivate 
           ? `<span class="px-2 py-0.5 bg-red-950/80 text-red-400 border border-red-500/40 rounded-full text-[10px] font-bold"><i class="fa-solid fa-lock mr-1"></i> Private Profile</span>`
           : `<span class="px-2 py-0.5 bg-green-950/80 text-green-400 border border-green-500/40 rounded-full text-[10px] font-bold"><i class="fa-solid fa-earth-americas mr-1"></i> Public Profile</span>`;
-      }
-
-      const radioPub = document.getElementById('privacy-public');
-      const radioPriv = document.getElementById('privacy-private');
-      if (radioPub && radioPriv) {
-        if (isPrivate) { radioPriv.checked = true; } else { radioPub.checked = true; }
       }
 
       loadProfileGrid();
@@ -735,6 +748,7 @@
           showToast('Profile updated!');
           closeModal('editProfileModal');
           loadUserData();
+          initAppContent();
         };
         reader.readAsDataURL(avatarFileInput.files[0]);
       } else {
@@ -811,7 +825,6 @@
             likes: [],
             views: 0,
             shares: 0,
-            subscribed: false,
             comments: [],
             timestamp: videoId
           };
@@ -826,7 +839,7 @@
               pubBtn.disabled = false;
               closeModal('createModal');
               initAppContent();
-              loadProfileGrid();
+              loadUserData();
               switchTab('videos');
             };
           }
@@ -866,7 +879,7 @@
 
     function getVideosFromStorage(callback) {
       const defaultVideos = [
-        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 2, subscribed: false, comments: [] }
+        { id: 1, user: 'Umar', caption: 'Super App Video Edition 🚀', url: 'https://www.w3schools.com/html/mov_bbb.mp4', likes: [], views: 15, shares: 0, comments: [] }
       ];
 
       if (!dbInstance) { callback(defaultVideos); return; }
@@ -880,10 +893,186 @@
       getReq.onerror = function() { callback(defaultVideos); };
     }
 
+    // INTERACTION HANDLERS FOR VIDEOS (LIKE, SUBSCRIBE, SAVE, SHARE, COMMENT)
+    function toggleLikeVideo(vidId) {
+      if (!currentUser) { showToast('Login to like videos!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        if (!vid.likes) vid.likes = [];
+        
+        const idx = vid.likes.indexOf(cleanUser);
+        if (idx > -1) {
+          vid.likes.splice(idx, 1);
+        } else {
+          vid.likes.push(cleanUser);
+        }
+        store.put(vid);
+        tx.oncomplete = function() {
+          initAppContent();
+          loadUserData();
+        };
+      };
+    }
+
+    function toggleSubscribeUser(authorHandle) {
+      if (!currentUser) { showToast('Login to subscribe!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      const cleanAuthor = formatHandle(authorHandle);
+
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanAuthor]) users[cleanAuthor] = { subscribersList: [] };
+      if (!users[cleanAuthor].subscribersList) users[cleanAuthor].subscribersList = [];
+
+      const subList = users[cleanAuthor].subscribersList;
+      const idx = subList.indexOf(cleanUser);
+      if (idx > -1) {
+        subList.splice(idx, 1);
+        showToast('Unsubscribed from @' + cleanAuthor);
+      } else {
+        subList.push(cleanUser);
+        showToast('Subscribed to @' + cleanAuthor + '!');
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      initAppContent();
+      loadUserData();
+    }
+
+    function saveVideo(vidId) {
+      if (!currentUser) { showToast('Login to save video!'); return; }
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanUser]) users[cleanUser] = {};
+      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
+
+      const idx = users[cleanUser].savedVideos.indexOf(vidId);
+      if (idx > -1) {
+        users[cleanUser].savedVideos.splice(idx, 1);
+        showToast('Removed from saved videos!');
+      } else {
+        users[cleanUser].savedVideos.push(vidId);
+        showToast('Video saved to profile!');
+      }
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      initAppContent();
+    }
+
+    function shareVideo(vidId) {
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        vid.shares = (vid.shares || 0) + 1;
+        store.put(vid);
+        tx.oncomplete = function() {
+          showToast('Share link copied to clipboard!');
+          initAppContent();
+        };
+      };
+    }
+
+    function openCommentsDrawer(vidId) {
+      currentActiveVideoId = vidId;
+      document.getElementById('commentDrawer').classList.add('open');
+      loadDrawerComments();
+    }
+
+    function closeCommentDrawer() {
+      document.getElementById('commentDrawer').classList.remove('open');
+    }
+
+    function loadDrawerComments() {
+      if (!currentActiveVideoId) return;
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+      req.onsuccess = function() {
+        const vid = req.result;
+        const area = document.getElementById('drawer-content-area');
+        area.innerHTML = '';
+        if (vid && vid.comments && vid.comments.length > 0) {
+          vid.comments.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'p-2 bg-gray-800 rounded-lg text-xs space-y-0.5 border border-gray-700/60';
+            div.innerHTML = `<span class="font-bold text-cyan-400">@${c.user}:</span> <span class="text-gray-200">${c.text}</span>`;
+            area.appendChild(div);
+          });
+        } else {
+          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>`;
+        }
+      };
+    }
+
+    function addCommentSubmit() {
+      if (!currentUser) { showToast('Login to comment!'); return; }
+      const input = document.getElementById('new-comment-input');
+      const text = input.value.trim();
+      if (!text || !currentActiveVideoId) return;
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        if (!vid.comments) vid.comments = [];
+        vid.comments.push({ user: formatHandle(currentUser), text: text, timestamp: Date.now() });
+        store.put(vid);
+        tx.oncomplete = function() {
+          input.value = '';
+          loadDrawerComments();
+          initAppContent();
+        };
+      };
+    }
+
+    function openSubscribersList() {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      const userData = users[cleanUser] || {};
+      const subList = userData.subscribersList || [];
+
+      const listContainer = document.getElementById('subscribers-list-content');
+      listContainer.innerHTML = '';
+
+      if (subList.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">You don't have any subscribers yet.</p>`;
+      } else {
+        subList.forEach(subHandle => {
+          const subData = users[subHandle] || {};
+          const avatarUrl = subData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${subHandle}`;
+          const item = document.createElement('div');
+          item.className = 'flex items-center gap-3 p-3 bg-gray-900 border border-gray-800 rounded-xl';
+          item.innerHTML = `
+            <img src="${avatarUrl}" class="w-10 h-10 rounded-full bg-gray-800 border border-cyan-500/30">
+            <div>
+              <p class="text-xs font-bold text-white">@${subHandle}</p>
+              <p class="text-[10px] text-gray-400">${subData.bio || 'Verified User'}</p>
+            </div>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+      openModal('subscribersModal');
+    }
+
     function initAppContent() {
       getVideosFromStorage(function(storedVideos) {
         const container = document.getElementById('video-feed-container');
         container.innerHTML = '';
+
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const cleanCurrUser = formatHandle(currentUser);
 
         if (videoObserver) videoObserver.disconnect();
         videoObserver = new IntersectionObserver((entries) => {
@@ -902,13 +1091,69 @@
 
         storedVideos.forEach(v => {
           const authorHandle = formatHandle(v.user);
+          const authorData = users[authorHandle] || {};
+          const authorAvatar = authorData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${authorHandle}`;
+
+          const isLiked = (v.likes || []).includes(cleanCurrUser);
+          const isSubscribed = (authorData.subscribersList || []).includes(cleanCurrUser);
+          const isSaved = ((users[cleanCurrUser] || {}).savedVideos || []).includes(v.id);
+
           const item = document.createElement('div');
           item.className = 'reel-item w-full h-full relative flex items-center justify-center bg-black';
           item.innerHTML = `
             <video src="${v.url}" class="w-full h-full object-cover" loop playsinline></video>
-            <div class="absolute bottom-16 left-4 text-white z-20">
-              <h4 class="font-bold text-sm">@${authorHandle}</h4>
-              <p class="text-xs text-gray-200">${v.caption}</p>
+            
+            <!-- BOTTOM LEFT VIDEO INFO -->
+            <div class="absolute bottom-6 left-4 text-white z-20 max-w-[70%]">
+              <h4 class="font-bold text-sm drop-shadow">@${authorHandle}</h4>
+              <p class="text-xs text-gray-200 mt-1 drop-shadow line-clamp-2">${v.caption}</p>
+            </div>
+
+            <!-- RIGHT ACTION SIDEBAR (PROFILE, SUB, LIKE, COMMENT, SHARE, SAVE) -->
+            <div class="absolute right-3 bottom-12 flex flex-col items-center gap-4 z-20">
+              
+              <!-- USER AVATAR & SUBSCRIBE BADGE -->
+              <div class="relative mb-2">
+                <img src="${authorAvatar}" class="w-11 h-11 rounded-full border-2 border-white object-cover bg-gray-800 shadow-xl">
+                ${authorHandle !== cleanCurrUser ? `
+                  <button onclick="toggleSubscribeUser('${authorHandle}')" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-5 ${isSubscribed ? 'bg-gray-600' : 'bg-red-600'} text-white rounded-full flex items-center justify-center text-[10px] border border-black shadow">
+                    <i class="fa-solid ${isSubscribed ? 'fa-check' : 'fa-plus'}"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <!-- LIKE BUTTON -->
+              <button onclick="toggleLikeVideo(${v.id})" class="flex flex-col items-center group">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white group-active:scale-125 transition-transform">
+                  <i class="fa-solid fa-heart ${isLiked ? 'text-red-500' : 'text-white'}"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.likes || []).length}</span>
+              </button>
+
+              <!-- COMMENT BUTTON -->
+              <button onclick="openCommentsDrawer(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-comment"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${(v.comments || []).length}</span>
+              </button>
+
+              <!-- SHARE BUTTON -->
+              <button onclick="shareVideo(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-share"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">${v.shares || 0}</span>
+              </button>
+
+              <!-- SAVE / BOOKMARK BUTTON -->
+              <button onclick="saveVideo(${v.id})" class="flex flex-col items-center">
+                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl text-white">
+                  <i class="fa-solid fa-bookmark ${isSaved ? 'text-amber-400' : 'text-white'}"></i>
+                </div>
+                <span class="text-[10px] font-bold mt-1 text-white shadow">Save</span>
+              </button>
+
             </div>
           `;
           container.appendChild(item);
