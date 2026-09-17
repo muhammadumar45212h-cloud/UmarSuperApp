@@ -147,12 +147,12 @@
     <h1 class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
       SUPER APP
     </h1>
-    <div class="flex gap-1.5 items-center">
-      <button onclick="openDmInboxModal()" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 text-red-400 flex items-center gap-1 cursor-pointer">
+    <div class="flex gap-2 items-center mt-2">
+      <button onclick="openDmInboxModal()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-red-500/30 text-red-400 flex items-center gap-1.5 cursor-pointer font-bold">
         💬 DMs
       </button>
-      <button onclick="openModal('codeModal')" class="w-7 h-7 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30 cursor-pointer" title="Code Runner">
-        <i class="fa-solid fa-code"></i>
+      <button onclick="openModal('codeModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30 cursor-pointer font-bold gap-1.5" title="Code Runner">
+        <i class="fa-solid fa-code"></i> Code Runner
       </button>
     </div>
   </header>
@@ -252,6 +252,43 @@
       <i class="fa-solid fa-user text-base mb-0.5"></i>Profile
     </button>
   </nav>
+
+  <!-- CODE RUNNER MODAL (PYTHON & JAVASCRIPT TERMUX-STYLE TERMINAL) -->
+  <div id="codeModal" class="fullscreen-modal hidden p-4 flex flex-col bg-gray-950">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-3">
+      <h2 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+        <i class="fa-solid fa-terminal"></i> Termux Code Runner
+      </h2>
+      <button onclick="closeModal('codeModal')" class="text-gray-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="flex gap-2 mb-3">
+      <select id="code-language" class="bg-gray-900 border border-gray-700 text-xs text-cyan-400 rounded-lg p-2 focus:outline-none">
+        <option value="python">Python 3</option>
+        <option value="javascript">JavaScript (Node.js)</option>
+      </select>
+      <button onclick="runCodeTerminal()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-lg py-2 flex items-center justify-center gap-2 shadow-md">
+        <i class="fa-solid fa-play"></i> Run Code
+      </button>
+      <button onclick="clearTerminalOutput()" class="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-2">
+        Clear Output
+      </button>
+    </div>
+
+    <div class="flex-1 flex flex-col gap-3">
+      <div class="flex-1 flex flex-col">
+        <label class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Code Editor</label>
+        <textarea id="code-editor" class="w-full flex-1 bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs font-mono text-green-400 focus:outline-none allow-select resize-none" spellcheck="false">print("hello guys")</textarea>
+      </div>
+
+      <div class="h-40 flex flex-col">
+        <label class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Termux Console Output</label>
+        <div id="code-terminal-output" class="w-full flex-1 bg-black border border-gray-800 rounded-xl p-3 text-xs font-mono text-white overflow-y-auto allow-select">
+          <span class="text-gray-500">$ Termux console ready...</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- POPUP SINGLE VIDEO PLAYER MODAL -->
   <div id="videoPlayerModal" class="fullscreen-modal hidden bg-black z-50 flex flex-col justify-center items-center relative">
@@ -1477,7 +1514,7 @@
       const container = document.getElementById('video-feed-container');
       container.innerHTML = '';
 
-      const videoOnlyItems = items.filter(i => i.type === 'video' || i.url);
+      const videoOnlyItems = items.filter(i => i.type === 'video' || (i.url && i.url.length > 0));
 
       if (videoOnlyItems.length === 0) {
         container.innerHTML = `<div class="h-full flex items-center justify-center text-gray-500 text-xs">No videos posted yet.</div>`;
@@ -1491,7 +1528,6 @@
         const itemUser = formatHandle(item.user);
         const isLiked = (item.likes || []).includes(cleanCurr);
         
-        // Save state check
         let isSaved = false;
         if (users[cleanCurr] && users[cleanCurr].savedVideos) {
           isSaved = users[cleanCurr].savedVideos.includes(item.id);
@@ -1505,16 +1541,12 @@
         reel.innerHTML = `
           <video src="${item.url}" class="w-full h-full object-cover" loop playsinline onclick="togglePlayVideo(this)"></video>
 
-          <!-- RIGHT SIDEBAR ACTION CONTROLS (LIKE, COMMENT, SAVE, SHARE) -->
           <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-5">
-            
-            <!-- LIKE BUTTON -->
             <button onclick="toggleLikeVideo(${item.id})" class="video-action-btn">
               <span class="text-3xl">${isLiked ? '♥️' : '🤍'}</span>
               <span class="text-[11px] font-bold text-white mt-0.5" id="vid-likes-count-${item.id}">${(item.likes || []).length}</span>
             </button>
 
-            <!-- COMMENT BUTTON -->
             <button onclick="openCommentsForVideo(${item.id})" class="video-action-btn">
               <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
                 <i class="fa-solid fa-comment-dots text-2xl"></i>
@@ -1522,7 +1554,6 @@
               <span class="text-[11px] font-bold text-white mt-0.5">${(item.comments || []).length}</span>
             </button>
 
-            <!-- SAVE VIDEO BUTTON -->
             <button onclick="toggleSaveVideo(${item.id})" class="video-action-btn">
               <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl border border-white/20 ${isSaved ? 'text-amber-400' : 'text-white'}">
                 <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl"></i>
@@ -1530,14 +1561,12 @@
               <span class="text-[10px] font-bold text-white mt-0.5">${isSaved ? 'Saved' : 'Save'}</span>
             </button>
 
-            <!-- SHARE BUTTON -->
             <button onclick="openShareDrawer(${item.id})" class="video-action-btn">
               <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
                 <i class="fa-solid fa-share text-xl"></i>
               </div>
               <span class="text-[11px] font-bold text-white mt-0.5">${item.shares || 0}</span>
             </button>
-
           </div>
 
           <div class="absolute left-3 bottom-6 z-20 max-w-[75%] space-y-2">
@@ -1551,22 +1580,78 @@
             <p class="text-xs text-white/90 drop-shadow allow-select line-clamp-2">${item.caption || ''}</p>
           </div>
         `;
-
         container.appendChild(reel);
       });
     }
 
-    function togglePlayVideo(videoElem) {
-      if (videoElem.paused) {
-        videoElem.play();
-      } else {
-        videoElem.pause();
-      }
+    // RENDER ONLY TEXT POSTS IN THE FEED TAB
+    function renderFeedPosts() {
+      getVideosFromStorage(function(items) {
+        const container = document.getElementById('posts-container');
+        container.innerHTML = '';
+
+        const textOnlyItems = items.filter(i => i.type === 'text' || (!i.url || i.url.trim() === ''));
+
+        if (textOnlyItems.length === 0) {
+          container.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs">No text posts published yet.</div>`;
+          return;
+        }
+
+        const cleanCurr = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+        textOnlyItems.forEach(post => {
+          const postUser = formatHandle(post.user);
+          const isLiked = (post.likes || []).includes(cleanCurr);
+          const uAvatar = (users[postUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${postUser}`;
+
+          const card = document.createElement('div');
+          card.className = 'bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3 shadow-xl';
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2.5 cursor-pointer" onclick="openPublicUserProfile('${postUser}')">
+                <img src="${uAvatar}" class="w-8 h-8 rounded-full object-cover bg-gray-800 border border-cyan-500/30">
+                <div>
+                  <h4 class="text-xs font-bold text-white">@${postUser}</h4>
+                  <p class="text-[9px] text-gray-400">Text Post</p>
+                </div>
+              </div>
+              <button onclick="openShareDrawer(${post.id})" class="text-gray-400 hover:text-white text-xs"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+
+            <p class="text-xs text-gray-200 allow-select leading-relaxed">${post.caption || ''}</p>
+
+            ${post.link ? `<a href="${post.link}" target="_blank" class="block p-2 bg-gray-800/80 rounded-xl border border-cyan-500/30 text-cyan-400 text-[11px] font-semibold truncate hover:underline"><i class="fa-solid fa-link mr-1"></i> ${post.link}</a>` : ''}
+
+            <div class="flex items-center justify-between border-t border-gray-800/80 pt-2.5 text-xs text-gray-400">
+              <button onclick="toggleLikeVideo(${post.id})" class="flex items-center gap-1.5 hover:text-red-400">
+                <span>${isLiked ? '♥️' : '🤍'}</span>
+                <span id="post-likes-count-${post.id}">${(post.likes || []).length}</span>
+              </button>
+              <button onclick="openCommentsForVideo(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
+                <i class="fa-regular fa-comment"></i>
+                <span>${(post.comments || []).length}</span>
+              </button>
+              <button onclick="openShareDrawer(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
+                <i class="fa-solid fa-share"></i>
+                <span>Share</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function togglePlayVideo(v) {
+      if (v.paused) v.play();
+      else v.pause();
     }
 
     function toggleLikeVideo(vidId) {
       if (!currentUser || !dbInstance) return;
-      const cleanCurr = formatHandle(currentUser);
+      const cleanUser = formatHandle(currentUser);
 
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
@@ -1577,20 +1662,18 @@
         if (!vid) return;
 
         if (!vid.likes) vid.likes = [];
-        const idx = vid.likes.indexOf(cleanCurr);
+        const idx = vid.likes.indexOf(cleanUser);
 
         if (idx > -1) {
           vid.likes.splice(idx, 1);
         } else {
-          vid.likes.push(cleanCurr);
+          vid.likes.push(cleanUser);
         }
 
         store.put(vid);
         db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
-          const countElem = document.getElementById(`vid-likes-count-${vidId}`);
-          if (countElem) countElem.innerText = vid.likes.length;
           initAppContent();
         };
       };
@@ -1598,21 +1681,21 @@
 
     function toggleSaveVideo(vidId) {
       if (!currentUser) return;
-      const cleanCurr = formatHandle(currentUser);
+      const cleanUser = formatHandle(currentUser);
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
 
-      if (!users[cleanCurr]) users[cleanCurr] = {};
-      if (!users[cleanCurr].savedVideos) users[cleanCurr].savedVideos = [];
+      if (!users[cleanUser]) users[cleanUser] = {};
+      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
 
-      const savedList = users[cleanCurr].savedVideos;
+      const savedList = users[cleanUser].savedVideos;
       const idx = savedList.indexOf(vidId);
 
       if (idx > -1) {
         savedList.splice(idx, 1);
-        showToast('Removed from saved!');
+        showToast('Removed from saved posts');
       } else {
         savedList.push(vidId);
-        showToast('Saved to your profile!');
+        showToast('Post saved successfully!');
       }
 
       localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
@@ -1631,39 +1714,42 @@
     }
 
     function renderCommentsList(vidId) {
-      getVideosFromStorage(function(vids) {
-        const vid = vids.find(x => x.id === vidId);
-        const drawerContent = document.getElementById('drawer-content-area');
-        drawerContent.innerHTML = '';
+      if (!dbInstance) return;
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        const vid = req.result;
+        const area = document.getElementById('drawer-content-area');
+        area.innerHTML = '';
 
         if (!vid || !vid.comments || vid.comments.length === 0) {
-          drawerContent.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
+          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
           return;
         }
 
         let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
 
-        vid.comments.forEach(c => {
+        vid.comments.forEach((c, index) => {
           const cUser = formatHandle(c.user);
           const uAvatar = (users[cUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cUser}`;
 
           const div = document.createElement('div');
-          div.className = 'p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl space-y-1';
+          div.className = 'bg-gray-800/60 p-2.5 rounded-xl border border-gray-700/60 space-y-1';
           div.innerHTML = `
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 cursor-pointer" onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')">
-                <img src="${uAvatar}" class="w-6 h-6 rounded-full object-cover bg-gray-700">
-                <span class="text-xs font-bold text-cyan-300">@${cUser}</span>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${cUser}')">
+                <img src="${uAvatar}" class="w-5 h-5 rounded-full object-cover">
+                <span class="text-[11px] font-bold text-cyan-400">@${cUser}</span>
               </div>
-              <button onclick="setReplyTarget('${c.id}', '${cUser}')" class="text-[10px] text-gray-400 hover:text-cyan-400 flex items-center gap-1">
-                <i class="fa-solid fa-reply"></i> Reply
-              </button>
+              <button onclick="setReplyTarget(${index}, '${cUser}')" class="text-[10px] text-gray-400 hover:text-white"><i class="fa-solid fa-reply mr-1"></i>Reply</button>
             </div>
-            <p class="text-xs text-gray-200 pl-8 allow-select">${c.text}</p>
+            <p class="text-xs text-gray-200 allow-select pl-7">${c.text}</p>
           `;
-          drawerContent.appendChild(div);
+          area.appendChild(div);
         });
-      });
+      };
     }
 
     function setReplyTarget(commentId, username) {
@@ -1679,12 +1765,12 @@
     }
 
     function addCommentSubmit() {
-      if (!currentUser || !currentActiveVideoId) return;
+      if (!currentUser || !currentActiveVideoId || !dbInstance) return;
       const input = document.getElementById('new-comment-input');
       const text = input.value.trim();
       if (!text) return;
 
-      const cleanCurr = formatHandle(currentUser);
+      const cleanUser = formatHandle(currentUser);
 
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
@@ -1695,15 +1781,19 @@
         if (!vid) return;
 
         if (!vid.comments) vid.comments = [];
+        
+        let commentBody = text;
+        if (replyTargetCommentId !== null && vid.comments[replyTargetCommentId]) {
+          const targetU = formatHandle(vid.comments[replyTargetCommentId].user);
+          commentBody = `@${targetU} ${text}`;
+        }
 
-        const newComment = {
-          id: Date.now(),
-          user: cleanCurr,
-          text: replyTargetCommentId ? `[Replying] ${text}` : text,
-          replyTo: replyTargetCommentId || null
-        };
+        vid.comments.push({
+          user: cleanUser,
+          text: commentBody,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
 
-        vid.comments.push(newComment);
         store.put(vid);
         db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
 
@@ -1712,101 +1802,11 @@
           cancelReplyMode();
           renderCommentsList(currentActiveVideoId);
           initAppContent();
-          showToast('Comment posted!');
         };
       };
     }
 
-    function renderFeedPosts() {
-      getVideosFromStorage(function(vids) {
-        const container = document.getElementById('posts-container');
-        container.innerHTML = '';
-
-        const cleanCurr = formatHandle(currentUser);
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-        vids.forEach(item => {
-          const itemUser = formatHandle(item.user);
-          const isLiked = (item.likes || []).includes(cleanCurr);
-          const uAvatar = (users[itemUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${itemUser}`;
-
-          const card = document.createElement('div');
-          card.className = 'p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-3 shadow-lg';
-
-          let mediaHTML = '';
-          if (item.type === 'video' || item.url) {
-            mediaHTML = `
-              <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center cursor-pointer" onclick="openSingleVideoPlayer(${item.id})">
-                <video src="${item.url}" class="w-full h-full object-cover" muted></video>
-                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div class="w-12 h-12 rounded-full bg-cyan-500/80 text-white flex items-center justify-center text-lg shadow-lg">
-                    <i class="fa-solid fa-play"></i>
-                  </div>
-                </div>
-              </div>
-            `;
-          }
-
-          let linkHTML = '';
-          if (item.link) {
-            linkHTML = `
-              <a href="${item.link}" target="_blank" onclick="incrementLinkClicks(${item.id})" class="block p-2.5 bg-gray-800/80 border border-cyan-500/30 rounded-xl text-xs text-cyan-400 font-bold hover:underline flex items-center gap-2">
-                <i class="fa-solid fa-link text-cyan-400"></i> ${item.link}
-              </a>
-            `;
-          }
-
-          card.innerHTML = `
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5 cursor-pointer" onclick="openPublicUserProfile('${itemUser}')">
-                <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover bg-gray-800 border border-cyan-500/30">
-                <div>
-                  <h4 class="text-xs font-bold text-white flex items-center gap-1">@${itemUser}</h4>
-                  <p class="text-[10px] text-gray-400">Creator</p>
-                </div>
-              </div>
-              <button onclick="openShareDrawer(${item.id})" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-            </div>
-
-            <p class="text-xs text-gray-200 allow-select leading-relaxed">${item.caption || ''}</p>
-            ${linkHTML}
-            ${mediaHTML}
-
-            <div class="flex items-center justify-between border-t border-gray-800/80 pt-2 text-xs text-gray-400 font-semibold">
-              <button onclick="toggleLikeVideo(${item.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500' : 'hover:text-white'}">
-                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
-                <span>${(item.likes || []).length}</span>
-              </button>
-              <button onclick="openCommentsForVideo(${item.id})" class="flex items-center gap-1.5 hover:text-white">
-                <i class="fa-regular fa-comment text-base"></i>
-                <span>${(item.comments || []).length}</span>
-              </button>
-              <button onclick="openShareDrawer(${item.id})" class="flex items-center gap-1.5 hover:text-white">
-                <i class="fa-solid fa-share text-base"></i>
-                <span>${item.shares || 0}</span>
-              </button>
-            </div>
-          `;
-
-          container.appendChild(card);
-        });
-      });
-    }
-
-    function incrementLinkClicks(vidId) {
-      if (!dbInstance || !vidId) return;
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-        vid.linkClicks = (vid.linkClicks || 0) + 1;
-        store.put(vid);
-        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
-      };
-    }
-
+    // CREATE POST SYSTEM (DUAL TEXT / VIDEO SWITCHER)
     function switchCreateType(type) {
       currentCreateType = type;
       const textBtn = document.getElementById('create-type-text-btn');
@@ -1824,107 +1824,158 @@
       } else {
         videoBtn.className = "flex-1 py-2 rounded-lg bg-cyan-600 text-white transition-all flex items-center justify-center gap-1.5";
         textBtn.className = "flex-1 py-2 rounded-lg text-gray-400 transition-all flex items-center justify-center gap-1.5";
-        videoFields.classList.remove('hidden');
         textFields.classList.add('hidden');
+        videoFields.classList.remove('hidden');
         publishBtn.innerText = "Publish Video Post";
       }
     }
 
-    function previewGalleryVideo(inputElem) {
-      const file = inputElem.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        selectedGalleryVideoBase64 = e.target.result;
-        const prevBox = document.getElementById('video-preview-box');
-        const prevElem = document.getElementById('video-preview-elem');
-        prevElem.src = selectedGalleryVideoBase64;
-        prevBox.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
+    function previewGalleryVideo(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedGalleryVideoBase64 = e.target.result;
+          const box = document.getElementById('video-preview-box');
+          const elem = document.getElementById('video-preview-elem');
+          elem.src = selectedGalleryVideoBase64;
+          box.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
-    function previewUrlVideo(urlStr) {
-      if (!urlStr) return;
-      selectedGalleryVideoBase64 = null;
-      const prevBox = document.getElementById('video-preview-box');
-      const prevElem = document.getElementById('video-preview-elem');
-      prevElem.src = urlStr;
-      prevBox.classList.remove('hidden');
+    function previewUrlVideo(url) {
+      if (url.trim().length > 5) {
+        selectedGalleryVideoBase64 = null;
+        const box = document.getElementById('video-preview-box');
+        const elem = document.getElementById('video-preview-elem');
+        elem.src = url.trim();
+        box.classList.remove('hidden');
+      }
     }
 
     function publishPost() {
-      if (!currentUser) {
-        showToast('Please login to create a post!');
-        return;
-      }
-
+      if (!currentUser || !dbInstance) return;
       const caption = document.getElementById('post-caption').value.trim();
-      const link = document.getElementById('post-link').value.trim();
-      const directVidUrl = document.getElementById('post-video-url').value.trim();
       const cleanUser = formatHandle(currentUser);
 
-      if (currentCreateType === 'text' && !caption) {
-        showToast('Please enter a caption for your post!');
-        return;
-      }
-
-      let finalVidUrl = null;
-      if (currentCreateType === 'video') {
-        finalVidUrl = selectedGalleryVideoBase64 || directVidUrl;
-        if (!finalVidUrl) {
-          showToast('Please select a video file or enter a valid Video URL!');
-          return;
-        }
-      }
-
-      const newPost = {
+      let newPost = {
         id: Date.now(),
-        type: currentCreateType,
         user: cleanUser,
         caption: caption,
-        link: link || null,
-        url: finalVidUrl,
         likes: [],
         comments: [],
         views: 1,
         shares: 0,
-        reposts: 0,
-        linkClicks: 0
+        reposts: 0
       };
+
+      if (currentCreateType === 'text') {
+        const link = document.getElementById('post-link').value.trim();
+        newPost.type = 'text';
+        newPost.link = link;
+        newPost.url = '';
+      } else {
+        newPost.type = 'video';
+        const urlInput = document.getElementById('post-video-url').value.trim();
+        if (selectedGalleryVideoBase64) {
+          newPost.url = selectedGalleryVideoBase64;
+        } else if (urlInput) {
+          newPost.url = urlInput;
+        } else {
+          showToast('Please select a video file or enter a valid URL!');
+          return;
+        }
+      }
 
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
       store.put(newPost);
+
       db.collection("videos").doc(String(newPost.id)).set(newPost).catch(() => {});
 
       tx.oncomplete = function() {
         document.getElementById('post-caption').value = '';
         document.getElementById('post-link').value = '';
         document.getElementById('post-video-url').value = '';
-        selectedGalleryVideoBase64 = null;
         document.getElementById('video-preview-box').classList.add('hidden');
+        selectedGalleryVideoBase64 = null;
 
         closeModal('createModal');
         initAppContent();
-        showToast('Post published successfully!');
-
-        if (currentCreateType === 'video') {
-          switchTab('videos');
-        } else {
+        
+        if (currentCreateType === 'text') {
           switchTab('feed');
+          showToast('Text post published to feed!');
+        } else {
+          switchTab('videos');
+          showToast('Video post published to videos feed!');
         }
       };
     }
 
-    function changeSymbol(symbolStr) {
-      const frame = document.getElementById('trading-frame');
-      if (frame) {
-        frame.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbolStr)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
+    function changeSymbol(sym) {
+      const iframe = document.getElementById('trading-frame');
+      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(sym)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
+    }
+
+    // CODE RUNNER ENGINE (PYTHON & JAVASCRIPT)
+    function clearTerminalOutput() {
+      document.getElementById('code-terminal-output').innerHTML = '<span class="text-gray-500">$ Termux console ready...</span>';
+    }
+
+    function runCodeTerminal() {
+      const lang = document.getElementById('code-language').value;
+      const code = document.getElementById('code-editor').value;
+      const outputDiv = document.getElementById('code-terminal-output');
+
+      outputDiv.innerHTML = `<span class="text-cyan-400">$ Running ${lang}...</span><br>`;
+
+      if (lang === 'javascript') {
+        let logs = [];
+        const originalLog = console.log;
+        console.log = function(...args) {
+          logs.push(args.join(' '));
+          originalLog.apply(console, args);
+        };
+
+        try {
+          const result = eval(code);
+          if (logs.length > 0) {
+            outputDiv.innerHTML += `<span class="text-green-400">${logs.join('<br>')}</span>`;
+          } else if (result !== undefined) {
+            outputDiv.innerHTML += `<span class="text-green-400">${result}</span>`;
+          } else {
+            outputDiv.innerHTML += `<span class="text-gray-400">Program executed with no output.</span>`;
+          }
+        } catch (err) {
+          outputDiv.innerHTML += `<span class="text-red-400">Error: ${err.message}</span>`;
+        } finally {
+          console.log = originalLog;
+        }
+      } else if (lang === 'python') {
+        function outf(text) {
+          const cleanText = text.replace(/\n/g, '<br>');
+          outputDiv.innerHTML += `<span class="text-green-400">${cleanText}</span>`;
+        }
+        function builtinRead(x) {
+          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+            throw "File not found: '" + x + "'";
+          return Sk.builtinFiles["files"][x];
+        }
+
+        Sk.configure({ output: outf, read: builtinRead });
+
+        Sk.misceval.asyncToPromise(function() {
+          return Sk.importMainWithBody("<stdin>", false, code, true);
+        }).then(function() {
+          // Success
+        }, function(err) {
+          outputDiv.innerHTML += `<span class="text-red-400">${err.toString()}</span>`;
+        });
       }
     }
   </script>
 </body>
 </html>
-
