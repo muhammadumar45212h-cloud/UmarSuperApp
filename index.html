@@ -578,22 +578,16 @@
     </div>
   </div>
 
-  <!-- CREATE POST MODAL -->
+  <!-- CREATE POST MODAL (FIXED FOR ONLY GALLERY VIDEO) -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
+      <h2 class="text-base font-bold text-cyan-400">Upload Gallery Video</h2>
       <button onclick="closeModal('createModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="space-y-4">
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Post Type</label>
-        <select id="post-type" onchange="togglePostType()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
-          <option value="text">Text Post</option>
-          <option value="video">Gallery Video</option>
-        </select>
-      </div>
-
-      <div id="video-file-field" class="hidden">
+      
+      <!-- Only Video Upload Input (Hamesha visible rahega) -->
+      <div id="video-file-field">
         <label class="text-xs text-gray-400 block mb-1">Select Video from Gallery</label>
         <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
       </div>
@@ -608,7 +602,7 @@
         <input type="text" id="post-link" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 allow-select" placeholder="https://example.com">
       </div>
 
-      <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
+      <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Upload Video</button>
     </div>
   </div>
 
@@ -1346,7 +1340,9 @@
     function initAppContent() {
       getVideosFromStorage(function(videos) {
         renderVideoFeed(videos);
-        renderFeedPosts();
+        if(typeof renderFeedPosts === "function") {
+          renderFeedPosts();
+        }
       });
     }
 
@@ -1518,7 +1514,9 @@
     // COMMENTS SYSTEM WITH UNLIMITED COMMENTS, AVATAR, LIKES, AND REPLIES
     function openCommentsForVideo(vidId) {
       currentActiveVideoId = vidId;
-      cancelReplyMode();
+      if (typeof cancelReplyMode === "function") {
+        cancelReplyMode();
+      }
       renderCommentsList();
       document.getElementById('commentDrawer').classList.add('open');
     }
@@ -1582,6 +1580,61 @@
           contentArea.appendChild(cDiv);
         });
       };
+    }
+
+    // Naya Function: Video Upload Karne Ke Liye Jo Aapne Manga Tha
+    function publishPost() {
+      if (!currentUser) {
+        showToast('Please login to upload a video!');
+        return;
+      }
+      
+      const fileInput = document.getElementById('post-video-file');
+      const caption = document.getElementById('post-caption').value.trim();
+      const link = document.getElementById('post-link').value.trim();
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showToast('Please select a video from your gallery first!');
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const videoUrl = URL.createObjectURL(file); // Gallery file ka locally chalne wala link generate karega
+      
+      const newPost = {
+        id: Date.now(),
+        type: 'video',
+        user: formatHandle(currentUser),
+        url: videoUrl,
+        caption: caption,
+        link: link,
+        likes: [],
+        comments: [],
+        views: 0,
+        shares: 0,
+        reposts: 0,
+        linkClicks: 0
+      };
+      
+      if (dbInstance) {
+        const tx = dbInstance.transaction("videos", "readwrite");
+        const store = tx.objectStore("videos");
+        store.put(newPost);
+        
+        tx.oncomplete = function() {
+          showToast('Video uploaded successfully from Gallery!');
+          closeModal('createModal');
+          
+          // Clear karne k liye taa ke naya modal saaf khule
+          fileInput.value = '';
+          document.getElementById('post-caption').value = '';
+          document.getElementById('post-link').value = '';
+          
+          // Feeds ko update kar dain
+          initAppContent();
+          switchTab('videos');
+        };
+      }
     }
   </script>
 </body>
