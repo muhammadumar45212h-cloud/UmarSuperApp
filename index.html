@@ -148,9 +148,6 @@
       SUPER APP
     </h1>
     <div class="flex gap-1.5 items-center">
-      <button onclick="openModal('weatherModal')" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-cyan-500/30 text-cyan-300 flex items-center gap-1 cursor-pointer">
-        ☀️ Weather
-      </button>
       <button onclick="openDmInboxModal()" class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-[11px] rounded-full border border-red-500/30 text-red-400 flex items-center gap-1 cursor-pointer">
         💬 DMs
       </button>
@@ -1543,7 +1540,6 @@
 
           </div>
 
-          <!-- BOTTOM OVERLAY DETAILS -->
           <div class="absolute left-3 bottom-6 z-20 max-w-[75%] space-y-2">
             <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${itemUser}')">
               <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover border border-cyan-400 bg-gray-800">
@@ -1558,20 +1554,6 @@
 
         container.appendChild(reel);
       });
-
-      // Auto play video on scroll focus
-      const videos = container.querySelectorAll('video');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.play().catch(() => {});
-          } else {
-            entry.target.pause();
-          }
-        });
-      }, { threshold: 0.6 });
-
-      videos.forEach(v => observer.observe(v));
     }
 
     function togglePlayVideo(videoElem) {
@@ -1596,6 +1578,7 @@
 
         if (!vid.likes) vid.likes = [];
         const idx = vid.likes.indexOf(cleanCurr);
+
         if (idx > -1) {
           vid.likes.splice(idx, 1);
         } else {
@@ -1606,10 +1589,9 @@
         db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
+          const countElem = document.getElementById(`vid-likes-count-${vidId}`);
+          if (countElem) countElem.innerText = vid.likes.length;
           initAppContent();
-          if (!document.getElementById('videoPlayerModal').classList.contains('hidden')) {
-            openSingleVideoPlayer(vidId);
-          }
         };
       };
     }
@@ -1622,22 +1604,19 @@
       if (!users[cleanCurr]) users[cleanCurr] = {};
       if (!users[cleanCurr].savedVideos) users[cleanCurr].savedVideos = [];
 
-      const saved = users[cleanCurr].savedVideos;
-      const idx = saved.indexOf(vidId);
+      const savedList = users[cleanCurr].savedVideos;
+      const idx = savedList.indexOf(vidId);
 
       if (idx > -1) {
-        saved.splice(idx, 1);
-        showToast('Removed from saved videos!');
+        savedList.splice(idx, 1);
+        showToast('Removed from saved!');
       } else {
-        saved.push(vidId);
-        showToast('Saved to your collection!');
+        savedList.push(vidId);
+        showToast('Saved to your profile!');
       }
 
       localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
       initAppContent();
-      if (!document.getElementById('videoPlayerModal').classList.contains('hidden')) {
-        openSingleVideoPlayer(vidId);
-      }
     }
 
     function openCommentsForVideo(vidId) {
@@ -1648,45 +1627,55 @@
 
     function closeCommentDrawer() {
       document.getElementById('commentDrawer').classList.remove('open');
+      cancelReplyMode();
     }
 
     function renderCommentsList(vidId) {
-      if (!dbInstance) return;
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-
-      req.onsuccess = function() {
-        const vid = req.result;
-        const container = document.getElementById('drawer-content-area');
-        container.innerHTML = '';
+      getVideosFromStorage(function(vids) {
+        const vid = vids.find(x => x.id === vidId);
+        const drawerContent = document.getElementById('drawer-content-area');
+        drawerContent.innerHTML = '';
 
         if (!vid || !vid.comments || vid.comments.length === 0) {
-          container.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
+          drawerContent.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
           return;
         }
 
         let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
 
-        vid.comments.forEach((c, idx) => {
+        vid.comments.forEach(c => {
           const cUser = formatHandle(c.user);
           const uAvatar = (users[cUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cUser}`;
 
           const div = document.createElement('div');
-          div.className = 'p-2.5 bg-gray-800/80 rounded-xl space-y-1 border border-gray-700/60';
+          div.className = 'p-2.5 bg-gray-800/60 border border-gray-700/50 rounded-xl space-y-1';
           div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${cUser}')">
-                <img src="${uAvatar}" class="w-6 h-6 rounded-full object-cover">
-                <span class="text-xs font-bold text-white">@${cUser}</span>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 cursor-pointer" onclick="closeCommentDrawer(); openPublicUserProfile('${cUser}')">
+                <img src="${uAvatar}" class="w-6 h-6 rounded-full object-cover bg-gray-700">
+                <span class="text-xs font-bold text-cyan-300">@${cUser}</span>
               </div>
-              <button onclick="setReplyTarget('${cUser}', ${idx})" class="text-[10px] text-cyan-400 font-semibold">Reply</button>
+              <button onclick="setReplyTarget('${c.id}', '${cUser}')" class="text-[10px] text-gray-400 hover:text-cyan-400 flex items-center gap-1">
+                <i class="fa-solid fa-reply"></i> Reply
+              </button>
             </div>
             <p class="text-xs text-gray-200 pl-8 allow-select">${c.text}</p>
           `;
-          container.appendChild(div);
+          drawerContent.appendChild(div);
         });
-      };
+      });
+    }
+
+    function setReplyTarget(commentId, username) {
+      replyTargetCommentId = commentId;
+      document.getElementById('reply-target-username').innerText = '@' + username;
+      document.getElementById('replying-banner').classList.remove('hidden');
+      document.getElementById('new-comment-input').focus();
+    }
+
+    function cancelReplyMode() {
+      replyTargetCommentId = null;
+      document.getElementById('replying-banner').classList.add('hidden');
     }
 
     function addCommentSubmit() {
@@ -1706,19 +1695,15 @@
         if (!vid) return;
 
         if (!vid.comments) vid.comments = [];
-        
-        let finalText = text;
-        if (replyTargetCommentId !== null) {
-          const targetName = document.getElementById('reply-target-username').innerText;
-          finalText = `${targetName} ${text}`;
-        }
 
-        vid.comments.push({
+        const newComment = {
+          id: Date.now(),
           user: cleanCurr,
-          text: finalText,
-          time: new Date().toISOString()
-        });
+          text: replyTargetCommentId ? `[Replying] ${text}` : text,
+          replyTo: replyTargetCommentId || null
+        };
 
+        vid.comments.push(newComment);
         store.put(vid);
         db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
 
@@ -1727,22 +1712,101 @@
           cancelReplyMode();
           renderCommentsList(currentActiveVideoId);
           initAppContent();
+          showToast('Comment posted!');
         };
       };
     }
 
-    function setReplyTarget(username, commentIdx) {
-      replyTargetCommentId = commentIdx;
-      document.getElementById('reply-target-username').innerText = `@${username}`;
-      document.getElementById('replying-banner').classList.remove('hidden');
+    function renderFeedPosts() {
+      getVideosFromStorage(function(vids) {
+        const container = document.getElementById('posts-container');
+        container.innerHTML = '';
+
+        const cleanCurr = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+        vids.forEach(item => {
+          const itemUser = formatHandle(item.user);
+          const isLiked = (item.likes || []).includes(cleanCurr);
+          const uAvatar = (users[itemUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${itemUser}`;
+
+          const card = document.createElement('div');
+          card.className = 'p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-3 shadow-lg';
+
+          let mediaHTML = '';
+          if (item.type === 'video' || item.url) {
+            mediaHTML = `
+              <div class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center cursor-pointer" onclick="openSingleVideoPlayer(${item.id})">
+                <video src="${item.url}" class="w-full h-full object-cover" muted></video>
+                <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+                  <div class="w-12 h-12 rounded-full bg-cyan-500/80 text-white flex items-center justify-center text-lg shadow-lg">
+                    <i class="fa-solid fa-play"></i>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          let linkHTML = '';
+          if (item.link) {
+            linkHTML = `
+              <a href="${item.link}" target="_blank" onclick="incrementLinkClicks(${item.id})" class="block p-2.5 bg-gray-800/80 border border-cyan-500/30 rounded-xl text-xs text-cyan-400 font-bold hover:underline flex items-center gap-2">
+                <i class="fa-solid fa-link text-cyan-400"></i> ${item.link}
+              </a>
+            `;
+          }
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5 cursor-pointer" onclick="openPublicUserProfile('${itemUser}')">
+                <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover bg-gray-800 border border-cyan-500/30">
+                <div>
+                  <h4 class="text-xs font-bold text-white flex items-center gap-1">@${itemUser}</h4>
+                  <p class="text-[10px] text-gray-400">Creator</p>
+                </div>
+              </div>
+              <button onclick="openShareDrawer(${item.id})" class="text-gray-400 hover:text-white px-2 py-1"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            </div>
+
+            <p class="text-xs text-gray-200 allow-select leading-relaxed">${item.caption || ''}</p>
+            ${linkHTML}
+            ${mediaHTML}
+
+            <div class="flex items-center justify-between border-t border-gray-800/80 pt-2 text-xs text-gray-400 font-semibold">
+              <button onclick="toggleLikeVideo(${item.id})" class="flex items-center gap-1.5 ${isLiked ? 'text-red-500' : 'hover:text-white'}">
+                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
+                <span>${(item.likes || []).length}</span>
+              </button>
+              <button onclick="openCommentsForVideo(${item.id})" class="flex items-center gap-1.5 hover:text-white">
+                <i class="fa-regular fa-comment text-base"></i>
+                <span>${(item.comments || []).length}</span>
+              </button>
+              <button onclick="openShareDrawer(${item.id})" class="flex items-center gap-1.5 hover:text-white">
+                <i class="fa-solid fa-share text-base"></i>
+                <span>${item.shares || 0}</span>
+              </button>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      });
     }
 
-    function cancelReplyMode() {
-      replyTargetCommentId = null;
-      document.getElementById('replying-banner').classList.add('hidden');
+    function incrementLinkClicks(vidId) {
+      if (!dbInstance || !vidId) return;
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        vid.linkClicks = (vid.linkClicks || 0) + 1;
+        store.put(vid);
+        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+      };
     }
 
-    // CREATE POST MODAL SWITCH & PREVIEW
     function switchCreateType(type) {
       currentCreateType = type;
       const textBtn = document.getElementById('create-type-text-btn');
@@ -1766,45 +1830,62 @@
       }
     }
 
-    function previewGalleryVideo(input) {
-      if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          selectedGalleryVideoBase64 = e.target.result;
-          const previewElem = document.getElementById('video-preview-elem');
-          const previewBox = document.getElementById('video-preview-box');
-          previewElem.src = selectedGalleryVideoBase64;
-          previewBox.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
+    function previewGalleryVideo(inputElem) {
+      const file = inputElem.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        selectedGalleryVideoBase64 = e.target.result;
+        const prevBox = document.getElementById('video-preview-box');
+        const prevElem = document.getElementById('video-preview-elem');
+        prevElem.src = selectedGalleryVideoBase64;
+        prevBox.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
     }
 
-    function previewUrlVideo(url) {
-      if (url.trim()) {
-        selectedGalleryVideoBase64 = url.trim();
-        const previewElem = document.getElementById('video-preview-elem');
-        const previewBox = document.getElementById('video-preview-box');
-        previewElem.src = selectedGalleryVideoBase64;
-        previewBox.classList.remove('hidden');
-      }
+    function previewUrlVideo(urlStr) {
+      if (!urlStr) return;
+      selectedGalleryVideoBase64 = null;
+      const prevBox = document.getElementById('video-preview-box');
+      const prevElem = document.getElementById('video-preview-elem');
+      prevElem.src = urlStr;
+      prevBox.classList.remove('hidden');
     }
 
     function publishPost() {
-      if (!currentUser) return;
-      const caption = document.getElementById('post-caption').value.trim();
-      const cleanUser = formatHandle(currentUser);
-
-      if (!caption && currentCreateType === 'text') {
-        showToast('Please enter a caption or text body!');
+      if (!currentUser) {
+        showToast('Please login to create a post!');
         return;
       }
 
-      let newPost = {
+      const caption = document.getElementById('post-caption').value.trim();
+      const link = document.getElementById('post-link').value.trim();
+      const directVidUrl = document.getElementById('post-video-url').value.trim();
+      const cleanUser = formatHandle(currentUser);
+
+      if (currentCreateType === 'text' && !caption) {
+        showToast('Please enter a caption for your post!');
+        return;
+      }
+
+      let finalVidUrl = null;
+      if (currentCreateType === 'video') {
+        finalVidUrl = selectedGalleryVideoBase64 || directVidUrl;
+        if (!finalVidUrl) {
+          showToast('Please select a video file or enter a valid Video URL!');
+          return;
+        }
+      }
+
+      const newPost = {
         id: Date.now(),
+        type: currentCreateType,
         user: cleanUser,
         caption: caption,
+        link: link || null,
+        url: finalVidUrl,
         likes: [],
         comments: [],
         views: 1,
@@ -1813,34 +1894,22 @@
         linkClicks: 0
       };
 
-      if (currentCreateType === 'video') {
-        if (!selectedGalleryVideoBase64) {
-          showToast('Please select a video file or enter a video URL!');
-          return;
-        }
-        newPost.type = 'video';
-        newPost.url = selectedGalleryVideoBase64;
-      } else {
-        newPost.type = 'text';
-        const link = document.getElementById('post-link').value.trim();
-        if (link) newPost.link = link;
-      }
-
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
       store.put(newPost);
-
       db.collection("videos").doc(String(newPost.id)).set(newPost).catch(() => {});
 
       tx.oncomplete = function() {
-        showToast('Post published successfully!');
         document.getElementById('post-caption').value = '';
         document.getElementById('post-link').value = '';
         document.getElementById('post-video-url').value = '';
-        document.getElementById('video-preview-box').classList.add('hidden');
         selectedGalleryVideoBase64 = null;
+        document.getElementById('video-preview-box').classList.add('hidden');
+
         closeModal('createModal');
         initAppContent();
+        showToast('Post published successfully!');
+
         if (currentCreateType === 'video') {
           switchTab('videos');
         } else {
@@ -1849,90 +1918,13 @@
       };
     }
 
-    // RENDER FEED TAB (TEXT POSTS ONLY)
-    function renderFeedPosts() {
-      getVideosFromStorage(function(items) {
-        const postsContainer = document.getElementById('posts-container');
-        postsContainer.innerHTML = '';
-
-        const textOnlyItems = items.filter(i => i.type === 'text' || !i.url);
-
-        if (textOnlyItems.length === 0) {
-          postsContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No text posts yet. Be the first to publish!</p>`;
-          return;
-        }
-
-        const cleanCurr = formatHandle(currentUser);
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-        textOnlyItems.forEach(post => {
-          const pUser = formatHandle(post.user);
-          const uAvatar = (users[pUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${pUser}`;
-          const isLiked = (post.likes || []).includes(cleanCurr);
-          
-          const subList = (users[pUser] || {}).subscribersList || [];
-          const isSubscribed = subList.includes(cleanCurr);
-
-          const card = document.createElement('div');
-          card.className = 'bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3 shadow-lg';
-
-          card.innerHTML = `
-            <!-- HEADER (PROFILE PHOTO & USERNAME ON LEFT SIDE) -->
-            <div class="flex justify-between items-center border-b border-gray-800/80 pb-2.5">
-              <div class="flex items-center gap-3 cursor-pointer" onclick="openPublicUserProfile('${pUser}')">
-                <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover border border-cyan-500/40 bg-gray-800">
-                <div>
-                  <h4 class="text-xs font-bold text-white flex items-center gap-1">
-                    @${pUser}
-                  </h4>
-                  <p class="text-[9px] text-gray-400">Tap to open profile</p>
-                </div>
-              </div>
-
-              <!-- SUBSCRIBE BUTTON -->
-              ${pUser !== cleanCurr ? `
-                <button onclick="toggleSubscribeUser('${pUser}')" class="px-3 py-1 text-[11px] font-bold rounded-full border transition-all ${isSubscribed ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-gray-800 border-cyan-500/40 text-cyan-400 hover:bg-gray-700'}">
-                  ${isSubscribed ? 'Subscribed' : 'Subscribe'}
-                </button>
-              ` : ''}
-            </div>
-
-            <!-- POST TEXT CONTENT -->
-            <p class="text-xs text-gray-200 allow-select leading-relaxed">${post.caption || ''}</p>
-
-            ${post.link ? `
-              <a href="${post.link}" target="_blank" class="block p-2.5 bg-gray-800/80 border border-cyan-500/30 rounded-xl text-xs text-cyan-400 underline truncate">
-                🔗 ${post.link}
-              </a>
-            ` : ''}
-
-            <!-- POST ACTION BAR -->
-            <div class="flex justify-between items-center border-t border-gray-800/80 pt-2.5 text-xs text-gray-400">
-              <button onclick="toggleLikeVideo(${post.id})" class="flex items-center gap-1.5 hover:text-red-400 transition-colors">
-                <span class="text-base">${isLiked ? '♥️' : '🤍'}</span>
-                <span>${(post.likes || []).length}</span>
-              </button>
-
-              <button onclick="openCommentsForVideo(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400 transition-colors">
-                <i class="fa-regular fa-comment text-sm"></i>
-                <span>${(post.comments || []).length}</span>
-              </button>
-
-              <button onclick="openShareDrawer(${post.id})" class="flex items-center gap-1.5 hover:text-green-400 transition-colors">
-                <i class="fa-solid fa-share text-sm"></i>
-                <span>${post.shares || 0}</span>
-              </button>
-            </div>
-          `;
-
-          postsContainer.appendChild(card);
-        });
-      });
-    }
-
-    function changeSymbol(sym) {
-      document.getElementById('trading-frame').src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(sym)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
+    function changeSymbol(symbolStr) {
+      const frame = document.getElementById('trading-frame');
+      if (frame) {
+        frame.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(symbolStr)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
+      }
     }
   </script>
 </body>
 </html>
+
