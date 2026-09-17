@@ -571,13 +571,25 @@
     </div>
   </div>
 
-  <!-- DM CHAT INBOX & THREAD MODAL -->
+  <!-- DM CHAT INBOX & THREAD MODAL WITH THREE DOTS MENU -->
   <div id="dmModal" class="fullscreen-modal hidden flex flex-col">
-    <div id="dm-inbox-header" class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+    <div id="dm-inbox-header" class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center relative">
       <h2 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
-        <i class="fa-solid fa-comments text-base"></i> Direct Messages
+        <i class="fa-solid fa-comments text-base"></i> Direct Messages & Channels
       </h2>
-      <button onclick="closeModal('dmModal')" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-3">
+        <button onclick="toggleDmHeaderMenu()" class="text-gray-300 hover:text-white text-base px-2 py-1">
+          <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+        <button onclick="closeModal('dmModal')" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- THREE DOTS POPUP MENU FOR CREATING TELEGRAM-LIKE CHANNEL -->
+      <div id="dm-header-menu" class="absolute right-4 top-12 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl p-2 hidden z-50 w-44 space-y-1 text-xs">
+        <button onclick="startChannelCreationFlow()" class="w-full text-left px-3 py-2 text-cyan-400 font-bold hover:bg-gray-700 rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-cyan-400"></i> Create Channel
+        </button>
+      </div>
     </div>
 
     <div id="dm-thread-header" class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center hidden">
@@ -585,21 +597,139 @@
         <i class="fa-solid fa-chevron-left"></i> Back
       </button>
       <div class="flex items-center gap-2">
-        <img id="chat-target-avatar" class="w-6 h-6 rounded-full object-cover">
-        <span class="text-xs font-bold text-white flex items-center gap-1" id="chat-target-username">
-          @User
-        </span>
+        <img id="chat-target-avatar" class="w-7 h-7 rounded-full object-cover border border-cyan-500/40">
+        <div>
+          <span class="text-xs font-bold text-white flex items-center gap-1" id="chat-target-username">@User</span>
+          <p class="text-[9px] text-gray-400" id="chat-target-subtitle"></p>
+        </div>
       </div>
       <div></div>
     </div>
 
+    <!-- INBOX VIEW WITH CHATS AND CHANNELS -->
     <div id="dm-inbox-view" class="flex-1 p-3 overflow-y-auto space-y-2 no-scrollbar"></div>
 
-    <div id="dm-thread-view" class="flex-1 p-3 overflow-y-auto space-y-3 no-scrollbar hidden allow-select"></div>
+    <!-- THREAD / CHAT / CHANNEL MESSAGES VIEW -->
+    <div id="dm-thread-view" class="flex-1 p-3 overflow-y-auto space-y-3 no-scrollbar hidden allow-select relative"></div>
 
+    <!-- DM CHAT INPUT FOOTER -->
     <div id="dm-input-footer" class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2 hidden">
       <input type="text" id="dm-message-input" class="flex-1 bg-gray-800 border border-gray-700 p-2 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Write a message...">
       <button onclick="sendDmMessageSubmit()" class="px-4 py-2 btn-gradient rounded-xl text-xs font-bold text-white shadow">Send</button>
+    </div>
+
+    <!-- CHANNEL POST INPUT FOOTER (ONLY FOR CHANNEL ADMINS) -->
+    <div id="channel-input-footer" class="p-3 bg-gray-900 border-t border-gray-800 flex flex-col gap-2 hidden">
+      <div id="channel-photo-preview-box" class="hidden relative w-16 h-16 rounded-lg overflow-hidden border border-cyan-500">
+        <img id="channel-photo-preview-img" class="w-full h-full object-cover">
+        <button onclick="clearChannelPostPhoto()" class="absolute top-0 right-0 bg-black/70 text-white text-[10px] px-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="flex gap-2 items-center">
+        <input type="file" id="channel-post-file" accept="image/*" class="hidden" onchange="previewChannelPostPhoto(this)">
+        <button onclick="document.getElementById('channel-post-file').click()" class="p-2.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded-xl border border-gray-700 text-xs font-bold" title="Upload Photo from Gallery">
+          <i class="fa-solid fa-image text-base"></i>
+        </button>
+        <input type="text" id="channel-message-input" class="flex-1 bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Write a broadcast post to channel...">
+        <button onclick="sendChannelPostSubmit()" class="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl text-xs font-bold text-white shadow-lg">
+          Broadcast
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: CREATE CHANNEL DETAILS MODAL -->
+  <div id="createChannelStep1Modal" class="fullscreen-modal hidden p-4 justify-center items-center bg-black/80 backdrop-blur-sm z-50">
+    <div class="w-full max-w-sm bg-gray-900 border border-cyan-500/40 rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-cyan-400"></i> Create Telegram Channel
+        </h3>
+        <button onclick="closeModal('createChannelStep1Modal')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <!-- CHANNEL PHOTO -->
+        <div class="flex flex-col items-center justify-center">
+          <input type="file" id="chan-photo-input" accept="image/*" class="hidden" onchange="previewChannelAvatar(this)">
+          <div onclick="document.getElementById('chan-photo-input').click()" class="w-20 h-20 rounded-full bg-gray-800 border-2 border-dashed border-cyan-500 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative">
+            <img id="chan-avatar-preview" class="w-full h-full object-cover hidden">
+            <i id="chan-avatar-icon" class="fa-solid fa-camera text-2xl text-cyan-400"></i>
+            <span id="chan-avatar-text" class="text-[9px] text-gray-400 mt-1">Select Photo</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Channel Name</label>
+          <input type="text" id="chan-name" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="e.g. Crypto & Tech News">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Username / Handle</label>
+          <input type="text" id="chan-username" oninput="updateChannelLinkPreview()" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 focus:outline-none allow-select" placeholder="e.g. cryptonews">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Phone / Contact Number</label>
+          <input type="text" id="chan-number" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="e.g. +92 300 1234567">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Generated Unique Link</label>
+          <div class="w-full bg-gray-950 border border-cyan-500/30 p-2 rounded-xl text-[11px] font-mono text-cyan-300 truncate" id="chan-link-preview">
+            superapp.com/channel/link
+          </div>
+        </div>
+      </div>
+
+      <button onclick="goToChannelStep2()" class="w-full py-3 btn-gradient text-white font-bold text-xs rounded-xl shadow-lg">
+        Next Step <i class="fa-solid fa-arrow-right ml-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: CHANNEL TYPE SELECTOR (PUBLIC / PRIVATE) -->
+  <div id="createChannelStep2Modal" class="fullscreen-modal hidden p-4 justify-center items-center bg-black/80 backdrop-blur-sm z-50">
+    <div class="w-full max-w-sm bg-gray-900 border border-cyan-500/40 rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved"></i> Choose Channel Type
+        </h3>
+        <button onclick="closeModal('createChannelStep2Modal')" class="text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <label class="block p-3 bg-gray-800 border border-gray-700 rounded-xl cursor-pointer hover:border-cyan-500">
+          <div class="flex items-center gap-2 mb-1">
+            <input type="radio" name="chan-type-radio" value="public" checked class="accent-cyan-500">
+            <span class="text-xs font-bold text-white"><i class="fa-solid fa-globe text-cyan-400 mr-1"></i> Public Channel</span>
+          </div>
+          <p class="text-[10px] text-gray-400 pl-5">Har koi muft me shamil ho sakta he unique link ke zariye.</p>
+        </label>
+
+        <label class="block p-3 bg-gray-800 border border-gray-700 rounded-xl cursor-pointer hover:border-amber-500">
+          <div class="flex items-center gap-2 mb-1">
+            <input type="radio" name="chan-type-radio" value="private" class="accent-amber-500">
+            <span class="text-xs font-bold text-white"><i class="fa-solid fa-lock text-amber-400 mr-1"></i> Private Channel</span>
+          </div>
+          <p class="text-[10px] text-gray-400 pl-5">Link se join karne par admin ko Request aye gi, accept karne par hi join ho sake ga.</p>
+        </label>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeModal('createChannelStep2Modal'); openModal('createChannelStep1Modal')" class="flex-1 py-2.5 bg-gray-800 text-gray-300 font-bold text-xs rounded-xl border border-gray-700">
+          Back
+        </button>
+        <button onclick="finalizeChannelCreation()" class="flex-1 py-2.5 btn-gradient text-white font-bold text-xs rounded-xl shadow-lg">
+          Create Channel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING EMOJI REACTION PICKER BAR (50 EMOJIS) -->
+  <div id="emojiReactionPicker" class="fixed z-50 bg-gray-900 border border-cyan-500/50 p-2.5 rounded-2xl shadow-2xl hidden max-w-[280px]">
+    <div class="grid grid-cols-10 gap-1 text-base max-h-36 overflow-y-auto no-scrollbar" id="emoji-grid-box">
+      <!-- 50 Emojis populate dynamically -->
     </div>
   </div>
 
@@ -716,9 +846,25 @@
     let currentActiveVideoId = null;
     let currentActivePublicUser = null;
     let activeChatTargetUser = null;
+    let activeChannelId = null;
     let replyTargetCommentId = null;
     let selectedReportReason = '';
     
+    // Channel Creation Temp State
+    let tempChannelPhotoBase64 = null;
+    let tempChannelPostPhotoBase64 = null;
+    let activeLongPressPostId = null;
+    let longPressTimer = null;
+
+    // 50 Emojis List for Channel Post Reactions
+    const EMOJI_50_LIST = [
+      "👑","💪","😎","🎁","⭐","😘","🥱","🎉","🤫","🏆",
+      "❤️","🔥","👍","👏","😍","😂","🥰","🚀","💯","🙌",
+      "🥳","🤩","🤔","😱","😭","😡","💩","👀","🙈","🎯",
+      "💎","⚡","🍀","🍉","🍕","🥂","⚽","🎮","🚗","✈️",
+      "💰","📈","🕊️","💥","✨","🌟","🍕","🎈","🍻","🎊"
+    ];
+
     // Create Modal Post Type State
     let currentCreateType = 'text';
     let selectedGalleryVideoBase64 = null;
@@ -881,6 +1027,407 @@
         document.getElementById('profile-likes').innerText = totalLikes;
         document.getElementById('profile-posts-count').innerText = userVidCount;
       });
+    }
+
+    // TELEGRAM-LIKE CHANNEL CREATION & DM SYSTEM LOGIC
+    function toggleDmHeaderMenu() {
+      const menu = document.getElementById('dm-header-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function startChannelCreationFlow() {
+      document.getElementById('dm-header-menu').classList.add('hidden');
+      document.getElementById('chan-name').value = '';
+      document.getElementById('chan-username').value = '';
+      document.getElementById('chan-number').value = '';
+      document.getElementById('chan-avatar-preview').classList.add('hidden');
+      document.getElementById('chan-avatar-icon').classList.remove('hidden');
+      document.getElementById('chan-avatar-text').classList.remove('hidden');
+      tempChannelPhotoBase64 = null;
+      updateChannelLinkPreview();
+      openModal('createChannelStep1Modal');
+    }
+
+    function previewChannelAvatar(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          tempChannelPhotoBase64 = e.target.result;
+          const img = document.getElementById('chan-avatar-preview');
+          img.src = tempChannelPhotoBase64;
+          img.classList.remove('hidden');
+          document.getElementById('chan-avatar-icon').classList.add('hidden');
+          document.getElementById('chan-avatar-text').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function updateChannelLinkPreview() {
+      const uName = document.getElementById('chan-username').value.trim() || 'link';
+      document.getElementById('chan-link-preview').innerText = `superapp.com/channel/${uName.toLowerCase().replace(/\s+/g, '')}`;
+    }
+
+    function goToChannelStep2() {
+      const name = document.getElementById('chan-name').value.trim();
+      const username = document.getElementById('chan-username').value.trim();
+      const number = document.getElementById('chan-number').value.trim();
+
+      if (!name || !username || !number) {
+        showToast('Name, Username, and Phone Number are required!');
+        return;
+      }
+
+      closeModal('createChannelStep1Modal');
+      openModal('createChannelStep2Modal');
+    }
+
+    function finalizeChannelCreation() {
+      if (!currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      const name = document.getElementById('chan-name').value.trim();
+      const username = document.getElementById('chan-username').value.trim().toLowerCase().replace(/\s+/g, '');
+      const number = document.getElementById('chan-number').value.trim();
+      const typeRadio = document.querySelector('input[name="chan-type-radio"]:checked').value;
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+
+      if (channels[username]) {
+        showToast('Channel handle already taken! Choose another username.');
+        return;
+      }
+
+      const chanId = 'chan_' + username;
+      channels[chanId] = {
+        id: chanId,
+        name: name,
+        username: username,
+        phone: number,
+        photo: tempChannelPhotoBase64 || `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`,
+        type: typeRadio,
+        owner: cleanCurr,
+        link: `superapp.com/channel/${username}`,
+        subscribers: [cleanCurr],
+        pendingRequests: [],
+        posts: []
+      };
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      closeModal('createChannelStep2Modal');
+      showToast(`Channel "${name}" created successfully!`);
+      renderDmInboxList();
+      openChannelConversation(chanId);
+    }
+
+    function renderDmInboxList() {
+      if (!currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      const inboxView = document.getElementById('dm-inbox-view');
+      inboxView.innerHTML = '';
+
+      let chatKeys = Object.keys(chats).filter(key => key.includes(cleanCurr));
+      let channelKeys = Object.keys(channels).filter(cKey => {
+        const c = channels[cKey];
+        return c.owner === cleanCurr || (c.subscribers && c.subscribers.includes(cleanCurr));
+      });
+
+      if (chatKeys.length === 0 && channelKeys.length === 0) {
+        inboxView.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No messages or channels yet. Tap Three Dots (⋮) to create a Channel.</p>`;
+        return;
+      }
+
+      // RENDER TELEGRAM CHANNELS FIRST
+      channelKeys.forEach(cKey => {
+        const c = channels[cKey];
+        const lastPost = c.posts && c.posts.length > 0 ? c.posts[c.posts.length - 1] : null;
+
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-900 border border-cyan-500/30 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/80 transition-all';
+        div.onclick = function() { openChannelConversation(c.id); };
+
+        div.innerHTML = `
+          <img src="${c.photo}" class="w-10 h-10 rounded-full object-cover border border-cyan-400 bg-gray-800">
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                <i class="fa-solid fa-bullhorn text-[10px] text-cyan-400"></i> ${c.name}
+              </p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded ${c.type === 'private' ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}">${c.type}</span>
+            </div>
+            <p class="text-[11px] text-gray-400 line-clamp-1">${lastPost ? (lastPost.text || 'Photo post') : 'No posts yet...'}</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+        `;
+        inboxView.appendChild(div);
+      });
+
+      // RENDER DM CHATS
+      chatKeys.forEach(key => {
+        const thread = chats[key];
+        const otherUser = key.replace(cleanCurr, '').replace(':', '');
+        const isOfficial = (otherUser === 'Super App Official');
+        const uAvatar = isOfficial ? 'https://api.dicebear.com/7.x/identicon/svg?seed=SuperApp' : ((users[otherUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser}`);
+        const lastMsg = thread.messages && thread.messages.length > 0 ? thread.messages[thread.messages.length - 1] : null;
+
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/60 transition-all';
+        div.onclick = function() { openChatConversation(otherUser); };
+
+        div.innerHTML = `
+          <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white flex items-center gap-1">
+              @${otherUser} ${isOfficial ? '<i class="fa-solid fa-circle-check text-cyan-400 text-[10px]"></i>' : ''}
+            </p>
+            <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+        `;
+        inboxView.appendChild(div);
+      });
+    }
+
+    function openChannelConversation(channelId) {
+      activeChannelId = channelId;
+      activeChatTargetUser = null;
+      const cleanCurr = formatHandle(currentUser);
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      const chan = channels[channelId];
+      if (!chan) return;
+
+      document.getElementById('chat-target-username').innerText = chan.name;
+      document.getElementById('chat-target-subtitle').innerText = `${chan.subscribers ? chan.subscribers.length : 1} subscribers • @${chan.username}`;
+      document.getElementById('chat-target-avatar').src = chan.photo;
+
+      document.getElementById('dm-inbox-header').classList.add('hidden');
+      document.getElementById('dm-inbox-view').classList.add('hidden');
+      document.getElementById('dm-thread-header').classList.remove('hidden');
+      document.getElementById('dm-thread-view').classList.remove('hidden');
+
+      // Toggle input footers
+      if (chan.owner === cleanCurr) {
+        document.getElementById('channel-input-footer').classList.remove('hidden');
+        document.getElementById('dm-input-footer').classList.add('hidden');
+      } else {
+        document.getElementById('channel-input-footer').classList.add('hidden');
+        document.getElementById('dm-input-footer').classList.add('hidden');
+      }
+
+      renderChannelPosts(channelId);
+      openModal('dmModal');
+    }
+
+    function renderChannelPosts(channelId) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      const chan = channels[channelId] || { posts: [], pendingRequests: [] };
+      const threadView = document.getElementById('dm-thread-view');
+      threadView.innerHTML = '';
+
+      const cleanCurr = formatHandle(currentUser);
+
+      // IF PRIVATE CHANNEL AND ADMIN IS VIEWING, SHOW PENDING JOIN REQUESTS
+      if (chan.owner === cleanCurr && chan.type === 'private' && chan.pendingRequests && chan.pendingRequests.length > 0) {
+        const reqBanner = document.createElement('div');
+        reqBanner.className = 'bg-amber-950/80 border border-amber-500/50 p-3 rounded-xl space-y-2 mb-3';
+        reqBanner.innerHTML = `<p class="text-xs font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-user-clock"></i> Pending Join Requests (${chan.pendingRequests.length})</p>`;
+
+        chan.pendingRequests.forEach(reqUser => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center text-xs text-white bg-gray-900/80 p-2 rounded-lg border border-gray-800';
+          row.innerHTML = `
+            <span>@${reqUser}</span>
+            <div class="flex gap-1">
+              <button onclick="acceptChannelJoinRequest('${channelId}', '${reqUser}')" class="px-2 py-1 bg-green-600 rounded font-bold text-[10px]">Accept</button>
+              <button onclick="rejectChannelJoinRequest('${channelId}', '${reqUser}')" class="px-2 py-1 bg-red-600 rounded font-bold text-[10px]">Reject</button>
+            </div>
+          `;
+          reqBanner.appendChild(row);
+        });
+        threadView.appendChild(reqBanner);
+      }
+
+      if (!chan.posts || chan.posts.length === 0) {
+        threadView.innerHTML += `<div class="text-center text-xs text-gray-500 py-12">No posts broadcasted in this channel yet.</div>`;
+        return;
+      }
+
+      chan.posts.forEach((p, pIndex) => {
+        const postDiv = document.createElement('div');
+        postDiv.className = 'bg-gray-900 border border-gray-800 p-3 rounded-2xl space-y-2 shadow-lg relative group select-none';
+
+        // Add touch / mouse event listeners for 2 Seconds Long-Press for Emojis
+        postDiv.addEventListener('mousedown', (e) => startLongPressTimer(e, p.id));
+        postDiv.addEventListener('mouseup', clearLongPressTimer);
+        postDiv.addEventListener('touchstart', (e) => startLongPressTimer(e, p.id));
+        postDiv.addEventListener('touchend', clearLongPressTimer);
+
+        // Reactions count calculation
+        let reactionsMarkup = '';
+        if (p.reactions && Object.keys(p.reactions).length > 0) {
+          let emojiCounts = {};
+          Object.values(p.reactions).forEach(e => {
+            emojiCounts[e] = (emojiCounts[e] || 0) + 1;
+          });
+          reactionsMarkup = `<div class="flex flex-wrap gap-1.5 pt-1.5 border-t border-gray-800">`;
+          for (let emoji in emojiCounts) {
+            reactionsMarkup += `<span class="px-2 py-0.5 bg-gray-800 rounded-full text-xs border border-gray-700 flex items-center gap-1">${emoji} <b class="text-[10px] text-cyan-400">${emojiCounts[emoji]}</b></span>`;
+          }
+          reactionsMarkup += `</div>`;
+        }
+
+        postDiv.innerHTML = `
+          <div class="flex justify-between items-center text-[10px] text-cyan-400 font-semibold border-b border-gray-800/60 pb-1">
+            <span>📢 Channel Post</span>
+            <span class="text-gray-500">${p.time || ''}</span>
+          </div>
+          ${p.photo ? `<img src="${p.photo}" class="w-full max-h-60 object-cover rounded-xl border border-gray-800">` : ''}
+          <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text || ''}</p>
+          ${reactionsMarkup}
+          <div class="text-[9px] text-gray-500 text-right italic">Tap and hold 2 seconds for 50 reactions</div>
+        `;
+
+        threadView.appendChild(postDiv);
+      });
+
+      threadView.scrollTop = threadView.scrollHeight;
+    }
+
+    function startLongPressTimer(e, postId) {
+      activeLongPressPostId = postId;
+      clearLongPressTimer();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      longPressTimer = setTimeout(() => {
+        showEmojiReactionPicker(clientX, clientY);
+      }, 2000); // 2 Seconds Tap and Hold
+    }
+
+    function clearLongPressTimer() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    function showEmojiReactionPicker(x, y) {
+      const picker = document.getElementById('emojiReactionPicker');
+      const grid = document.getElementById('emoji-grid-box');
+      grid.innerHTML = '';
+
+      EMOJI_50_LIST.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'w-7 h-7 flex items-center justify-center text-base hover:scale-125 transition-transform cursor-pointer';
+        btn.innerText = emoji;
+        btn.onclick = function() {
+          applyEmojiReactionToPost(emoji);
+        };
+        grid.appendChild(btn);
+      });
+
+      picker.style.left = Math.min(x, window.innerWidth - 290) + 'px';
+      picker.style.top = Math.min(y, window.innerHeight - 180) + 'px';
+      picker.classList.remove('hidden');
+    }
+
+    function applyEmojiReactionToPost(emoji) {
+      if (!activeChannelId || !activeLongPressPostId || !currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[activeChannelId];
+      if (!chan || !chan.posts) return;
+
+      let post = chan.posts.find(p => p.id === activeLongPressPostId);
+      if (post) {
+        if (!post.reactions) post.reactions = {};
+        post.reactions[cleanCurr] = emoji; // Only 1 reaction per user
+        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+        showToast(`Reacted ${emoji}`);
+        renderChannelPosts(activeChannelId);
+      }
+
+      document.getElementById('emojiReactionPicker').classList.add('hidden');
+    }
+
+    function previewChannelPostPhoto(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          tempChannelPostPhotoBase64 = e.target.result;
+          document.getElementById('channel-photo-preview-img').src = tempChannelPostPhotoBase64;
+          document.getElementById('channel-photo-preview-box').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function clearChannelPostPhoto() {
+      tempChannelPostPhotoBase64 = null;
+      document.getElementById('channel-photo-preview-box').classList.add('hidden');
+      document.getElementById('channel-post-file').value = '';
+    }
+
+    function sendChannelPostSubmit() {
+      if (!activeChannelId || !currentUser) return;
+      const input = document.getElementById('channel-message-input');
+      const text = input.value.trim();
+
+      if (!text && !tempChannelPostPhotoBase64) {
+        showToast('Please enter text or upload a photo for channel post!');
+        return;
+      }
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[activeChannelId];
+      if (!chan) return;
+
+      if (!chan.posts) chan.posts = [];
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chan.posts.push({
+        id: Date.now(),
+        text: text,
+        photo: tempChannelPostPhotoBase64,
+        time: timeStr,
+        reactions: {}
+      });
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      input.value = '';
+      clearChannelPostPhoto();
+      renderChannelPosts(activeChannelId);
+      showToast('Post broadcasted to channel!');
+    }
+
+    function acceptChannelJoinRequest(chanId, username) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[chanId];
+      if (!chan) return;
+
+      chan.pendingRequests = (chan.pendingRequests || []).filter(u => u !== username);
+      if (!chan.subscribers) chan.subscribers = [];
+      if (!chan.subscribers.includes(username)) chan.subscribers.push(username);
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      showToast(`Accepted @${username} to channel!`);
+      renderChannelPosts(chanId);
+    }
+
+    function rejectChannelJoinRequest(chanId, username) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[chanId];
+      if (!chan) return;
+
+      chan.pendingRequests = (chan.pendingRequests || []).filter(u => u !== username);
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      showToast(`Rejected @${username} join request.`);
+      renderChannelPosts(chanId);
     }
 
     function openSingleVideoPlayer(vidId) {
@@ -1144,6 +1691,7 @@
       document.getElementById('dm-thread-header').classList.add('hidden');
       document.getElementById('dm-thread-view').classList.add('hidden');
       document.getElementById('dm-input-footer').classList.add('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
       openModal('dmModal');
     }
 
@@ -1153,53 +1701,13 @@
       openChatConversation(currentActivePublicUser);
     }
 
-    function renderDmInboxList() {
-      if (!currentUser) return;
-      const cleanCurr = formatHandle(currentUser);
-      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-      const inboxView = document.getElementById('dm-inbox-view');
-      inboxView.innerHTML = '';
-
-      let chatKeys = Object.keys(chats).filter(key => key.includes(cleanCurr));
-
-      if (chatKeys.length === 0) {
-        inboxView.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No message chats or requests yet.</p>`;
-        return;
-      }
-
-      chatKeys.forEach(key => {
-        const thread = chats[key];
-        const otherUser = key.replace(cleanCurr, '').replace(':', '');
-        const isOfficial = (otherUser === 'Super App Official');
-        const uAvatar = isOfficial ? 'https://api.dicebear.com/7.x/identicon/svg?seed=SuperApp' : ((users[otherUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser}`);
-        const lastMsg = thread.messages && thread.messages.length > 0 ? thread.messages[thread.messages.length - 1] : null;
-
-        const div = document.createElement('div');
-        div.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/60 transition-all';
-
-        div.onclick = function() { openChatConversation(otherUser); };
-        div.innerHTML = `
-          <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
-          <div class="flex-1">
-            <p class="text-xs font-bold text-white flex items-center gap-1">
-              @${otherUser} ${isOfficial ? '<i class="fa-solid fa-circle-check text-cyan-400 text-[10px]"></i>' : ''}
-            </p>
-            <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
-          </div>
-          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
-        `;
-        inboxView.appendChild(div);
-      });
-    }
-
     function getChatKey(user1, user2) {
       return [user1, user2].sort().join(':');
     }
 
     function openChatConversation(targetUser) {
       activeChatTargetUser = formatHandle(targetUser);
+      activeChannelId = null;
       const cleanCurr = formatHandle(currentUser);
       const key = getChatKey(cleanCurr, activeChatTargetUser);
 
@@ -1207,6 +1715,7 @@
       const isOfficial = (activeChatTargetUser === 'Super App Official');
 
       document.getElementById('chat-target-username').innerHTML = `@${activeChatTargetUser} ${isOfficial ? '<i class="fa-solid fa-circle-check text-cyan-400 text-xs"></i>' : ''}`;
+      document.getElementById('chat-target-subtitle').innerText = 'Direct Messaging';
       document.getElementById('chat-target-avatar').src = isOfficial ? 'https://api.dicebear.com/7.x/identicon/svg?seed=SuperApp' : ((users[activeChatTargetUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${activeChatTargetUser}`);
 
       document.getElementById('dm-inbox-header').classList.add('hidden');
@@ -1214,6 +1723,7 @@
       document.getElementById('dm-thread-header').classList.remove('hidden');
       document.getElementById('dm-thread-view').classList.remove('hidden');
       document.getElementById('dm-input-footer').classList.remove('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
 
       renderChatMessages(key);
       openModal('dmModal');
@@ -1269,10 +1779,12 @@
 
     function backToDmInbox() {
       activeChatTargetUser = null;
+      activeChannelId = null;
       renderDmInboxList();
       document.getElementById('dm-thread-header').classList.add('hidden');
       document.getElementById('dm-thread-view').classList.add('hidden');
       document.getElementById('dm-input-footer').classList.add('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
       document.getElementById('dm-inbox-header').classList.remove('hidden');
       document.getElementById('dm-inbox-view').classList.remove('hidden');
     }
@@ -1976,6 +2488,15 @@
         });
       }
     }
+
+    // Close Emoji Picker on Click Outside
+    document.addEventListener('click', function(e) {
+      const picker = document.getElementById('emojiReactionPicker');
+      if (picker && !picker.contains(e.target) && !e.target.closest('#dm-thread-view')) {
+        picker.classList.add('hidden');
+      }
+    });
   </script>
 </body>
 </html>
+
