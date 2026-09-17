@@ -230,7 +230,7 @@
       </div>
 
       <div class="border-t border-gray-800 pt-3">
-        <h3 class="text-xs font-semibold mb-3 text-cyan-400">My Uploads & Videos</h3>
+        <h3 class="text-xs font-semibold mb-3 text-cyan-400">My Uploads & Posts</h3>
         <div id="profile-grid" class="grid grid-cols-3 gap-2"></div>
       </div>
     </section>
@@ -578,31 +578,24 @@
     </div>
   </div>
 
-  <!-- CREATE POST MODAL (FIXED FOR ONLY GALLERY VIDEO) -->
+  <!-- CREATE POST MODAL (TEXT POST CREATION) -->
   <div id="createModal" class="fullscreen-modal hidden p-4">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-base font-bold text-cyan-400">Upload Gallery Video</h2>
+      <h2 class="text-base font-bold text-cyan-400">Create Text Post</h2>
       <button onclick="closeModal('createModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="space-y-4">
-      
-      <!-- Only Video Upload Input (Hamesha visible rahega) -->
-      <div id="video-file-field">
-        <label class="text-xs text-gray-400 block mb-1">Select Video from Gallery</label>
-        <input type="file" id="post-video-file" accept="video/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-cyan-400">
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Text Content / Post Body</label>
+        <textarea id="post-caption" class="w-full h-32 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write your post here..."></textarea>
       </div>
 
       <div>
-        <label class="text-xs text-gray-400 block mb-1">Caption / Content</label>
-        <textarea id="post-caption" class="w-full h-20 bg-gray-800 border border-gray-700 p-3 rounded text-xs text-white focus:outline-none allow-select" placeholder="Write something..."></textarea>
-      </div>
-
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Attach External Website/App Link (Optional)</label>
+        <label class="text-xs text-gray-400 block mb-1">Attach External Website Link (Optional)</label>
         <input type="text" id="post-link" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 allow-select" placeholder="https://example.com">
       </div>
 
-      <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Upload Video</button>
+      <button onclick="publishPost()" id="publish-btn" class="w-full py-2.5 btn-gradient rounded text-xs font-bold text-white shadow-lg">Publish Post</button>
     </div>
   </div>
 
@@ -1300,7 +1293,7 @@
       req.onsuccess = function() {
         let vids = req.result || [];
         if (vids.length === 0) {
-          // Default initial videos
+          // Default initial videos & text posts
           vids = [
             {
               id: 101,
@@ -1327,6 +1320,17 @@
               shares: 25,
               reposts: 8,
               linkClicks: 14
+            },
+            {
+              id: 103,
+              type: 'text',
+              user: 'Umar',
+              caption: 'Assalam O Alaikum Dosto! Yeh hamari pehli Official Text Post hai Super App ke andar.',
+              likes: [],
+              comments: [],
+              views: 45,
+              shares: 1,
+              reposts: 0
             }
           ];
           const writeTx = dbInstance.transaction("videos", "readwrite");
@@ -1340,9 +1344,7 @@
     function initAppContent() {
       getVideosFromStorage(function(videos) {
         renderVideoFeed(videos);
-        if(typeof renderFeedPosts === "function") {
-          renderFeedPosts();
-        }
+        renderFeedPosts();
       });
     }
 
@@ -1453,7 +1455,93 @@
       }
     }
 
-    // LIKE / UNLIKE VIDEO TOGGLE (ONE TAP LIKE, NEXT UNLIKE)
+    // RENDER FEED TAB (TEXT POSTS ONLY)
+    function renderFeedPosts() {
+      getVideosFromStorage(function(items) {
+        const postsContainer = document.getElementById('posts-container');
+        postsContainer.innerHTML = '';
+
+        const textOnlyItems = items.filter(i => i.type === 'text' || !i.url);
+
+        if (textOnlyItems.length === 0) {
+          postsContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No text posts yet. Be the first to publish!</p>`;
+          return;
+        }
+
+        const cleanCurr = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+        textOnlyItems.forEach(post => {
+          const pUser = formatHandle(post.user);
+          const uAvatar = (users[pUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${pUser}`;
+          const isLiked = (post.likes || []).includes(cleanCurr);
+          
+          const subList = (users[pUser] || {}).subscribersList || [];
+          const isSubscribed = subList.includes(cleanCurr);
+
+          const card = document.createElement('div');
+          card.className = 'bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3 shadow-lg';
+
+          card.innerHTML = `
+            <!-- HEADER (PROFILE PHOTO & USERNAME ON LEFT SIDE) -->
+            <div class="flex justify-between items-center border-b border-gray-800/80 pb-2.5">
+              <div class="flex items-center gap-3 cursor-pointer" onclick="openPublicUserProfile('${pUser}')">
+                <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover border border-cyan-500/40 bg-gray-800">
+                <div>
+                  <h4 class="text-xs font-bold text-white flex items-center gap-1">
+                    @${pUser}
+                  </h4>
+                  <p class="text-[9px] text-gray-400">Tap to open profile</p>
+                </div>
+              </div>
+
+              <!-- SUBSCRIBE BUTTON -->
+              ${pUser !== cleanCurr ? `
+                <button onclick="toggleSubscribeUser('${pUser}')" class="px-3 py-1 text-[11px] font-bold rounded-full border transition-all ${isSubscribed ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-gray-800 border-cyan-500/40 text-cyan-400 hover:bg-gray-700'}">
+                  ${isSubscribed ? 'Subscribed' : 'Subscribe'}
+                </button>
+              ` : ''}
+            </div>
+
+            <!-- POST TEXT CONTENT -->
+            <p class="text-xs text-gray-200 allow-select leading-relaxed">${post.caption}</p>
+
+            ${post.link ? `
+              <a href="${post.link}" target="_blank" class="text-[11px] text-cyan-400 hover:underline block break-all bg-gray-800/50 p-2 rounded-lg border border-cyan-500/20">
+                🔗 ${post.link}
+              </a>
+            ` : ''}
+
+            <!-- ACTION BUTTONS (LIKE, COMMENT, SHARE) -->
+            <div class="flex justify-between items-center border-t border-gray-800/80 pt-2.5 text-xs text-gray-400 font-semibold">
+              
+              <!-- LIKE BUTTON (1 LIKE SYSTEM: CLICK AGAIN TO UNLIKE) -->
+              <button onclick="toggleLikeVideo(${post.id})" class="flex items-center gap-1.5 hover:text-red-400 transition-colors">
+                <span class="text-base">${isLiked ? '♥️' : '🤍'}</span>
+                <span>${(post.likes || []).length} Like</span>
+              </button>
+
+              <!-- COMMENT BUTTON -->
+              <button onclick="openCommentsForVideo(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400 transition-colors">
+                <i class="fa-solid fa-comment text-sm"></i>
+                <span>${(post.comments || []).length} Comments</span>
+              </button>
+
+              <!-- SHARE BUTTON -->
+              <button onclick="openShareDrawer(${post.id})" class="flex items-center gap-1.5 hover:text-green-400 transition-colors">
+                <i class="fa-solid fa-share text-sm"></i>
+                <span>Share</span>
+              </button>
+
+            </div>
+          `;
+
+          postsContainer.appendChild(card);
+        });
+      });
+    }
+
+    // LIKE / UNLIKE VIDEO & POST TOGGLE (ONE TAP LIKE, NEXT UNLIKE)
     function toggleLikeVideo(vidId) {
       if (!currentUser) {
         showToast('Please login to like posts!');
@@ -1482,7 +1570,10 @@
         db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
 
         tx.oncomplete = function() {
-          getVideosFromStorage(renderVideoFeed);
+          getVideosFromStorage(function(vids) {
+            renderVideoFeed(vids);
+            renderFeedPosts();
+          });
         };
       };
     }
@@ -1511,12 +1602,10 @@
       getVideosFromStorage(renderVideoFeed);
     }
 
-    // COMMENTS SYSTEM WITH UNLIMITED COMMENTS, AVATAR, LIKES, AND REPLIES
+    // COMMENTS SYSTEM WITH ISOLATED COMMENT PER VIDEO, LIKES & REPLIES
     function openCommentsForVideo(vidId) {
       currentActiveVideoId = vidId;
-      if (typeof cancelReplyMode === "function") {
-        cancelReplyMode();
-      }
+      cancelReplyMode();
       renderCommentsList();
       document.getElementById('commentDrawer').classList.add('open');
     }
@@ -1582,38 +1671,126 @@
       };
     }
 
-    // Naya Function: Video Upload Karne Ke Liye Jo Aapne Manga Tha
+    function toggleLikeComment(commentIndex) {
+      if (!currentUser || !currentActiveVideoId) return;
+      const cleanCurr = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid || !vid.comments || !vid.comments[commentIndex]) return;
+
+        let comment = vid.comments[commentIndex];
+        if (!comment.likes) comment.likes = [];
+
+        const idx = comment.likes.indexOf(cleanCurr);
+        if (idx > -1) {
+          comment.likes.splice(idx, 1);
+        } else {
+          comment.likes.push(cleanCurr);
+        }
+
+        store.put(vid);
+        tx.oncomplete = function() {
+          renderCommentsList();
+        };
+      };
+    }
+
+    function setReplyMode(username, commentIdx) {
+      replyTargetCommentId = commentIdx;
+      document.getElementById('reply-target-username').innerText = '@' + username;
+      document.getElementById('replying-banner').classList.remove('hidden');
+      const input = document.getElementById('new-comment-input');
+      input.placeholder = `Replying to @${username}...`;
+      input.focus();
+    }
+
+    function cancelReplyMode() {
+      replyTargetCommentId = null;
+      document.getElementById('replying-banner').classList.add('hidden');
+      const input = document.getElementById('new-comment-input');
+      input.placeholder = "Write a comment...";
+    }
+
+    function addCommentSubmit() {
+      if (!currentUser || !currentActiveVideoId) {
+        showToast('Please login to comment!');
+        return;
+      }
+
+      const input = document.getElementById('new-comment-input');
+      let text = input.value.trim();
+      if (!text) return;
+
+      if (replyTargetCommentId !== null) {
+        const replyUser = document.getElementById('reply-target-username').innerText;
+        text = `${replyUser} ${text}`;
+      }
+
+      const cleanCurr = formatHandle(currentUser);
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        if (!vid.comments) vid.comments = [];
+        vid.comments.push({
+          user: cleanCurr,
+          text: text,
+          time: timeStr,
+          likes: []
+        });
+
+        store.put(vid);
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          input.value = '';
+          cancelReplyMode();
+          renderCommentsList();
+          getVideosFromStorage(function(vids) {
+            renderVideoFeed(vids);
+            renderFeedPosts();
+          });
+        };
+      };
+    }
+
+    // PUBLISH TEXT POST FUNCTION
     function publishPost() {
       if (!currentUser) {
-        showToast('Please login to upload a video!');
+        showToast('Please login to post!');
         return;
       }
       
-      const fileInput = document.getElementById('post-video-file');
       const caption = document.getElementById('post-caption').value.trim();
       const link = document.getElementById('post-link').value.trim();
       
-      if (!fileInput.files || fileInput.files.length === 0) {
-        showToast('Please select a video from your gallery first!');
+      if (!caption) {
+        showToast('Please write some content for your text post!');
         return;
       }
       
-      const file = fileInput.files[0];
-      const videoUrl = URL.createObjectURL(file); // Gallery file ka locally chalne wala link generate karega
-      
       const newPost = {
         id: Date.now(),
-        type: 'video',
+        type: 'text',
         user: formatHandle(currentUser),
-        url: videoUrl,
         caption: caption,
         link: link,
         likes: [],
         comments: [],
         views: 0,
         shares: 0,
-        reposts: 0,
-        linkClicks: 0
+        reposts: 0
       };
       
       if (dbInstance) {
@@ -1622,17 +1799,14 @@
         store.put(newPost);
         
         tx.oncomplete = function() {
-          showToast('Video uploaded successfully from Gallery!');
+          showToast('Text Post published successfully!');
           closeModal('createModal');
           
-          // Clear karne k liye taa ke naya modal saaf khule
-          fileInput.value = '';
           document.getElementById('post-caption').value = '';
           document.getElementById('post-link').value = '';
           
-          // Feeds ko update kar dain
           initAppContent();
-          switchTab('videos');
+          switchTab('feed');
         };
       }
     }
