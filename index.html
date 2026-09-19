@@ -20,7 +20,7 @@
 
   <style>
     :root {
-      --bg-dark: #000000;
+      --bg-dark: #090d16;
       --card-bg: #111827;
       --accent-blue: #00f2fe;
       --accent-red: #ff0055;
@@ -57,12 +57,12 @@
 
     .allow-select { user-select: text !important; -webkit-user-select: text !important; }
     .fullscreen-modal {
-      position: fixed; inset: 0; z-index: 50; background-color: #090d16;
+      position: fixed; inset: 0; z-index: 50; background-color: var(--bg-dark);
       display: flex; flex-direction: column; width: 100vw; height: 100vh;
     }
     .btn-gradient { background: linear-gradient(135deg, #0088cc, #ff0055); }
-    .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: 100%; width: 100%; }
-    .reel-item { scroll-snap-align: start; scroll-snap-stop: always; height: 100%; width: 100%; position: relative; }
+    .reel-container { scroll-snap-type: y mandatory; overflow-y: scroll; }
+    .reel-item { scroll-snap-align: start; scroll-snap-stop: always; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -102,7 +102,7 @@
     }
   </style>
 </head>
-<body class="h-screen flex flex-col justify-between overflow-hidden bg-black">
+<body class="h-screen flex flex-col justify-between overflow-hidden">
 
   <!-- AUTH / LOGIN / SIGNUP SCREEN -->
   <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex flex-col justify-center items-center p-6 hidden">
@@ -142,40 +142,40 @@
     <span id="toast-message">Notification Message</span>
   </div>
 
-  <!-- FLOATING TOP HEADER OVERLAY (TikTok Style) -->
-  <header class="absolute top-0 left-0 right-0 p-3 flex justify-between items-center z-30 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
-    <h1 class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500 drop-shadow pointer-events-auto">
+  <!-- COMPACT TOP HEADER -->
+  <header class="p-2.5 bg-gray-900 border-b border-gray-800 flex justify-between items-center z-10">
+    <h1 class="text-base font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-red-500">
       SUPER APP
     </h1>
-    <div class="flex gap-2 items-center pointer-events-auto">
-      <button onclick="openDmInboxModal()" class="px-3 py-1.5 bg-black/40 backdrop-blur-md hover:bg-black/60 text-xs rounded-full border border-white/20 text-red-400 flex items-center gap-1.5 cursor-pointer font-bold shadow">
+    <div class="flex gap-2 items-center mt-2">
+      <button onclick="openDmInboxModal()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full border border-red-500/30 text-red-400 flex items-center gap-1.5 cursor-pointer font-bold">
         💬 DMs
       </button>
-      <button onclick="openModal('codeModal')" class="px-3 py-1.5 bg-black/40 backdrop-blur-md hover:bg-black/60 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-white/20 cursor-pointer font-bold gap-1.5 shadow" title="Code Runner">
+      <button onclick="openModal('codeModal')" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs rounded-full text-cyan-400 flex items-center justify-center border border-cyan-500/30 cursor-pointer font-bold gap-1.5" title="Code Runner">
         <i class="fa-solid fa-code"></i> Code Runner
       </button>
     </div>
   </header>
 
-  <!-- MAIN VIEWPORT (FULL SCREEN CLEAN VIEW) -->
-  <main id="app-viewport" class="flex-1 relative overflow-hidden bg-black w-full h-full">
+  <!-- MAIN VIEWPORT -->
+  <main id="app-viewport" class="flex-1 relative overflow-y-auto no-scrollbar">
 
-    <!-- VIDEOS FEED (TikTok Clean Fullscreen View) -->
+    <!-- VIDEOS FEED -->
     <section id="tab-videos" class="h-full w-full bg-black relative flex flex-col">
-      <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll bg-black">
-        <!-- Clean Video Reels Render Here -->
+      <div id="video-feed-container" class="w-full h-full reel-container no-scrollbar overflow-y-scroll">
+        <!-- Dynamic Reels Load Here -->
       </div>
     </section>
 
     <!-- TEXT FEED -->
-    <section id="tab-feed" class="p-4 space-y-4 hidden h-full overflow-y-auto pt-16">
+    <section id="tab-feed" class="p-4 space-y-4 hidden">
       <div id="posts-container" class="space-y-4 max-w-md mx-auto">
         <!-- Dynamic Text Posts Load Here -->
       </div>
     </section>
 
     <!-- TRADING CHART -->
-    <section id="tab-trading" class="h-full w-full hidden flex flex-col pt-14">
+    <section id="tab-trading" class="h-full w-full hidden flex flex-col">
       <div class="p-2 bg-gray-900 text-xs text-cyan-400 font-semibold border-b border-gray-800 flex justify-between items-center">
         <span>📈 Live Market Real-time Chart</span>
         <div class="flex gap-1">
@@ -190,7 +190,7 @@
     </section>
 
     <!-- MY PROFILE -->
-    <section id="tab-profile" class="p-4 hidden space-y-4 relative h-full overflow-y-auto pt-16">
+    <section id="tab-profile" class="p-4 hidden space-y-4 relative">
       <div class="flex justify-between items-center border-b border-gray-800/80 pb-2">
         <span class="text-xs font-bold text-gray-300">My Profile</span>
         <div class="flex items-center gap-2">
@@ -234,15 +234,15 @@
 
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR (FLOATING OVERLAY TIKTOK STYLE) -->
-  <nav class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2.5 flex justify-around items-center z-30">
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="bg-gray-900 border-t border-gray-800 p-2 flex justify-around items-center z-10">
     <button onclick="switchTab('videos')" class="nav-btn text-cyan-400 flex flex-col items-center text-xs">
       <i class="fa-solid fa-play text-base mb-0.5"></i>Videos
     </button>
     <button onclick="switchTab('feed')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
       <i class="fa-solid fa-newspaper text-base mb-0.5"></i>Feed
     </button>
-    <button onclick="openModal('createModal')" class="w-11 h-11 btn-gradient rounded-full flex items-center justify-center text-white text-lg shadow-lg transform -translate-y-2 border-2 border-black">
+    <button onclick="openModal('createModal')" class="w-11 h-11 btn-gradient rounded-full flex items-center justify-center text-white text-lg shadow-lg transform -translate-y-2 border-2 border-gray-900">
       <i class="fa-solid fa-plus"></i>
     </button>
     <button onclick="switchTab('trading')" class="nav-btn text-gray-400 flex flex-col items-center text-xs">
@@ -253,7 +253,7 @@
     </button>
   </nav>
 
-  <!-- CODE RUNNER MODAL -->
+  <!-- CODE RUNNER MODAL (PYTHON & JAVASCRIPT TERMUX-STYLE TERMINAL) -->
   <div id="codeModal" class="fullscreen-modal hidden p-4 flex flex-col bg-gray-950">
     <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-3">
       <h2 class="text-sm font-bold text-cyan-400 flex items-center gap-2">
@@ -295,7 +295,7 @@
     <button onclick="closeVideoPlayerModal()" class="absolute top-4 left-4 z-30 bg-black/60 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg border border-white/20">
       <i class="fa-solid fa-xmark"></i>
     </button>
-    <div id="single-video-player-container" class="w-full h-full relative flex items-center justify-center bg-black">
+    <div id="single-video-player-container" class="w-full h-full relative flex items-center justify-center">
       <!-- Dynamic Player Inject -->
     </div>
   </div>
@@ -459,7 +459,7 @@
       
       <div class="flex justify-between items-center">
         <span class="text-xs text-gray-300">Background Color</span>
-        <input type="color" id="setting-bg-color" value="#000000" onchange="applyColorSettings()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+        <input type="color" id="setting-bg-color" value="#090d16" onchange="applyColorSettings()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
       </div>
 
       <div class="flex justify-between items-center">
@@ -752,7 +752,7 @@
     </div>
   </div>
 
-  <!-- CREATE POST MODAL -->
+  <!-- CREATE POST MODAL (TEXT & VIDEO POST CREATION DUAL SYSTEM) -->
   <div id="createModal" class="fullscreen-modal hidden p-4 overflow-y-auto">
     <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
       <h2 class="text-base font-bold text-cyan-400">Create New Post</h2>
@@ -770,16 +770,19 @@
     </div>
 
     <div class="space-y-4">
+      <!-- CAPTION FOR BOTH TEXT & VIDEO -->
       <div>
         <label class="text-xs text-gray-400 block mb-1">Caption / Post Body</label>
         <textarea id="post-caption" class="w-full h-24 bg-gray-800 border border-gray-700 p-3 rounded-xl text-xs text-white focus:outline-none allow-select" placeholder="Write something about your post..."></textarea>
       </div>
 
+      <!-- TEXT POST SPECIFIC FIELD -->
       <div id="text-post-fields">
         <label class="text-xs text-gray-400 block mb-1">Attach External Website Link (Optional)</label>
         <input type="text" id="post-link" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 allow-select" placeholder="https://example.com">
       </div>
 
+      <!-- VIDEO POST SPECIFIC FIELDS (GALLERY PICKER & PREVIEW) -->
       <div id="video-post-fields" class="space-y-3 hidden">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Select Video from Gallery / File Storage</label>
@@ -794,6 +797,7 @@
           <input type="text" id="post-video-url" oninput="previewUrlVideo(this.value)" class="w-full bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs text-cyan-400 allow-select" placeholder="https://domain.com/video.mp4">
         </div>
 
+        <!-- VIDEO PREVIEW CONTAINER -->
         <div id="video-preview-box" class="hidden rounded-xl overflow-hidden border border-gray-700 max-h-48 bg-black flex items-center justify-center relative">
           <video id="video-preview-elem" class="max-h-48 w-full object-contain" controls></video>
         </div>
@@ -846,11 +850,13 @@
     let replyTargetCommentId = null;
     let selectedReportReason = '';
     
+    // Channel Creation Temp State
     let tempChannelPhotoBase64 = null;
     let tempChannelPostPhotoBase64 = null;
     let activeLongPressPostId = null;
     let longPressTimer = null;
 
+    // 50 Emojis List for Channel Post Reactions
     const EMOJI_50_LIST = [
       "👑","💪","😎","🎁","⭐","😘","🥱","🎉","🤫","🏆",
       "❤️","🔥","👍","👏","😍","😂","🥰","🚀","💯","🙌",
@@ -859,32 +865,9 @@
       "💰","📈","🕊️","💥","✨","🌟","🍕","🎈","🍻","🎊"
     ];
 
+    // Create Modal Post Type State
     let currentCreateType = 'text';
     let selectedGalleryVideoBase64 = null;
-
-    // SAMPLE REELS DATA FOR CLEAN TIKTOK VIEW
-    const SAMPLE_VIDEOS = [
-      {
-        id: 101,
-        user: "Umar",
-        caption: "Clean TikTok Style Video Feed! Tap to Play/Pause 🚀",
-        url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        likes: ["Umar"],
-        comments: [],
-        shares: 5,
-        type: "video"
-      },
-      {
-        id: 102,
-        user: "Ali",
-        caption: "Full Screen Pure Video View, No Extra Bars 🔥",
-        url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-        likes: [],
-        comments: [],
-        shares: 2,
-        type: "video"
-      }
-    ];
 
     function showToast(msg) {
       const toast = document.getElementById('toast-notification');
@@ -910,7 +893,6 @@
       const activeTab = document.getElementById('tab-' + tabName);
       if (activeTab) activeTab.classList.remove('hidden');
 
-      if (tabName === 'videos') renderCleanVideoFeed();
       if (tabName === 'feed') renderFeedPosts();
       if (tabName === 'profile') loadUserData();
     }
@@ -1016,158 +998,6 @@
       loadProfileGrid();
     }
 
-    function initAppContent() {
-      if (!dbInstance) return;
-      getVideosFromStorage(function(vids) {
-        if (!vids || vids.length === 0) {
-          const tx = dbInstance.transaction("videos", "readwrite");
-          const store = tx.objectStore("videos");
-          SAMPLE_VIDEOS.forEach(v => store.put(v));
-          tx.oncomplete = function() { renderCleanVideoFeed(); };
-        } else {
-          renderCleanVideoFeed();
-        }
-      });
-    }
-
-    function getVideosFromStorage(callback) {
-      if (!dbInstance) return callback([]);
-      const tx = dbInstance.transaction("videos", "readonly");
-      const store = tx.objectStore("videos");
-      const req = store.getAll();
-      req.onsuccess = function() { callback(req.result || []); };
-    }
-
-    /* CLEAN TIKTOK FULLSCREEN VIDEO FEED RENDERER */
-    function renderCleanVideoFeed() {
-      getVideosFromStorage(function(vids) {
-        const container = document.getElementById('video-feed-container');
-        container.innerHTML = '';
-
-        const videoList = vids.filter(v => v.type === 'video' || v.url);
-        if (videoList.length === 0) {
-          container.innerHTML = `<div class="h-full w-full flex items-center justify-center text-gray-500 text-xs">No videos available yet</div>`;
-          return;
-        }
-
-        const cleanCurr = formatHandle(currentUser);
-        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-        videoList.forEach((vid, index) => {
-          const itemUser = formatHandle(vid.user);
-          const isLiked = (vid.likes || []).includes(cleanCurr);
-          let isSaved = users[cleanCurr] && users[cleanCurr].savedVideos && users[cleanCurr].savedVideos.includes(vid.id);
-          const uAvatar = (users[itemUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${itemUser}`;
-
-          const reel = document.createElement('div');
-          reel.className = 'reel-item bg-black flex items-center justify-center relative overflow-hidden';
-
-          reel.innerHTML = `
-            <!-- FULLSCREEN CLEAN VIDEO -->
-            <video src="${vid.url}" class="w-full h-full object-cover cursor-pointer" loop playsinline ${index === 0 ? 'autoplay' : ''} onclick="togglePlayVideo(this)"></video>
-
-            <!-- RIGHT ACTION SIDEBAR (TIKTOK STYLE) -->
-            <div class="absolute right-3 bottom-24 z-20 flex flex-col items-center gap-5">
-              <button onclick="toggleLikeVideo(${vid.id})" class="video-action-btn">
-                <span class="text-3xl">${isLiked ? '♥️' : '🤍'}</span>
-                <span class="text-[11px] font-bold text-white mt-0.5" id="vid-likes-count-${vid.id}">${(vid.likes || []).length}</span>
-              </button>
-
-              <button onclick="openCommentsForVideo(${vid.id})" class="video-action-btn">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20 shadow">
-                  <i class="fa-solid fa-comment-dots text-2xl"></i>
-                </div>
-                <span class="text-[11px] font-bold text-white mt-0.5">${(vid.comments || []).length}</span>
-              </button>
-
-              <button onclick="toggleSaveVideo(${vid.id})" class="video-action-btn">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl border border-white/20 shadow ${isSaved ? 'text-amber-400' : 'text-white'}">
-                  <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl"></i>
-                </div>
-                <span class="text-[10px] font-bold text-white mt-0.5">${isSaved ? 'Saved' : 'Save'}</span>
-              </button>
-
-              <button onclick="openShareDrawer(${vid.id})" class="video-action-btn">
-                <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20 shadow">
-                  <i class="fa-solid fa-share text-xl"></i>
-                </div>
-                <span class="text-[11px] font-bold text-white mt-0.5">${vid.shares || 0}</span>
-              </button>
-            </div>
-
-            <!-- BOTTOM OVERLAY DETAILS -->
-            <div class="absolute left-3 bottom-20 z-20 max-w-[75%] space-y-2 pointer-events-auto">
-              <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${itemUser}')">
-                <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover border border-cyan-400 bg-gray-800 shadow">
-                <div>
-                  <span class="text-sm font-bold text-white drop-shadow-md">@${itemUser}</span>
-                </div>
-              </div>
-              <p class="text-xs text-white/90 drop-shadow allow-select line-clamp-2">${vid.caption || ''}</p>
-            </div>
-          `;
-
-          container.appendChild(reel);
-        });
-      });
-    }
-
-    function togglePlayVideo(videoElem) {
-      if (videoElem.paused) {
-        videoElem.play();
-      } else {
-        videoElem.pause();
-      }
-    }
-
-    function toggleLikeVideo(vidId) {
-      if (!currentUser || !dbInstance) return;
-      const cleanCurr = formatHandle(currentUser);
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(vidId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        if (!vid.likes) vid.likes = [];
-        const idx = vid.likes.indexOf(cleanCurr);
-        if (idx > -1) {
-          vid.likes.splice(idx, 1);
-        } else {
-          vid.likes.push(cleanCurr);
-        }
-
-        store.put(vid);
-        tx.oncomplete = function() { renderCleanVideoFeed(); };
-      };
-    }
-
-    function toggleSaveVideo(vidId) {
-      if (!currentUser) return;
-      const cleanCurr = formatHandle(currentUser);
-      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
-
-      if (!users[cleanCurr]) users[cleanCurr] = {};
-      if (!users[cleanCurr].savedVideos) users[cleanCurr].savedVideos = [];
-
-      const saved = users[cleanCurr].savedVideos;
-      const idx = saved.indexOf(vidId);
-
-      if (idx > -1) {
-        saved.splice(idx, 1);
-        showToast('Removed from saved videos!');
-      } else {
-        saved.push(vidId);
-        showToast('Video Saved to Profile!');
-      }
-
-      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
-      renderCleanVideoFeed();
-    }
-
     function loadProfileGrid() {
       if (!currentUser) return;
       const cleanUser = formatHandle(currentUser);
@@ -1199,6 +1029,1296 @@
       });
     }
 
+    // TELEGRAM-LIKE CHANNEL CREATION & DM SYSTEM LOGIC
+    function toggleDmHeaderMenu() {
+      const menu = document.getElementById('dm-header-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function startChannelCreationFlow() {
+      document.getElementById('dm-header-menu').classList.add('hidden');
+      document.getElementById('chan-name').value = '';
+      document.getElementById('chan-username').value = '';
+      document.getElementById('chan-number').value = '';
+      document.getElementById('chan-avatar-preview').classList.add('hidden');
+      document.getElementById('chan-avatar-icon').classList.remove('hidden');
+      document.getElementById('chan-avatar-text').classList.remove('hidden');
+      tempChannelPhotoBase64 = null;
+      updateChannelLinkPreview();
+      openModal('createChannelStep1Modal');
+    }
+
+    function previewChannelAvatar(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          tempChannelPhotoBase64 = e.target.result;
+          const img = document.getElementById('chan-avatar-preview');
+          img.src = tempChannelPhotoBase64;
+          img.classList.remove('hidden');
+          document.getElementById('chan-avatar-icon').classList.add('hidden');
+          document.getElementById('chan-avatar-text').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function updateChannelLinkPreview() {
+      const uName = document.getElementById('chan-username').value.trim() || 'link';
+      document.getElementById('chan-link-preview').innerText = `superapp.com/channel/${uName.toLowerCase().replace(/\s+/g, '')}`;
+    }
+
+    function goToChannelStep2() {
+      const name = document.getElementById('chan-name').value.trim();
+      const username = document.getElementById('chan-username').value.trim();
+      const number = document.getElementById('chan-number').value.trim();
+
+      if (!name || !username || !number) {
+        showToast('Name, Username, and Phone Number are required!');
+        return;
+      }
+
+      closeModal('createChannelStep1Modal');
+      openModal('createChannelStep2Modal');
+    }
+
+    function finalizeChannelCreation() {
+      if (!currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      const name = document.getElementById('chan-name').value.trim();
+      const username = document.getElementById('chan-username').value.trim().toLowerCase().replace(/\s+/g, '');
+      const number = document.getElementById('chan-number').value.trim();
+      const typeRadio = document.querySelector('input[name="chan-type-radio"]:checked').value;
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+
+      if (channels[username]) {
+        showToast('Channel handle already taken! Choose another username.');
+        return;
+      }
+
+      const chanId = 'chan_' + username;
+      channels[chanId] = {
+        id: chanId,
+        name: name,
+        username: username,
+        phone: number,
+        photo: tempChannelPhotoBase64 || `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`,
+        type: typeRadio,
+        owner: cleanCurr,
+        link: `superapp.com/channel/${username}`,
+        subscribers: [cleanCurr],
+        pendingRequests: [],
+        posts: []
+      };
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      closeModal('createChannelStep2Modal');
+      showToast(`Channel "${name}" created successfully!`);
+      renderDmInboxList();
+      openChannelConversation(chanId);
+    }
+
+    function renderDmInboxList() {
+      if (!currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      const inboxView = document.getElementById('dm-inbox-view');
+      inboxView.innerHTML = '';
+
+      let chatKeys = Object.keys(chats).filter(key => key.includes(cleanCurr));
+      let channelKeys = Object.keys(channels).filter(cKey => {
+        const c = channels[cKey];
+        return c.owner === cleanCurr || (c.subscribers && c.subscribers.includes(cleanCurr));
+      });
+
+      if (chatKeys.length === 0 && channelKeys.length === 0) {
+        inboxView.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No messages or channels yet. Tap Three Dots (⋮) to create a Channel.</p>`;
+        return;
+      }
+
+      // RENDER TELEGRAM CHANNELS FIRST
+      channelKeys.forEach(cKey => {
+        const c = channels[cKey];
+        const lastPost = c.posts && c.posts.length > 0 ? c.posts[c.posts.length - 1] : null;
+
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-900 border border-cyan-500/30 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/80 transition-all';
+        div.onclick = function() { openChannelConversation(c.id); };
+
+        div.innerHTML = `
+          <img src="${c.photo}" class="w-10 h-10 rounded-full object-cover border border-cyan-400 bg-gray-800">
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                <i class="fa-solid fa-bullhorn text-[10px] text-cyan-400"></i> ${c.name}
+              </p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded ${c.type === 'private' ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}">${c.type}</span>
+            </div>
+            <p class="text-[11px] text-gray-400 line-clamp-1">${lastPost ? (lastPost.text || 'Photo post') : 'No posts yet...'}</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+        `;
+        inboxView.appendChild(div);
+      });
+
+      // RENDER DM CHATS
+      chatKeys.forEach(key => {
+        const thread = chats[key];
+        const otherUser = key.replace(cleanCurr, '').replace(':', '');
+        const isOfficial = (otherUser === 'Super App Official');
+        const uAvatar = isOfficial ? 'https://api.dicebear.com/7.x/identicon/svg?seed=SuperApp' : ((users[otherUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser}`);
+        const lastMsg = thread.messages && thread.messages.length > 0 ? thread.messages[thread.messages.length - 1] : null;
+
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-gray-800/60 transition-all';
+        div.onclick = function() { openChatConversation(otherUser); };
+
+        div.innerHTML = `
+          <img src="${uAvatar}" class="w-10 h-10 rounded-full object-cover bg-gray-800">
+          <div class="flex-1">
+            <p class="text-xs font-bold text-white flex items-center gap-1">
+              @${otherUser} ${isOfficial ? '<i class="fa-solid fa-circle-check text-cyan-400 text-[10px]"></i>' : ''}
+            </p>
+            <p class="text-[11px] text-gray-400 line-clamp-1">${lastMsg ? lastMsg.text : 'Start chatting...'}</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-gray-600"></i>
+        `;
+        inboxView.appendChild(div);
+      });
+    }
+
+    function openChannelConversation(channelId) {
+      activeChannelId = channelId;
+      activeChatTargetUser = null;
+      const cleanCurr = formatHandle(currentUser);
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      const chan = channels[channelId];
+      if (!chan) return;
+
+      document.getElementById('chat-target-username').innerText = chan.name;
+      document.getElementById('chat-target-subtitle').innerText = `${chan.subscribers ? chan.subscribers.length : 1} subscribers • @${chan.username}`;
+      document.getElementById('chat-target-avatar').src = chan.photo;
+
+      document.getElementById('dm-inbox-header').classList.add('hidden');
+      document.getElementById('dm-inbox-view').classList.add('hidden');
+      document.getElementById('dm-thread-header').classList.remove('hidden');
+      document.getElementById('dm-thread-view').classList.remove('hidden');
+
+      // Toggle input footers
+      if (chan.owner === cleanCurr) {
+        document.getElementById('channel-input-footer').classList.remove('hidden');
+        document.getElementById('dm-input-footer').classList.add('hidden');
+      } else {
+        document.getElementById('channel-input-footer').classList.add('hidden');
+        document.getElementById('dm-input-footer').classList.add('hidden');
+      }
+
+      renderChannelPosts(channelId);
+      openModal('dmModal');
+    }
+
+    function renderChannelPosts(channelId) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      const chan = channels[channelId] || { posts: [], pendingRequests: [] };
+      const threadView = document.getElementById('dm-thread-view');
+      threadView.innerHTML = '';
+
+      const cleanCurr = formatHandle(currentUser);
+
+      // IF PRIVATE CHANNEL AND ADMIN IS VIEWING, SHOW PENDING JOIN REQUESTS
+      if (chan.owner === cleanCurr && chan.type === 'private' && chan.pendingRequests && chan.pendingRequests.length > 0) {
+        const reqBanner = document.createElement('div');
+        reqBanner.className = 'bg-amber-950/80 border border-amber-500/50 p-3 rounded-xl space-y-2 mb-3';
+        reqBanner.innerHTML = `<p class="text-xs font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-user-clock"></i> Pending Join Requests (${chan.pendingRequests.length})</p>`;
+
+        chan.pendingRequests.forEach(reqUser => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center text-xs text-white bg-gray-900/80 p-2 rounded-lg border border-gray-800';
+          row.innerHTML = `
+            <span>@${reqUser}</span>
+            <div class="flex gap-1">
+              <button onclick="acceptChannelJoinRequest('${channelId}', '${reqUser}')" class="px-2 py-1 bg-green-600 rounded font-bold text-[10px]">Accept</button>
+              <button onclick="rejectChannelJoinRequest('${channelId}', '${reqUser}')" class="px-2 py-1 bg-red-600 rounded font-bold text-[10px]">Reject</button>
+            </div>
+          `;
+          reqBanner.appendChild(row);
+        });
+        threadView.appendChild(reqBanner);
+      }
+
+      if (!chan.posts || chan.posts.length === 0) {
+        threadView.innerHTML += `<div class="text-center text-xs text-gray-500 py-12">No posts broadcasted in this channel yet.</div>`;
+        return;
+      }
+
+      chan.posts.forEach((p, pIndex) => {
+        const postDiv = document.createElement('div');
+        postDiv.className = 'bg-gray-900 border border-gray-800 p-3 rounded-2xl space-y-2 shadow-lg relative group select-none';
+
+        // Add touch / mouse event listeners for 2 Seconds Long-Press for Emojis
+        postDiv.addEventListener('mousedown', (e) => startLongPressTimer(e, p.id));
+        postDiv.addEventListener('mouseup', clearLongPressTimer);
+        postDiv.addEventListener('touchstart', (e) => startLongPressTimer(e, p.id));
+        postDiv.addEventListener('touchend', clearLongPressTimer);
+
+        // Reactions count calculation
+        let reactionsMarkup = '';
+        if (p.reactions && Object.keys(p.reactions).length > 0) {
+          let emojiCounts = {};
+          Object.values(p.reactions).forEach(e => {
+            emojiCounts[e] = (emojiCounts[e] || 0) + 1;
+          });
+          reactionsMarkup = `<div class="flex flex-wrap gap-1.5 pt-1.5 border-t border-gray-800">`;
+          for (let emoji in emojiCounts) {
+            reactionsMarkup += `<span class="px-2 py-0.5 bg-gray-800 rounded-full text-xs border border-gray-700 flex items-center gap-1">${emoji} <b class="text-[10px] text-cyan-400">${emojiCounts[emoji]}</b></span>`;
+          }
+          reactionsMarkup += `</div>`;
+        }
+
+        postDiv.innerHTML = `
+          <div class="flex justify-between items-center text-[10px] text-cyan-400 font-semibold border-b border-gray-800/60 pb-1">
+            <span>📢 Channel Post</span>
+            <span class="text-gray-500">${p.time || ''}</span>
+          </div>
+          ${p.photo ? `<img src="${p.photo}" class="w-full max-h-60 object-cover rounded-xl border border-gray-800">` : ''}
+          <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.text || ''}</p>
+          ${reactionsMarkup}
+          <div class="text-[9px] text-gray-500 text-right italic">Tap and hold 2 seconds for 50 reactions</div>
+        `;
+
+        threadView.appendChild(postDiv);
+      });
+
+      threadView.scrollTop = threadView.scrollHeight;
+    }
+
+    function startLongPressTimer(e, postId) {
+      activeLongPressPostId = postId;
+      clearLongPressTimer();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      longPressTimer = setTimeout(() => {
+        showEmojiReactionPicker(clientX, clientY);
+      }, 2000); // 2 Seconds Tap and Hold
+    }
+
+    function clearLongPressTimer() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    function showEmojiReactionPicker(x, y) {
+      const picker = document.getElementById('emojiReactionPicker');
+      const grid = document.getElementById('emoji-grid-box');
+      grid.innerHTML = '';
+
+      EMOJI_50_LIST.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'w-7 h-7 flex items-center justify-center text-base hover:scale-125 transition-transform cursor-pointer';
+        btn.innerText = emoji;
+        btn.onclick = function() {
+          applyEmojiReactionToPost(emoji);
+        };
+        grid.appendChild(btn);
+      });
+
+      picker.style.left = Math.min(x, window.innerWidth - 290) + 'px';
+      picker.style.top = Math.min(y, window.innerHeight - 180) + 'px';
+      picker.classList.remove('hidden');
+    }
+
+    function applyEmojiReactionToPost(emoji) {
+      if (!activeChannelId || !activeLongPressPostId || !currentUser) return;
+      const cleanCurr = formatHandle(currentUser);
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[activeChannelId];
+      if (!chan || !chan.posts) return;
+
+      let post = chan.posts.find(p => p.id === activeLongPressPostId);
+      if (post) {
+        if (!post.reactions) post.reactions = {};
+        post.reactions[cleanCurr] = emoji; // Only 1 reaction per user
+        localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+        showToast(`Reacted ${emoji}`);
+        renderChannelPosts(activeChannelId);
+      }
+
+      document.getElementById('emojiReactionPicker').classList.add('hidden');
+    }
+
+    function previewChannelPostPhoto(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          tempChannelPostPhotoBase64 = e.target.result;
+          document.getElementById('channel-photo-preview-img').src = tempChannelPostPhotoBase64;
+          document.getElementById('channel-photo-preview-box').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function clearChannelPostPhoto() {
+      tempChannelPostPhotoBase64 = null;
+      document.getElementById('channel-photo-preview-box').classList.add('hidden');
+      document.getElementById('channel-post-file').value = '';
+    }
+
+    function sendChannelPostSubmit() {
+      if (!activeChannelId || !currentUser) return;
+      const input = document.getElementById('channel-message-input');
+      const text = input.value.trim();
+
+      if (!text && !tempChannelPostPhotoBase64) {
+        showToast('Please enter text or upload a photo for channel post!');
+        return;
+      }
+
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[activeChannelId];
+      if (!chan) return;
+
+      if (!chan.posts) chan.posts = [];
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chan.posts.push({
+        id: Date.now(),
+        text: text,
+        photo: tempChannelPostPhotoBase64,
+        time: timeStr,
+        reactions: {}
+      });
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      input.value = '';
+      clearChannelPostPhoto();
+      renderChannelPosts(activeChannelId);
+      showToast('Post broadcasted to channel!');
+    }
+
+    function acceptChannelJoinRequest(chanId, username) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[chanId];
+      if (!chan) return;
+
+      chan.pendingRequests = (chan.pendingRequests || []).filter(u => u !== username);
+      if (!chan.subscribers) chan.subscribers = [];
+      if (!chan.subscribers.includes(username)) chan.subscribers.push(username);
+
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      showToast(`Accepted @${username} to channel!`);
+      renderChannelPosts(chanId);
+    }
+
+    function rejectChannelJoinRequest(chanId, username) {
+      let channels = JSON.parse(localStorage.getItem('SUPER_APP_CHANNELS') || '{}');
+      let chan = channels[chanId];
+      if (!chan) return;
+
+      chan.pendingRequests = (chan.pendingRequests || []).filter(u => u !== username);
+      localStorage.setItem('SUPER_APP_CHANNELS', JSON.stringify(channels));
+      showToast(`Rejected @${username} join request.`);
+      renderChannelPosts(chanId);
+    }
+
+    function openSingleVideoPlayer(vidId) {
+      getVideosFromStorage(function(vids) {
+        const vid = vids.find(x => x.id === vidId);
+        if (!vid) return;
+
+        const cleanCurr = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const itemUser = formatHandle(vid.user);
+        const isLiked = (vid.likes || []).includes(cleanCurr);
+        
+        let isSaved = false;
+        if (users[cleanCurr] && users[cleanCurr].savedVideos) {
+          isSaved = users[cleanCurr].savedVideos.includes(vid.id);
+        }
+
+        const uAvatar = (users[itemUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${itemUser}`;
+
+        const playerContainer = document.getElementById('single-video-player-container');
+        playerContainer.innerHTML = `
+          <video src="${vid.url}" class="w-full h-full object-cover" autoplay loop playsinline onclick="togglePlayVideo(this)"></video>
+
+          <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-5">
+            <button onclick="toggleLikeVideo(${vid.id})" class="video-action-btn">
+              <span class="text-3xl">${isLiked ? '♥️' : '🤍'}</span>
+              <span class="text-[11px] font-bold text-white mt-0.5" id="vid-likes-count-${vid.id}">${(vid.likes || []).length}</span>
+            </button>
+
+            <button onclick="openCommentsForVideo(${vid.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
+                <i class="fa-solid fa-comment-dots text-2xl"></i>
+              </div>
+              <span class="text-[11px] font-bold text-white mt-0.5">${(vid.comments || []).length}</span>
+            </button>
+
+            <button onclick="toggleSaveVideo(${vid.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl border border-white/20 ${isSaved ? 'text-amber-400' : 'text-white'}">
+                <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl"></i>
+              </div>
+              <span class="text-[10px] font-bold text-white mt-0.5">${isSaved ? 'Saved' : 'Save'}</span>
+            </button>
+
+            <button onclick="openShareDrawer(${vid.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
+                <i class="fa-solid fa-share text-xl"></i>
+              </div>
+              <span class="text-[11px] font-bold text-white mt-0.5">${vid.shares || 0}</span>
+            </button>
+          </div>
+
+          <div class="absolute left-3 bottom-6 z-20 max-w-[75%] space-y-2">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="closeVideoPlayerModal(); openPublicUserProfile('${itemUser}')">
+              <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover border border-cyan-400 bg-gray-800">
+              <div>
+                <span class="text-sm font-bold text-white drop-shadow-md">@${itemUser}</span>
+                <p class="text-[10px] text-cyan-300 font-semibold drop-shadow">Tap to view profile</p>
+              </div>
+            </div>
+            <p class="text-xs text-white/90 drop-shadow allow-select line-clamp-2">${vid.caption || ''}</p>
+          </div>
+        `;
+
+        openModal('videoPlayerModal');
+      });
+    }
+
+    function closeVideoPlayerModal() {
+      const playerContainer = document.getElementById('single-video-player-container');
+      const videoElem = playerContainer.querySelector('video');
+      if (videoElem) videoElem.pause();
+      playerContainer.innerHTML = '';
+      closeModal('videoPlayerModal');
+    }
+
+    function applyColorSettings() {
+      const bgColor = document.getElementById('setting-bg-color').value;
+      const chatColor = document.getElementById('setting-chat-color').value;
+      const chatTextColor = document.getElementById('setting-chat-text-color').value;
+
+      document.documentElement.style.setProperty('--bg-dark', bgColor);
+      document.documentElement.style.setProperty('--custom-chat-bg', chatColor);
+      document.documentElement.style.setProperty('--custom-chat-text', chatTextColor);
+
+      const colorSettings = { bgColor, chatColor, chatTextColor };
+      localStorage.setItem('SUPER_APP_COLOR_SETTINGS', JSON.stringify(colorSettings));
+    }
+
+    function savePrivacySettings() {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanUser]) users[cleanUser] = {};
+
+      const isPrivate = document.getElementById('setting-private-profile').checked;
+      const allowComments = document.getElementById('setting-allow-comments').checked;
+      const blockScreenshot = document.getElementById('setting-block-screenshot').checked;
+
+      users[cleanUser].isPrivate = isPrivate;
+      users[cleanUser].allowComments = allowComments;
+      users[cleanUser].blockScreenshot = blockScreenshot;
+
+      if (blockScreenshot) {
+        document.body.classList.add('no-screenshot');
+      } else {
+        document.body.classList.remove('no-screenshot');
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      showToast('Settings saved!');
+    }
+
+    function loadSavedSettings() {
+      const savedColors = JSON.parse(localStorage.getItem('SUPER_APP_COLOR_SETTINGS') || '{}');
+      if (savedColors.bgColor) document.getElementById('setting-bg-color').value = savedColors.bgColor;
+      if (savedColors.chatColor) document.getElementById('setting-chat-color').value = savedColors.chatColor;
+      if (savedColors.chatTextColor) document.getElementById('setting-chat-text-color').value = savedColors.chatTextColor;
+
+      applyColorSettings();
+
+      if (currentUser) {
+        const cleanUser = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+        const uData = users[cleanUser] || {};
+
+        document.getElementById('setting-private-profile').checked = !!uData.isPrivate;
+        document.getElementById('setting-allow-comments').checked = uData.allowComments !== false;
+        document.getElementById('setting-block-screenshot').checked = !!uData.blockScreenshot;
+
+        if (uData.blockScreenshot) {
+          document.body.classList.add('no-screenshot');
+        } else {
+          document.body.classList.remove('no-screenshot');
+        }
+      }
+    }
+
+    function shareOfficialApp() {
+      const appUrl = window.location.href;
+      navigator.clipboard.writeText(appUrl).then(() => {
+        showToast('Official App Link copied to clipboard!');
+      }).catch(() => {
+        showToast('App Link: ' + appUrl);
+      });
+    }
+
+    function openPublicUserProfile(targetUser) {
+      const cleanTarget = formatHandle(targetUser);
+      const cleanCurr = formatHandle(currentUser);
+
+      if (cleanTarget === cleanCurr) {
+        switchTab('profile');
+        return;
+      }
+
+      currentActivePublicUser = cleanTarget;
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      if (!users[cleanTarget]) {
+        users[cleanTarget] = { bio: 'Verified Creator Profile', subscribersList: [], profileVisits: 0 };
+      }
+
+      users[cleanTarget].profileVisits = (users[cleanTarget].profileVisits || 0) + 1;
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+
+      const uData = users[cleanTarget];
+      document.getElementById('pub-display-name').innerText = '@' + cleanTarget;
+      document.getElementById('pub-bio').innerText = uData.bio || 'Verified Creator Profile';
+      document.getElementById('pub-avatar-img').src = uData.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanTarget}`;
+      
+      const subList = uData.subscribersList || [];
+      document.getElementById('pub-subscribers').innerText = subList.length;
+
+      const subBtn = document.getElementById('pub-sub-btn');
+      const isSubbed = subList.includes(cleanCurr);
+      if (isSubbed) {
+        subBtn.innerText = 'Subscribed';
+        subBtn.className = 'px-4 py-1.5 bg-cyan-600 text-white rounded-full text-xs font-bold';
+      } else {
+        subBtn.innerText = 'Subscribe';
+        subBtn.className = 'px-4 py-1.5 bg-gray-800 border border-cyan-500/40 text-cyan-400 rounded-full text-xs font-bold';
+      }
+
+      const contentContainer = document.getElementById('pub-content-container');
+      const lockNotice = document.getElementById('private-profile-lock');
+
+      if (uData.isPrivate && !isSubbed) {
+        contentContainer.classList.add('hidden');
+        lockNotice.classList.remove('hidden');
+      } else {
+        contentContainer.classList.remove('hidden');
+        lockNotice.classList.add('hidden');
+
+        getVideosFromStorage(function(storedVideos) {
+          let userVidCount = 0;
+          let totalLikes = 0;
+          const grid = document.getElementById('pub-profile-grid');
+          grid.innerHTML = '';
+
+          storedVideos.forEach(v => {
+            if (formatHandle(v.user) === cleanTarget) {
+              userVidCount++;
+              totalLikes += (v.likes || []).length;
+              const thumb = document.createElement('div');
+              thumb.className = 'aspect-square bg-gray-800 rounded-lg overflow-hidden border border-gray-700 relative flex items-center justify-center p-1 text-center cursor-pointer';
+              if (v.type === 'video' || v.url) {
+                thumb.innerHTML = `<video src="${v.url}" class="w-full h-full object-cover" muted></video>
+                <div class="absolute inset-0 bg-black/20 flex items-center justify-center"><i class="fa-solid fa-play text-white text-xs"></i></div>`;
+                thumb.onclick = function() { openSingleVideoPlayer(v.id); };
+              } else {
+                thumb.innerHTML = `<p class="text-[9px] text-gray-300 line-clamp-3">${v.caption || 'Text Post'}</p>`;
+              }
+              grid.appendChild(thumb);
+            }
+          });
+
+          document.getElementById('pub-likes').innerText = totalLikes;
+          document.getElementById('pub-posts-count').innerText = userVidCount;
+        });
+      }
+
+      openModal('publicProfileModal');
+    }
+
+    function toggleSubscribeUser(targetUser) {
+      if (!currentUser || !targetUser) return;
+      const cleanCurr = formatHandle(currentUser);
+      const cleanTarget = formatHandle(targetUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      if (!users[cleanTarget]) users[cleanTarget] = { subscribersList: [] };
+      if (!users[cleanTarget].subscribersList) users[cleanTarget].subscribersList = [];
+
+      const subList = users[cleanTarget].subscribersList;
+      const idx = subList.indexOf(cleanCurr);
+
+      if (idx > -1) {
+        subList.splice(idx, 1);
+        showToast(`Unsubscribed @${cleanTarget}`);
+      } else {
+        subList.push(cleanCurr);
+        showToast(`Subscribed to @${cleanTarget}!`);
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      renderFeedPosts();
+      if (currentActivePublicUser === cleanTarget) {
+        openPublicUserProfile(cleanTarget);
+      }
+    }
+
+    function toggleSubscribePublicUser() {
+      if (currentActivePublicUser) {
+        toggleSubscribeUser(currentActivePublicUser);
+      }
+    }
+
+    function openDmInboxModal() {
+      renderDmInboxList();
+      document.getElementById('dm-inbox-header').classList.remove('hidden');
+      document.getElementById('dm-inbox-view').classList.remove('hidden');
+      document.getElementById('dm-thread-header').classList.add('hidden');
+      document.getElementById('dm-thread-view').classList.add('hidden');
+      document.getElementById('dm-input-footer').classList.add('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
+      openModal('dmModal');
+    }
+
+    function openDirectChatFromPublicProfile() {
+      if (!currentActivePublicUser) return;
+      closeModal('publicProfileModal');
+      openChatConversation(currentActivePublicUser);
+    }
+
+    function getChatKey(user1, user2) {
+      return [user1, user2].sort().join(':');
+    }
+
+    function openChatConversation(targetUser) {
+      activeChatTargetUser = formatHandle(targetUser);
+      activeChannelId = null;
+      const cleanCurr = formatHandle(currentUser);
+      const key = getChatKey(cleanCurr, activeChatTargetUser);
+
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+      const isOfficial = (activeChatTargetUser === 'Super App Official');
+
+      document.getElementById('chat-target-username').innerHTML = `@${activeChatTargetUser} ${isOfficial ? '<i class="fa-solid fa-circle-check text-cyan-400 text-xs"></i>' : ''}`;
+      document.getElementById('chat-target-subtitle').innerText = 'Direct Messaging';
+      document.getElementById('chat-target-avatar').src = isOfficial ? 'https://api.dicebear.com/7.x/identicon/svg?seed=SuperApp' : ((users[activeChatTargetUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${activeChatTargetUser}`);
+
+      document.getElementById('dm-inbox-header').classList.add('hidden');
+      document.getElementById('dm-inbox-view').classList.add('hidden');
+      document.getElementById('dm-thread-header').classList.remove('hidden');
+      document.getElementById('dm-thread-view').classList.remove('hidden');
+      document.getElementById('dm-input-footer').classList.remove('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
+
+      renderChatMessages(key);
+      openModal('dmModal');
+    }
+
+    function renderChatMessages(key) {
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+      const thread = chats[key] || { messages: [] };
+      const threadView = document.getElementById('dm-thread-view');
+      threadView.innerHTML = '';
+
+      const cleanCurr = formatHandle(currentUser);
+
+      (thread.messages || []).forEach(m => {
+        const isMe = m.sender === cleanCurr;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex ${isMe ? 'justify-end' : 'justify-start'}`;
+        msgDiv.innerHTML = `
+          <div class="max-w-[75%] p-2.5 rounded-2xl text-xs ${isMe ? 'custom-chat-bubble rounded-br-none shadow-md' : 'bg-gray-800 text-gray-200 rounded-bl-none border border-gray-700'}">
+            <p class="allow-select">${m.text}</p>
+            <span class="text-[8px] opacity-70 block text-right mt-1">${m.time || ''}</span>
+          </div>
+        `;
+        threadView.appendChild(msgDiv);
+      });
+
+      threadView.scrollTop = threadView.scrollHeight;
+    }
+
+    function sendDmMessageSubmit() {
+      if (!currentUser || !activeChatTargetUser) return;
+      const input = document.getElementById('dm-message-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const cleanCurr = formatHandle(currentUser);
+      const key = getChatKey(cleanCurr, activeChatTargetUser);
+      let chats = JSON.parse(localStorage.getItem('SUPER_APP_CHATS') || '{}');
+
+      if (!chats[key]) chats[key] = { messages: [] };
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      chats[key].messages.push({
+        sender: cleanCurr,
+        text: text,
+        time: timeStr
+      });
+
+      localStorage.setItem('SUPER_APP_CHATS', JSON.stringify(chats));
+      input.value = '';
+      renderChatMessages(key);
+    }
+
+    function backToDmInbox() {
+      activeChatTargetUser = null;
+      activeChannelId = null;
+      renderDmInboxList();
+      document.getElementById('dm-thread-header').classList.add('hidden');
+      document.getElementById('dm-thread-view').classList.add('hidden');
+      document.getElementById('dm-input-footer').classList.add('hidden');
+      document.getElementById('channel-input-footer').classList.add('hidden');
+      document.getElementById('dm-inbox-header').classList.remove('hidden');
+      document.getElementById('dm-inbox-view').classList.remove('hidden');
+    }
+
+    function openShareDrawer(vidId) {
+      currentActiveVideoId = vidId;
+      document.getElementById('shareDrawer').classList.add('open');
+      document.getElementById('download-progress-container').classList.add('hidden');
+
+      if (dbInstance && vidId) {
+        const tx = dbInstance.transaction("videos", "readonly");
+        const store = tx.objectStore("videos");
+        const req = store.get(vidId);
+        req.onsuccess = function() {
+          const vid = req.result;
+          if (vid) {
+            document.getElementById('ana-views').innerText = vid.views || 1;
+            document.getElementById('ana-likes').innerText = (vid.likes || []).length;
+            document.getElementById('ana-shares').innerText = vid.shares || 0;
+            document.getElementById('ana-comments').innerText = (vid.comments || []).length;
+            document.getElementById('ana-reposts').innerText = vid.reposts || 0;
+            document.getElementById('ana-clicks').innerText = vid.linkClicks || 0;
+          }
+        };
+      }
+    }
+
+    function closeShareDrawer() {
+      document.getElementById('shareDrawer').classList.remove('open');
+    }
+
+    function shareToSocial(platform) {
+      if (!currentActiveVideoId) return;
+      const directVidUrl = window.location.origin + window.location.pathname + '?post_id=' + currentActiveVideoId;
+      
+      let shareUrl = '';
+      if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(directVidUrl)}`;
+      else if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(directVidUrl)}&text=Check out this post on Super App!`;
+      else if (platform === 'telegram') shareUrl = `https://t.me/share/url?url=${encodeURIComponent(directVidUrl)}&text=Check this post out!`;
+      else {
+        navigator.clipboard.writeText(directVidUrl);
+        showToast(`Link copied for ${platform}!`);
+      }
+
+      if (shareUrl) window.open(shareUrl, '_blank');
+      incrementVideoShareCount(currentActiveVideoId);
+      closeShareDrawer();
+    }
+
+    function copyDirectVideoLink() {
+      if (!currentActiveVideoId) return;
+      const directVidUrl = window.location.origin + window.location.pathname + '?post_id=' + currentActiveVideoId;
+      navigator.clipboard.writeText(directVidUrl).then(() => {
+        showToast('Direct Link Copied to Clipboard!');
+      }).catch(() => {
+        showToast('Link: ' + directVidUrl);
+      });
+      incrementVideoShareCount(currentActiveVideoId);
+      closeShareDrawer();
+    }
+
+    function incrementVideoShareCount(vidId) {
+      if (!dbInstance || !vidId) return;
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+        vid.shares = (vid.shares || 0) + 1;
+        store.put(vid);
+        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+      };
+    }
+
+    function downloadActiveVideo() {
+      if (!currentActiveVideoId) return;
+      const progContainer = document.getElementById('download-progress-container');
+      const progFill = document.getElementById('download-progress-fill');
+      const progText = document.getElementById('download-progress-percent');
+
+      progContainer.classList.remove('hidden');
+      let progress = 0;
+
+      const interval = setInterval(() => {
+        progress += Math.floor(Math.random() * 15) + 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+
+          progFill.style.width = '100%';
+          progText.innerText = '100%';
+
+          setTimeout(() => {
+            const tx = dbInstance.transaction("videos", "readonly");
+            const store = tx.objectStore("videos");
+            const req = store.get(currentActiveVideoId);
+            req.onsuccess = function() {
+              const vid = req.result;
+              if (vid && vid.url) {
+                const a = document.createElement('a');
+                a.href = vid.url;
+                a.download = `SuperApp_Media_${vid.id}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }
+              showToast('Saved successfully!');
+              closeShareDrawer();
+            };
+          }, 400);
+        } else {
+          progFill.style.width = progress + '%';
+          progText.innerText = progress + '%';
+        }
+      }, 150);
+    }
+
+    function repostActiveVideo() {
+      if (!currentUser || !currentActiveVideoId) return;
+      const cleanUser = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        if (!vid.repostedBy) vid.repostedBy = [];
+        if (!vid.repostedBy.includes(cleanUser)) {
+          vid.repostedBy.push(cleanUser);
+          vid.reposts = (vid.reposts || 0) + 1;
+          store.put(vid);
+          db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+          tx.oncomplete = function() {
+            initAppContent();
+            showToast('Reposted to your feed!');
+            closeShareDrawer();
+          };
+        } else {
+          showToast('You have already reposted this!');
+        }
+      };
+    }
+
+    function openReportModal() {
+      closeShareDrawer();
+      openModal('reportModal');
+    }
+
+    function proceedReportConfirmation() {
+      const selected = document.querySelector('input[name="report-reason"]:checked');
+      if (selected) selectedReportReason = selected.value;
+      closeModal('reportModal');
+      openModal('confirmReportModal');
+    }
+
+    function submitFinalReport(confirmed) {
+      closeModal('confirmReportModal');
+      if (confirmed) {
+        showToast('Report submitted! Reviewing within 5 minutes.');
+      } else {
+        showToast('Report cancelled.');
+      }
+    }
+
+    // INITIALIZE & GET ALL VIDEOS/POSTS
+    function getVideosFromStorage(callback) {
+      if (!dbInstance) {
+        callback([]);
+        return;
+      }
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.getAll();
+      req.onsuccess = function() {
+        let vids = req.result || [];
+        if (vids.length === 0) {
+          // Default initial videos & text posts
+          vids = [
+            {
+              id: 101,
+              type: 'video',
+              user: 'Umar',
+              url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+              caption: '🔥 Welcome to Super App! Check out this awesome video feed.',
+              likes: [],
+              comments: [],
+              views: 120,
+              shares: 12,
+              reposts: 2,
+              linkClicks: 5
+            },
+            {
+              id: 102,
+              type: 'video',
+              user: 'SuperAppOfficial',
+              url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+              caption: '🎬 HD Short Reel Feed Sample. Experience seamless video playback.',
+              likes: ['Umar'],
+              comments: [],
+              views: 340,
+              shares: 25,
+              reposts: 8,
+              linkClicks: 14
+            },
+            {
+              id: 103,
+              type: 'text',
+              user: 'Umar',
+              caption: 'Assalam O Alaikum Dosto! Yeh hamari pehli Official Text Post hai Super App ke andar.',
+              likes: [],
+              comments: [],
+              views: 45,
+              shares: 1,
+              reposts: 0
+            }
+          ];
+          const writeTx = dbInstance.transaction("videos", "readwrite");
+          const writeStore = writeTx.objectStore("videos");
+          vids.forEach(item => writeStore.put(item));
+        }
+        callback(vids);
+      };
+    }
+
+    function initAppContent() {
+      getVideosFromStorage(function(videos) {
+        renderVideoFeed(videos);
+        renderFeedPosts();
+      });
+    }
+
+    // RENDER VIDEO FEED WITH DESIGNED ACTION CONTROLS
+    function renderVideoFeed(items) {
+      const container = document.getElementById('video-feed-container');
+      container.innerHTML = '';
+
+      const videoOnlyItems = items.filter(i => i.type === 'video' || (i.url && i.url.length > 0));
+
+      if (videoOnlyItems.length === 0) {
+        container.innerHTML = `<div class="h-full flex items-center justify-center text-gray-500 text-xs">No videos posted yet.</div>`;
+        return;
+      }
+
+      const cleanCurr = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      videoOnlyItems.forEach(item => {
+        const itemUser = formatHandle(item.user);
+        const isLiked = (item.likes || []).includes(cleanCurr);
+        
+        let isSaved = false;
+        if (users[cleanCurr] && users[cleanCurr].savedVideos) {
+          isSaved = users[cleanCurr].savedVideos.includes(item.id);
+        }
+
+        const uAvatar = (users[itemUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${itemUser}`;
+
+        const reel = document.createElement('div');
+        reel.className = 'reel-item relative w-full h-full bg-black flex items-center justify-center';
+        
+        reel.innerHTML = `
+          <video src="${item.url}" class="w-full h-full object-cover" loop playsinline onclick="togglePlayVideo(this)"></video>
+
+          <div class="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-5">
+            <button onclick="toggleLikeVideo(${item.id})" class="video-action-btn">
+              <span class="text-3xl">${isLiked ? '♥️' : '🤍'}</span>
+              <span class="text-[11px] font-bold text-white mt-0.5" id="vid-likes-count-${item.id}">${(item.likes || []).length}</span>
+            </button>
+
+            <button onclick="openCommentsForVideo(${item.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
+                <i class="fa-solid fa-comment-dots text-2xl"></i>
+              </div>
+              <span class="text-[11px] font-bold text-white mt-0.5">${(item.comments || []).length}</span>
+            </button>
+
+            <button onclick="toggleSaveVideo(${item.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-xl border border-white/20 ${isSaved ? 'text-amber-400' : 'text-white'}">
+                <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl"></i>
+              </div>
+              <span class="text-[10px] font-bold text-white mt-0.5">${isSaved ? 'Saved' : 'Save'}</span>
+            </button>
+
+            <button onclick="openShareDrawer(${item.id})" class="video-action-btn">
+              <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white text-xl border border-white/20">
+                <i class="fa-solid fa-share text-xl"></i>
+              </div>
+              <span class="text-[11px] font-bold text-white mt-0.5">${item.shares || 0}</span>
+            </button>
+          </div>
+
+          <div class="absolute left-3 bottom-6 z-20 max-w-[75%] space-y-2">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${itemUser}')">
+              <img src="${uAvatar}" class="w-9 h-9 rounded-full object-cover border border-cyan-400 bg-gray-800">
+              <div>
+                <span class="text-sm font-bold text-white drop-shadow-md">@${itemUser}</span>
+                <p class="text-[10px] text-cyan-300 font-semibold drop-shadow">Tap to view profile</p>
+              </div>
+            </div>
+            <p class="text-xs text-white/90 drop-shadow allow-select line-clamp-2">${item.caption || ''}</p>
+          </div>
+        `;
+        container.appendChild(reel);
+      });
+    }
+
+    // RENDER ONLY TEXT POSTS IN THE FEED TAB
+    function renderFeedPosts() {
+      getVideosFromStorage(function(items) {
+        const container = document.getElementById('posts-container');
+        container.innerHTML = '';
+
+        const textOnlyItems = items.filter(i => i.type === 'text' || (!i.url || i.url.trim() === ''));
+
+        if (textOnlyItems.length === 0) {
+          container.innerHTML = `<div class="text-center py-10 text-gray-500 text-xs">No text posts published yet.</div>`;
+          return;
+        }
+
+        const cleanCurr = formatHandle(currentUser);
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+        textOnlyItems.forEach(post => {
+          const postUser = formatHandle(post.user);
+          const isLiked = (post.likes || []).includes(cleanCurr);
+          const uAvatar = (users[postUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${postUser}`;
+
+          const card = document.createElement('div');
+          card.className = 'bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3 shadow-xl';
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2.5 cursor-pointer" onclick="openPublicUserProfile('${postUser}')">
+                <img src="${uAvatar}" class="w-8 h-8 rounded-full object-cover bg-gray-800 border border-cyan-500/30">
+                <div>
+                  <h4 class="text-xs font-bold text-white">@${postUser}</h4>
+                  <p class="text-[9px] text-gray-400">Text Post</p>
+                </div>
+              </div>
+              <button onclick="openShareDrawer(${post.id})" class="text-gray-400 hover:text-white text-xs"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+
+            <p class="text-xs text-gray-200 allow-select leading-relaxed">${post.caption || ''}</p>
+
+            ${post.link ? `<a href="${post.link}" target="_blank" class="block p-2 bg-gray-800/80 rounded-xl border border-cyan-500/30 text-cyan-400 text-[11px] font-semibold truncate hover:underline"><i class="fa-solid fa-link mr-1"></i> ${post.link}</a>` : ''}
+
+            <div class="flex items-center justify-between border-t border-gray-800/80 pt-2.5 text-xs text-gray-400">
+              <button onclick="toggleLikeVideo(${post.id})" class="flex items-center gap-1.5 hover:text-red-400">
+                <span>${isLiked ? '♥️' : '🤍'}</span>
+                <span id="post-likes-count-${post.id}">${(post.likes || []).length}</span>
+              </button>
+              <button onclick="openCommentsForVideo(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
+                <i class="fa-regular fa-comment"></i>
+                <span>${(post.comments || []).length}</span>
+              </button>
+              <button onclick="openShareDrawer(${post.id})" class="flex items-center gap-1.5 hover:text-cyan-400">
+                <i class="fa-solid fa-share"></i>
+                <span>Share</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function togglePlayVideo(v) {
+      if (v.paused) v.play();
+      else v.pause();
+    }
+
+    function toggleLikeVideo(vidId) {
+      if (!currentUser || !dbInstance) return;
+      const cleanUser = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        if (!vid.likes) vid.likes = [];
+        const idx = vid.likes.indexOf(cleanUser);
+
+        if (idx > -1) {
+          vid.likes.splice(idx, 1);
+        } else {
+          vid.likes.push(cleanUser);
+        }
+
+        store.put(vid);
+        db.collection("videos").doc(String(vidId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          initAppContent();
+        };
+      };
+    }
+
+    function toggleSaveVideo(vidId) {
+      if (!currentUser) return;
+      const cleanUser = formatHandle(currentUser);
+      let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+      if (!users[cleanUser]) users[cleanUser] = {};
+      if (!users[cleanUser].savedVideos) users[cleanUser].savedVideos = [];
+
+      const savedList = users[cleanUser].savedVideos;
+      const idx = savedList.indexOf(vidId);
+
+      if (idx > -1) {
+        savedList.splice(idx, 1);
+        showToast('Removed from saved posts');
+      } else {
+        savedList.push(vidId);
+        showToast('Post saved successfully!');
+      }
+
+      localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
+      initAppContent();
+    }
+
+    function openCommentsForVideo(vidId) {
+      currentActiveVideoId = vidId;
+      renderCommentsList(vidId);
+      document.getElementById('commentDrawer').classList.add('open');
+    }
+
+    function closeCommentDrawer() {
+      document.getElementById('commentDrawer').classList.remove('open');
+      cancelReplyMode();
+    }
+
+    function renderCommentsList(vidId) {
+      if (!dbInstance) return;
+      const tx = dbInstance.transaction("videos", "readonly");
+      const store = tx.objectStore("videos");
+      const req = store.get(vidId);
+
+      req.onsuccess = function() {
+        const vid = req.result;
+        const area = document.getElementById('drawer-content-area');
+        area.innerHTML = '';
+
+        if (!vid || !vid.comments || vid.comments.length === 0) {
+          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
+          return;
+        }
+
+        let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
+
+        vid.comments.forEach((c, index) => {
+          const cUser = formatHandle(c.user);
+          const uAvatar = (users[cUser] || {}).avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cUser}`;
+
+          const div = document.createElement('div');
+          div.className = 'bg-gray-800/60 p-2.5 rounded-xl border border-gray-700/60 space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2 cursor-pointer" onclick="openPublicUserProfile('${cUser}')">
+                <img src="${uAvatar}" class="w-5 h-5 rounded-full object-cover">
+                <span class="text-[11px] font-bold text-cyan-400">@${cUser}</span>
+              </div>
+              <button onclick="setReplyTarget(${index}, '${cUser}')" class="text-[10px] text-gray-400 hover:text-white"><i class="fa-solid fa-reply mr-1"></i>Reply</button>
+            </div>
+            <p class="text-xs text-gray-200 allow-select pl-7">${c.text}</p>
+          `;
+          area.appendChild(div);
+        });
+      };
+    }
+
+    function setReplyTarget(commentId, username) {
+      replyTargetCommentId = commentId;
+      document.getElementById('reply-target-username').innerText = '@' + username;
+      document.getElementById('replying-banner').classList.remove('hidden');
+      document.getElementById('new-comment-input').focus();
+    }
+
+    function cancelReplyMode() {
+      replyTargetCommentId = null;
+      document.getElementById('replying-banner').classList.add('hidden');
+    }
+
+    function addCommentSubmit() {
+      if (!currentUser || !currentActiveVideoId || !dbInstance) return;
+      const input = document.getElementById('new-comment-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const cleanUser = formatHandle(currentUser);
+
+      const tx = dbInstance.transaction("videos", "readwrite");
+      const store = tx.objectStore("videos");
+      const req = store.get(currentActiveVideoId);
+
+      req.onsuccess = function() {
+        let vid = req.result;
+        if (!vid) return;
+
+        if (!vid.comments) vid.comments = [];
+        
+        let commentBody = text;
+        if (replyTargetCommentId !== null && vid.comments[replyTargetCommentId]) {
+          const targetU = formatHandle(vid.comments[replyTargetCommentId].user);
+          commentBody = `@${targetU} ${text}`;
+        }
+
+        vid.comments.push({
+          user: cleanUser,
+          text: commentBody,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+
+        store.put(vid);
+        db.collection("videos").doc(String(currentActiveVideoId)).set(vid, { merge: true }).catch(() => {});
+
+        tx.oncomplete = function() {
+          input.value = '';
+          cancelReplyMode();
+          renderCommentsList(currentActiveVideoId);
+          initAppContent();
+        };
+      };
+    }
+
+    // CREATE POST SYSTEM (DUAL TEXT / VIDEO SWITCHER)
     function switchCreateType(type) {
       currentCreateType = type;
       const textBtn = document.getElementById('create-type-text-btn');
@@ -1225,179 +2345,157 @@
     function previewGalleryVideo(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
-        const videoURL = URL.createObjectURL(file);
-        selectedGalleryVideoBase64 = videoURL;
-
-        const previewElem = document.getElementById('video-preview-elem');
-        previewElem.src = videoURL;
-        document.getElementById('video-preview-box').classList.remove('hidden');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedGalleryVideoBase64 = e.target.result;
+          const box = document.getElementById('video-preview-box');
+          const elem = document.getElementById('video-preview-elem');
+          elem.src = selectedGalleryVideoBase64;
+          box.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
       }
     }
 
     function previewUrlVideo(url) {
-      if (url) {
-        selectedGalleryVideoBase64 = url;
-        const previewElem = document.getElementById('video-preview-elem');
-        previewElem.src = url;
-        document.getElementById('video-preview-box').classList.remove('hidden');
+      if (url.trim().length > 5) {
+        selectedGalleryVideoBase64 = null;
+        const box = document.getElementById('video-preview-box');
+        const elem = document.getElementById('video-preview-elem');
+        elem.src = url.trim();
+        box.classList.remove('hidden');
       }
     }
 
     function publishPost() {
       if (!currentUser || !dbInstance) return;
       const caption = document.getElementById('post-caption').value.trim();
-      const link = document.getElementById('post-link').value.trim();
+      const cleanUser = formatHandle(currentUser);
 
-      if (currentCreateType === 'video' && !selectedGalleryVideoBase64) {
-        showToast('Please select or enter a video!');
-        return;
-      }
-
-      if (currentCreateType === 'text' && !caption) {
-        showToast('Please write a caption!');
-        return;
-      }
-
-      const newPost = {
+      let newPost = {
         id: Date.now(),
-        user: formatHandle(currentUser),
+        user: cleanUser,
         caption: caption,
-        url: currentCreateType === 'video' ? selectedGalleryVideoBase64 : '',
-        link: currentCreateType === 'text' ? link : '',
-        type: currentCreateType,
         likes: [],
         comments: [],
-        shares: 0
+        views: 1,
+        shares: 0,
+        reposts: 0
       };
+
+      if (currentCreateType === 'text') {
+        const link = document.getElementById('post-link').value.trim();
+        newPost.type = 'text';
+        newPost.link = link;
+        newPost.url = '';
+      } else {
+        newPost.type = 'video';
+        const urlInput = document.getElementById('post-video-url').value.trim();
+        if (selectedGalleryVideoBase64) {
+          newPost.url = selectedGalleryVideoBase64;
+        } else if (urlInput) {
+          newPost.url = urlInput;
+        } else {
+          showToast('Please select a video file or enter a valid URL!');
+          return;
+        }
+      }
 
       const tx = dbInstance.transaction("videos", "readwrite");
       const store = tx.objectStore("videos");
       store.put(newPost);
 
+      db.collection("videos").doc(String(newPost.id)).set(newPost).catch(() => {});
+
       tx.oncomplete = function() {
-        showToast('Post published successfully!');
-        closeModal('createModal');
         document.getElementById('post-caption').value = '';
         document.getElementById('post-link').value = '';
-        selectedGalleryVideoBase64 = null;
+        document.getElementById('post-video-url').value = '';
         document.getElementById('video-preview-box').classList.add('hidden');
-        if (currentCreateType === 'video') switchTab('videos');
-        else switchTab('feed');
+        selectedGalleryVideoBase64 = null;
+
+        closeModal('createModal');
+        initAppContent();
+        
+        if (currentCreateType === 'text') {
+          switchTab('feed');
+          showToast('Text post published to feed!');
+        } else {
+          switchTab('videos');
+          showToast('Video post published to videos feed!');
+        }
       };
     }
 
-    function openCommentsForVideo(vidId) {
-      currentActiveVideoId = vidId;
-      document.getElementById('commentDrawer').classList.add('open');
-      renderCommentsList(vidId);
+    function changeSymbol(sym) {
+      const iframe = document.getElementById('trading-frame');
+      iframe.src = `https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=${encodeURIComponent(sym)}&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Etc%2FUTC`;
     }
 
-    function closeCommentDrawer() {
-      document.getElementById('commentDrawer').classList.remove('open');
+    // CODE RUNNER ENGINE (PYTHON & JAVASCRIPT)
+    function clearTerminalOutput() {
+      document.getElementById('code-terminal-output').innerHTML = '<span class="text-gray-500">$ Termux console ready...</span>';
     }
 
-    function renderCommentsList(vidId) {
-      getVideosFromStorage(function(vids) {
-        const vid = vids.find(v => v.id === vidId);
-        const area = document.getElementById('drawer-content-area');
-        area.innerHTML = '';
+    function runCodeTerminal() {
+      const lang = document.getElementById('code-language').value;
+      const code = document.getElementById('code-editor').value;
+      const outputDiv = document.getElementById('code-terminal-output');
 
-        if (!vid || !vid.comments || vid.comments.length === 0) {
-          area.innerHTML = `<p class="text-xs text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>`;
-          return;
-        }
+      outputDiv.innerHTML = `<span class="text-cyan-400">$ Running ${lang}...</span><br>`;
 
-        vid.comments.forEach(c => {
-          const div = document.createElement('div');
-          div.className = 'bg-gray-800 p-2.5 rounded-xl text-xs space-y-1';
-          div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-cyan-400">@${c.user}</span>
-              <span class="text-[9px] text-gray-500">${c.time || ''}</span>
-            </div>
-            <p class="text-gray-200 allow-select">${c.text}</p>
-          `;
-          area.appendChild(div);
-        });
-      });
-    }
-
-    function addCommentSubmit() {
-      if (!currentActiveVideoId || !currentUser || !dbInstance) return;
-      const input = document.getElementById('new-comment-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const tx = dbInstance.transaction("videos", "readwrite");
-      const store = tx.objectStore("videos");
-      const req = store.get(currentActiveVideoId);
-
-      req.onsuccess = function() {
-        let vid = req.result;
-        if (!vid) return;
-
-        if (!vid.comments) vid.comments = [];
-        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        vid.comments.push({
-          user: formatHandle(currentUser),
-          text: text,
-          time: timeStr
-        });
-
-        store.put(vid);
-        tx.oncomplete = function() {
-          input.value = '';
-          renderCommentsList(currentActiveVideoId);
-          renderCleanVideoFeed();
+      if (lang === 'javascript') {
+        let logs = [];
+        const originalLog = console.log;
+        console.log = function(...args) {
+          logs.push(args.join(' '));
+          originalLog.apply(console, args);
         };
-      };
-    }
 
-    function openShareDrawer(vidId) {
-      currentActiveVideoId = vidId;
-      document.getElementById('shareDrawer').classList.add('open');
-    }
-
-    function closeShareDrawer() {
-      document.getElementById('shareDrawer').classList.remove('open');
-    }
-
-    function renderFeedPosts() {
-      getVideosFromStorage(function(vids) {
-        const container = document.getElementById('posts-container');
-        container.innerHTML = '';
-
-        const textPosts = vids.filter(v => v.type === 'text' || !v.url);
-        if (textPosts.length === 0) {
-          container.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No feed posts available.</p>`;
-          return;
+        try {
+          const result = eval(code);
+          if (logs.length > 0) {
+            outputDiv.innerHTML += `<span class="text-green-400">${logs.join('<br>')}</span>`;
+          } else if (result !== undefined) {
+            outputDiv.innerHTML += `<span class="text-green-400">${result}</span>`;
+          } else {
+            outputDiv.innerHTML += `<span class="text-gray-400">Program executed with no output.</span>`;
+          }
+        } catch (err) {
+          outputDiv.innerHTML += `<span class="text-red-400">Error: ${err.message}</span>`;
+        } finally {
+          console.log = originalLog;
+        }
+      } else if (lang === 'python') {
+        function outf(text) {
+          const cleanText = text.replace(/\n/g, '<br>');
+          outputDiv.innerHTML += `<span class="text-green-400">${cleanText}</span>`;
+        }
+        function builtinRead(x) {
+          if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+            throw "File not found: '" + x + "'";
+          return Sk.builtinFiles["files"][x];
         }
 
-        textPosts.forEach(p => {
-          const div = document.createElement('div');
-          div.className = 'p-4 bg-gray-900 border border-gray-800 rounded-2xl space-y-2 shadow-lg';
-          div.innerHTML = `
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-cyan-400">@${formatHandle(p.user)}</span>
-            </div>
-            <p class="text-xs text-gray-200 allow-select leading-relaxed">${p.caption || ''}</p>
-            ${p.link ? `<a href="${p.link}" target="_blank" class="text-[11px] text-cyan-400 underline block truncate">${p.link}</a>` : ''}
-          `;
-          container.appendChild(div);
+        Sk.configure({ output: outf, read: builtinRead });
+
+        Sk.misceval.asyncToPromise(function() {
+          return Sk.importMainWithBody("<stdin>", false, code, true);
+        }).then(function() {
+          // Success
+        }, function(err) {
+          outputDiv.innerHTML += `<span class="text-red-400">${err.toString()}</span>`;
         });
-      });
+      }
     }
 
-    function openDmInboxModal() { openModal('dmModal'); }
-    function toggleDmHeaderMenu() { document.getElementById('dm-header-menu').classList.toggle('hidden'); }
-    function startChannelCreationFlow() { closeModal('dmModal'); openModal('createChannelStep1Modal'); }
-    function openPublicUserProfile(user) { showToast('Public Profile: @' + user); }
-    function applyColorSettings() {}
-    function savePrivacySettings() {}
-    function loadSavedSettings() {}
-    function runCodeTerminal() { document.getElementById('code-terminal-output').innerText = "$ Running Code...\nOutput: Hello World!"; }
-    function clearTerminalOutput() { document.getElementById('code-terminal-output').innerText = "$ Termux console ready..."; }
-    function closeVideoPlayerModal() { closeModal('videoPlayerModal'); }
+    // Close Emoji Picker on Click Outside
+    document.addEventListener('click', function(e) {
+      const picker = document.getElementById('emojiReactionPicker');
+      if (picker && !picker.contains(e.target) && !e.target.closest('#dm-thread-view')) {
+        picker.classList.add('hidden');
+      }
+    });
   </script>
 </body>
 </html>
