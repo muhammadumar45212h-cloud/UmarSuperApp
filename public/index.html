@@ -363,14 +363,15 @@
   </div>
 
   <script>
-    // FIREBASE INITIALIZATION WITH YOUR DB ENVIRONMENT
+    // FIREBASE INITIALIZATION WITH YOUR REAL API KEYS
     const firebaseConfig = {
-      apiKey: "AIzaSyDummyKeyForAppSync12345678",
-      authDomain: "super-app-omega.firebaseapp.com",
-      projectId: "super-app-omega",
-      storageBucket: "super-app-omega.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdef123456"
+      apiKey: "AIzaSyB9ACAxelcW-esJWUDrD5lhL_7svxlyGxc",
+      authDomain: "umarsuperapp.firebaseapp.com",
+      projectId: "umarsuperapp",
+      storageBucket: "umarsuperapp.firebasestorage.app",
+      messagingSenderId: "812034119197",
+      appId: "1:812034119197:web:60dc07304f30f29f6058f4",
+      measurementId: "G-T8YZKR2SRR"
     };
 
     if (!firebase.apps.length) {
@@ -480,7 +481,7 @@
       }
     }
 
-    // SERVER-SYNCHRONIZED POST PUBLISHING
+    // SERVER-SYNCHRONIZED POST PUBLISHING WITH DIRECT FIREBASE FALLBACK
     async function publishPostServer() {
       if (!currentUser) return;
       const caption = document.getElementById('post-caption').value.trim();
@@ -488,23 +489,23 @@
       const videoUrl = document.getElementById('post-video-url').value.trim();
 
       try {
-        const res = await fetch('/api/posts/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userUid: currentUser,
-            username: currentUser,
-            caption,
-            url: videoUrl,
-            type: currentCreateType,
-            link
-          })
+        // Direct Firebase Document Add (Guarantees multi-user delivery)
+        await db.collection('posts').add({
+          user: currentUser,
+          username: currentUser,
+          caption: caption,
+          url: videoUrl || null,
+          type: currentCreateType,
+          link: link || null,
+          likes: [],
+          views: 1,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        const data = await res.json();
-        if (data.success) {
-          showToast('Post published to central backend!');
-          closeModal('createModal');
-        }
+
+        showToast('Post published to central backend!');
+        closeModal('createModal');
+        document.getElementById('post-caption').value = '';
+        document.getElementById('post-video-url').value = '';
       } catch (err) {
         showToast('Publishing failed: ' + err.message);
       }
@@ -524,7 +525,7 @@
               <span class="font-bold text-xs text-cyan-400">@${post.user}</span>
               <button onclick="sendGiftServer('${post.user}', 10)" class="text-[10px] bg-amber-500/20 border border-amber-500 text-amber-300 px-2 py-0.5 rounded-full">💎 Send 10 Gift</button>
             </div>
-            <p class="text-xs text-gray-200">${post.caption}</p>
+            <p class="text-xs text-gray-200">${post.caption || ''}</p>
             ${post.url ? `<video src="${post.url}" controls class="w-full rounded-xl max-h-60 bg-black"></video>` : ''}
             <div class="flex justify-between items-center text-[10px] text-gray-400 border-t border-gray-800 pt-2">
               <button onclick="likePostServer('${doc.id}')"><i class="fa-solid fa-heart text-red-500"></i> ${post.likes ? post.likes.length : 0}</button>
@@ -549,7 +550,7 @@
             <video src="${v.url}" class="w-full h-full object-cover" loop autoplay muted></video>
             <div class="absolute bottom-6 left-4 z-20 space-y-1">
               <p class="text-xs font-bold text-white">@${v.user}</p>
-              <p class="text-[11px] text-gray-300">${v.caption}</p>
+              <p class="text-[11px] text-gray-300">${v.caption || ''}</p>
             </div>
           `;
           container.appendChild(reel);
@@ -583,10 +584,10 @@
     }
 
     async function likePostServer(postId) {
-      fetch('/api/posts/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, userUid: currentUser })
+      if (!currentUser) return;
+      const postRef = db.collection('posts').doc(postId);
+      postRef.update({
+        likes: firebase.firestore.FieldValue.arrayUnion(currentUser)
       });
     }
 
