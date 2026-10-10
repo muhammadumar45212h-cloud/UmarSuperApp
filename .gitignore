@@ -16,3 +16,6 @@ service-account.json
 .env
 .env.local
 *.bak
+*.bak
+dev-bot.js
+native.js.bak
