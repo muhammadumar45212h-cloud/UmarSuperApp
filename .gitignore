@@ -19,3 +19,4 @@ service-account.json
 *.bak
 dev-bot.js
 native.js.bak
+.github/
