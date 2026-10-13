@@ -4,4 +4,5 @@
     <string name="title_activity_main">Super Sphere</string>
     <string name="package_name">com.umar.superapp</string>
     <string name="custom_url_scheme">com.umar.superapp</string>
+    <string name="default_notification_channel_id">default_channel</string>
 </resources>
