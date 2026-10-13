@@ -17,5 +17,13 @@
   "bugs": {
     "url": "https://github.com/muhammadumar45212h-cloud/UmarSuperApp/issues"
   },
-  "homepage": "https://github.com/muhammadumar45212h-cloud/UmarSuperApp#readme"
+  "homepage": "https://github.com/muhammadumar45212h-cloud/UmarSuperApp#readme",
+  "dependencies": {
+    "@capacitor-community/admob": "^8.2.1",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/camera": "^8.2.5",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/push-notifications": "^8.1.3"
+  }
 }
