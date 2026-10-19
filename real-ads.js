@@ -1,27 +1,29 @@
 // ==========================================
-// ⚡ SUPER APP - REAL ADMOB INTEGRATION
+// ⚡ SUPER APP - REAL ADMOB (FINAL)
 // File: real-ads.js
+// IDs: Banner, Interstitial, Rewarded
 // ==========================================
 
 (function() {
   'use strict';
 
-  // ⚠️ Yahan apni Play Store / AdMob Console wali IDs dalein
+  // ⚠️ AAPKI ASLI IDs
   const AD_IDS = {
     BANNER: 'ca-app-pub-9780067506108310/8797038795',
-    // Interstitial aur Rewarded IDs AdMob Console se banayein aur yahan dalein
-    INTERSTITIAL: 'ca-app-pub-9780067506108310/8797038795', 
-    REWARDED: 'ca-app-pub-9780067506108310/8797038795'
+    INTERSTITIAL: 'ca-app-pub-9780067506108310/8812211938',
+    REWARDED: 'ca-app-pub-9780067506108310/6133332849'
   };
 
   window.RealAds = {
     ready: false,
     plugin: null,
-    lastAdTime: 0,
+    lastInterstitial: 0,
+    actionCount: 0,
 
+    // 1. Initialize AdMob
     init: async function() {
       if (!window.Capacitor || !window.Capacitor.Plugins.AdMob) {
-        console.log("⚠️ AdMob plugin not found. Web mode.");
+        console.log("⚠️ AdMob plugin missing (Web/Browser mode).");
         return false;
       }
 
@@ -31,89 +33,110 @@
       try {
         await AdMob.initialize({ initializeForTesting: false });
         this.ready = true;
-        
-        // Banner show karein
+        console.log("✅ Real AdMob Initialized");
+
+        // Banner show karein app khulte hi
         setTimeout(() => this.showBanner(), 2000);
-        
-        // Reward listener
+
+        // Reward listener set karein
         AdMob.addListener('onRewardedVideoAdReward', (reward) => {
-          this.giveReward();
+          this.giveRewardToUser();
         });
 
         return true;
       } catch (e) {
-        console.error("AdMob Error:", e);
+        console.error("❌ AdMob Init Error:", e);
         return false;
       }
     },
 
+    // 2. Banner Ad
     showBanner: async function() {
       if (!this.ready) return;
       try {
         await this.plugin.showBanner({
           adId: AD_IDS.BANNER,
           position: 'BOTTOM_CENTER',
-          isTesting: false // Real Ads
+          margin: 0,
+          isTesting: false
         });
-      } catch(e) { console.error(e); }
+      } catch(e) { console.error("Banner Error:", e); }
     },
 
+    // 3. Interstitial Ad (Har 5 action ke baad, gap 3 min)
     showInterstitial: async function() {
       if (!this.ready) return;
-      // Har 2 minute mein ek ad
-      if (Date.now() - this.lastAdTime < 120000) return;
       
+      this.actionCount++;
+      if (this.actionCount < 5) return; // Har 5 baar mein ek dafa
+      
+      if (Date.now() - this.lastInterstitial < 180000) return; // 3 min gap
+
       try {
-        this.lastAdTime = Date.now();
+        this.actionCount = 0;
+        this.lastInterstitial = Date.now();
+        
         await this.plugin.prepareInterstitial({ adId: AD_IDS.INTERSTITIAL, isTesting: false });
         await this.plugin.showInterstitial();
-      } catch(e) { console.error(e); }
+      } catch(e) { console.error("Interstitial Error:", e); }
     },
 
+    // 4. Rewarded Ad (User ki marzi se - Earning)
     showRewarded: async function() {
       if (!this.ready) {
-        showToast("Ads sirf app mein chalte hain.");
+        showToast("Ads sirf Android App mein chalte hain. (Play Store se download karein)");
         return;
       }
       try {
-        showToast("⏳ Loading Ad...");
+        showToast("🎬 Ad load ho rahi hai...");
         await this.plugin.prepareRewardVideoAd({ adId: AD_IDS.REWARDED, isTesting: false });
         await this.plugin.showRewardVideoAd();
       } catch(e) { 
-        showToast("Ad load fail: " + e.message);
+        showToast("❌ Ad load nahi hui. Internet check karein.");
+        console.error("Rewarded Error:", e);
       }
     },
 
-    giveReward: async function() {
+    // 5. Reward Dena (Jab user ad pura dekh le)
+    giveRewardToUser: async function() {
       if (!currentUser) return;
+      
       const cleanUser = formatHandle(currentUser);
-      const reward = 5; // 5 diamonds
+      const rewardAmount = 5; // Har ad dekhne par 5 diamonds
 
       let users = JSON.parse(localStorage.getItem('SUPER_APP_USERS') || '{}');
       if (!users[cleanUser]) users[cleanUser] = {};
-      users[cleanUser].diamonds = (users[cleanUser].diamonds || 0) + reward;
+      
+      users[cleanUser].diamonds = (users[cleanUser].diamonds || 0) + rewardAmount;
       localStorage.setItem('SUPER_APP_USERS', JSON.stringify(users));
 
-      await db.collection("users").doc(cleanUser).set({
-        diamonds: users[cleanUser].diamonds
-      }, { merge: true });
+      try {
+        await db.collection("users").doc(cleanUser).set({
+          diamonds: users[cleanUser].diamonds
+        }, { merge: true });
 
-      showToast(`🎉 You earned ${reward} Diamonds!`);
+        await db.collection("ad_rewards").add({
+          user: cleanUser,
+          amount: rewardAmount,
+          type: 'rewarded_ad',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch(e) {}
+
+      showToast(`💰 +${rewardAmount} Diamonds add ho gaye!`);
       updateWalletUI();
     }
   };
 
-  // Initialize on load
+  // App Load hone par init karein
   window.addEventListener('load', () => {
     setTimeout(() => RealAds.init(), 3000);
   });
 
-  // Patch old overlay with real ads
+  // Purane system ko override karein
   window.triggerPostWithdrawalAds = function(n) {
     if (n <= 0) return;
-    RealAds.showRewarded().then(() => {
-      if (n > 1) setTimeout(() => window.triggerPostWithdrawalAds(n - 1), 1000);
-    });
+    RealAds.showRewarded();
   };
 
 })();
