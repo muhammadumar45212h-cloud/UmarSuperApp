@@ -1,0 +1,49 @@
+Time: 2026-10-23T06:23:06.933Z
+Knowledge JS files: 38
+Syntax OK: 38
+Syntax errors: 0
+Question fields detected: 600
+index.html exists: true
+Chatbot file exists: true
+Engine file exists: true
+Knowledge hub exists: true
+Knowledge script names in index: 14
+
+OK | super-ai-01-science.js | detected Q&A fields: 0
+OK | super-ai-02-technology.js | detected Q&A fields: 0
+OK | super-ai-03-pakistan.js | detected Q&A fields: 0
+OK | super-ai-04-mathematics.js | detected Q&A fields: 0
+OK | super-ai-05-biology.js | detected Q&A fields: 0
+OK | super-ai-06-space.js | detected Q&A fields: 0
+OK | super-ai-07-history.js | detected Q&A fields: 0
+OK | super-ai-08-geography.js | detected Q&A fields: 0
+OK | super-ai-09-education.js | detected Q&A fields: 0
+OK | super-ai-10-language.js | detected Q&A fields: 0
+OK | super-ai-11-business.js | detected Q&A fields: 0
+OK | super-ai-12-health.js | detected Q&A fields: 0
+OK | super-ai-13-cybersecurity.js | detected Q&A fields: 0
+OK | super-ai-14-environment.js | detected Q&A fields: 0
+OK | super-ai-15-ai-machine-learning.js | detected Q&A fields: 0
+OK | super-ai-16-programming.js | detected Q&A fields: 0
+OK | super-ai-17-databases.js | detected Q&A fields: 0
+OK | super-ai-18-economics-finance.js | detected Q&A fields: 0
+OK | super-ai-19-social-media.js | detected Q&A fields: 0
+OK | super-ai-20-engineering-physics.js | detected Q&A fields: 0
+OK | super-ai-mega-01-science.js | detected Q&A fields: 150
+OK | super-ai-mega-02-history.js | detected Q&A fields: 150
+OK | super-ai-mega-03-technology.js | detected Q&A fields: 150
+OK | super-ai-mega-04-learning-brain.js | detected Q&A fields: 150
+OK | super-ai-mega-05-finance.js | detected Q&A fields: 0
+OK | super-ai-mega-06-programming.js | detected Q&A fields: 0
+OK | super-ai-mega-07-geography.js | detected Q&A fields: 0
+OK | super-ai-mega-08-environment.js | detected Q&A fields: 0
+OK | super-ai-mega-09-science.js | detected Q&A fields: 0
+OK | super-ai-mega-10-mathematics.js | detected Q&A fields: 0
+OK | super-ai-mega-11-space.js | detected Q&A fields: 0
+OK | super-ai-mega-12-biology.js | detected Q&A fields: 0
+OK | super-ai-mega-13-pakistan.js | detected Q&A fields: 0
+OK | super-ai-mega-14-history.js | detected Q&A fields: 0
+OK | super-ai-mega-15-technology.js | detected Q&A fields: 0
+OK | super-ai-mega-16-english.js | detected Q&A fields: 0
+OK | super-ai-mega-17-cybersecurity.js | detected Q&A fields: 0
+OK | super-ai-mega-18-health-basics.js | detected Q&A fields: 0

@@ -13,6 +13,10 @@ window.SuperAIEngine={
   if(math)return math;
   if(/\b(waqt|time|kitne baje)\b/.test(s))return "Phone ka waqt: "+new Date().toLocaleString();
   if(/\b(tareekh|date|today)\b/.test(s))return "Aaj ki tareekh: "+new Date().toLocaleDateString();
+  if(window.SuperAIKnowledgeHub){
+   const hub=window.SuperAIKnowledgeHub.ask(q);
+   if(hub.found&&hub.answer)return window.SAISafety.review(hub.answer);
+  }
   const all=(window.SAIKnowledgeModules||[]).slice();
   if(window.SuperAIMemory){
    const extra=window.SuperAIMemory.learned();
