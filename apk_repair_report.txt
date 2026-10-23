@@ -1,0 +1,5 @@
+STATUS=SUCCESS
+ATTEMPT=1
+METHOD=AAPT2 named aapt2
+APK=/data/data/com.termux/files/home/SuperSphere-New/Super-App-debug.apk
+FINISHED=Thu Oct 22 09:08:00 PKT 2026
