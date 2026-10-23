@@ -9,6 +9,12 @@ window.SuperAIEngine={
   const learned=window.SuperAIMemory?window.SuperAIMemory.learned():{};
   if(learned[s])return learned[s].answer;
   if(intent==="learning")return "Jawab sikhane ka format: SIKHAO: sawal | jawab";
+  if(window.SuperAILearningBrain){
+   const brainHit=window.SuperAILearningBrain.find(q);
+   if(brainHit.found&&brainHit.answer){
+    return window.SAISafety?window.SAISafety.review(brainHit.answer):brainHit.answer;
+   }
+  }
   const math=window.SAIMath.calculate(s);
   if(math)return math;
   if(/\b(waqt|time|kitne baje)\b/.test(s))return "Phone ka waqt: "+new Date().toLocaleString();

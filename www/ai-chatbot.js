@@ -126,11 +126,21 @@
     });
 
     function handleLearning(q) {
+      if (window.SuperAILearningBrain) {
+        const result = window.SuperAILearningBrain.teachCommand(q);
+        if (result) {
+          return result.ok
+            ? "Shukriya! Maine sawal aur jawab device par save kar liya hai."
+            : result.message;
+        }
+      }
+
       const match = q.match(/^sikhao\s*:\s*(.+?)\s*\|\s*(.+)$/i);
       if (!match) return null;
+
       const ok = window.SuperAIMemory.learn(match[1], match[2]);
       return ok
-        ? "Shukriya! Maine ye sawal aur jawab isi device ki local memory mein save kar liya hai. Agli baar milte-julte sawal par ye jawab dene ki koshish karunga."
+        ? "Shukriya! Jawab local memory mein save ho gaya."
         : "Jawab save nahi ho saka. Device storage check karein.";
     }
 
