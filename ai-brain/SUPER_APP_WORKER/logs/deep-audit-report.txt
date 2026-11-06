@@ -1,0 +1,373 @@
+SUPER APP GUARDIAN — DEEP AUDIT
+Wed Oct 28 05:50:26 PKT 2026
+Project: /data/data/com.termux/files/home/SuperSphere-New
+Mode: READ ONLY
+
+========== 1. EXISTING AGENT MODULES ==========
+
+--- www/super-agent/01-config.js ---
+9:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/02-normalizer.js ---
+3:function normalize(s){
+8:function tokens(s){
+14:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/03-language.js ---
+3:function detect(s){
+15:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/04-intent.js ---
+12:function classify(s){
+20:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/05-entities.js ---
+3:function extract(s){
+13:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/06-knowledge.js ---
+13:function search(s){
+22:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/07-memory.js ---
+4:function read(){
+10:function add(role,text){
+18:function recent(n){return read().slice(-Math.max(1,Math.min(20,n||8)));}
+19:function clear(){
+24:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/08-tasks.js ---
+4:function read(){
+8:function list(){return read();}
+9:function add(title){
+18:function update(id,status){
+29:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/09-planner.js ---
+3:function create(goal,intent){
+19:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/10-safety.js ---
+10:function review(s){
+18:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/11-tools.js ---
+4:function register(name,description,handler){
+10:function list(){return Array.from(registry.values()).map(({name,description})=>({name,description}));}
+11:async function call(name,args,options){
+21:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/12-calculator.js ---
+3:function calculate(input){
+13:function atom(){
+21:function term(){
+30:function expr(){
+43:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/13-code-review.js ---
+3:function review(source){
+19:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/14-summarizer.js ---
+3:function summarize(text,maxSentences){
+12:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/15-quality.js ---
+3:function review(answer){
+14:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/16-prompt-builder.js ---
+3:function build(question,history,options){
+27:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/17-backend-client.js ---
+3:async function ask(question,history,options){
+9:const response=await r.fetch(config.backend||"/api/super-ai",{
+24:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/18-conversation.js ---
+4:function get(id){
+9:function add(id,role,content){
+17:function history(id,n){
+21:function clear(id){return sessions.delete(String(id||"default").slice(0,100));}
+24:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/19-diagnostics.js ---
+3:function run(){
+17:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/20-orchestrator.js ---
+3:function analyze(question){
+15:async function ask(question,options){
+29:})(typeof window!=="undefined"?window:globalThis);
+
+--- www/super-agent/21-app-bridge.js ---
+1:(function (root) {
+7:  function safeText(value, max) {
+14:  function addHistory(role, content) {
+25:  function analyze(question) {
+37:  async function ask(question, options) {
+65:  function status() {
+79:  function clearHistory() {
+91:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/action-policy.js ---
+1:(function (root) {
+27:  function review(action) {
+47:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/agent-brain.js ---
+1:(function (root) {
+4:  function getModule(name) {
+8:  function makePlan(question, route) {
+39:  function assess(question) {
+93:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/context-memory.js ---
+1:(function (root) {
+8:  function clean(value) {
+14:  function read() {
+24:  function write(items) {
+76:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/intelligence-engine.js ---
+1:(function (root) {
+6:  function moduleOf(name) {
+10:  function clean(text) {
+17:  function analyze(question) {
+65:  function summarize(question) {
+97:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/knowledge-index.js ---
+1:(function (root) {
+17:  function tokenize(text) {
+24:  function search(query) {
+47:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/response-quality.js ---
+1:(function (root) {
+4:  function review(answer) {
+37:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/task-memory.js ---
+1:(function (root) {
+7:  function read() {
+17:  function save(items) {
+26:  function add(title, status) {
+49:  function list(status) {
+54:  function update(id, status) {
+68:  function remove(id) {
+80:})(typeof window !== "undefined" ? window : globalThis);
+
+--- www/super-agent/tool-router.js ---
+1:(function (root) {
+31:  function classify(input) {
+59:})(typeof window !== "undefined" ? window : globalThis);
+
+========== 2. AI BACKEND CONTRACT ==========
+1:export default async function handler(req, res) {
+4:  if (req.method !== "POST") {
+5:    return res.status(405).json({ error: "POST only" });
+9:    ENV_VAR_REFERENCE,
+10:    ENV_VAR_REFERENCE
+13:  const model = ENV_VAR_REFERENCE || "openai/gpt-oss-20b";
+16:    return res.status(503).json({
+21:  const question = String(req.body?.question || "").trim();
+23:  if (!question || question.length > 6000) {
+24:    return res.status(400).json({
+29:  const history = Array.isArray(req.body?.history)
+30:    ? req.body.history.slice(-8)
+47:        "For questions about your creator, say Muhammad Umar created you. " +
+59:    ...history,
+60:    { role: "user", content: question }
+65:      const response = await fetch(
+82:      const data = await response.json().catch(() => ({}));
+90:        return res.status(response.status === 429 ? 429 : 502).json({
+100:        return res.status(502).json({ error: "Empty AI response." });
+103:      return res.status(200).json({
+109:      return res.status(502).json({ error: "Could not reach Groq." });
+113:  return res.status(401).json({
+
+========== 3. UPLOAD AND MODERATION HOOKS ==========
+www/index.html:308:          <input type="file" id="edit-avatar-input" accept="image/*" class="hidden" onchange="previewEditAvatar(this)">
+www/index.html:344:      <div class="flex justify-between items-center"><div><p class="text-xs text-gray-200 font-semibold">Private Profile</p></div><input type="checkbox" id="setting-private-profile" onchange="savePrivacySettings()" class="w-4 h-4 accent-cyan-500"></div>
+www/index.html:495:        <input type="file" id="channel-post-file" accept="image/*" class="hidden" onchange="previewChannelPostPhoto(this)">
+www/index.html:512:          <input type="file" id="contact-photo-input" accept="image/*" class="hidden" onchange="previewContactPhoto(this)">
+www/index.html:548:          <input type="file" id="chan-photo-input" accept="image/*" class="hidden" onchange="previewChannelAvatar(this)">
+www/index.html:609:        <input type="file" id="post-video-file" accept="video/*" onchange="previewGalleryVideo(this)" class="hidden">
+www/index.html:751:      db.collection("posts").orderBy("createdAt", "desc").limit(100).onSnapshot(snap => {
+www/index.html:894:      if (input.files && input.files[0]) {
+www/index.html:903:        reader.readAsDataURL(input.files[0]);
+www/index.html:1481:      if (input.files && input.files[0]) {
+www/index.html:1484:        reader.readAsDataURL(input.files[0]);
+www/index.html:1554:      if (input.files && input.files[0]) {
+www/index.html:1557:        reader.readAsDataURL(input.files[0]);
+www/index.html:1646:      try { await db.collection("channels").doc(activeChannelId).update({ posts: chan.posts }); } catch(e){}
+www/index.html:1653:      if (input.files && input.files[0]) {
+www/index.html:1656:        reader.readAsDataURL(input.files[0]);
+www/index.html:1745:        try { db.collection("posts").doc(id).update({ likes: vid.likes }); } catch(e){}
+www/index.html:1791:        try { db.collection("posts").doc(currentActiveVideoId).update({ comments: vid.comments }); } catch(e){}
+www/index.html:1839:      if (input.files && input.files[0]) {
+www/index.html:1842:        reader.readAsDataURL(input.files[0]);
+www/index.html:1860:        await db.collection("posts").doc(newPost.id).set({ ...newPost, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+www/index.html:2010:        try { await db.collection("posts").doc(repostId).set({ ...rp, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } catch(e){}
+www/index.js:270:        if (!input.files || !input.files[0]) return;
+www/index.js:283:        reader.readAsDataURL(input.files[0]);
+www/index.js:395:                            <input type="file" id="kyc-front-input" accept="image/*" class="hidden" onchange="kycPreview('front', this)">
+www/index.js:401:                                <input type="file" id="kyc-back-input" accept="image/*" class="hidden" onchange="kycPreview('back', this)">
+www/index.js:406:                                <input type="file" id="kyc-selfie-input" accept="image/*" class="hidden" onchange="kycPreview('selfie', this)">
+www/launch-kit.js:383:    const url = URL.createObjectURL(blob);
+www/launch-kit.js:392:        a.href = URL.createObjectURL(b);
+www/launch-kit.js:421:    const logoUrl = URL.createObjectURL(logoBlob);
+www/launch-kit.js:439:        a.href = URL.createObjectURL(b);
+www/fixes.js:161:      .collection('posts').doc(videoId)
+www/fixes.js:171:        firebase.firestore().collection('posts').doc(videoId)
+www/fixes.js:214:      await firebase.firestore().collection('posts').doc(vid).collection('comments').add({
+www/premium.js:683:        .collection('posts').doc(videoId)
+www/ads.js:231:        const snap = await firebase.firestore().collection('posts')
+www/spherepatch.js:49:      try { firebase.firestore().collection("posts").doc(id).update({ likes: vid.likes }); } catch(e) {}
+www/spherepatch.js:107:      await firebase.firestore().collection("posts").doc(newPost.id).set({
+www/spherepatch.js:146:        <input type="file" id="channel-post-file" accept="image/*" class="hidden" onchange="window.__previewChPhoto(this)">
+www/spherepatch.js:154:    if (input.files && input.files[0]) {
+www/spherepatch.js:161:      reader.readAsDataURL(input.files[0]);
+www/spherepatch.js:184:    try { await firebase.firestore().collection('channels').doc(activeChannelId).update({ posts: chan.posts }); } catch(e) {}
+www/spherepatch.js:240:    try { await firebase.firestore().collection('channels').doc(chId).update({ posts: chan.posts }); } catch(e) {}
+www/spherepatch.js:340:      try { firebase.firestore().collection("posts").doc(id).update({ likes: v.likes }); } catch(e) {}
+www/spherepatch.js:422:        <input type="file" id="pay-ss" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-lg text-xs text-white">
+www/spherepatch.js:574:    if (!input.files || !input.files[0]) return;
+www/spherepatch.js:583:    reader.readAsDataURL(input.files[0]);
+www/final-checklist.js:429:    const url = URL.createObjectURL(blob);
+www/edit-pro.js:309:    input.type = 'file';
+www/edit-pro.js:315:        const url = URL.createObjectURL(file);
+www/edit-pro.js:551:    input.type = 'file';
+www/edit-pro.js:556:      const url = URL.createObjectURL(file);
+www/vision.js:3:   Real AI-powered content moderation (Free — no API key needed)
+www/vision.js:6:   2. Blob scanning — Photos/videos check before upload
+www/vision.js:34:  let nsfwModel = null;
+www/vision.js:43:      // Load nsfwjs + tfjs
+www/vision.js:46:        'https://cdn.jsdelivr.net/npm/nsfwjs@4.2.0/dist/nsfwjs.min.js'
+www/vision.js:57:            if (window.nsfwjs) {
+www/vision.js:58:              window.nsfwjs.load('MobileNetV2')
+www/vision.js:60:                  nsfwModel = model;
+www/vision.js:105:      if (!modelReady || !nsfwModel) {
+www/vision.js:114:      const predictions = await nsfwModel.classify(img, 5);
+www/vision.js:124:      const nsfwScore = porn + hentai + sexy;
+www/vision.js:127:        safe: nsfwScore < 0.6, // 60%+ NSFW = block
+www/vision.js:133:        nsfwScore: Math.round(nsfwScore * 100),
+www/vision.js:134:        method: 'nsfwjs'
+www/vision.js:232:        if (result.nsfwScore > maxNsfw) {
+www/vision.js:233:          maxNsfw = result.nsfwScore;
+www/vision.js:251:        nsfwScore: maxNsfw,
+www/vision.js:257:      console.warn('Video moderation error:', e);
+www/vision.js:271:        : URL.createObjectURL(fileOrUrl);
+www/vision.js:299:        console.log('Image moderation:', result);
+www/vision.js:322:          console.log('Video moderation:', result);
+www/vision.js:331:          console.log('Large video — skipping full moderation');
+www/vision.js:381:        nsfwScore: result.nsfwScore || 0,
+www/vision.js:423:        `NSFW Score: ${result.nsfwScore || 0}%\n` +
+www/vision.js:438:          score: result.nsfwScore || 0,
+www/vision.js:453:    if (!document.getElementById('moderationProgress')) {
+www/vision.js:455:        <div id="moderationProgress" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6">
+www/vision.js:481:      document.getElementById('moderationProgress')?.remove();
+www/vision.js:490:    const file = input.files?.[0];
+www/vision.js:532:    const file = input.files?.[0];
+www/vision.js:565:      const snap = await firebase.firestore().collection('posts').limit(100).get();
+www/vision.js:645:          <p class="text-[10px] text-gray-400">Type: ${d.type} • Score: ${d.nsfwScore}%</p>
+www/vision.js:665:    console.log('✅ vision.js loaded — AI content moderation active');
+www/real-ads.js:203:       * Sirf un plugin versions ke liye jo explicitly
+www/super-ai-advanced-knowledge-v2.js:222:7. Missing evidence aur uncertainty ko explicitly batata hai.
+www/super-ai-next-25-tools.js:14:   if(options.allow!==true)throw Error("Tool execution requires explicit allow:true");
+www/super-agent/action-policy.js:37:        ? "Sensitive action: explain the action and obtain explicit user confirmation before execution."
+www/super-agent/11-tools.js:15:return {ok:false,error:"explicit_confirmation_required"};
+www/super-ai-learning-loop.js:65:  // User explicitly teaches or corrects an answer.
+
+========== 4. FIREBASE AND STORAGE REFERENCES ==========
+www/index.html
+www/admin.js
+www/index.js
+www/launch-kit.js
+www/fixes.js
+www/premium.js
+www/ads.js
+www/spherepatch.js
+www/call.js
+www/final-checklist.js
+www/kycbot.js
+www/vision.js
+
+========== 5. ADMIN AND APP BRIDGE ==========
+--- www/super-agent/21-app-bridge.js ---
+14:  function addHistory(role, content) {
+15:    if (!["user", "assistant"].includes(role)) return;
+19:    history.push({ role, content: text });
+26:    if (!root.SAOrchestrator) {
+34:    return root.SAOrchestrator.analyze(safeText(question));
+41:    if (!root.SAOrchestrator) {
+47:    const result = await root.SAOrchestrator.ask(q, {
+66:    const diagnostics = root.SADiagnostics
+67:      ? root.SADiagnostics.run()
+73:      diagnostics,
+--- www/super-agent/19-diagnostics.js ---
+7:"SABackendClient","SAConversation","SAOrchestrator"];
+15:r.SADiagnostics={run};
+16:if(typeof module!=="undefined")module.exports=r.SADiagnostics;
+--- www/super-agent/20-orchestrator.js ---
+27:r.SAOrchestrator={analyze,ask};
+28:if(typeof module!=="undefined")module.exports=r.SAOrchestrator;
+--- www/index.html ---
+40:<script src="admin.js" defer></script>
+352:        <div class="flex justify-between"><span>User Role:</span> <span class="font-bold text-amber-400" id="settings-user-role">Verified Creator</span></div>
+571:        <label class="block p-3 bg-gray-800 border border-gray-700 rounded-xl cursor-pointer"><div class="flex items-center gap-2 mb-1"><input type="radio" name="chan-type-radio" value="private" class="accent-amber-500"><span class="text-xs font-bold text-white"><i class="fa-solid fa-lock text-amber-400 mr-1"></i> Private</span></div><p class="text-[10px] text-gray-400 pl-5">Admin approve karega.</p></label>
+1145:          if (lastErr.name === 'NotAllowedError') msg = '❌ Camera permission BLOCK hai. URL ke 🔒 icon → Camera → Allow → reload karein.';
+2153:<script src="super-agent/01-config.js"></script>
+2154:<script src="super-agent/02-normalizer.js"></script>
+2155:<script src="super-agent/03-language.js"></script>
+2156:<script src="super-agent/04-intent.js"></script>
+2157:<script src="super-agent/05-entities.js"></script>
+2158:<script src="super-agent/06-knowledge.js"></script>
+2159:<script src="super-agent/07-memory.js"></script>
+2160:<script src="super-agent/08-tasks.js"></script>
+2161:<script src="super-agent/09-planner.js"></script>
+2162:<script src="super-agent/10-safety.js"></script>
+2163:<script src="super-agent/11-tools.js"></script>
+2164:<script src="super-agent/12-calculator.js"></script>
+2165:<script src="super-agent/13-code-review.js"></script>
+2166:<script src="super-agent/14-summarizer.js"></script>
+2167:<script src="super-agent/15-quality.js"></script>
+2168:<script src="super-agent/16-prompt-builder.js"></script>
+2169:<script src="super-agent/17-backend-client.js"></script>
+2170:<script src="super-agent/18-conversation.js"></script>
+2171:<script src="super-agent/19-diagnostics.js"></script>
+2172:<script src="super-agent/20-orchestrator.js"></script>
+2173:<script src="super-agent/21-app-bridge.js"></script>
+
+========== 6. API ROUTE INVENTORY ==========
+api/super-ai.js
+api/super-ai.js.bak
+
+========== 7. CONFIGURATION PRESENCE ONLY ==========
+NOT FOUND: .env
+FOUND: .env.local
+NOT FOUND: .env.production
+FOUND: vercel.json
+FOUND: capacitor.config.json
+FOUND: package.json
+Secret values were not intentionally printed.
+
+========== 8. GIT CHANGE SUMMARY ==========
+ M pay.js
+ M super-ai-watcher/logs/latest-report.txt
+?? ai-brain/
+?? backups/ai-chatbot-before-premium-20261024-135536.js
+?? backups/cache-fix-20261024-143135/
+?? backups/super-ai-api-before-identity.js
+?? backups/super-app-watcher-20261024-145224/
+?? logs/
+?? tools/real-app-watcher.sh
+?? tools/super-app-repair-watcher.sh
+?? www/super-agent/
+
+========== AUDIT LIMITATIONS ==========
+This report does not prove any feature works.
+No AI API calls, content deletion, deployment or source edits were performed.
+Human review is required before implementing changes.

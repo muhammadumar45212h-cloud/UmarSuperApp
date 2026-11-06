@@ -1,0 +1,44 @@
+{
+  "worker_name": "Super App Guardian",
+  "version": "1.0.0",
+  "mode": "audit_and_moderate",
+  "default_action": "review",
+  "permissions": {
+    "read_project_inventory": true,
+    "read_safe_application_logs": true,
+    "scan_application_health": true,
+    "review_user_reports": true,
+    "moderate_user_content": true,
+    "change_application_code": false,
+    "access_environment_secrets": false,
+    "access_unrelated_projects": false,
+    "publish_deployments": false,
+    "issue_refunds_or_payments": false,
+    "permanently_delete_content": false
+  },
+  "content_policy": {
+    "block_explicit_pornography": true,
+    "block_sexually_explicit_videos": true,
+    "block_explicit_sexual_images": true,
+    "block_explicit_captions": true,
+    "review_uncertain_content": true,
+    "quarantine_before_removal": true,
+    "preserve_evidence_for_moderator": true,
+    "allow_appeals": true,
+    "protect_private_content": true,
+    "never_log_media_or_credentials": true
+  },
+  "scanner": {
+    "mode": "read_only",
+    "scan_secrets_values": false,
+    "skip_directories": [
+      ".git",
+      "node_modules",
+      ".next",
+      "dist",
+      "build",
+      "android/.gradle",
+      "ai-brain/SUPER_APP_WORKER/logs"
+    ]
+  }
+}

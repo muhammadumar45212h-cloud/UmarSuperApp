@@ -1,0 +1,151 @@
+/* Super App Mirror Experience - isolated styles */
+#super-mirror-petals {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.super-mirror-petal {
+  position: absolute;
+  top: -12vh;
+  left: var(--left);
+  width: var(--size);
+  height: calc(var(--size) * 1.35);
+  border-radius: 100% 0 100% 0;
+  background: linear-gradient(135deg, #ffb7d5, #ff3d87 55%, #9b45ff);
+  opacity: .62;
+  filter: drop-shadow(0 0 7px rgba(255,70,160,.45));
+  animation: superPetalFall var(--duration) linear var(--delay) infinite;
+}
+@keyframes superPetalFall {
+  0% { transform: translate3d(0,-12vh,0) rotate(0deg); }
+  50% { transform: translate3d(var(--drift),50vh,0) rotate(220deg); }
+  100% { transform: translate3d(calc(var(--drift) * -0.5),115vh,0) rotate(520deg); }
+}
+
+#super-mirror-welcome,
+#super-mirror-birthday {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  text-align: center;
+  color: white;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,0,128,.35), transparent 38%),
+    radial-gradient(circle at 80% 75%, rgba(0,220,255,.28), transparent 40%),
+    linear-gradient(145deg, #09051d, #171044 48%, #090d16);
+  z-index: 100000;
+}
+#super-mirror-welcome[hidden],
+#super-mirror-birthday[hidden] { display: none !important; }
+
+.super-mirror-glow {
+  width: min(100%, 440px);
+  animation: superMirrorGlow 2.2s ease-in-out infinite alternate;
+}
+.super-mirror-logo {
+  font-size: clamp(38px, 11vw, 64px);
+  font-weight: 950;
+  letter-spacing: -2px;
+  line-height: 1.1;
+  background: linear-gradient(90deg,#fff,#ff8cc8,#7cecff,#fff);
+  background-size: 250% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: superMirrorShine 3s linear infinite;
+  text-shadow: 0 0 28px rgba(255,70,180,.22);
+}
+.super-mirror-subtitle {
+  margin-top: 18px;
+  color: #d9d5ff;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+@keyframes superMirrorGlow {
+  from { transform: scale(.98); filter: drop-shadow(0 0 8px #8a43ff); }
+  to { transform: scale(1.025); filter: drop-shadow(0 0 24px #ff3eaa); }
+}
+@keyframes superMirrorShine {
+  to { background-position: 250% center; }
+}
+
+#super-mirror-birthday {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,190,80,.3), transparent 36%),
+    radial-gradient(circle at 10% 85%, rgba(255,50,160,.3), transparent 40%),
+    linear-gradient(145deg,#16082c,#32105b 52%,#071b3b);
+}
+.super-birthday-card {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 34px 22px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 28px;
+  background: rgba(10,8,30,.58);
+  box-shadow: 0 0 45px rgba(255,80,180,.22);
+  backdrop-filter: blur(12px);
+}
+.super-birthday-cake {
+  font-size: 76px;
+  line-height: 1.3;
+  animation: superCakeBounce 1.4s ease-in-out infinite alternate;
+}
+.super-birthday-title {
+  margin: 12px 0;
+  font-size: clamp(30px,8vw,44px);
+  font-weight: 900;
+  background: linear-gradient(90deg,#ffe58b,#ff91d0,#91eaff);
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.super-birthday-name {
+  color: #fff;
+  font-size: 25px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.super-birthday-message {
+  margin: 12px 0 22px;
+  color: #e8ddff;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.super-birthday-close {
+  width: 100%;
+  padding: 13px;
+  border: 0;
+  border-radius: 14px;
+  color: white;
+  font-weight: 800;
+  background: linear-gradient(100deg,#e52e91,#7047e8,#168acb);
+}
+.super-birthday-confetti {
+  position: absolute;
+  top: -12px;
+  left: var(--x);
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--color);
+  animation: superConfetti 3.8s linear var(--wait) infinite;
+}
+@keyframes superConfetti {
+  to { transform: translate3d(var(--sway),110vh,0) rotate(760deg); opacity: .1; }
+}
+@keyframes superCakeBounce {
+  to { transform: translateY(-8px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .super-mirror-petal, .super-mirror-glow, .super-mirror-logo,
+  .super-birthday-cake, .super-birthday-confetti {
+    animation: none !important;
+  }
+}

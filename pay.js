@@ -7,13 +7,13 @@ let billingInitialized = false;
 
 // ⚠️ Yahan apni Play Console wali IDs daalna jab account ban jaye
 const PRODUCT_IDS = {
-  DIAMONDS_100: 'com.supersphere.app.diamonds100',
-  DIAMONDS_500: 'com.supersphere.app.diamonds500',
-  DIAMONDS_1000: 'com.supersphere.app.diamonds1000',
-  PREMIUM_MONTHLY: 'com.supersphere.app.premium_monthly'
+  DIAMONDS_100: 'com.umar.superapp.diamonds100',
+  DIAMONDS_500: 'com.umar.superapp.diamonds500',
+  DIAMONDS_1000: 'com.umar.superapp.diamonds1000',
+  PREMIUM_MONTHLY: 'com.umar.superapp.premium_monthly'
 };
 
-const APP_PACKAGE_NAME = 'com.supersphere.app'; // Aapka package name
+const APP_PACKAGE_NAME = 'com.umar.superapp'; // Aapka package name
 
 async function initPayments() {
   if (window.Capacitor && window.Capacitor.Plugins.InAppPurchases) {

@@ -1,0 +1,19 @@
+{
+  "appId": "com.umar.superapp",
+  "appName": "Super App",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#090d16",
+      "showSpinner": false
+    },
+    "Camera": {
+      "androidPermission": true
+    }
+  }
+}

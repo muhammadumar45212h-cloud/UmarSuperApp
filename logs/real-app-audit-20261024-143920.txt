@@ -1,0 +1,112 @@
+=== SUPER APP REAL-FEATURE WATCHER ===
+Sat Oct 24 14:39:20 PKT 2026
+Project: /data/data/com.termux/files/home/SuperSphere-New
+
+=== 1. GIT STATUS ===
+ M super-ai-watcher/logs/latest-report.txt
+?? backups/ai-chatbot-before-premium-20261024-135536.js
+?? backups/cache-fix-20261024-143135/
+?? backups/super-ai-api-before-identity.js
+?? logs/
+?? tools/real-app-watcher.sh
+?? www/super-agent/
+Remote:
+origin	https://github.com/muhammadumar45212h-cloud/UmarSuperApp.git (fetch)
+origin	https://github.com/muhammadumar45212h-cloud/UmarSuperApp.git (push)
+
+=== 2. REQUIRED FILES ===
+FOUND  www/index.html
+FOUND  www/sw.js
+FOUND  www/ai-chatbot.js
+FOUND  api/super-ai.js
+FOUND  www/super-agent/17-backend-client.js
+FOUND  real-ads.js
+FOUND  ads-real.js
+FOUND  pay.js
+FOUND  payments.js
+
+=== 3. JAVASCRIPT SYNTAX CHECKS ===
+
+=== 4. INTEGRATION MARKERS ===
+www/index.html:334:      <button onclick="openPaymentPage()" class="w-full py-2.5 btn-gradient text-white rounded-lg text-xs font-bold"><i class="fa-solid fa-credit-card"></i> Payment Gateway</button>
+www/index.html:358:  <!-- PAYMENT MODAL -->
+www/index.html:359:  <div id="paymentModal" class="fullscreen-modal hidden p-4 overflow-y-auto no-scrollbar space-y-5 bg-gray-950">
+www/index.html:361:      <h2 class="text-base font-bold text-green-400 flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> Payment Gateway</h2>
+www/index.html:362:      <button onclick="closeModal('paymentModal')" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+www/index.html:420:        <!-- ═══ APNI ADMOB ID YAHAN ═══ -->
+www/index.html:631:    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+www/index.html:713:    function openPaymentPage() { updateWalletUI(); openModal('paymentModal'); }
+www/index.html:1070:        openPaymentPage(); return;
+www/ai-chatbot.js:218:      const response = await fetch("/api/super-ai", {
+www/super-agent/action-policy.js:7:      pattern: /\b(pay|payment|transfer|withdraw|purchase|buy now|send money)\b|paisa bhej|paise bhej|payment karo/i
+www/super-agent/knowledge-index.js:10:    {name:"finance", words:["finance","budget","payment","wallet","trading","risk","price","investment"]},
+www/super-agent/01-config.js:5:backend:"/api/super-ai",requestTimeoutMs:45000,
+www/super-agent/10-safety.js:4:["financial",/\b(pay|transfer|withdraw|purchase|buy now|send money)\b|paisa bhej|payment karo/i],
+www/super-agent/17-backend-client.js:5:const config=r.SAConfig||{backend:"/api/super-ai",requestTimeoutMs:45000};
+www/super-agent/17-backend-client.js:9:const response=await r.fetch(config.backend||"/api/super-ai",{
+api/super-ai.js:9:    process.env.GROQ_API_KEY_1,
+api/super-ai.js:10:    process.env.GROQ_API_KEY_2
+real-ads.js:3:   SUPER APP — REAL ADMOB ADS
+real-ads.js:5:   Capacitor AdMob legacy API
+real-ads.js:42:      const AdMob = window.Capacitor?.Plugins?.AdMob;
+real-ads.js:44:      if (!AdMob) {
+real-ads.js:46:          'AdMob plugin missing. Run inside the configured Android app.'
+real-ads.js:51:      this.plugin = AdMob;
+real-ads.js:54:        await AdMob.initialize({
+real-ads.js:60:        console.log('AdMob initialized for production.');
+real-ads.js:72:        console.error('AdMob initialization failed:', error);
+real-ads.js:82:          'This AdMob plugin version does not expose addListener.'
+real-ads.js:175:          'Installed AdMob plugin does not support this Rewarded API.'
+real-ads.js:177:        this.toast('AdMob plugin version check karna zaroori hai.');
+ads-real.js:2:// ⚡ SUPER APP - REAL ADMOB INTEGRATION
+ads-real.js:11:  // ⚠️ ADMOB REAL IDs
+ads-real.js:19:    // ⏳ Baaki IDs AdMob Console se banayein (Banner jaise):
+ads-real.js:20:    // AdMob Console → Ad units → Create ad unit
+ads-real.js:42:      if (!window.Capacitor || !window.Capacitor.Plugins.AdMob) {
+ads-real.js:43:        console.log("⚠️ AdMob plugin missing (browser mode)");
+ads-real.js:49:        const { AdMob } = window.Capacitor.Plugins;
+ads-real.js:50:        this.plugin = AdMob;
+ads-real.js:52:        await AdMob.initialize({
+ads-real.js:63:        AdMob.addListener('onInterstitialDismissed', () => {
+ads-real.js:67:        AdMob.addListener('onRewardedVideoAdReward', (reward) => {
+ads-real.js:74:        console.error("❌ AdMob init error:", e);
+pay.js:18:async function initPayments() {
+pay.js:60:      closeModal('paymentModal');
+pay.js:64:    else showToast("Payment failed: " + e.message);
+pay.js:78:window.addEventListener('load', () => { setTimeout(initPayments, 2500); });
+payments.js:2:   SUPER APP - PAYMENTS, KYC & REFERRAL MODULE
+payments.js:3:   Real payment info + Manual verification system
+payments.js:21:  // REAL PAYMENT ACCOUNTS (Aapke accounts)
+payments.js:23:  const PAYMENT_ACCOUNTS = {
+payments.js:71:      // Get all payments
+payments.js:72:      const paySnap = await firebase.firestore().collection('payments')
+payments.js:77:      const payments = [];
+payments.js:83:        payments.push({ id: d.id, ...data });
+payments.js:119:          <h3 class="text-xs font-bold text-cyan-400 mb-2">Recent Payments</h3>
+payments.js:120:          <div id="admin-payment-list" class="space-y-2"></div>
+payments.js:124:      const list = document.getElementById('admin-payment-list');
+payments.js:125:      payments.slice(0, 20).forEach(p => {
+payments.js:145:  // BUY DIAMONDS - Real payment info
+payments.js:161:        <p class="text-[11px] text-gray-300">2. Payment karein (Easypaisa/JazzCash/SadaPay)</p>
+payments.js:168:      <div id="payment-instructions" class="hidden bg-cyan-900/20 border border-cyan-500/40 rounded-xl p-4 space-y-3">
+payments.js:169:        <h3 class="text-xs font-bold text-cyan-400">💳 Payment Details</h3>
+payments.js:184:          <label class="text-[10px] text-gray-400 block mb-1">Payment Screenshot *</label>
+payments.js:185:          <input type="file" id="payment-screenshot" accept="image/*" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-lg text-xs text-white">
+payments.js:189:          <input type="text" id="payment-txn" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-lg text-xs text-white" placeholder="e.g. 1234">
+payments.js:224:        document.getElementById('payment-instructions').classList.remove('hidden');
+payments.js:240:    const screenshot = document.getElementById('payment-screenshot');
+payments.js:241:    const txn = document.getElementById('payment-txn').value.trim();
+payments.js:244:      toast('Payment screenshot upload karein');
+payments.js:251:        await firebase.firestore().collection('payments').add({
+payments.js:654:    console.log('✅ payments.js loaded');
+
+=== 5. SECRET SAFETY ===
+No environment values or API keys are printed by this report.
+Do not commit .env files, tokens, private keys, or service-account JSON.
+
+=== 6. DEPLOYMENT CHECK ===
+Found vercel.json
+
+=== AUDIT FINISHED ===
+Report: logs/real-app-audit-20261024-143920.txt
+This watcher audits only; it does not claim untested features are real.

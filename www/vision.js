@@ -103,8 +103,8 @@
       }
 
       if (!modelReady || !nsfwModel) {
-        console.warn('⚠️ Model not ready, using basic check');
-        return await basicImageCheck(imageSource);
+        console.warn('Moderation model unavailable; upload requires review');
+        return { safe: false, reviewRequired: true, method: 'model-unavailable' };
       }
 
       // Create image element
@@ -136,7 +136,7 @@
 
     } catch(e) {
       console.warn('Moderation error:', e);
-      return { safe: true, method: 'error', error: e.message };
+      return { safe: false, reviewRequired: true, method: 'error', error: e.message };
     }
   };
 
@@ -255,7 +255,7 @@
 
     } catch(e) {
       console.warn('Video moderation error:', e);
-      return { safe: true, method: 'error', error: e.message };
+      return { safe: false, reviewRequired: true, method: 'error', error: e.message };
     }
   };
 
@@ -298,6 +298,11 @@
 
         console.log('Image moderation:', result);
 
+        if (result.reviewRequired) {
+          toast('⚠️ Image scan failed. Upload rok di gayi; dobara try karein.');
+          return;
+        }
+
         if (!result.safe) {
           await reportBadContent(user, 'image', result);
           toast('❌ Ye image inappropriate hai. Koi aur try karein.');
@@ -321,14 +326,20 @@
 
           console.log('Video moderation:', result);
 
+          if (result.reviewRequired) {
+            toast('⚠️ Video scan failed. Upload rok di gayi; dobara try karein.');
+            return;
+          }
+
           if (!result.safe) {
             await reportBadContent(user, 'video', result);
             toast('❌ Ye video inappropriate hai. Post nahi hogi.');
             return;
           }
         } else {
-          // Large video — warn + proceed
-          console.log('Large video — skipping full moderation');
+          // Do not allow a video that this scanner did not inspect.
+          toast('⚠️ Video 5 MB se bari hai; filhal upload rok di gayi hai.');
+          return;
         }
       }
     }
@@ -337,6 +348,10 @@
     if (directUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(directUrl)) {
       toast('🔍 Scanning URL...');
       const result = await window.__moderateImage(directUrl);
+      if (result.reviewRequired) {
+        toast('⚠️ Image scan failed. Upload rok di gayi; dobara try karein.');
+        return;
+      }
       if (!result.safe) {
         await reportBadContent(user, 'image', result);
         toast('❌ URL mein inappropriate content hai');
